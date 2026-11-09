@@ -86,9 +86,8 @@ class MainActivity : Activity() {
 
         label("3. Ajustes").textSize = 18f
         label(
-            "Enlaces que se abren al iniciar (hasta 5). Fecha: si la dejas vacía se abre siempre; " +
-                "si pones una (por ejemplo 25/12/2026) solo se abre ese día. " +
-                "Se guardan hasta que pulses ✕."
+            "Enlaces que se abren al iniciar (hasta 5). La fecha es solo una nota para ti: " +
+                "no cambia nada. Se guardan hasta que pulses ✕."
         )
         val linksWatcher = object : TextWatcher {
             override fun afterTextChanged(e: Editable?) { saveLinks() }

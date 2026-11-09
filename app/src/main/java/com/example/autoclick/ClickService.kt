@@ -281,8 +281,7 @@ class ClickService : AccessibilityService() {
         val links = ArrayList<String>()
         for (i in 0 until 5) {
             val u = (prefs.getString("link$i", "") ?: "").trim()
-            val d = prefs.getString("date$i", "") ?: ""
-            if (u.isNotEmpty() && dateMatches(d)) links.add(u)
+            if (u.isNotEmpty()) links.add(u)
         }
         val linkWaitMs = prefs.getInt("linkWait", 3) * 1000L
 
@@ -328,21 +327,6 @@ class ClickService : AccessibilityService() {
         } catch (e: Exception) {
             toast("No se pudo abrir el enlace")
         }
-    }
-
-    /** Fecha vacía o que no se entiende = el enlace se abre siempre. Formato d/m/aaaa (el año es opcional). */
-    private fun dateMatches(raw: String): Boolean {
-        val t = raw.trim()
-        if (t.isEmpty()) return true
-        val p = t.split("/", "-", ".").map { it.trim() }
-        val d = p.getOrNull(0)?.toIntOrNull() ?: return true
-        val m = p.getOrNull(1)?.toIntOrNull() ?: return true
-        var y = p.getOrNull(2)?.toIntOrNull()
-        if (y != null && y < 100) y += 2000
-        val c = java.util.Calendar.getInstance()
-        val sameDay = c.get(java.util.Calendar.DAY_OF_MONTH) == d &&
-            c.get(java.util.Calendar.MONTH) + 1 == m
-        return sameDay && (y == null || c.get(java.util.Calendar.YEAR) == y)
     }
 
     // ---------- Secuencia ----------
