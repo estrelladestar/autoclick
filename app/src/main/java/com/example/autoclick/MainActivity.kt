@@ -5,6 +5,8 @@ import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.media.projection.MediaProjectionManager
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.text.Editable
@@ -31,6 +33,7 @@ class MainActivity : Activity() {
     private lateinit var precision: EditText
     private var steps = mutableListOf<Step>()
     private val pickCode = 42
+    private val captureCode = 43
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,6 +72,17 @@ class MainActivity : Activity() {
 
         button("1. Activar servicio de accesibilidad") {
             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+        }
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            label(
+                "Tu Android es anterior a la versión 11: para buscar imágenes y palabras hace falta " +
+                    "permitir la captura de pantalla. Hazlo cada vez que abras la app."
+            )
+            button("1b. Permitir captura de pantalla") {
+                val mgr = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+                startActivityForResult(mgr.createScreenCaptureIntent(), captureCode)
+            }
         }
 
         label("2. Pasos (se ejecutan en este orden):").textSize = 18f
@@ -300,6 +314,18 @@ class MainActivity : Activity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == captureCode) {
+            if (resultCode == RESULT_OK && data != null) {
+                val i = Intent(this, ScreenCaptureService::class.java)
+                    .putExtra("code", resultCode)
+                    .putExtra("data", data)
+                startForegroundService(i)
+                toast("Captura de pantalla permitida")
+            } else {
+                toast("Has cancelado el permiso de captura de pantalla")
+            }
+            return
+        }
         if (requestCode != pickCode || resultCode != RESULT_OK) return
         val uri = data?.data ?: return
         val id = System.currentTimeMillis()

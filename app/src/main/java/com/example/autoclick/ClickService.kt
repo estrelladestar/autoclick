@@ -11,6 +11,7 @@ import android.graphics.Path
 import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.net.Uri
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.view.Display
@@ -127,6 +128,7 @@ class ClickService : AccessibilityService() {
 
     override fun onUnbind(intent: Intent?): Boolean {
         stopClicking(); hideOverlay(); closePicker(); instance = null
+        ScreenCaptureService.instance?.stopSelf()
         return super.onUnbind(intent)
     }
 
@@ -299,6 +301,13 @@ class ClickService : AccessibilityService() {
 
         steps = StepStore.load(this)
         if (steps.isEmpty()) { toast("Añade al menos un paso en la app"); return }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R &&
+            ScreenCaptureService.instance == null &&
+            steps.any { it.type != "point" }
+        ) {
+            toast("Primero pulsa \"Permitir captura de pantalla\" en la app")
+            return
+        }
 
         templates.clear()
         for (s in steps) {
@@ -396,6 +405,39 @@ class ClickService : AccessibilityService() {
         main.postDelayed({ runStep() }, delayMs)
     }
 
+    // ---------- Captura de pantalla ----------
+    /**
+     * Android 11 o superior: captura con el servicio de accesibilidad.
+     * Android 10 o inferior (por ejemplo EMUI 12): captura con MediaProjection
+     * (ScreenCaptureService), que se permite desde un botón de la app.
+     * ok() se llama en el hilo de trabajo; fail() si la captura falló y hay que reintentar.
+     */
+    private fun capture(ok: (Bitmap?) -> Unit, fail: () -> Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            takeScreenshot(Display.DEFAULT_DISPLAY, worker, object : TakeScreenshotCallback {
+                override fun onSuccess(result: ScreenshotResult) {
+                    val hw = result.hardwareBuffer
+                    val bmp = Bitmap.wrapHardwareBuffer(hw, result.colorSpace)
+                        ?.copy(Bitmap.Config.ARGB_8888, false)
+                    hw.close()
+                    ok(bmp)
+                }
+
+                override fun onFailure(errorCode: Int) { fail() }
+            })
+        } else {
+            val svc = ScreenCaptureService.instance
+            if (svc == null) {
+                main.post {
+                    stopClicking()
+                    toast("Falta permitir la captura de pantalla (botón en la app)")
+                }
+            } else {
+                worker.execute { ok(svc.grab()) }
+            }
+        }
+    }
+
     // ---------- Buscar palabra ----------
     private fun findWordStep(step: Step, id: Int) {
         val words = step.value.split(",").map { it.trim() }.filter { it.isNotEmpty() }
@@ -414,13 +456,10 @@ class ClickService : AccessibilityService() {
         }
 
         // 2) Captura de pantalla + OCR
-        takeScreenshot(Display.DEFAULT_DISPLAY, worker, object : TakeScreenshotCallback {
-            override fun onSuccess(result: ScreenshotResult) {
-                val hw = result.hardwareBuffer
-                val bmp = Bitmap.wrapHardwareBuffer(hw, result.colorSpace)
-                    ?.copy(Bitmap.Config.ARGB_8888, false)
-                hw.close()
-                if (bmp == null) { main.post { if (id == runId) miss() }; return }
+        capture({ bmp ->
+            if (bmp == null) {
+                main.post { if (id == runId) miss() }
+            } else {
                 recognizer.process(InputImage.fromBitmap(bmp, 0))
                     .addOnSuccessListener {
                         if (id == runId) {
@@ -430,10 +469,8 @@ class ClickService : AccessibilityService() {
                     }
                     .addOnFailureListener { if (id == runId) miss() }
             }
-
-            override fun onFailure(errorCode: Int) {
-                if (id == runId && running) main.postDelayed({ runStep() }, maxOf(delayMs, 1000L))
-            }
+        }, {
+            if (id == runId && running) main.postDelayed({ runStep() }, maxOf(delayMs, 1000L))
         })
     }
 
@@ -459,13 +496,10 @@ class ClickService : AccessibilityService() {
             toast("Falta la imagen del paso ${idx + 1}")
             return
         }
-        takeScreenshot(Display.DEFAULT_DISPLAY, worker, object : TakeScreenshotCallback {
-            override fun onSuccess(result: ScreenshotResult) {
-                val hw = result.hardwareBuffer
-                val bmp = Bitmap.wrapHardwareBuffer(hw, result.colorSpace)
-                    ?.copy(Bitmap.Config.ARGB_8888, false)
-                hw.close()
-                if (bmp == null) { main.post { if (id == runId) miss() }; return }
+        capture({ bmp ->
+            if (bmp == null) {
+                main.post { if (id == runId) miss() }
+            } else {
                 val p = findImage(bmp, t)
                 main.post {
                     if (id == runId) {
@@ -473,10 +507,8 @@ class ClickService : AccessibilityService() {
                     }
                 }
             }
-
-            override fun onFailure(errorCode: Int) {
-                if (id == runId && running) main.postDelayed({ runStep() }, maxOf(delayMs, 1000L))
-            }
+        }, {
+            if (id == runId && running) main.postDelayed({ runStep() }, maxOf(delayMs, 1000L))
         })
     }
 
