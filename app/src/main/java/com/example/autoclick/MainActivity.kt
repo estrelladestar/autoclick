@@ -22,7 +22,8 @@ import java.io.File
 
 class MainActivity : Activity() {
     private lateinit var listBox: LinearLayout
-    private lateinit var link: EditText
+    private val linkFields = ArrayList<EditText>()
+    private val dateFields = ArrayList<EditText>()
     private lateinit var linkWait: EditText
     private lateinit var repeat: EditText
     private lateinit var stepTimeout: EditText
@@ -84,12 +85,47 @@ class MainActivity : Activity() {
         }
 
         label("3. Ajustes").textSize = 18f
-        label("Enlace que se abre al iniciar (opcional):")
-        link = field(
-            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI,
-            prefs.getString("link", "") ?: ""
+        label(
+            "Enlaces que se abren al iniciar (hasta 5). Fecha: si la dejas vacía se abre siempre; " +
+                "si pones una (por ejemplo 25/12/2026) solo se abre ese día. " +
+                "Se guardan hasta que pulses ✕."
         )
-        label("Segundos de espera tras abrir el enlace:")
+        val linksWatcher = object : TextWatcher {
+            override fun afterTextChanged(e: Editable?) { saveLinks() }
+            override fun beforeTextChanged(a: CharSequence?, b: Int, c: Int, d: Int) {}
+            override fun onTextChanged(a: CharSequence?, b: Int, c: Int, d: Int) {}
+        }
+        val oldLink = prefs.getString("link", "") ?: ""
+        for (i in 0 until 5) {
+            val row = LinearLayout(ctx).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                root.addView(this)
+            }
+            val l = EditText(ctx).apply {
+                inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
+                hint = "Enlace " + (i + 1)
+                setText(prefs.getString("link$i", if (i == 0) oldLink else "") ?: "")
+            }
+            val d = EditText(ctx).apply {
+                inputType = InputType.TYPE_CLASS_TEXT
+                hint = "dd/mm/aaaa"
+                minEms = 6
+                setText(prefs.getString("date$i", "") ?: "")
+            }
+            val x = Button(ctx).apply {
+                text = "✕"
+                setOnClickListener { l.setText(""); d.setText("") }
+            }
+            row.addView(l, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+            row.addView(d)
+            row.addView(x)
+            l.addTextChangedListener(linksWatcher)
+            d.addTextChangedListener(linksWatcher)
+            linkFields.add(l)
+            dateFields.add(d)
+        }
+        label("Segundos de espera tras abrir cada enlace:")
         linkWait = field(InputType.TYPE_CLASS_NUMBER, prefs.getInt("linkWait", 3).toString())
         label("Veces que se repite toda la secuencia (0 = sin parar):")
         repeat = field(InputType.TYPE_CLASS_NUMBER, prefs.getInt("repeat", 1).toString())
@@ -134,9 +170,18 @@ class MainActivity : Activity() {
             .putLong("delay", (pause.text.toString().toLongOrNull() ?: 500L).coerceAtLeast(100L))
             .putInt("repeat", (repeat.text.toString().toIntOrNull() ?: 1).coerceAtLeast(0))
             .putInt("timeout", (stepTimeout.text.toString().toIntOrNull() ?: 0).coerceAtLeast(0))
-            .putString("link", link.text.toString().trim())
             .putInt("linkWait", (linkWait.text.toString().toIntOrNull() ?: 3).coerceAtLeast(0))
             .apply()
+        saveLinks()
+    }
+
+    private fun saveLinks() {
+        val e = getSharedPreferences("cfg", Context.MODE_PRIVATE).edit()
+        for (i in 0 until linkFields.size) {
+            e.putString("link$i", linkFields[i].text.toString().trim())
+            e.putString("date$i", dateFields[i].text.toString().trim())
+        }
+        e.apply()
     }
 
     private fun refreshList() {
