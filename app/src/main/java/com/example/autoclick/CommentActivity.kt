@@ -5,6 +5,7 @@ import android.app.AlertDialog
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.graphics.Typeface
 import android.speech.RecognizerIntent
 import android.os.Bundle
@@ -13,6 +14,7 @@ import android.view.Gravity
 import android.view.View
 import android.widget.*
 import org.json.JSONObject
+import java.io.File
 
 class CommentActivity : Activity() {
     private val defaultScript = """# Cada línea es un paso. Lo que va después de | son segundos de espera extra.
@@ -40,7 +42,9 @@ repetir 10"""
     private lateinit var savedSpinner: Spinner
     private lateinit var askBox: EditText
     private lateinit var apiKeyBox: EditText
+    private lateinit var imagesBox: LinearLayout
     private val voiceCode = 77
+    private val pickCode = 42
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -104,6 +108,24 @@ repetir 10"""
             setText(prefs.getString("apiKey", "") ?: "")
             root.addView(this)
         }
+
+        // ---------- Imágenes ----------
+        label(
+            "🖼 IMÁGENES que el guion puede pulsar. En el guion son «imagen 1», «imagen 2»… en este orden. " +
+            "Sube una captura recortada del botón que quieres pulsar:"
+        )
+        imagesBox = LinearLayout(ctx).apply {
+            orientation = LinearLayout.VERTICAL
+            root.addView(this)
+        }
+        Button(ctx).apply {
+            text = "+ Añadir imagen"
+            setOnClickListener {
+                startActivityForResult(Intent(Intent.ACTION_GET_CONTENT).apply { type = "image/*" }, pickCode)
+            }
+            root.addView(this)
+        }
+        refreshImages()
         label(
             "GUION (un paso por línea):\n" +
             "• esperar 5 → espera 5 segundos (esperar 5-10 = al azar entre 5 y 10)\n" +
@@ -217,8 +239,17 @@ repetir 10"""
                     s == null -> toast("Primero activa el servicio de accesibilidad de AutoClick Imagen")
                     else -> {
                         saveAll()
-                        Macro.start(s, script.text.toString(), list)
-                        moveTaskToBack(true)
+                        val missing = problems(script.text.toString())
+                        if (missing.isEmpty()) {
+                            startScript(s, list)
+                        } else {
+                            AlertDialog.Builder(this@CommentActivity)
+                                .setTitle("Antes de empezar, falta esto")
+                                .setMessage("• " + missing.joinToString("\n\n• "))
+                                .setPositiveButton("Iniciar igualmente") { _, _ -> startScript(s, list) }
+                                .setNegativeButton("Cancelar", null)
+                                .show()
+                        }
                     }
                 }
             }
@@ -239,6 +270,7 @@ repetir 10"""
         if (box.text.toString() != c) box.setText(c)
         val f = prefs.getString("friends", "") ?: ""
         if (friendsBox.text.toString() != f) friendsBox.setText(f)
+        refreshImages()
     }
 
     private fun saveAll() {
@@ -277,6 +309,140 @@ repetir 10"""
             askBox.setText(if (old.isEmpty()) said else "$old. $said")
             askBox.setSelection(askBox.text.length)
         }
+        if (requestCode == pickCode && resultCode == RESULT_OK) {
+            val uri = data?.data ?: return
+            addImage(uri)
+        }
+    }
+
+    private fun startScript(s: ClickService, list: List<String>) {
+        saveAll()
+        Macro.start(s, script.text.toString(), list)
+        moveTaskToBack(true)
+    }
+
+    /** Cosas que faltan para que el guion funcione (vacío si todo está listo). */
+    private fun problems(scriptText: String): List<String> {
+        var maxImage = 0
+        var linkNo = 0
+        var usesLink = false
+        var usesComments = false
+        var usesMentions = false
+        for (raw in scriptText.lines()) {
+            var line = raw.trim()
+            if (line.isEmpty() || line.startsWith("#")) continue
+            val bar = line.lastIndexOf('|')
+            if (bar >= 0) line = line.substring(0, bar).trim()
+            val sp = line.indexOf(' ')
+            val op = (if (sp < 0) line else line.substring(0, sp)).lowercase()
+            val arg = if (sp < 0) "" else line.substring(sp + 1).trim().lowercase()
+            when (op) {
+                "imagen" -> maxImage = maxOf(maxImage, arg.toIntOrNull() ?: 1)
+                "enlace" -> {
+                    usesLink = true
+                    linkNo = maxOf(linkNo, arg.toIntOrNull() ?: 0)
+                }
+                "escribir" -> {
+                    if (arg == "azar" || arg == "lista" || arg.startsWith("copiado")) usesComments = true
+                    if (arg.startsWith("menciones") || (arg.startsWith("copiado") && arg.contains("mencion"))) usesMentions = true
+                }
+            }
+        }
+        val out = ArrayList<String>()
+        val images = StepStore.load(this).count { it.type == "image" }
+        if (maxImage > images) {
+            out.add(
+                if (images == 0) "El guion usa imágenes, pero no hay ninguna subida. Añádelas en el panel «Imágenes»."
+                else "El guion usa la imagen $maxImage, pero solo tienes $images subida(s). Añade las que falten en el panel «Imágenes»."
+            )
+        }
+        if (usesLink) {
+            val links = (0 until 5).map { (prefs.getString("link$it", "") ?: "").trim() }
+            val marked = (prefs.getString("linkSelUrl", "") ?: "").trim()
+            if (linkNo > 0) {
+                if (links.getOrNull(linkNo - 1).isNullOrEmpty()) out.add("El guion abre el enlace $linkNo, pero está vacío.")
+            } else if (marked.isEmpty() && links.all { it.isEmpty() }) {
+                out.add("El guion abre un enlace, pero no hay ninguno. Ponlo en «Enlaces del sorteo» del Etiquetador o en «Enlace 1» de la pantalla principal.")
+            }
+        }
+        if (usesComments && box.text.toString().lines().none { it.trim().isNotEmpty() }) {
+            out.add("El guion escribe comentarios copiados, pero «TUS COMENTARIOS» está vacío (se rellena al generar la lista en el Etiquetador).")
+        }
+        if (usesMentions && friendsBox.text.toString().lines().none { it.trim().isNotEmpty() }) {
+            out.add("El guion escribe menciones, pero la lista de menciones está vacía (escríbelas en el Etiquetador).")
+        }
+        for (bad in Assistant.badLines(scriptText)) out.add("La app no entiende la línea: $bad")
+        return out
+    }
+
+    // ---------- Imágenes ----------
+    private fun refreshImages() {
+        imagesBox.removeAllViews()
+        val imgs = StepStore.load(this).filter { it.type == "image" }
+        if (imgs.isEmpty()) {
+            imagesBox.addView(TextView(this).apply { text = "(Aún no hay imágenes)" })
+            return
+        }
+        imgs.forEachIndexed { n, st ->
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(0, 12, 0, 12)
+            }
+            val opts = BitmapFactory.Options().apply { inSampleSize = 4 }
+            val thumb = BitmapFactory.decodeFile(File(filesDir, st.value).path, opts)
+            row.addView(ImageView(this).apply {
+                adjustViewBounds = true
+                maxHeight = 140
+                maxWidth = 280
+                if (thumb != null) setImageBitmap(thumb)
+            })
+            row.addView(
+                TextView(this).apply {
+                    text = "  Imagen " + (n + 1)
+                    textSize = 16f
+                },
+                LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            )
+            row.addView(Button(this).apply {
+                text = "✕"
+                setOnClickListener { confirmDeleteImage(st, n + 1) }
+            })
+            imagesBox.addView(row)
+        }
+    }
+
+    private fun confirmDeleteImage(st: Step, number: Int) {
+        AlertDialog.Builder(this)
+            .setTitle("Borrar la imagen $number")
+            .setMessage("Las imágenes siguientes pasarán a tener un número menos. Revisa tu guion.")
+            .setPositiveButton("Borrar") { _, _ ->
+                val all = StepStore.load(this)
+                all.removeAll { it.id == st.id }
+                File(filesDir, st.value).delete()
+                StepStore.save(this, all)
+                refreshImages()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun addImage(uri: android.net.Uri) {
+        val id = System.currentTimeMillis()
+        val name = "img_" + id + ".png"
+        try {
+            contentResolver.openInputStream(uri)?.use { input ->
+                File(filesDir, name).outputStream().use { input.copyTo(it) }
+            }
+        } catch (e: Exception) {
+            toast("No se pudo leer la imagen")
+            return
+        }
+        val all = StepStore.load(this)
+        all.add(Step(id, "image", name))
+        StepStore.save(this, all)
+        refreshImages()
+        toast("Añadida como imagen " + all.count { it.type == "image" })
     }
 
     private fun createFromAsk() {
@@ -296,10 +462,7 @@ repetir 10"""
             runOnUiThread {
                 if (isFinishing) return@runOnUiThread
                 if (script != null) {
-                    val bad = Assistant.badLines(script)
-                    val warn = if (bad.isEmpty()) "" else
-                        "\n\nOjo, la app no entiende estas líneas; corrígelas o bórralas antes de usarlo:\n" + bad.joinToString("\n")
-                    showProposal(script, "Lo ha creado la IA. Revísalo antes de usarlo." + warn)
+                    showProposal(script, "Lo ha creado la IA. Revísalo antes de usarlo.")
                 } else {
                     useLocal(local, "No he podido usar la IA (" + (error ?: "sin conexión") + "). ")
                 }
@@ -326,6 +489,8 @@ repetir 10"""
     }
 
     private fun showProposal(text: String, note: String) {
+        val missing = problems(text)
+        val fullNote = if (missing.isEmpty()) note else note + "\n\nOjo, antes de iniciar:\n• " + missing.joinToString("\n• ")
         val ed = EditText(this)
         ed.setText(text)
         ed.typeface = Typeface.MONOSPACE
@@ -335,7 +500,7 @@ repetir 10"""
         ed.setPadding(48, 24, 48, 24)
         AlertDialog.Builder(this)
             .setTitle("Guion creado (puedes cambiarlo aquí)")
-            .setMessage(note)
+            .setMessage(fullNote)
             .setView(ScrollView(this).apply { addView(ed) })
             .setPositiveButton("Usar este guion") { _, _ ->
                 script.setText(ed.text.toString())

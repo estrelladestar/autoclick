@@ -38,6 +38,9 @@ ASISTENTE (decirle lo que quieres)
 6. «vuelve a pulsar» (o «de nuevo») repite el último toque. «pulsa el icono del perfil de abajo a la derecha» toca esa zona de la pantalla.
 7. «cambia a otra cuenta» mantiene pulsado el perfil para abrir la lista de cuentas; para elegir una di su nombre («cambia a la cuenta NOMBRE») o sube una captura suya y di «pulsa la imagen N».
 
+IMÁGENES
+«imagen 1» del guion es la primera imagen de la lista, «imagen 2» la segunda… (se cuentan solo las imágenes). Puedes añadirlas en la pantalla principal o en el panel «Imágenes» de la pantalla del guion. Sube una captura recortada del botón que quieres pulsar. Al pulsar «Iniciar», la app comprueba que no falte nada (imágenes, enlaces, comentarios, menciones) y te avisa antes de empezar; también te avisa al crear un guion con el asistente.
+
 GUIONES GUARDADOS
 Con «Guardar como…» guardas el guion con un nombre (por ejemplo Instagram o TikTok). Elígelo en la lista para cargarlo, y «Borrar este» lo elimina.
 

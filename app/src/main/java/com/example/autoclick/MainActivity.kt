@@ -90,6 +90,10 @@ class MainActivity : Activity() {
         }
 
         label("2. Pasos (se ejecutan en este orden):").textSize = 18f
+        label(
+            "Para el guion: «imagen 1» es la primera imagen de esta lista, «imagen 2» la segunda… " +
+            "(solo se cuentan las imágenes, aunque haya otros pasos en medio)."
+        )
         listBox = LinearLayout(ctx).apply {
             orientation = LinearLayout.VERTICAL
             root.addView(this)
@@ -229,7 +233,9 @@ class MainActivity : Activity() {
             listBox.addView(TextView(this).apply { text = "(Aún no hay pasos)" })
             return
         }
+        var imgNo = 0
         steps.forEachIndexed { i, s ->
+            if (s.type == "image") imgNo++
             val row = LinearLayout(this@MainActivity).apply {
                 orientation = LinearLayout.VERTICAL
                 setPadding(0, 24, 0, 24)
@@ -250,7 +256,7 @@ class MainActivity : Activity() {
                 })
             }
             val title = when (s.type) {
-                "image" -> "Imagen"
+                "image" -> "Imagen $imgNo"
                 "word" -> "Palabra: " + s.value
                 else -> "Punto (" + s.x.toInt() + ", " + s.y.toInt() + ")"
             }
