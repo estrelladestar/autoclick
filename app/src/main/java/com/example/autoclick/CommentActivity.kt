@@ -79,4 +79,4 @@ repetir 10"""
     }
 
     private fun toast(m: String) = Toast.makeText(this, m, Toast.LENGTH_LONG).show()
-},
+}
