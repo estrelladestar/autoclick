@@ -11,13 +11,13 @@ import android.widget.*
 class CommentActivity : Activity() {
     private val defaultScript = """# Cada línea es un paso. Lo que va después de | son segundos de espera extra.
 # Abre el siguiente enlace de la app, espera a que cargue,
-# abre la caja de comentarios, escribe uno al azar de tu lista
-# y pulsa la imagen 1 (la de la lista de pasos de la app).
+# abre la caja de comentarios, escribe @amigos al azar de tu cuadro de menciones
+# (cuántos, lo eliges abajo) y pulsa la imagen 1 (la de la lista de pasos de la app).
 enlace
 esperar 8
 campo
 esperar 1
-escribir azar
+escribir menciones
 esperar 1.5
 imagen 1 | 30
 repetir 10"""
@@ -39,6 +39,8 @@ repetir 10"""
             "• tocar 500,1200 → toca esa posición de la pantalla\n" +
             "• escribir lista → pone el siguiente comentario de tu lista\n" +
             "• escribir azar → pone un comentario de tu lista al azar\n" +
+            "• escribir menciones → pone @amigos al azar de tu cuadro de menciones (cuántos: selector de abajo)\n" +
+            "• escribir menciones 3 → igual, con 3 menciones (de 1 a 5)\n" +
             "• enlace → abre el siguiente enlace guardado (o enlace 2 = el enlace 2)\n" +
             "• imagen 1 → busca en pantalla la imagen 1 de la app y la pulsa (imagen 2 = otra)\n" +
             "• escribir Hola → pone ese texto fijo\n" +
@@ -68,6 +70,20 @@ repetir 10"""
             setText(prefs.getString("comments", ""))
             root.addView(this)
         }
+        label("TUS MENCIONES, una por línea (se rellenan solas desde el cuadro «Menciones» del Etiquetador; también puedes escribirlas aquí):")
+        val friendsBox = EditText(ctx).apply {
+            minLines = 4
+            gravity = Gravity.TOP
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+            setText(prefs.getString("friends", ""))
+            root.addView(this)
+        }
+        label("Menciones por comentario (1 a 5), para «escribir menciones»:")
+        val mentionsN = Spinner(ctx).apply {
+            adapter = ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, listOf("1", "2", "3", "4", "5"))
+            setSelection((prefs.getInt("mentionsN", 2) - 1).coerceIn(0, 4))
+            root.addView(this)
+        }
         label("Límites de seguridad: máximo 50 comentarios por tanda y al menos 10 s entre un comentario y el siguiente.")
 
         Button(ctx).apply {
@@ -81,6 +97,8 @@ repetir 10"""
                         prefs.edit()
                             .putString("script", script.text.toString())
                             .putString("comments", box.text.toString())
+                            .putString("friends", friendsBox.text.toString())
+                            .putInt("mentionsN", mentionsN.selectedItemPosition + 1)
                             .apply()
                         Macro.start(s, script.text.toString(), list)
                         moveTaskToBack(true)

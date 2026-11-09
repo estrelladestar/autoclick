@@ -17,6 +17,8 @@ import android.widget.Toast
  *   campo              selecciona la caja de texto
  *   escribir lista     escribe el siguiente comentario de la lista
  *   escribir azar      escribe un comentario de la lista elegido al azar
+ *   escribir menciones     escribe @amigos al azar de tu cuadro de menciones (cuántos: el selector 1 a 5)
+ *   escribir menciones 3   igual, pero con 3 menciones (de 1 a 5)
  *   enlace 2           abre el enlace 2 de la app (sin número: abre el siguiente enlace guardado)
  *   imagen 1           busca en pantalla la imagen 1 de la lista de pasos y la pulsa
  *   escribir Hola      escribe ese texto fijo
@@ -116,6 +118,7 @@ object Macro {
         private var used = 0
         private var last = 0L
         private var linkTurn = 0
+        private val usedCombos = HashSet<String>()
         private val pool = ArrayList<String>()
 
         private fun later(ms: Long) {
@@ -206,7 +209,63 @@ object Macro {
             }
         }
 
+        private fun writeMentions(c: Cmd) {
+            val prefs = s.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE)
+            val friends = (prefs.getString("friends", "") ?: "").lines()
+                .map { it.trim() }.filter { it.isNotEmpty() }
+                .map { if (it.startsWith("@")) it else "@$it" }.distinct()
+            if (friends.isEmpty()) {
+                finish("No hay menciones. Pon tus amigos en el cuadro de menciones. Guion detenido.")
+                return
+            }
+            val asked = c.arg.trim().split(" ").getOrNull(1)?.toIntOrNull()
+            val n = (asked ?: prefs.getInt("mentionsN", 2)).coerceIn(1, 5).coerceAtMost(friends.size)
+            if (used >= MAX_COMMENTS) {
+                finish("Límite de $MAX_COMMENTS comentarios por tanda alcanzado")
+                return
+            }
+            if (last != 0L) {
+                val wait = last + MIN_GAP_MS - System.currentTimeMillis()
+                if (wait > 0) {
+                    later(wait)
+                    return
+                }
+            }
+            // Combinación al azar que no se haya usado ya en esta tanda
+            var pick: List<String> = emptyList()
+            var key = ""
+            var found = false
+            for (attempt in 0 until 200) {
+                pick = friends.shuffled().take(n)
+                key = pick.sorted().joinToString(",")
+                if (key !in usedCombos) { found = true; break }
+            }
+            if (!found) {
+                finish("Ya no quedan combinaciones nuevas de menciones. Guion detenido.")
+                return
+            }
+            val f = findField()
+            if (f == null) {
+                retry("la caja de texto")
+                return
+            }
+            val b = Bundle()
+            b.putCharSequence(
+                AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE,
+                pick.joinToString(" ")
+            )
+            f.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, b)
+            usedCombos.add(key)
+            used++
+            last = System.currentTimeMillis()
+            advance(c.extraMs)
+        }
+
         private fun write(c: Cmd) {
+            if (c.arg.lowercase().startsWith("menciones")) {
+                writeMentions(c)
+                return
+            }
             val word = c.arg.lowercase()
             val isRandom = word == "azar"
             val isList = word == "lista" || isRandom

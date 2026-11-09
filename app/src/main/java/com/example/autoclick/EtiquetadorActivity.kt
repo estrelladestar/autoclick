@@ -87,6 +87,13 @@ class EtiquetadorActivity : Activity() {
             main.post { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }
         }
 
+        /** Guarda el cuadro de menciones de la página para que el guion pueda usarlo. */
+        @JavascriptInterface
+        fun saveFriends(text: String) {
+            getSharedPreferences("cfg", Context.MODE_PRIVATE).edit()
+                .putString("friends", text).apply()
+        }
+
         /** Guarda el guion y los comentarios e inicia el guion. Devuelve un mensaje para mostrar. */
         @JavascriptInterface
         fun run(script: String, comments: String): String {

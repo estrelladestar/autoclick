@@ -927,6 +927,10 @@ details.sec[open] summary{margin-bottom:8px}
     if(!t.length){msg.textContent="No hay comentarios: revisa que haya amigos en la lista y combinaciones sin usar.";return}
     msg.textContent=AutoClickApp.run(box.value,t.join("\n"));
   });
+  /* Pasa el cuadro de menciones a la app para el paso «escribir menciones» del guion. */
+  var fr=$("friends");
+  function pushFriends(){try{AutoClickApp.saveFriends(fr.value)}catch(e){}}
+  if(fr){fr.addEventListener("input",pushFriends);setTimeout(pushFriends,800)}
   /* En la app no sirven: la lista personal se queda guardada en la propia app y las descargas no están disponibles. */
   var r=$("restore");if(r)r.style.display="none";
   var sv=$("savefile");if(sv){var sec=sv.closest("section");if(sec)sec.style.display="none"}
