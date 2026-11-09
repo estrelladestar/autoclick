@@ -63,6 +63,7 @@ class MainActivity : Activity() {
         label("Pulsa automáticamente imágenes, palabras o puntos de la pantalla, en el orden que tú elijas.")
             .textSize = 16f
 
+        button("❓ Cómo se usa (instrucciones)") { Help.show(this@MainActivity) }
         button("📋 Abrir el Etiquetador de sorteos") {
             startActivity(Intent(ctx, EtiquetadorActivity::class.java))
         }

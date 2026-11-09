@@ -32,6 +32,12 @@ repetir 10"""
         }
         fun label(t: String) = TextView(ctx).apply { text = t; root.addView(this) }
 
+        Button(ctx).apply {
+            text = "❓ Cómo se usa (instrucciones)"
+            setOnClickListener { Help.show(this@CommentActivity) }
+            root.addView(this)
+        }
+
         label(
             "GUION (un paso por línea):\n" +
             "• esperar 5 → espera 5 segundos\n" +
