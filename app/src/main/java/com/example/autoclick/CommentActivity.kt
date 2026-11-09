@@ -72,9 +72,11 @@ repetir 10"""
         label(
             "🤖 ASISTENTE: dime con tus palabras qué quieres que haga (escribe o pulsa 🎤) y te creo el guion. Por ejemplo:\n" +
             "«Abre el enlace, pulsa la imagen 1, luego la imagen 2, escribe un comentario copiado con 2 menciones, " +
-            "pulsa otra imagen y repite 5 veces»"
+            "pulsa otra imagen y repite 5 veces»\n" +
+            "Tu frase se queda guardada: cámbiala o añade lo que falte (también con 🎤) y vuelve a pulsar «Crear guion». " +
+            "Antes de usar el guion también puedes corregirlo a mano en la ventana que aparece."
         )
-        askBox = multi(3, "")
+        askBox = multi(3, prefs.getString("ask", "") ?: "")
         askBox.hint = "Escribe aquí lo que quieres que haga…"
         val askBar = LinearLayout(ctx).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -227,6 +229,7 @@ repetir 10"""
             .putString("phrases", phrasesBox.text.toString())
             .putInt("phrasePos", phrasePos.selectedItemPosition)
             .putInt("phraseChance", (phraseChance.text.toString().toIntOrNull() ?: 100).coerceIn(0, 100))
+            .putString("ask", askBox.text.toString())
             .apply()
     }
 
@@ -278,18 +281,19 @@ repetir 10"""
     }
 
     private fun showProposal(text: String, note: String) {
-        val tv = TextView(this).apply {
-            this.text = text
-            typeface = Typeface.MONOSPACE
-            textSize = 14f
-            setPadding(48, 24, 48, 24)
-        }
+        val ed = EditText(this)
+        ed.setText(text)
+        ed.typeface = Typeface.MONOSPACE
+        ed.textSize = 14f
+        ed.gravity = Gravity.TOP
+        ed.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+        ed.setPadding(48, 24, 48, 24)
         AlertDialog.Builder(this)
-            .setTitle("Guion creado")
+            .setTitle("Guion creado (puedes cambiarlo aquí)")
             .setMessage(note)
-            .setView(ScrollView(this).apply { addView(tv) })
+            .setView(ScrollView(this).apply { addView(ed) })
             .setPositiveButton("Usar este guion") { _, _ ->
-                script.setText(text)
+                script.setText(ed.text.toString())
                 toast("Guion puesto. Comprueba tus comentarios y menciones y pulsa Iniciar.")
             }
             .setNegativeButton("Cancelar", null)
