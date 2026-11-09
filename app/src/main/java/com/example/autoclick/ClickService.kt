@@ -197,6 +197,58 @@ class ClickService : AccessibilityService() {
         tap(x, y)
     }
 
+    /** Para que el guion pueda abrir uno de los enlaces guardados en la app (0 a 4). */
+    fun openSavedLink(index: Int): Boolean {
+        val prefs = getSharedPreferences("cfg", Context.MODE_PRIVATE)
+        val u = (prefs.getString("link$index", "") ?: "").trim()
+        if (u.isEmpty()) return false
+        openLink(u)
+        return true
+    }
+
+    /** Cuántos enlaces hay guardados (los que no están vacíos). */
+    fun savedLinks(): List<Int> {
+        val prefs = getSharedPreferences("cfg", Context.MODE_PRIVATE)
+        return (0 until 5).filter { (prefs.getString("link$it", "") ?: "").trim().isNotEmpty() }
+    }
+
+    /**
+     * Para que el guion pueda buscar en pantalla una de las imágenes ya subidas en la app
+     * (la n-ésima imagen de la lista de pasos, empezando en 1).
+     * done(null) si la imagen no está en pantalla; done(false, ...) si falta la imagen.
+     * El resultado se entrega en el hilo principal.
+     */
+    fun locateSavedImage(n: Int, done: (found: Pair<Float, Float>?, missing: Boolean) -> Unit) {
+        val imgs = StepStore.load(this).filter { it.type == "image" }
+        val step = imgs.getOrNull(n - 1)
+        if (step == null) {
+            main.post { done(null, true) }
+            return
+        }
+        var t = templates[step.id]
+        if (t == null) {
+            val bmp = BitmapFactory.decodeFile(File(filesDir, step.value).path)
+            if (bmp == null) {
+                main.post { done(null, true) }
+                return
+            }
+            val m = Mat()
+            Utils.bitmapToMat(bmp, m)
+            Imgproc.cvtColor(m, m, Imgproc.COLOR_RGBA2GRAY)
+            templates[step.id] = m
+            t = m
+        }
+        val prefs = getSharedPreferences("cfg", Context.MODE_PRIVATE)
+        threshold = prefs.getFloat("th", 0.8f).toDouble()
+        val tpl: Mat = t ?: run { main.post { done(null, true) }; return }
+        capture({ bmp ->
+            val p = if (bmp == null) null else findImage(bmp, tpl)
+            main.post { done(p, false) }
+        }, {
+            main.post { done(null, false) }
+        })
+    }
+
     private fun hideOverlay() {
         Macro.stop()
         val o = overlay

@@ -16,6 +16,9 @@ import android.widget.Toast
  *   tocar 500,1200     toca esa posición de la pantalla
  *   campo              selecciona la caja de texto
  *   escribir lista     escribe el siguiente comentario de la lista
+ *   escribir azar      escribe un comentario de la lista elegido al azar
+ *   enlace 2           abre el enlace 2 de la app (sin número: abre el siguiente enlace guardado)
+ *   imagen 1           busca en pantalla la imagen 1 de la lista de pasos y la pulsa
  *   escribir Hola      escribe ese texto fijo
  *   repetir 10         repite todo el guion 10 veces
  *   # nota             se ignora
@@ -59,7 +62,7 @@ object Macro {
             val arg = if (sp < 0) "" else line.substring(sp + 1).trim()
             when (op) {
                 "repetir" -> repeats = (arg.toIntOrNull() ?: 1).coerceIn(1, 1000)
-                "esperar", "tocar", "escribir", "campo" -> cmds.add(Cmd(op, arg, extra))
+                "esperar", "tocar", "escribir", "campo", "enlace", "imagen" -> cmds.add(Cmd(op, arg, extra))
                 else -> {
                     toast(service, "No entiendo esta línea: $raw")
                     return
@@ -112,6 +115,8 @@ object Macro {
         private var commentIdx = 0
         private var used = 0
         private var last = 0L
+        private var linkTurn = 0
+        private val pool = ArrayList<String>()
 
         private fun later(ms: Long) {
             main.postDelayed({ step() }, ms)
@@ -160,15 +165,54 @@ object Macro {
                     }
                 }
                 "escribir" -> write(c)
+                "enlace" -> openLink(c)
+                "imagen" -> tapImage(c)
                 else -> advance(0L)
             }
         }
 
+        private fun openLink(c: Cmd) {
+            val n = c.arg.trim().toIntOrNull()
+            val ok = if (n != null) {
+                s.openSavedLink(n - 1)
+            } else {
+                val all = s.savedLinks()
+                if (all.isEmpty()) false else {
+                    val idx = all[linkTurn % all.size]
+                    linkTurn++
+                    s.openSavedLink(idx)
+                }
+            }
+            if (!ok) {
+                finish("No hay ningún enlace guardado en la app. Guion detenido.")
+                return
+            }
+            advance(maxOf(c.extraMs, 3000L))
+        }
+
+        private fun tapImage(c: Cmd) {
+            val n = c.arg.trim().toIntOrNull() ?: 1
+            val myTry = id
+            s.locateSavedImage(n) { pos, missing ->
+                if (myTry != token || !running) return@locateSavedImage
+                when {
+                    missing -> finish("No encuentro la imagen $n. Añádela en la app. Guion detenido.")
+                    pos != null -> {
+                        s.tapAt(pos.first, pos.second)
+                        advance(c.extraMs)
+                    }
+                    else -> retry("la imagen $n en la pantalla")
+                }
+            }
+        }
+
         private fun write(c: Cmd) {
-            val isList = c.arg.lowercase() == "lista"
+            val word = c.arg.lowercase()
+            val isRandom = word == "azar"
+            val isList = word == "lista" || isRandom
             var text = c.arg
             if (isList) {
-                if (commentIdx >= comments.size) {
+                if (comments.isEmpty() || (!isRandom && commentIdx >= comments.size)) {
                     finish("Se acabaron los comentarios de tu lista")
                     return
                 }
@@ -183,7 +227,13 @@ object Macro {
                         return
                     }
                 }
-                text = comments[commentIdx]
+                if (isRandom) {
+                    // Al azar, sin repetir hasta haber usado todos los de la lista
+                    if (pool.isEmpty()) pool.addAll(comments)
+                    text = pool.removeAt((Math.random() * pool.size).toInt().coerceAtMost(pool.size - 1))
+                } else {
+                    text = comments[commentIdx]
+                }
             }
             val f = findField()
             if (f == null) {

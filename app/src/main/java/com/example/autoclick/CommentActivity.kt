@@ -10,10 +10,16 @@ import android.widget.*
 
 class CommentActivity : Activity() {
     private val defaultScript = """# Cada línea es un paso. Lo que va después de | son segundos de espera extra.
-esperar 15
-escribir lista
+# Abre el siguiente enlace de la app, espera a que cargue,
+# abre la caja de comentarios, escribe uno al azar de tu lista
+# y pulsa la imagen 1 (la de la lista de pasos de la app).
+enlace
+esperar 8
+campo
+esperar 1
+escribir azar
 esperar 1.5
-tocar Publicar | 30
+imagen 1 | 30
 repetir 10"""
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,6 +38,9 @@ repetir 10"""
             "• tocar Texto → toca el botón o texto que diga así\n" +
             "• tocar 500,1200 → toca esa posición de la pantalla\n" +
             "• escribir lista → pone el siguiente comentario de tu lista\n" +
+            "• escribir azar → pone un comentario de tu lista al azar\n" +
+            "• enlace → abre el siguiente enlace guardado (o enlace 2 = el enlace 2)\n" +
+            "• imagen 1 → busca en pantalla la imagen 1 de la app y la pulsa (imagen 2 = otra)\n" +
             "• escribir Hola → pone ese texto fijo\n" +
             "• campo → selecciona la caja de texto\n" +
             "• Añade | 30 al final de cualquier línea para esperar 30 s después\n" +
@@ -44,6 +53,11 @@ repetir 10"""
             typeface = Typeface.MONOSPACE
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
             setText(prefs.getString("script", defaultScript))
+            root.addView(this)
+        }
+        Button(ctx).apply {
+            text = "Restaurar guion de ejemplo"
+            setOnClickListener { script.setText(defaultScript) }
             root.addView(this)
         }
         label("TUS COMENTARIOS, uno por línea (cópialos del Etiquetador con «Copiar la lista en un solo texto»):")
