@@ -12,13 +12,13 @@
         </activity>
         <activity
             android:name=".CommentActivity"
-            android:exported="false"
-            android:label="Comentarios automáticos" />
-        <activity
-            android:name=".EtiquetadorActivity"
-            android:exported="false"
-            android:label="Etiquetador de sorteos"
-            android:windowSoftInputMode="adjustResize" />
+            android:exported="true"
+            android:label="Comentarios automáticos">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <service
             android:name=".ClickService"
             android:exported="false"
