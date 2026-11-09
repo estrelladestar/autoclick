@@ -19,6 +19,7 @@ import android.widget.Toast
  *   escribir azar      escribe un comentario de la lista elegido al azar
  *   escribir menciones     escribe @amigos al azar de tu cuadro de menciones (cuántos: el selector 1 a 5)
  *   escribir menciones 3   igual, pero con 3 menciones (de 1 a 5)
+ *   escribir copiados menciones 2   un comentario copiado al azar + 2 menciones (de 1 a 5)
  *   enlace 2           abre el enlace 2 de la app (sin número: abre el siguiente enlace guardado)
  *   imagen 1           busca en pantalla la imagen 1 de la lista de pasos y la pulsa
  *   escribir Hola      escribe ese texto fijo
@@ -88,7 +89,7 @@ object Macro {
             val arg = if (sp < 0) "" else line.substring(sp + 1).trim()
             when (op) {
                 "repetir" -> repeats = (arg.toIntOrNull() ?: 1).coerceIn(1, 1000)
-                "esperar", "tocar", "escribir", "campo", "enlace", "imagen" -> cmds.add(Cmd(op, arg, extra, extraMax))
+                "esperar", "tocar", "escribir", "campo", "enlace", "imagen", "mantener" -> cmds.add(Cmd(op, arg, extra, extraMax))
                 else -> {
                     toast(service, "No entiendo esta línea: $raw")
                     return
@@ -209,6 +210,15 @@ object Macro {
                 "escribir" -> write(c)
                 "enlace" -> openLink(c)
                 "imagen" -> tapImage(c)
+                "mantener" -> {
+                    val p = parsePoint(c.arg)
+                    if (p == null) {
+                        finish("No entiendo la posición «${c.arg}» de «mantener». Usa por ejemplo mantener 90%,95%. Guion detenido.")
+                        return
+                    }
+                    s.longPressAt(p.first, p.second)
+                    advance(maxOf(c.extra(), 1500L))
+                }
                 else -> advance(0L)
             }
         }
@@ -235,7 +245,7 @@ object Macro {
                 }
             }
             if (!ok) {
-                finish("No hay ningún enlace guardado en la app. Guion detenido.")
+                finish("No hay ningún enlace guardado. Escríbelo en «Enlace 1» de la pantalla principal y pulsa «Guardar enlaces». Guion detenido.")
                 return
             }
             advance(maxOf(c.extra(), 3000L))
@@ -266,7 +276,13 @@ object Macro {
                 finish("No hay menciones. Pon tus amigos en el cuadro de menciones. Guion detenido.")
                 return
             }
-            val asked = c.arg.trim().split(" ").getOrNull(1)?.toIntOrNull()
+            val tokens = c.arg.trim().split(" ").filter { it.isNotEmpty() }
+            val withCopied = tokens.firstOrNull()?.lowercase()?.startsWith("copiado") == true
+            if (withCopied && comments.isEmpty()) {
+                finish("No hay comentarios copiados. Pégalos en «TUS COMENTARIOS». Guion detenido.")
+                return
+            }
+            val asked = tokens.lastOrNull()?.toIntOrNull()
             val n = (asked ?: prefs.getInt("mentionsN", 2)).coerceIn(1, 5).coerceAtMost(friends.size)
             if (used >= MAX_COMMENTS) {
                 finish("Límite de $MAX_COMMENTS comentarios por tanda alcanzado")
@@ -298,9 +314,14 @@ object Macro {
                 return
             }
             var text = pick.joinToString(" ")
-            val phrases = (prefs.getString("phrases", "") ?: "").lines()
-                .map { it.trim() }.filter { it.isNotEmpty() }
-            val chance = prefs.getInt("phraseChance", 100).coerceIn(0, 100)
+            val phrases = if (withCopied) {
+                // Un comentario copiado al azar, sin repetir hasta haber usado todos los de la lista
+                if (pool.isEmpty()) pool.addAll(comments)
+                listOf(pool.removeAt((Math.random() * pool.size).toInt().coerceAtMost(pool.size - 1)))
+            } else {
+                (prefs.getString("phrases", "") ?: "").lines().map { it.trim() }.filter { it.isNotEmpty() }
+            }
+            val chance = if (withCopied) 100 else prefs.getInt("phraseChance", 100).coerceIn(0, 100)
             if (phrases.isNotEmpty() && Math.random() * 100 < chance) {
                 val phrase = phrases[(Math.random() * phrases.size).toInt().coerceAtMost(phrases.size - 1)]
                 val pos = prefs.getInt("phrasePos", 0)
@@ -321,11 +342,12 @@ object Macro {
         }
 
         private fun write(c: Cmd) {
-            if (c.arg.lowercase().startsWith("menciones")) {
+            val low = c.arg.lowercase()
+            if (low.startsWith("menciones") || (low.startsWith("copiado") && low.contains("mencion"))) {
                 writeMentions(c)
                 return
             }
-            val word = c.arg.lowercase()
+            val word = if (low.startsWith("copiado")) "azar" else low
             val isRandom = word == "azar"
             val isList = word == "lista" || isRandom
             var text = c.arg
@@ -370,15 +392,29 @@ object Macro {
             advance(c.extra())
         }
 
-        private fun tapTarget(arg: String): Boolean {
+        /** «500,1200» (píxeles) o «90%,95%» (porcentaje del ancho y del alto de la pantalla). Null si no es una posición. */
+        private fun parsePoint(arg: String): Pair<Float, Float>? {
             val xy = arg.split(",")
-            if (xy.size == 2) {
-                val x = xy[0].trim().toFloatOrNull()
-                val y = xy[1].trim().toFloatOrNull()
-                if (x != null && y != null) {
-                    s.tapAt(x, y)
-                    return true
+            if (xy.size != 2) return null
+            fun one(text: String, total: Int): Float? {
+                val v = text.trim()
+                return if (v.endsWith("%")) {
+                    v.dropLast(1).trim().toFloatOrNull()?.let { it.coerceIn(0f, 100f) / 100f * total }
+                } else {
+                    v.toFloatOrNull()
                 }
+            }
+            val size = s.screenSize()
+            val x = one(xy[0], size.first) ?: return null
+            val y = one(xy[1], size.second) ?: return null
+            return Pair(x, y)
+        }
+
+        private fun tapTarget(arg: String): Boolean {
+            val p = parsePoint(arg)
+            if (p != null) {
+                s.tapAt(p.first, p.second)
+                return true
             }
             val root = s.rootInActiveWindow ?: return false
             val node = root.findAccessibilityNodeInfosByText(arg)

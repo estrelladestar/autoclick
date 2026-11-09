@@ -28,6 +28,15 @@ COMENTARIOS AUTOMÁTICOS
 5. Pulsa «Iniciar». La app se esconde y empieza sola.
 6. Para parar, toca ■ en el botón flotante. El botón muestra cuántos comentarios lleva (por ejemplo ■ 7/50).
 
+ASISTENTE (decirle lo que quieres)
+1. En «Comentarios automáticos (guion)», arriba, escribe o pulsa 🎤 y di, por ejemplo: «abre el enlace, pulsa la imagen 1, luego la imagen 2, escribe un comentario copiado con 2 menciones, pulsa otra imagen y repite 5 veces».
+2. Pulsa «Crear guion». Te lo enseña: si está bien, pulsa «Usar este guion» y luego «Iniciar».
+3. Funciona sin IA y sin internet: entiende frases sencillas, una acción detrás de otra. Si no entiende una parte, te dice cuál para que la cambies. (El botón 🎤 usa el reconocimiento de voz de tu móvil, que según el móvil puede necesitar internet; escribiendo no hace falta nada.)
+4. «otra imagen» usa la siguiente a la última que dijiste (imagen 3 después de la 2). Sube las imágenes en orden en la pantalla principal.
+5. «comentario copiado con 2 menciones» saca un comentario al azar de «TUS COMENTARIOS» y le añade 2 menciones.
+6. «vuelve a pulsar» (o «de nuevo») repite el último toque. «pulsa el icono del perfil de abajo a la derecha» toca esa zona de la pantalla.
+7. «cambia a otra cuenta» mantiene pulsado el perfil para abrir la lista de cuentas; para elegir una di su nombre («cambia a la cuenta NOMBRE») o sube una captura suya y di «pulsa la imagen N».
+
 GUIONES GUARDADOS
 Con «Guardar como…» guardas el guion con un nombre (por ejemplo Instagram o TikTok). Elígelo en la lista para cargarlo, y «Borrar este» lo elimina.
 
@@ -43,7 +52,10 @@ repetir 10 → lo hace 10 veces
 OTROS PASOS
 tocar Texto → toca el botón que diga así
 tocar 500,1200 → toca esa posición
+tocar 90%,95% → toca abajo a la derecha (porcentajes de la pantalla; 10%,95% = abajo a la izquierda)
+mantener 90%,95% → pulsación larga (en Instagram, sobre el perfil abre la lista de cuentas)
 escribir azar → comentario al azar de tu lista
+escribir copiados menciones 2 → comentario copiado al azar + 2 menciones
 escribir lista → comentarios de tu lista en orden
 escribir Hola → texto fijo
 imagen 2 → usa la segunda imagen subida

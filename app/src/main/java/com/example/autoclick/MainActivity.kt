@@ -149,6 +149,14 @@ class MainActivity : Activity() {
             linkFields.add(l)
             dateFields.add(d)
         }
+        button("Guardar enlaces") {
+            saveLinks()
+            val n = linkFields.count { it.text.toString().trim().isNotEmpty() }
+            toast(
+                if (n == 0) "No hay ningún enlace escrito en los cuadros"
+                else "$n enlace(s) guardado(s). En el guion, «enlace» abre el siguiente y «enlace 1» abre el primero"
+            )
+        }
         label("Segundos de espera tras abrir cada enlace:")
         linkWait = field(InputType.TYPE_CLASS_NUMBER, prefs.getInt("linkWait", 3).toString())
         label("Veces que se repite toda la secuencia (0 = sin parar):")

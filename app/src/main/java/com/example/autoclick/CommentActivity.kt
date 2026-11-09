@@ -2,8 +2,11 @@ package com.example.autoclick
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.ActivityNotFoundException
 import android.content.Context
+import android.content.Intent
 import android.graphics.Typeface
+import android.speech.RecognizerIntent
 import android.os.Bundle
 import android.text.InputType
 import android.view.Gravity
@@ -35,6 +38,8 @@ repetir 10"""
     private lateinit var phrasePos: Spinner
     private lateinit var phraseChance: EditText
     private lateinit var savedSpinner: Spinner
+    private lateinit var askBox: EditText
+    private val voiceCode = 77
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,15 +68,40 @@ repetir 10"""
             root.addView(this)
         }
 
+        // ---------- Asistente ----------
+        label(
+            "🤖 ASISTENTE: dime con tus palabras qué quieres que haga (escribe o pulsa 🎤) y te creo el guion. Por ejemplo:\n" +
+            "«Abre el enlace, pulsa la imagen 1, luego la imagen 2, escribe un comentario copiado con 2 menciones, " +
+            "pulsa otra imagen y repite 5 veces»"
+        )
+        askBox = multi(3, "")
+        askBox.hint = "Escribe aquí lo que quieres que haga…"
+        val askBar = LinearLayout(ctx).apply {
+            orientation = LinearLayout.HORIZONTAL
+            root.addView(this)
+        }
+        Button(ctx).apply {
+            text = "🎤 Hablar"
+            setOnClickListener { startVoice() }
+            askBar.addView(this, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        }
+        Button(ctx).apply {
+            text = "Crear guion"
+            setOnClickListener { createFromAsk() }
+            askBar.addView(this, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        }
         label(
             "GUION (un paso por línea):\n" +
             "• esperar 5 → espera 5 segundos (esperar 5-10 = al azar entre 5 y 10)\n" +
             "• tocar Texto → toca el botón o texto que diga así\n" +
             "• tocar 500,1200 → toca esa posición de la pantalla\n" +
+            "• tocar 90%,95% → toca esa zona (porcentaje del ancho y del alto; 90%,95% = abajo a la derecha)\n" +
+            "• mantener 90%,95% → pulsación larga en esa zona\n" +
             "• escribir lista → pone el siguiente comentario de tu lista\n" +
             "• escribir azar → pone un comentario de tu lista al azar\n" +
             "• escribir menciones → pone @amigos al azar de tu cuadro de menciones (cuántos: selector de abajo), con una frase tuya si quieres\n" +
             "• escribir menciones 3 → igual, con 3 menciones (de 1 a 5)\n" +
+            "• escribir copiados menciones 2 → un comentario copiado al azar (de TUS COMENTARIOS) + 2 menciones\n" +
             "• enlace → abre el siguiente enlace guardado (o enlace 2 = el enlace 2)\n" +
             "• imagen 1 → busca en pantalla la imagen 1 de la app y la pulsa (imagen 2 = otra)\n" +
             "• escribir Hola → pone ese texto fijo\n" +
@@ -198,6 +228,72 @@ repetir 10"""
             .putInt("phrasePos", phrasePos.selectedItemPosition)
             .putInt("phraseChance", (phraseChance.text.toString().toIntOrNull() ?: 100).coerceIn(0, 100))
             .apply()
+    }
+
+    // ---------- Asistente ----------
+    private fun startVoice() {
+        val i = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+            .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            .putExtra(RecognizerIntent.EXTRA_LANGUAGE, "es-ES")
+            .putExtra(RecognizerIntent.EXTRA_PROMPT, "Dime qué quieres que haga")
+        try {
+            startActivityForResult(i, voiceCode)
+        } catch (e: ActivityNotFoundException) {
+            toast("Tu móvil no tiene reconocimiento de voz. Escribe la frase en el cuadro.")
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == voiceCode && resultCode == RESULT_OK) {
+            val said = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull() ?: return
+            val old = askBox.text.toString().trim()
+            askBox.setText(if (old.isEmpty()) said else "$old. $said")
+            askBox.setSelection(askBox.text.length)
+        }
+    }
+
+    private fun createFromAsk() {
+        val request = askBox.text.toString().trim()
+        if (request.isEmpty()) {
+            toast("Escribe o di primero lo que quieres que haga")
+            return
+        }
+        val local = Assistant.interpret(request)
+        if (local.script != null) {
+            val extra = if (local.notes.isEmpty()) "" else "\n\n" + local.notes.joinToString("\n\n")
+            showProposal(local.script, "Lo he entendido sin usar internet." + extra)
+            return
+        }
+        val what = if (local.unknown.isEmpty()) "" else "\n\nNo he entendido esta parte: «" + local.unknown.joinToString("», «") + "»"
+        AlertDialog.Builder(this)
+            .setTitle("No lo he entendido del todo")
+            .setMessage(
+                "Prueba con frases más sencillas, una acción detrás de otra. Por ejemplo: «abre el enlace, pulsa la imagen 1, " +
+                "escribe un comentario copiado con 2 menciones, pulsa la imagen 2, repite 3 veces»." + what
+            )
+            .setPositiveButton("Vale", null)
+            .show()
+    }
+
+    private fun showProposal(text: String, note: String) {
+        val tv = TextView(this).apply {
+            this.text = text
+            typeface = Typeface.MONOSPACE
+            textSize = 14f
+            setPadding(48, 24, 48, 24)
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Guion creado")
+            .setMessage(note)
+            .setView(ScrollView(this).apply { addView(tv) })
+            .setPositiveButton("Usar este guion") { _, _ ->
+                script.setText(text)
+                toast("Guion puesto. Comprueba tus comentarios y menciones y pulsa Iniciar.")
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
     // ---------- Guiones guardados ----------

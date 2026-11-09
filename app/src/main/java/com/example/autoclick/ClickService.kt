@@ -197,6 +197,22 @@ class ClickService : AccessibilityService() {
         tap(x, y)
     }
 
+    /** Para que el guion pueda mantener pulsada una posición de la pantalla (pulsación larga). */
+    fun longPressAt(x: Float, y: Float) {
+        val path = Path().apply { moveTo(x, y) }
+        val g = GestureDescription.Builder()
+            .addStroke(GestureDescription.StrokeDescription(path, 0, 900)).build()
+        dispatchGesture(g, null, null)
+    }
+
+    /** Tamaño real de la pantalla en píxeles (ancho, alto). */
+    fun screenSize(): Pair<Int, Int> {
+        val dm = android.util.DisplayMetrics()
+        @Suppress("DEPRECATION")
+        (getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay.getRealMetrics(dm)
+        return Pair(dm.widthPixels, dm.heightPixels)
+    }
+
     /** Para que el guion pueda abrir uno de los enlaces guardados en la app (0 a 4). */
     fun openSavedLink(index: Int): Boolean {
         val prefs = getSharedPreferences("cfg", Context.MODE_PRIVATE)
