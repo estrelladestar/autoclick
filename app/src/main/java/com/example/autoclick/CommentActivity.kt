@@ -39,6 +39,7 @@ repetir 10"""
     private lateinit var phraseChance: EditText
     private lateinit var savedSpinner: Spinner
     private lateinit var askBox: EditText
+    private lateinit var apiKeyBox: EditText
     private val voiceCode = 77
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -91,6 +92,17 @@ repetir 10"""
             text = "Crear guion"
             setOnClickListener { createFromAsk() }
             askBar.addView(this, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        }
+        label(
+            "Clave API de Anthropic (opcional). Con clave, el asistente usa una IA y entiende frases libres (necesita internet y se paga aparte, " +
+            "muy poco por frase). Sin clave, o si no hay internet, entiende frases sencillas sin IA. Solo se envía tu frase, " +
+            "nunca tus comentarios, menciones ni enlaces:"
+        )
+        apiKeyBox = EditText(ctx).apply {
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            hint = "sk-ant-…"
+            setText(prefs.getString("apiKey", "") ?: "")
+            root.addView(this)
         }
         label(
             "GUION (un paso por línea):\n" +
@@ -230,6 +242,7 @@ repetir 10"""
             .putInt("phrasePos", phrasePos.selectedItemPosition)
             .putInt("phraseChance", (phraseChance.text.toString().toIntOrNull() ?: 100).coerceIn(0, 100))
             .putString("ask", askBox.text.toString())
+            .putString("apiKey", apiKeyBox.text.toString().trim())
             .apply()
     }
 
@@ -264,16 +277,39 @@ repetir 10"""
             return
         }
         val local = Assistant.interpret(request)
+        val key = apiKeyBox.text.toString().trim()
+        if (key.isEmpty()) {
+            useLocal(local, "")
+            return
+        }
+        toast("Pensando… un momento")
+        Assistant.askAI(key, request) { script, error ->
+            runOnUiThread {
+                if (isFinishing) return@runOnUiThread
+                if (script != null) {
+                    val bad = Assistant.badLines(script)
+                    val warn = if (bad.isEmpty()) "" else
+                        "\n\nOjo, la app no entiende estas líneas; corrígelas o bórralas antes de usarlo:\n" + bad.joinToString("\n")
+                    showProposal(script, "Lo ha creado la IA. Revísalo antes de usarlo." + warn)
+                } else {
+                    useLocal(local, "No he podido usar la IA (" + (error ?: "sin conexión") + "). ")
+                }
+            }
+        }
+    }
+
+    /** Usa el intérprete sin IA. «prefix» explica por qué, si venimos de un fallo de la IA. */
+    private fun useLocal(local: Assistant.Result, prefix: String) {
         if (local.script != null) {
             val extra = if (local.notes.isEmpty()) "" else "\n\n" + local.notes.joinToString("\n\n")
-            showProposal(local.script, "Lo he entendido sin usar internet." + extra)
+            showProposal(local.script, prefix + "Lo he entendido sin usar IA." + extra)
             return
         }
         val what = if (local.unknown.isEmpty()) "" else "\n\nNo he entendido esta parte: «" + local.unknown.joinToString("», «") + "»"
         AlertDialog.Builder(this)
             .setTitle("No lo he entendido del todo")
             .setMessage(
-                "Prueba con frases más sencillas, una acción detrás de otra. Por ejemplo: «abre el enlace, pulsa la imagen 1, " +
+                prefix + "Prueba con frases más sencillas, una acción detrás de otra. Por ejemplo: «abre el enlace, pulsa la imagen 1, " +
                 "escribe un comentario copiado con 2 menciones, pulsa la imagen 2, repite 3 veces»." + what
             )
             .setPositiveButton("Vale", null)

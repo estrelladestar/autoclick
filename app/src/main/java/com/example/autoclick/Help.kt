@@ -31,7 +31,7 @@ COMENTARIOS AUTOMÁTICOS
 ASISTENTE (decirle lo que quieres)
 1. En «Comentarios automáticos (guion)», arriba, escribe o pulsa 🎤 y di, por ejemplo: «abre el enlace, pulsa la imagen 1, luego la imagen 2, escribe un comentario copiado con 2 menciones, pulsa otra imagen y repite 5 veces».
 2. Pulsa «Crear guion». Te lo enseña: si está bien, pulsa «Usar este guion» y luego «Iniciar». Si te falta algo, corrígelo a mano en esa misma ventana, o cambia tu frase (se queda guardada; con 🎤 se añade al final) y vuelve a pulsar «Crear guion».
-3. Funciona sin IA y sin internet: entiende frases sencillas, una acción detrás de otra. Si no entiende una parte, te dice cuál para que la cambies. (El botón 🎤 usa el reconocimiento de voz de tu móvil, que según el móvil puede necesitar internet; escribiendo no hace falta nada.)
+3. Sin clave API funciona sin IA y sin internet: entiende frases sencillas, una acción detrás de otra, y si no entiende una parte te dice cuál. Con tu clave API de Anthropic (cuadro de abajo) usa una IA que entiende frases libres; necesita internet, se paga aparte (muy poco por frase) y solo envía tu frase, nunca tus comentarios, menciones ni enlaces. Si la IA falla, vuelve al modo sin IA. Revisa siempre el guion antes de usarlo. (El botón 🎤 usa el reconocimiento de voz de tu móvil, que según el móvil puede necesitar internet.)
 4. «otra imagen» usa la siguiente a la última que dijiste (imagen 3 después de la 2). Sube las imágenes en orden en la pantalla principal.
 5. «comentario copiado con 2 menciones» saca un comentario al azar de «TUS COMENTARIOS» y le añade 2 menciones.
 6. «vuelve a pulsar» (o «de nuevo») repite el último toque. «pulsa el icono del perfil de abajo a la derecha» toca esa zona de la pantalla.

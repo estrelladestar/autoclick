@@ -1,13 +1,20 @@
 package com.example.autoclick
 
+import java.net.HttpURLConnection
+import java.net.URL
 import java.text.Normalizer
+import org.json.JSONArray
+import org.json.JSONObject
 
 /**
  * Asistente que convierte una frase en español en un guion de la app.
  *
- * Es un intérprete sin IA: gratis y sin internet. Entiende frases sencillas como
- * «abre el enlace, pulsa la imagen 1, luego la imagen 2, escribe un comentario copiado con 2 menciones,
- *  pulsa otra imagen y repite 5 veces».
+ * 1) interpret(): intérprete sin IA. Gratis y sin internet. Entiende frases sencillas como
+ *    «abre el enlace, pulsa la imagen 1, luego la imagen 2, escribe un comentario copiado con 2 menciones,
+ *     pulsa otra imagen y repite 5 veces».
+ * 2) askAI(): IA real (API de Anthropic). Solo se usa si la persona ha puesto su propia clave API en la app
+ *    (la clave nunca va en el código). Solo se envía la frase escrita, nunca los comentarios, menciones ni enlaces.
+ *    Si falla (sin internet, sin saldo…), la pantalla vuelve a usar el intérprete sin IA.
  */
 object Assistant {
 
@@ -255,5 +262,94 @@ object Assistant {
         if (repeats > 1 && merged.last() !is Step.Wait && !lines.last().contains("30-60")) lines.add("esperar 30-60")
         if (repeats > 1) lines.add("repetir $repeats")
         return Result(lines.joinToString("\n"), emptyList(), notes)
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Comprobación del guion
+    // ---------------------------------------------------------------------------------------------
+
+    private val OPS = setOf("esperar", "tocar", "escribir", "campo", "enlace", "imagen", "mantener", "repetir")
+
+    /** Líneas del guion que la app no entiende (vacío si todo está bien). */
+    fun badLines(script: String): List<String> =
+        script.lines().map { it.trim() }
+            .filter { it.isNotEmpty() && !it.startsWith("#") }
+            .filter { it.substringBefore(' ').lowercase() !in OPS }
+
+    // ---------------------------------------------------------------------------------------------
+    // IA real (opcional)
+    // ---------------------------------------------------------------------------------------------
+
+    private const val MODEL = "claude-haiku-5-5"
+
+    private val SYSTEM_PROMPT = """Conviertes una petición en español en un guion para una app de Android que pulsa en pantalla.
+Responde SOLO con las líneas del guion, una por línea, sin explicaciones y sin bloques de código.
+Instrucciones permitidas:
+esperar 5            (espera 5 s; esperar 5-10 = al azar entre 5 y 10)
+enlace               (abre el siguiente enlace guardado; enlace 2 = el enlace 2)
+imagen 1             (busca en pantalla la imagen 1 guardada y la pulsa; imagen 2 = otra)
+campo                (selecciona la caja de texto)
+escribir azar        (escribe un comentario copiado al azar)
+escribir lista       (escribe los comentarios copiados en orden)
+escribir menciones   (escribe @amigos al azar; escribir menciones 3 = con 3 menciones, de 1 a 5)
+escribir copiados menciones 2   (un comentario copiado al azar más 2 menciones)
+escribir Hola        (escribe ese texto fijo)
+tocar Texto          (toca el botón o texto que diga así)
+tocar 500,1200       (toca esa posición en píxeles)
+tocar 90%,95%        (toca esa zona: porcentaje del ancho y del alto; 90%,95% es abajo a la derecha, donde está el icono del perfil de Instagram)
+mantener 90%,95%     (pulsación larga en esa zona; en Instagram, sobre el perfil abre la lista de cuentas)
+repetir 10           (repite todo el guion 10 veces; va una sola vez, en cualquier línea)
+# nota               (se ignora)
+Al final de cualquier línea, | 30 espera 30 s más y | 30-60 espera entre 30 y 60 s al azar.
+Reglas: después de «enlace» pon «esperar 8» para que cargue la página. Antes de escribir pon «campo» y «esperar 1».
+Si la persona dice «vuelve a pulsar» o «de nuevo», repite la línea del último toque.
+Para cambiar de cuenta: «mantener 90%,95% | 2» y, si la persona dice el nombre de la cuenta, «tocar NOMBRE». Si no dice cuál, solo pon el «mantener».
+Si la persona no dice cuántas veces, no pongas «repetir». Si pide algo que no se puede hacer con estas instrucciones, usa solo las que sí se puedan."""
+
+    /** Llama a la IA en un hilo aparte. onDone se llama en ese hilo: usa runOnUiThread. */
+    fun askAI(apiKey: String, request: String, onDone: (script: String?, error: String?) -> Unit) {
+        Thread {
+            var conn: HttpURLConnection? = null
+            try {
+                val body = JSONObject()
+                    .put("model", MODEL)
+                    .put("max_tokens", 600)
+                    .put("system", SYSTEM_PROMPT)
+                    .put("messages", JSONArray().put(JSONObject().put("role", "user").put("content", request)))
+                conn = (URL("https://api.anthropic.com/v1/messages").openConnection() as HttpURLConnection).apply {
+                    requestMethod = "POST"
+                    connectTimeout = 15_000
+                    readTimeout = 45_000
+                    doOutput = true
+                    setRequestProperty("content-type", "application/json")
+                    setRequestProperty("x-api-key", apiKey.trim())
+                    setRequestProperty("anthropic-version", "2023-06-01")
+                }
+                conn.outputStream.use { it.write(body.toString().toByteArray(Charsets.UTF_8)) }
+                val code = conn.responseCode
+                val stream = if (code in 200..299) conn.inputStream else conn.errorStream
+                val text = stream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() } ?: ""
+                if (code !in 200..299) {
+                    val msg = try { JSONObject(text).getJSONObject("error").getString("message") } catch (e: Exception) { text.take(200) }
+                    val hint = if (code == 401) " (revisa la clave API)" else ""
+                    onDone(null, "Error $code$hint: $msg")
+                    return@Thread
+                }
+                val content = JSONObject(text).getJSONArray("content")
+                val sb = StringBuilder()
+                for (i in 0 until content.length()) {
+                    val part = content.getJSONObject(i)
+                    if (part.optString("type") == "text") sb.append(part.optString("text"))
+                }
+                val clean = sb.toString().lines()
+                    .filter { !it.trim().startsWith("```") }
+                    .joinToString("\n").trim()
+                if (clean.isEmpty()) onDone(null, "La IA no devolvió ningún guion.") else onDone(clean, null)
+            } catch (e: Exception) {
+                onDone(null, "No se pudo conectar: " + (e.message ?: e.javaClass.simpleName))
+            } finally {
+                conn?.disconnect()
+            }
+        }.start()
     }
 }
