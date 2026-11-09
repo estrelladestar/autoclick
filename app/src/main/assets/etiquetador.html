@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Etiquetador de sorteos</title>
+<style>
+:root{
+  --bg:#fff0f6;--surface:#fffafc;--ink:#5a3446;--muted:#8f6a7e;--line:#f6cfe0;
+  --accent:#f7b6d2;--accent-ink:#5a1f3d;--accent-text:#b0366f;--soft:#fde4ef;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.5}
+main{max-width:640px;margin:0 auto;padding:28px 18px 120px}
+h1{font-size:1.7rem;margin:0 0 6px;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:0 0 24px}
+label{display:block;font-weight:700;margin:18px 0 6px}
+.hint{font-weight:400;color:var(--muted);font-size:.9rem}
+input,textarea,select{width:100%;font:inherit;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:8px;padding:11px 12px}
+textarea{min-height:120px;resize:vertical}
+input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-visible{outline:3px solid var(--accent-text);outline-offset:2px}
+.row{display:flex;gap:12px;align-items:end;flex-wrap:wrap}
+.row>div{flex:1;min-width:140px}
+button{font:inherit;font-weight:700;cursor:pointer;border-radius:10px;min-height:44px;padding:11px 16px;border:1.5px solid var(--accent);background:var(--accent);color:var(--accent-ink)}
+button.alt{background:transparent;color:var(--accent-text);border-color:var(--accent)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.result{margin-top:26px;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:16px}
+.result[hidden]{display:none}
+.comment{background:var(--soft);border-radius:8px;padding:12px 14px;font-size:1.05rem;word-break:break-word}
+.meta{color:var(--muted);font-size:.9rem;margin:10px 0 0}
+.err{color:#b3261e;font-weight:700;margin-top:12px}
+.timer{margin-top:12px;font-weight:700}
+.item{display:flex;gap:10px;align-items:center;justify-content:space-between;background:var(--soft);border-radius:8px;padding:8px 10px;margin-top:8px}
+.item span{word-break:break-word}
+.lrow{display:flex;gap:10px;align-items:center;margin-top:8px}
+.lrow input[type=radio]{width:22px;height:22px;flex:none;accent-color:var(--accent);padding:0}
+.chk{display:flex;gap:10px;align-items:center;margin-top:8px}
+.chk label{margin:0;font-weight:400;flex:1}
+.chk input[type=checkbox]{width:24px;height:24px;flex:none;padding:0;accent-color:var(--accent-text)}
+.chk button{min-height:36px;padding:4px 10px}
+.lwrap{margin-top:10px}
+.lwrap .lrow{margin-top:0}
+.lrem{display:flex;gap:8px;align-items:center;margin:6px 0 0 32px;flex-wrap:wrap}
+.lrem input{flex:1;min-width:170px}
+.lrem button{min-height:40px;padding:6px 12px}
+details.result summary{cursor:pointer;list-style:none}
+details.result summary::-webkit-details-marker{display:none}
+details.result[open] summary{margin-bottom:8px}
+
+/* ===== Secciones de colores pastel ===== */
+.sec{--muted:#6f4a5f;border-radius:16px;padding:14px 16px 18px;margin-top:16px;background:var(--sb);border:1.5px solid var(--sl)}
+.sec .st{margin:0 0 6px;font-size:1.08rem;font-weight:800;color:var(--sd);letter-spacing:-.005em}
+.sec .st+label,.sec .st+button+label{margin-top:8px}
+.sec>label:first-child{margin-top:8px}
+.sec input,.sec textarea,.sec select{background:#fff;border-color:var(--sl)}
+.sec input[type=radio],.sec input[type=checkbox]{accent-color:var(--sd)}
+.sec button:not(.alt){background:var(--sd);border-color:var(--sd);color:#fff}
+.sec button.alt{background:rgba(255,255,255,.55);border-color:var(--sd);color:var(--sd)}
+.sec button:disabled{opacity:.5}
+.sec .item{background:#fff}
+.sec .meta,.sec .hint{color:var(--muted)}
+.sec .err{color:#a8201a}
+.s-pink{--sb:#ffe0ec;--sl:#f4aac8;--sd:#a2305f}
+.s-mint{--sb:#d8f4e5;--sl:#94d4b2;--sd:#1f6b46}
+.s-lav{--sb:#e8e0fb;--sl:#b9a6ee;--sd:#5a3aa6}
+.s-yel{--sb:#fff3c2;--sl:#e8cf6c;--sd:#7a5f00}
+.s-sky{--sb:#d8ecfb;--sl:#97c9ee;--sd:#1d5a8a}
+.s-peach{--sb:#ffe5d2;--sl:#f0b088;--sd:#9a4a16}
+.s-lime{--sb:#e9f4c9;--sl:#b8d878;--sd:#4b6a10}
+.s-coral{--sb:#ffdcd8;--sl:#f0a8a2;--sd:#a03a32}
+.s-grey{--sb:#ececf3;--sl:#c5c5d6;--sd:#4a4a63}
+.s-teal{--sb:#d4f1f0;--sl:#8fd3d0;--sd:#1b6b69}
+.btnlink{display:inline-block;text-decoration:none;font-weight:700;border-radius:10px;padding:12px 16px;min-height:44px;background:var(--sd);border:1.5px solid var(--sd);color:#fff}
+.btnlink:focus-visible{outline:3px solid var(--accent-text);outline-offset:2px}
+details.sec summary{cursor:pointer;list-style:none;min-height:44px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+details.sec summary::-webkit-details-marker{display:none}
+details.sec[open] summary{margin-bottom:8px}
+.sec details.result{background:#fff;border-color:var(--sl)}
+.sec details.result .meta{color:#6f4a5f}
+#result{border:2px solid #f4aac8}
+.leyenda{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 4px}
+.leyenda span{font-size:.78rem;font-weight:700;padding:3px 9px;border-radius:99px;border:1.5px solid var(--sl);background:var(--sb);color:var(--sd)}
+/* ===== Botón fijo de abajo ===== */
+#dock{position:fixed;left:0;right:0;bottom:0;z-index:50;padding:18px 14px calc(10px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top,var(--bg) 62%,rgba(255,240,246,0))}
+#dock button{display:block;width:100%;max-width:640px;margin:0 auto;font-size:1.05rem;padding:14px 16px;min-height:54px;box-shadow:0 4px 14px rgba(90,52,70,.18)}
+#dock button:disabled{opacity:1;cursor:default}
+#dock.wait button{background:#ffe08a;border-color:#e0b93a;color:#5c4400}
+#dock.ready button{background:#7ed6a5;border-color:#4fb67f;color:#0f4a2c}
+</style>
+</head>
+<body>
+<main>
+  <h1>Etiquetador de sorteos</h1>
+  <p class="sub">Elige al azar a quién etiquetar entre tus amigos y copia el comentario. Lo publicas tú.</p>
+  <div class="leyenda" aria-hidden="true">
+    <span class="s-pink">Enlaces</span><span class="s-mint">Requisitos</span><span class="s-lav">Menciones</span><span class="s-yel">Frases</span><span class="s-sky">Palabras</span><span class="s-peach">Iconos</span><span class="s-lime">Ritmo</span><span class="s-coral">Lista</span>
+  </div>
+
+  <!-- ENLACES -->
+  <section class="sec s-pink">
+    <h2 class="st">🔗 Enlaces del sorteo</h2>
+    <label>Enlaces de publicaciones <span class="hint">(marca el círculo del que quieres usar ahora)</span></label>
+    <div id="links"></div>
+  </section>
+
+  <!-- REQUISITOS -->
+  <section class="sec s-mint">
+    <h2 class="st">✅ Requisitos y reglas del sorteo</h2>
+    <details class="result" id="checkbox" style="margin-top:8px">
+      <summary><strong id="checksum">Requisitos del sorteo</strong> <span class="hint">(toca para abrir)</span></summary>
+      <div id="checklist"></div>
+      <div class="row" style="margin-top:12px">
+        <div><input id="checknew" type="text" placeholder="Añadir otro requisito"></div>
+        <div style="flex:none;min-width:0"><button id="checkadd" type="button" class="alt">Añadir</button></div>
+      </div>
+      <div class="actions"><button id="checkclear" type="button" class="alt">Quitar todas las marcas</button></div>
+      <p class="meta">Cada enlace (1 a 10) tiene su propia lista. Marca lo que ya hiciste en ese sorteo.</p>
+    </details>
+    <div class="row">
+      <div>
+        <label for="req">Etiquetas que pide el sorteo <span class="hint">(0 = sin mínimo)</span></label>
+        <input id="req" type="number" min="0" max="20" value="0">
+      </div>
+      <div>
+        <label for="must">Palabra u hashtag obligatorio</label>
+        <input id="must" type="text" placeholder="#sorteo">
+      </div>
+    </div>
+    <div id="warn" class="err"></div>
+  </section>
+
+  <!-- MENCIONES -->
+  <section class="sec s-lav">
+    <h2 class="st">👥 Menciones (a quién etiquetar)</h2>
+    <label for="friends">Tus amigos <span class="hint">(uno por línea, con o sin @; solo gente que quiera participar)</span></label>
+    <textarea id="friends" placeholder="@ana&#10;@luis&#10;@marta"></textarea>
+    <p id="count" class="meta"></p>
+    <div class="row">
+      <div>
+        <label for="n">Etiquetas por comentario</label>
+        <input id="n" type="number" min="1" max="10" value="2">
+      </div>
+    </div>
+    <div class="actions" style="margin-top:12px">
+      <button id="resethist" type="button" class="alt">Borrar historial de combinaciones y reparto</button>
+      <button id="restore" type="button" class="alt">Restaurar mi lista guardada</button>
+    </div>
+  </section>
+
+  <!-- FRASES -->
+  <section class="sec s-yel">
+    <h2 class="st">💬 Frases del comentario</h2>
+    <label for="extra">Texto del comentario <span class="hint">(opcional; puedes poner varias frases separadas por | y se reparten al azar)</span></label>
+    <input id="extra" type="text" placeholder="¡Quiero participar! | ¡Me apunto! | ¡Ojalá gane!">
+  </section>
+
+  <!-- PALABRAS -->
+  <section class="sec s-sky">
+    <h2 class="st">🔤 Palabras</h2>
+    <button id="wtoggle" type="button"></button>
+    <label for="words">Mis palabras o frases <span class="hint">(una por línea; se elige al azar y se suma al comentario, como las etiquetas)</span></label>
+    <textarea id="words" placeholder="💖&#10;¡Gracias por el sorteo!&#10;Qué bonito"></textarea>
+    <div class="row">
+      <div>
+        <label for="wn">Palabras por comentario</label>
+        <input id="wn" type="number" min="1" max="10" value="1">
+      </div>
+      <div>
+        <label for="wpos">Dónde ponerlas</label>
+        <select id="wpos"><option value="antes">Antes de las etiquetas</option><option value="despues">Después de las etiquetas</option><option value="azar">Al azar (a veces delante, a veces detrás)</option></select>
+      </div>
+    </div>
+  </section>
+
+  <!-- ICONOS -->
+  <section class="sec s-peach">
+    <h2 class="st">✨ Iconos o adornos</h2>
+    <button id="itoggle" type="button"></button>
+    <label for="icons">Iconos o adornos <span class="hint">(corazones, suerte...; uno por línea; a veces se ponen y a veces no)</span></label>
+    <textarea id="icons" style="min-height:90px" placeholder="❤️&#10;🍀&#10;🤞"></textarea>
+    <div class="row">
+      <div>
+        <label for="ichance">Veces que se pone (%)</label>
+        <input id="ichance" type="number" min="0" max="100" value="60">
+      </div>
+      <div>
+        <label for="ipos">Dónde ponerlo</label>
+        <select id="ipos"><option value="azar">Al azar (delante o detrás)</option><option value="antes">Siempre delante</option><option value="despues">Siempre detrás</option></select>
+      </div>
+    </div>
+  </section>
+
+  <!-- RITMO -->
+  <section class="sec s-lime">
+    <h2 class="st">⏱️ Ritmo y límite diario</h2>
+    <div class="row">
+      <div>
+        <label for="wait">Aviso entre comentarios (seg)</label>
+        <input id="wait" type="number" min="30" max="3600" value="120">
+      </div>
+      <div>
+        <label for="limit">Aviso diario (comentarios)</label>
+        <input id="limit" type="number" min="1" max="500" value="50">
+      </div>
+    </div>
+    <p id="todaymsg" class="meta"></p>
+    <div class="chk"><input type="checkbox" id="alertOn"><label for="alertOn">Avisar cuando termine la espera (sonido y vibración)</label></div>
+    <div class="chk"><input type="checkbox" id="awakeOn"><label for="awakeOn">Mantener la pantalla encendida mientras espero</label></div>
+    <p class="meta" id="awakemsg">El aviso suena si la herramienta está abierta en pantalla. Si te vas a Instagram, al volver verás el botón verde y listo.</p>
+  </section>
+
+  <div class="actions">
+    <button id="gen" type="button">Sortear, copiar y abrir Instagram</button>
+  </div>
+  <div id="err" class="err" role="alert"></div>
+
+  <!-- LISTA DE COMENTARIOS -->
+  <section class="sec s-coral">
+    <h2 class="st">📋 Lista de comentarios</h2>
+    <label for="batch">Lista de comentarios <span class="hint">(varios sorteados de una vez, sin repetir)</span></label>
+    <div class="row">
+      <div><input id="batch" type="number" min="2" max="100" value="10"></div>
+      <div><button id="genlist" type="button" class="alt" style="width:100%">Generar lista</button></div>
+    </div>
+    <div id="list"></div>
+    <div id="listbar" class="actions" style="display:none"><button id="copyopennext" type="button" style="width:100%;padding:16px;font-size:1.05rem"></button><button id="copyall" type="button">Copiar todos (uno a uno al historial)</button><button id="copynext" type="button" class="alt"></button><button id="copytext" type="button" class="alt">Copiar la lista en un solo texto</button><button id="clearlist" type="button" class="alt">Borrar lista</button></div>
+    <p id="copyallmsg" class="meta"></p>
+    <details id="bmlist" class="result" style="display:none">
+      <summary><strong>Rellenar Instagram con la lista</strong> <span class="hint">(solo ordenador)</span></summary>
+      <p class="meta">Solo ordenador. Copia este código y pégalo como dirección (URL) de un marcador nuevo. En la publicación de Instagram, cada vez que pulses ese marcador pondrá el siguiente comentario de la lista en la caja. Tú solo pulsas Publicar.</p>
+      <textarea id="bm2" readonly style="min-height:90px;font-size:.8rem"></textarea>
+      <div class="actions"><button id="bm2copy" type="button" class="alt">Copiar código del marcador de la lista</button></div>
+      <p class="meta" id="bm2msg"></p>
+    </details>
+  </section>
+
+  <!-- APLICACIÓN -->
+  <section class="sec s-teal" id="appsec">
+    <h2 class="st">📱 Comentarios automáticos</h2>
+    <p class="meta">La app escribe cada comentario en la caja de Instagram y pulsa el botón que indiques en el guion. Antes de empezar: activa la accesibilidad de la app (botón 1) y deja abierta la publicación en Instagram.</p>
+    <label for="appscript">Guion <span class="hint">(un paso por línea)</span></label>
+    <textarea id="appscript" style="min-height:150px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9rem"></textarea>
+    <p class="meta">Instrucciones: <strong>esperar 5</strong> · <strong>tocar Texto</strong> · <strong>tocar 500,1200</strong> · <strong>campo</strong> · <strong>escribir lista</strong> · <strong>escribir Hola</strong> · <strong>repetir 10</strong> · <strong># nota</strong>. Al final de una línea, <strong>| 30</strong> espera 30 s más.</p>
+    <div class="actions">
+      <button id="appaccess" type="button" class="alt">1. Activar accesibilidad</button>
+      <button id="appstart" type="button">2. Iniciar con la lista</button>
+    </div>
+    <p id="appmsg" class="meta">Si todavía no hay lista de comentarios, se genera una con tus ajustes.</p>
+    <p class="meta">La app usa como máximo 50 comentarios por tanda y deja al menos 10 s entre uno y otro. Aun así, Instagram puede limitar tu cuenta si publicas muchos comentarios seguidos: ve despacio. Para parar, toca ■ en el botón flotante.</p>
+  </section>
+
+  <!-- RESULTADO -->
+  <section id="result" class="result" hidden aria-live="polite">
+    <div id="comment" class="comment"></div>
+    <p id="meta" class="meta"></p>
+    <div class="actions">
+      <button id="copyopen" type="button">Copiar y abrir Instagram</button>
+      <button id="copy" type="button" class="alt">Solo copiar</button>
+      <button id="open" type="button" class="alt">Abrir publicación</button>
+      <button id="again" type="button" class="alt">Sortear otra vez</button>
+    </div>
+    <div id="timer" class="timer"></div>
+  </section>
+
+  <!-- GUARDAR -->
+  <section class="sec s-grey">
+    <h2 class="st">💾 Guardar mis datos en el archivo</h2>
+    <p class="meta">Tus enlaces y tu lista ya se recuerdan en este navegador hasta que los cambies. Si quieres tenerlos a salvo aunque borres los datos del navegador o cambies de dispositivo, descarga una copia: el archivo nuevo ya trae dentro tus 10 enlaces y tu lista actual. Cuando los cambies, vuelve a descargar y quédate con la última copia.</p>
+    <div class="actions"><button id="savefile" type="button">Descargar copia con mis datos</button></div>
+    <p class="meta" id="savemsg"></p>
+  </section>
+
+  <!-- MARCADOR -->
+  <details class="sec s-grey">
+    <summary><strong class="st" style="margin:0">🖥️ Marcador para ordenador</strong> <span class="hint">(toca para abrir)</span></summary>
+    <strong>Rellenar la caja de Instagram automáticamente</strong>
+    <p class="meta">Solo en ordenador. Copia este código, crea un marcador nuevo en tu navegador y pégalo como dirección (URL). Después: copia el comentario aquí, abre la publicación en Instagram, pulsa el marcador y el texto aparecerá en la caja. Tú pulsas Publicar.</p>
+    <textarea id="bm" readonly style="min-height:90px;font-size:.8rem"></textarea>
+    <div class="actions"><button id="bmcopy" type="button" class="alt">Copiar código del marcador</button></div>
+    <p class="meta" id="bmmsg"></p>
+    <p class="meta">Si Instagram cambia su página, el marcador puede dejar de encontrar la caja; en ese caso pega el texto a mano.</p>
+  </details>
+</main>
+
+<div id="dock"><button id="dockbtn" type="button">Sortear, copiar y abrir Instagram</button></div>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id)};
+  function loadJSON(k,d){try{var v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}}
+  function saveJSON(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+  var used=loadJSON("usadas",[]);   // combinaciones ya usadas (se recuerdan entre sesiones)
+  var uses=loadJSON("usos",{});     // veces que ha salido cada amigo
+  function registerUse(chosen,key){
+    used.push(key);
+    chosen.forEach(function(c){var k=c.toLowerCase();uses[k]=(uses[k]||0)+1});
+    saveJSON("usadas",used);saveJSON("usos",uses);
+  }
+  function mentionCount(t){return (t.match(/@[A-Za-z0-9._]+/g)||[]).length}
+  function updateWarn(){
+    var n=Math.max(1,Math.min(10,parseInt($("n").value,10)||1));
+    var r=parseInt($("req").value,10)||0;
+    $("warn").textContent=r>n?"El sorteo pide al menos "+r+" etiquetas y ahora pones "+n+". Sube «Etiquetas por comentario».":"";
+  }
+  function commentStatus(t){
+    var r=parseInt($("req").value,10)||0,m=mentionCount(t),must=$("must").value.trim(),bad=[];
+    if(r&&m<r)bad.push("faltan etiquetas ("+m+" de "+r+")");
+    if(must&&t.toLowerCase().indexOf(must.toLowerCase())<0)bad.push("falta "+must);
+    return bad.length?"⚠ "+bad.join(", "):"✓ "+m+" etiqueta"+(m===1?"":"s")+(must?" y "+must:"");
+  }
+  var wordsOn=loadJSON("palabrasOn",true);
+  var iconsOn=loadJSON("iconosOn",true);
+  function getIcons(){
+    var seen={},out=[];
+    $("icons").value.split(/\r?\n/).forEach(function(l){var t=l.trim();if(t&&!seen[t]){seen[t]=1;out.push(t)}});
+    return out;
+  }
+  function getWords(){
+    var seen={},out=[];
+    $("words").value.split(/\r?\n/).forEach(function(l){var t=l.trim();if(t&&!seen[t.toLowerCase()]){seen[t.toLowerCase()]=1;out.push(t)}});
+    return out;
+  }
+  function buildComment(chosen){
+    var phrase=getPhrase();
+    var all=getWords();
+    var k=Math.max(1,Math.min(10,parseInt($("wn").value,10)||1));
+    var words=(wordsOn&&all.length)?pickRandom(all,k):[];
+    var parts=[];
+    if(phrase)parts.push(phrase);
+    var pos=$("wpos").value;
+    if(pos==="azar"){pos=Math.random()<0.5?"antes":"despues"}
+    if(pos==="antes"){parts=parts.concat(words,chosen)}else{parts=parts.concat(chosen,words)}
+    var txt=parts.join(" ");
+    var ic=getIcons();
+    if(iconsOn&&ic.length&&Math.random()*100<(Math.max(0,Math.min(100,parseInt($("ichance").value,10)))||0)){
+      var icon=ic[Math.floor(Math.random()*ic.length)],ip=$("ipos").value;
+      if(ip==="azar"){ip=Math.random()<0.5?"antes":"despues"}
+      txt=ip==="antes"?icon+" "+txt:txt+" "+icon;
+    }
+    var must=$("must")?$("must").value.trim():"";
+    if(must&&txt.toLowerCase().indexOf(must.toLowerCase())<0){txt=must+" "+txt}
+    return txt;
+  }
+  function pickRandom(list,n){
+    var a=list.slice();
+    for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}
+    return a.slice(0,n);
+  }
+  function getPhrase(){
+    var arr=$("extra").value.split("|").map(function(x){return x.trim()}).filter(Boolean);
+    return arr.length?arr[Math.floor(Math.random()*arr.length)]:"";
+  }
+  function todayKey(){var d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()}
+  function todayN(){var h=loadJSON("hoy",null);return h&&h.d===todayKey()?h.n:0}
+  function getLimit(){return Math.max(1,parseInt($("limit").value,10)||50)}
+  function updateToday(){$("todaymsg").textContent="Hoy llevas "+todayN()+" comentarios copiados (aviso a los "+getLimit()+")."}
+  function bumpToday(){saveJSON("hoy",{d:todayKey(),n:todayN()+1});updateToday()}
+  function checkLimit(){
+    if(todayN()>=getLimit()){return confirm("Hoy ya has copiado "+todayN()+" comentarios, que es tu límite. Publicar muchos seguidos puede hacer que Instagram te limite los comentarios. ¿Seguir de todas formas?")}
+    return true;
+  }
+  function saveList(){
+    saveJSON("lista",{t:listItems.map(function(it){return it.text}),c:listItems.map(function(it){return it.row.style.opacity?1:0}),i:nextIdx});
+  }
+  var timerId=null;
+  var waitEnd=0,alerted=true,TITLE="Etiquetador de sorteos";
+  var ENLACES_GUARDADOS=["","","","","","","","","",""];
+  var SEL_GUARDADO=0;
+  try{if(navigator.storage&&navigator.storage.persist){navigator.storage.persist()}}catch(e){}
+  var links=[],sel=0;
+  function getLink(){var v=links[sel];return v?v.value.trim():""}
+  function saveLinks(){try{localStorage.setItem("enlaces",JSON.stringify({sel:sel,urls:links.map(function(i){return i.value})}))}catch(e){};if(typeof renderChecklist==="function")renderChecklist()}
+  (function buildLinks(){
+    var saved=null;try{saved=JSON.parse(localStorage.getItem("enlaces"))}catch(e){}
+    if(!saved){saved={sel:SEL_GUARDADO,urls:ENLACES_GUARDADOS}}
+    if(saved&&typeof saved.sel==="number"&&saved.sel>=0&&saved.sel<10){sel=saved.sel}
+    for(var i=0;i<10;i++){
+      (function(i){
+        var row=document.createElement("div");row.className="lrow";
+        var r=document.createElement("input");r.type="radio";r.name="sel";r.checked=(i===sel);
+        r.setAttribute("aria-label","Usar el enlace "+(i+1));
+        r.addEventListener("change",function(){sel=i;saveLinks()});
+        var t=document.createElement("input");t.type="url";t.inputMode="url";
+        t.placeholder="Enlace "+(i+1)+": https://www.instagram.com/p/...";
+        if(saved&&saved.urls&&typeof saved.urls[i]==="string"){t.value=saved.urls[i]}
+        t.addEventListener("input",saveLinks);
+        t.addEventListener("focus",function(){r.checked=true;sel=i;saveLinks()});
+        links.push(t);row.appendChild(r);row.appendChild(t);
+        var wrap=document.createElement("div");wrap.className="lwrap";wrap.appendChild(row);
+        var rr=document.createElement("div");rr.className="lrem";
+        var dt=document.createElement("input");dt.type="datetime-local";dt.setAttribute("aria-label","Fecha y hora del resultado del enlace "+(i+1));
+        var fd=loadJSON("fecha_"+i,null)||{};
+        dt.value=fd.dt||(fd.d?fd.d+"T"+(fd.t||"20:00"):"");
+        dt.addEventListener("input",function(){saveJSON("fecha_"+i,{dt:dt.value})});
+        var bell=document.createElement("button");bell.type="button";bell.className="alt";bell.textContent="🔔 Recordar resultado";
+        var rmsg=document.createElement("p");rmsg.className="meta";rmsg.style.margin="4px 0 0 32px";
+        bell.addEventListener("click",function(){makeReminder(i,dt.value,rmsg)});
+        rr.appendChild(dt);rr.appendChild(bell);wrap.appendChild(rr);wrap.appendChild(rmsg);
+        $("links").appendChild(wrap);
+      })(i);
+    }
+  })();
+
+  function getFriends(){
+    var seen={},out=[];
+    $("friends").value.split(/\r?\n|,/).forEach(function(l){
+      var u=l.trim().replace(/^@+/,"").replace(/\s+/g,"");
+      if(u&&!seen[u.toLowerCase()]){seen[u.toLowerCase()]=1;out.push("@"+u)}
+    });
+    return out;
+  }
+  function pick(list,n){
+    var a=list.slice();
+    for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}
+    // los que han salido menos van primero (reparto equitativo); el empate lo decide el azar de arriba
+    a.sort(function(x,y){return (uses[x.toLowerCase()]||0)-(uses[y.toLowerCase()]||0)});
+    return a.slice(0,n);
+  }
+  function validLink(s){
+    try{var u=new URL(s);return /(^|\.)instagram\.com$/.test(u.hostname)}catch(e){return false}
+  }
+  function generate(){
+    $("err").textContent="";
+    var link=getLink();
+    var friends=getFriends();
+    var n=Math.max(1,Math.min(10,parseInt($("n").value,10)||1));
+    if(!validLink(link)){$("err").textContent="El enlace elegido (nº "+(sel+1)+") no es válido. Pega un enlace de Instagram.";return}
+    if(friends.length<n){$("err").textContent="Necesitas al menos "+n+" amigo(s) en la lista.";return}
+    var chosen,key,tries=0;
+    do{chosen=pick(friends,n);key=chosen.slice().sort().join("|");tries++}
+    while(used.indexOf(key)>-1&&tries<50);
+    registerUse(chosen,key);
+    var text=buildComment(chosen);
+    $("comment").textContent=text;
+    $("meta").textContent="Combinaciones usadas hasta ahora: "+used.length+" · "+commentStatus(text);
+    $("result").hidden=false;
+    $("timer").textContent="";
+  }
+  function copy(){
+    var text=$("comment").textContent;
+    function done(){
+      var w=Math.max(30,parseInt($("wait").value,10)||120);
+      startTimer(w);
+    }
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done,function(){fallback(text);done()});
+    }else{fallback(text);done()}
+  }
+  function fallback(text){
+    var t=document.createElement("textarea");t.value=text;document.body.appendChild(t);t.select();
+    try{document.execCommand("copy")}catch(e){}
+    document.body.removeChild(t);
+  }
+  function startTimer(sec){
+    clearInterval(timerId);
+    waitEnd=Date.now()+sec*1000;alerted=false;
+    try{document.title=TITLE}catch(e){}
+    keepAwake(true);
+    $("again").disabled=true;
+    function tick(){
+      var left=Math.ceil((waitEnd-Date.now())/1000);
+      if(left<=0){clearInterval(timerId);$("timer").textContent="Copiado. Ya puedes sortear otro comentario.";$("again").disabled=false;onReady();return}
+      $("timer").textContent="Copiado. Pega el comentario en Instagram. Siguiente sorteo en "+left+" s.";
+    }
+    tick();timerId=setInterval(tick,1000);
+  }
+  var bmCode="javascript:(async()=>{try{const t=await navigator.clipboard.readText();const el=document.querySelector('form textarea');if(!el){alert('Abre una publicación de Instagram primero');return}el.focus();Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(el,t);el.dispatchEvent(new Event('input',{bubbles:true}))}catch(e){alert('Permite el acceso al portapapeles y vuelve a probar')}})()";
+  $("bm").value=bmCode;
+  $("bmcopy").addEventListener("click",function(){
+    $("bm").select();
+    var ok=false;
+    try{ok=document.execCommand("copy")}catch(e){}
+    $("bmmsg").textContent=ok?"Código copiado.":"Selecciona el código y cópialo con Ctrl+C.";
+  });
+  $("copyopen").addEventListener("click",function(){
+    prepAudio();
+    if(!checkLimit())return;bumpToday();
+    var link=getLink();
+    var text=$("comment").textContent;
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).catch(function(){fallback(text)})}else{fallback(text)}
+    if(validLink(link)){window.open(link,"_blank","noopener")}
+    startTimer(Math.max(30,parseInt($("wait").value,10)||120));
+    $("timer").textContent="Copiado. En Instagram, mantén pulsada la caja de comentarios y elige Pegar.";
+  });
+  function copyText(t){
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).catch(function(){fallback(t)})}else{fallback(t)}
+  }
+  function addItem(text){
+    var row=document.createElement("div");row.className="item";
+    var s=document.createElement("span");s.textContent=text;
+    var b=document.createElement("button");b.type="button";b.className="alt";b.textContent="Copiar";
+    b.addEventListener("click",function(){if(!checkLimit())return;copyText(text);bumpToday();b.textContent="Copiado";row.style.opacity=".55";saveList()});
+    row.appendChild(s);row.appendChild(b);$("list").appendChild(row);
+    listItems.push({text:text,row:row,btn:b});
+  }
+  var listItems=[],nextIdx=0;
+  function updateNext(){
+    dockRefresh();
+    var bar=$("listbar"),btn=$("copynext");
+    if(!listItems.length){bar.style.display="none";return}
+    bar.style.display="";
+    var big=$("copyopennext");
+    if(!big.disabled){big.textContent=nextIdx>=listItems.length?"Lista completa · Volver a empezar":"Copiar siguiente y abrir Instagram ("+(nextIdx+1)+" de "+listItems.length+")"}
+    if(nextIdx>=listItems.length){btn.textContent="Lista completa ("+listItems.length+"/"+listItems.length+") · Volver a empezar"}
+    else{btn.textContent="Copiar siguiente ("+nextIdx+"/"+listItems.length+")"}
+  }
+  function jsEsc(str){return str.replace(/[^A-Za-z0-9 @._-]/g,function(c){return "\\u"+("0000"+c.charCodeAt(0).toString(16)).slice(-4)})}
+  function buildListBookmark(){
+    var box=$("bmlist");
+    if(!listItems.length){box.style.display="none";return}
+    var arr="["+listItems.map(function(it){return '"'+jsEsc(it.text)+'"'}).join(",")+"]";
+    var id=String(Date.now());
+    var code="javascript:(()=>{try{const L="+arr+";const K='"+id+"';let i=0;const s=(localStorage.getItem('_etq')||'').split(':');if(s[0]===K)i=+s[1]||0;if(i>=L.length){if(!confirm('Lista terminada. ¿Empezar de nuevo?'))return;i=0}const el=document.querySelector('form textarea');if(!el){alert('Abre una publicación de Instagram primero');return}el.focus();Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(el,L[i]);el.dispatchEvent(new Event('input',{bubbles:true}));localStorage.setItem('_etq',K+':'+(i+1));const d=document.createElement('div');d.textContent='Comentario '+(i+1)+' de '+L.length+' puesto. Pulsa Publicar.';d.style.cssText='position:fixed;top:12px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:8px;z-index:999999;font:14px sans-serif';document.body.appendChild(d);setTimeout(()=>d.remove(),2500)}catch(e){alert('No se pudo rellenar la caja')}})()";
+    $("bm2").value=code;$("bm2msg").textContent="";box.style.display="";
+  }
+  $("bm2copy").addEventListener("click",function(){
+    $("bm2").select();var ok=false;
+    try{ok=document.execCommand("copy")}catch(e){}
+    $("bm2msg").textContent=ok?"Código copiado.":"Selecciona el código y cópialo con Ctrl+C.";
+  });
+  $("copytext").addEventListener("click",function(){
+    if(!listItems.length)return;
+    copyText(listItems.map(function(it){return it.text}).join("\n"));
+    $("copyallmsg").textContent="Copiada la lista entera (un comentario por línea).";
+  });
+  $("clearlist").addEventListener("click",function(){
+    $("list").innerHTML="";listItems=[];nextIdx=0;$("copyallmsg").textContent="";updateNext();buildListBookmark();saveList();
+  });
+  var copyingAll=false;
+  function wait(ms){return new Promise(function(r){setTimeout(r,ms)})}
+  async function writeOne(t){
+    try{await navigator.clipboard.writeText(t)}catch(e){fallback(t)}
+  }
+  $("copyall").addEventListener("click",async function(){
+    if(copyingAll||!listItems.length)return;
+    copyingAll=true;
+    var btn=$("copyall"),msg=$("copyallmsg"),n=listItems.length;
+    btn.disabled=true;
+    listItems.forEach(function(it){it.btn.textContent="Copiar";it.row.style.opacity="";it.row.style.outline=""});
+    // De la última a la primera: así el comentario 1 queda arriba del historial y listo para Ctrl+V
+    for(var i=n-1;i>=0;i--){
+      var it=listItems[i];
+      await writeOne(it.text);
+      it.btn.textContent="Copiado";it.row.style.opacity=".55";
+      it.row.style.outline="2px solid currentColor";
+      msg.textContent="Copiando... "+(n-i)+"/"+n;
+      await wait(350);
+    }
+    nextIdx=n;updateNext();saveList();
+    msg.textContent="Listo: "+n+" comentarios copiados uno a uno. Ábrelos con Win + V (Windows) o desde el portapapeles de tu teclado en el móvil.";
+    btn.disabled=false;copyingAll=false;
+  });
+  function stepNext(){
+    if(!checkLimit())return false;
+    if(nextIdx>=listItems.length){nextIdx=0;listItems.forEach(function(it){it.btn.textContent="Copiar";it.row.style.opacity="";it.row.style.outline=""})}
+    var it=listItems[nextIdx];
+    copyText(it.text);
+    it.btn.textContent="Copiado";it.row.style.opacity=".55";
+    it.row.style.outline="2px solid currentColor";
+    if(nextIdx>0){listItems[nextIdx-1].row.style.outline=""}
+    try{it.row.scrollIntoView({block:"nearest",behavior:"smooth"})}catch(e){}
+    bumpToday();
+    nextIdx++;
+    updateNext();saveList();
+    return true;
+  }
+  $("copynext").addEventListener("click",stepNext);
+  var cdId=null;
+  $("copyopennext").addEventListener("click",function(){
+    if(!listItems.length)return;
+    prepAudio();
+    if(stepNext()===false)return;     // copia el comentario actual
+    var link=getLink();
+    if(validLink(link)){window.open(link,"_blank","noopener")}
+    var secs=Math.max(30,parseInt($("wait").value,10)||120);
+    var b=$("copyopennext");
+    waitEnd=Date.now()+secs*1000;alerted=false;
+    try{document.title=TITLE}catch(e){}
+    keepAwake(true);
+    clearInterval(cdId);b.disabled=true;
+    function tick(){
+      var left=Math.ceil((waitEnd-Date.now())/1000);
+      if(left<=0){clearInterval(cdId);b.disabled=false;updateNext();onReady();return}
+      b.textContent="Copiado. Pega en Instagram y publica. Siguiente en "+left+" s";
+    }
+    tick();cdId=setInterval(tick,1000);
+  });
+  function makeList(){
+    $("err").textContent="";
+    var friends=getFriends();
+    var n=Math.max(1,Math.min(10,parseInt($("n").value,10)||1));
+    var total=Math.max(2,Math.min(100,parseInt($("batch").value,10)||10));
+    if(friends.length<n){$("err").textContent="Necesitas al menos "+n+" amigo(s) en la lista.";return}
+    $("list").innerHTML="";listItems=[];nextIdx=0;$("copyallmsg").textContent="";
+    var made=0,tries=0;
+    while(made<total&&tries<500){
+      tries++;
+      var chosen=pick(friends,n);var key=chosen.slice().sort().join("|");
+      if(used.indexOf(key)>-1){continue}
+      registerUse(chosen,key);made++;
+      addItem(buildComment(chosen));
+    }
+    buildListBookmark();
+    updateNext();saveList();
+    if(made<total){$("err").textContent="Solo hay "+made+" combinaciones distintas. Añade más amigos."}
+  }
+  $("genlist").addEventListener("click",makeList);
+  function go(){
+    generate();
+    if(!$("err").textContent){$("copyopen").click()}
+    else{try{$("err").scrollIntoView({block:"center",behavior:"smooth"})}catch(e){}}
+  }
+  $("gen").addEventListener("click",go);
+  var LISTA_GUARDADA="";
+  var PALABRAS_GUARDADAS="";
+  var ICONOS_GUARDADOS="❤️\n💖\n💕\n🍀\n🤞\n✨";
+  var sw=null;try{sw=localStorage.getItem("palabras")}catch(e){}
+  $("words").value=sw!==null?sw:PALABRAS_GUARDADAS;
+  $("words").addEventListener("input",function(){try{localStorage.setItem("palabras",$("words").value)}catch(e){}});
+  var si=null;try{si=localStorage.getItem("iconos")}catch(e){}
+  $("icons").value=si!==null?si:ICONOS_GUARDADOS;
+  $("icons").addEventListener("input",function(){try{localStorage.setItem("iconos",$("icons").value)}catch(e){}});
+  $("ichance").value=loadJSON("iconosPct",60);
+  $("ichance").addEventListener("input",function(){saveJSON("iconosPct",parseInt($("ichance").value,10)||0)});
+  $("ipos").value=loadJSON("iconosPos","azar");
+  $("ipos").addEventListener("change",function(){saveJSON("iconosPos",$("ipos").value)});
+  function applyIconsState(){
+    var b=$("itoggle");
+    b.textContent=iconsOn?"Iconos: encendidos (toca para apagar)":"Iconos: apagados (toca para encender)";
+    b.className=iconsOn?"":"alt";
+    ["icons","ichance","ipos"].forEach(function(id){var e=$(id);e.disabled=!iconsOn;e.style.opacity=iconsOn?"":".5"});
+  }
+  $("itoggle").addEventListener("click",function(){iconsOn=!iconsOn;saveJSON("iconosOn",iconsOn);applyIconsState()});
+  applyIconsState();
+  $("wn").value=loadJSON("palabrasN",1);
+  $("wn").addEventListener("input",function(){saveJSON("palabrasN",parseInt($("wn").value,10)||1)});
+  $("wpos").value=loadJSON("palabrasPos","antes");
+  $("wpos").addEventListener("change",function(){saveJSON("palabrasPos",$("wpos").value)});
+  function applyWordsState(){
+    var b=$("wtoggle");
+    b.textContent=wordsOn?"Palabras: encendidas (toca para apagar)":"Palabras: apagadas (toca para encender)";
+    b.className=wordsOn?"":"alt";
+    ["words","wn","wpos"].forEach(function(id){var e=$(id);e.disabled=!wordsOn;e.style.opacity=wordsOn?"":".5"});
+  }
+  $("wtoggle").addEventListener("click",function(){wordsOn=!wordsOn;saveJSON("palabrasOn",wordsOn);applyWordsState()});
+  applyWordsState();
+  var sv=null;try{sv=localStorage.getItem("amigos")}catch(e){}
+  $("friends").value=sv?sv:LISTA_GUARDADA;
+  $("restore").addEventListener("click",function(){
+    $("friends").value=LISTA_GUARDADA;
+    try{localStorage.setItem("amigos",LISTA_GUARDADA)}catch(e){}
+    $("count").textContent="";setTimeout(function(){$("friends").dispatchEvent(new Event("input"))},0);
+  });
+  $("savefile").addEventListener("click",function(){
+    try{
+      var friendsVal=$("friends").value;
+      var urls=links.map(function(i){return i.value.trim()});
+      var clone=document.documentElement.cloneNode(true);
+      clone.querySelector("#links").innerHTML="";
+      clone.querySelector("#list").innerHTML="";clone.querySelector("#listbar").style.display="none";clone.querySelector("#copyallmsg").textContent="";clone.querySelector("#bmlist").style.display="none";clone.querySelector("#checklist").innerHTML="";
+      clone.querySelector("#result").setAttribute("hidden","");
+      clone.querySelector("title").textContent=TITLE;
+      clone.querySelector("#dock").className="";
+      ["#comment","#meta","#timer","#err","#bmmsg","#savemsg"].forEach(function(q){clone.querySelector(q).textContent=""});
+      var sc=clone.querySelector("script");
+      var txt=sc.textContent;
+      function js(v){return JSON.stringify(v).replace(/</g,"\\u003c")}
+      txt=txt.replace(new RegExp("var ICONOS"+"_GUARDADOS=.*;(?=\\n)"),function(){return "var ICONOS_GUARDADOS="+js($("icons").value)+";"});
+      txt=txt.replace(new RegExp("var PALABRAS"+"_GUARDADAS=.*;(?=\\n)"),function(){return "var PALABRAS_GUARDADAS="+js($("words").value)+";"});
+      txt=txt.replace(new RegExp("var LISTA"+"_GUARDADA=.*;(?=\\n)"),function(){return "var LISTA_GUARDADA="+js(friendsVal)+";"});
+      txt=txt.replace(new RegExp("var ENLACES"+"_GUARDADOS=.*;(?=\\n)"),function(){return "var ENLACES_GUARDADOS="+js(urls)+";"});
+      txt=txt.replace(new RegExp("var SEL"+"_GUARDADO=\\d+;"),function(){return "var SEL_GUARDADO="+sel+";"});
+      sc.textContent=txt;
+      var html="<!DOCTYPE html>\n"+clone.outerHTML;
+      var blob=new Blob([html],{type:"text/html"});
+      var a=document.createElement("a");
+      a.href=URL.createObjectURL(blob);a.download="Etiquetador_de_sorteos.html";
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+      $("savemsg").textContent="Copia descargada. Guarda ese archivo: es la versión con tus datos.";
+    }catch(e){$("savemsg").textContent="No se pudo crear la copia en este navegador."}
+  });
+  function updateCount(){var f=getFriends(),n=f.length;var bad=f.filter(function(h){return !/^@[A-Za-z0-9._]{1,30}$/.test(h)});$("count").textContent=n+(n===1?" amigo único en la lista":" amigos únicos en la lista")+" (los repetidos se quitan solos)"+(bad.length?" · ⚠ "+bad.length+" con formato raro: "+bad.slice(0,3).join(", "):"")}
+  updateCount();
+  $("friends").addEventListener("input",function(){try{localStorage.setItem("amigos",$("friends").value)}catch(e){}updateCount()});
+  $("req").value=loadJSON("reqEt",0);
+  $("must").value=loadJSON("must","");
+  $("req").addEventListener("input",function(){saveJSON("reqEt",parseInt($("req").value,10)||0);updateWarn()});
+  $("must").addEventListener("input",function(){saveJSON("must",$("must").value)});
+  $("n").addEventListener("input",updateWarn);
+  updateWarn();
+  $("limit").value=loadJSON("limite",50);
+  $("limit").addEventListener("input",function(){saveJSON("limite",getLimit());updateToday()});
+  updateToday();
+  $("resethist").addEventListener("click",function(){
+    if(!confirm("¿Borrar el historial de combinaciones usadas y el reparto de etiquetas?"))return;
+    used.length=0;for(var k in uses){delete uses[k]}
+    saveJSON("usadas",used);saveJSON("usos",uses);
+    $("todaymsg").textContent="Historial borrado. Empiezas de cero.";
+  });
+  (function restoreList(){
+    var st=loadJSON("lista",null);
+    if(!st||!st.t||!st.t.length)return;
+    st.t.forEach(function(text,i){
+      addItem(text);
+      if(st.c&&st.c[i]){var it=listItems[i];it.btn.textContent="Copiado";it.row.style.opacity=".55"}
+    });
+    nextIdx=Math.min(st.i||0,listItems.length);
+    updateNext();buildListBookmark();
+    $("copyallmsg").textContent="Lista recuperada. Vas por el comentario "+Math.min(nextIdx+1,listItems.length)+" de "+listItems.length+".";
+  })();
+  var DEFAULT_REQ=["Sigo a la cuenta que organiza","Di like a la publicación","Guardé la publicación","Compartí en mis historias (si lo piden)","Mi cuenta es pública","Mi comentario se ve publicado (lo comprobé desde otra sesión)"];
+  var lastSel=-1;
+  function checkKey(){return "check_"+sel}
+  function loadCheck(){var st=loadJSON(checkKey(),null)||{};if(!st.done)st.done={};if(!st.custom)st.custom=[];return st}
+  function renderChecklist(){if(sel===lastSel)return;lastSel=sel;drawChecklist()}
+  function drawChecklist(){
+    lastSel=sel;
+    var st=loadCheck(),box=$("checklist");box.innerHTML="";
+    var items=DEFAULT_REQ.map(function(t,i){return {id:"d"+i,text:t}}).concat(st.custom.map(function(t,i){return {id:"c"+i,text:t,custom:i}}));
+    var total=items.length,done=0;
+    items.forEach(function(it){
+      var row=document.createElement("div");row.className="chk";
+      var cb=document.createElement("input");cb.type="checkbox";cb.id="chk_"+it.id;cb.checked=!!st.done[it.id];
+      if(cb.checked)done++;
+      var lb=document.createElement("label");lb.setAttribute("for",cb.id);lb.textContent=it.text;
+      cb.addEventListener("change",function(){st.done[it.id]=cb.checked;saveJSON(checkKey(),st);drawChecklist()});
+      row.appendChild(cb);row.appendChild(lb);
+      if(it.custom!==undefined){
+        var x=document.createElement("button");x.type="button";x.className="alt";x.textContent="✕";x.setAttribute("aria-label","Quitar requisito");
+        x.addEventListener("click",function(){
+          var flags=st.custom.map(function(t,i){return !!st.done["c"+i]});
+          st.custom.splice(it.custom,1);flags.splice(it.custom,1);
+          Object.keys(st.done).forEach(function(k){if(k.charAt(0)==="c")delete st.done[k]});
+          flags.forEach(function(f,i){if(f)st.done["c"+i]=true});
+          saveJSON(checkKey(),st);drawChecklist();
+        });
+        row.appendChild(x);
+      }
+      box.appendChild(row);
+    });
+    $("checksum").textContent="Requisitos del sorteo "+(sel+1)+" ("+done+" de "+total+")"+(done===total?" ✓":"");
+  }
+  $("checkadd").addEventListener("click",function(){
+    var t=$("checknew").value.trim();if(!t)return;
+    var st=loadCheck();st.custom.push(t);saveJSON(checkKey(),st);$("checknew").value="";drawChecklist();
+  });
+  $("checkclear").addEventListener("click",function(){
+    var st=loadCheck();st.done={};saveJSON(checkKey(),st);drawChecklist();
+  });
+  function pad2(n){return (n<10?"0":"")+n}
+  function icsEsc(t){return String(t).replace(/\\/g,"\\\\").replace(/;/g,"\\;").replace(/,/g,"\\,").replace(/\r?\n/g,"\\n")}
+  function icsLocal(d){return d.getFullYear()+pad2(d.getMonth()+1)+pad2(d.getDate())+"T"+pad2(d.getHours())+pad2(d.getMinutes())+"00"}
+  function makeReminder(i,val,msg){
+    if(!val){msg.textContent="Elige primero la fecha y hora del resultado.";return}
+    var m=val.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+    var start=m?new Date(+m[1],+m[2]-1,+m[3],+m[4],+m[5]):new Date(NaN);
+    if(isNaN(start.getTime())){msg.textContent="La fecha u hora no es válida.";return}
+    if(start.getTime()<Date.now()){msg.textContent="Esa fecha y hora ya pasaron. Elige una futura.";return}
+    var end=new Date(start.getTime()+30*60000);
+    var link=links[i]?links[i].value.trim():"",n=i+1;
+    var desc="Mira si has ganado el sorteo "+n+"."+(validLink(link)?" "+link:"");
+    var stamp=new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d+/,"");
+    var lines=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Etiquetador de sorteos//ES","CALSCALE:GREGORIAN","BEGIN:VEVENT",
+      "UID:"+Date.now()+"-"+i+"@etiquetador","DTSTAMP:"+stamp,"DTSTART:"+icsLocal(start),"DTEND:"+icsLocal(end),
+      "SUMMARY:"+icsEsc("Resultado del sorteo "+n),"DESCRIPTION:"+icsEsc(desc),
+      "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+icsEsc("Resultado del sorteo "+n),"TRIGGER:PT0S","END:VALARM",
+      "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+icsEsc("En una hora: resultado del sorteo "+n),"TRIGGER:-PT1H","END:VALARM",
+      "END:VEVENT","END:VCALENDAR"];
+    try{
+      var blob=new Blob([lines.join("\r\n")+"\r\n"],{type:"text/calendar;charset=utf-8"});
+      var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="recordatorio-sorteo-"+n+".ics";
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+      msg.textContent="Archivo descargado. Ábrelo para guardar el recordatorio en tu calendario.";
+    }catch(e){msg.textContent="No se pudo crear el archivo en este navegador."}
+  }
+  /* ---------- Botón fijo, aviso y pantalla encendida ---------- */
+  var actx=null,wl=null;
+  function prepAudio(){
+    try{
+      if(!actx){var AC=window.AudioContext||window.webkitAudioContext;if(AC)actx=new AC()}
+      if(actx&&actx.state==="suspended")actx.resume();
+    }catch(e){}
+  }
+  function beep(){
+    try{
+      if(!actx)return;
+      var o=actx.createOscillator(),g=actx.createGain(),t=actx.currentTime;
+      o.type="sine";o.frequency.value=880;
+      g.gain.setValueAtTime(0.0001,t);
+      g.gain.exponentialRampToValueAtTime(0.25,t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+0.35);
+      o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+0.4);
+    }catch(e){}
+  }
+  function keepAwake(on){
+    try{
+      if(on){
+        if(!$("awakeOn").checked)return;
+        if(navigator.wakeLock){
+          if(!wl){navigator.wakeLock.request("screen").then(function(s){wl=s;s.addEventListener("release",function(){wl=null})}).catch(function(){})}
+        }
+      }else if(wl){wl.release();wl=null}
+    }catch(e){}
+  }
+  function onReady(silent){
+    if(alerted)return;
+    alerted=true;
+    keepAwake(false);
+    try{document.title="✅ Ya puedes sortear"}catch(e){}
+    if($("alertOn").checked&&!silent){
+      try{if(navigator.vibrate)navigator.vibrate([250,120,250])}catch(e){}
+      beep();setTimeout(beep,450);
+    }
+    dockRefresh();
+  }
+  function dockRefresh(){
+    var d=$("dock"),b=$("dockbtn"),left=Math.ceil((waitEnd-Date.now())/1000);
+    var useList=listItems.length&&nextIdx<listItems.length;
+    if(waitEnd&&left>0){
+      d.className="wait";b.disabled=true;
+      b.textContent="Pega en Instagram y publica · siguiente en "+left+" s";
+      return;
+    }
+    b.disabled=false;
+    var ready=!!waitEnd;
+    d.className=ready?"ready":"";
+    var base=useList?"Copiar siguiente y abrir Instagram ("+(nextIdx+1)+" de "+listItems.length+")":"Sortear, copiar y abrir Instagram";
+    b.textContent=(ready?"✅ Listo · ":"")+base;
+  }
+  $("dockbtn").addEventListener("click",function(){
+    prepAudio();
+    var useList=listItems.length&&nextIdx<listItems.length;
+    if(useList){$("copyopennext").click()}else{$("gen").click()}
+    dockRefresh();
+  });
+  $("alertOn").checked=loadJSON("avisoOn",true);
+  $("alertOn").addEventListener("change",function(){
+    saveJSON("avisoOn",$("alertOn").checked);
+    if($("alertOn").checked){prepAudio();beep()}
+  });
+  $("awakeOn").checked=loadJSON("despiertaOn",true);
+  $("awakeOn").addEventListener("change",function(){
+    saveJSON("despiertaOn",$("awakeOn").checked);
+    if(!$("awakeOn").checked){keepAwake(false)}else if(waitEnd&&Date.now()<waitEnd){keepAwake(true)}
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.visibilityState!=="visible")return;
+    if(waitEnd&&Date.now()<waitEnd){keepAwake(true)}        // volver a pedir la pantalla encendida
+    else if(waitEnd&&!alerted){onReady(true)}                 // la espera terminó mientras estabas fuera
+    dockRefresh();
+  });
+  setInterval(dockRefresh,500);dockRefresh();
+  drawChecklist();
+  $("again").addEventListener("click",go);
+  $("copy").addEventListener("click",copy);
+  $("open").addEventListener("click",function(){
+    var link=getLink();
+    if(validLink(link)){window.open(link,"_blank","noopener")}
+  });
+})();
+</script>
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id)};
+  var DEFAULT_SCRIPT="# Cada línea es un paso. Lo que va después de | son segundos de espera extra.\nesperar 15\nescribir lista\nesperar 1.5\ntocar Publicar | 30\nrepetir 10";
+  var box=$("appscript"),msg=$("appmsg");
+  var saved=null;try{saved=localStorage.getItem("guion_app")}catch(e){}
+  box.value=saved!==null?saved:DEFAULT_SCRIPT;
+  box.addEventListener("input",function(){try{localStorage.setItem("guion_app",box.value)}catch(e){}});
+  function fb(t){
+    var a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();
+    var ok=false;try{ok=document.execCommand("copy")}catch(e){}
+    document.body.removeChild(a);return ok;
+  }
+  function copyTxt(t){
+    return new Promise(function(res){
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(t).then(function(){res(true)},function(){res(fb(t))});
+      }else{res(fb(t))}
+    });
+  }
+  function listTexts(){
+    var out=[],spans=document.querySelectorAll("#list .item span");
+    for(var i=0;i<spans.length;i++){out.push(spans[i].textContent)}
+    return out;
+  }
+  $("appcopyscript").addEventListener("click",function(){
+    copyTxt(box.value).then(function(ok){
+      msg.textContent=ok?"Guion copiado. Pégalo en la caja «GUION» de la app.":"No se pudo copiar. Selecciona el texto y cópialo a mano.";
+    });
+  });
+  $("appcopylist").addEventListener("click",function(){
+    var t=listTexts();
+    if(!t.length){$("genlist").click();t=listTexts()}
+    if(!t.length){msg.textContent="No se pudo generar la lista. Revisa que haya amigos y que queden combinaciones sin usar.";return}
+    copyTxt(t.join("\n")).then(function(ok){
+      msg.textContent=ok
+        ?"Copiados "+t.length+" comentarios (uno por línea). Pégalos en la caja «TUS COMENTARIOS» de la app."+(t.length>50?" La app solo usa 50 por tanda.":"")
+        :"No se pudo copiar. Usa «Copiar la lista en un solo texto» en la lista de comentarios.";
+    });
+  });
+})();
+</script>
+<script>
+(function(){
+  if(!window.AutoClickApp)return;
+  var $=function(id){return document.getElementById(id)};
+  var DEFAULT_SCRIPT="# Cada línea es un paso. Lo que va después de | son segundos de espera extra.\nesperar 15\nescribir lista\nesperar 1.5\ntocar Publicar | 30\nrepetir 10";
+  var box=$("appscript"),msg=$("appmsg");
+  var saved=null;try{saved=localStorage.getItem("guion_app")}catch(e){}
+  box.value=saved!==null?saved:DEFAULT_SCRIPT;
+  box.addEventListener("input",function(){try{localStorage.setItem("guion_app",box.value)}catch(e){}});
+  function listTexts(){
+    var out=[],spans=document.querySelectorAll("#list .item span");
+    for(var i=0;i<spans.length;i++){out.push(spans[i].textContent)}
+    return out;
+  }
+  $("appaccess").addEventListener("click",function(){AutoClickApp.openAccessibility()});
+  $("appstart").addEventListener("click",function(){
+    var t=listTexts();
+    if(!t.length){$("genlist").click();t=listTexts()}
+    if(!t.length){msg.textContent="No hay comentarios: revisa que haya amigos en la lista y combinaciones sin usar.";return}
+    msg.textContent=AutoClickApp.run(box.value,t.join("\n"));
+  });
+  /* En la app no sirven: la lista personal se queda guardada en la propia app y las descargas no están disponibles. */
+  var r=$("restore");if(r)r.style.display="none";
+  var sv=$("savefile");if(sv){var sec=sv.closest("section");if(sec)sec.style.display="none"}
+})();
+</script>
+</body>
+</html>
