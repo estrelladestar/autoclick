@@ -931,6 +931,24 @@ details.sec[open] summary{margin-bottom:8px}
   var fr=$("friends");
   function pushFriends(){try{AutoClickApp.saveFriends(fr.value)}catch(e){}}
   if(fr){fr.addEventListener("input",pushFriends);setTimeout(pushFriends,800)}
+  /* Pasa los comentarios generados en la lista a la app («TUS COMENTARIOS»), sin copiarlos a mano.
+     Si la lista está vacía no toca lo que ya haya en la app. */
+  var lastPushed=null,pushT=null;
+  function pushList(){
+    try{
+      var t=listTexts();
+      if(!t.length)return;
+      var s=t.join("\n");
+      if(s===lastPushed)return;
+      lastPushed=s;
+      AutoClickApp.saveComments(s);
+    }catch(e){}
+  }
+  var lst=$("list");
+  if(lst&&window.MutationObserver){
+    new MutationObserver(function(){clearTimeout(pushT);pushT=setTimeout(pushList,400)}).observe(lst,{childList:true,subtree:true});
+  }
+  setTimeout(pushList,900);
   /* En la app no sirven: la lista personal se queda guardada en la propia app y las descargas no están disponibles. */
   var r=$("restore");if(r)r.style.display="none";
   var sv=$("savefile");if(sv){var sec=sv.closest("section");if(sec)sec.style.display="none"}

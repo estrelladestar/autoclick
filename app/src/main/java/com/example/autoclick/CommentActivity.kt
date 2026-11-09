@@ -172,7 +172,7 @@ repetir 10"""
             root.addView(this)
         }
 
-        label("TUS COMENTARIOS, uno por línea (cópialos del Etiquetador con «Copiar la lista en un solo texto»):")
+        label("TUS COMENTARIOS, uno por línea (se rellenan solos al generar la lista en el Etiquetador; también puedes pegarlos aquí):")
         box = multi(6, prefs.getString("comments", "") ?: "")
 
         label("TUS MENCIONES, una por línea (se rellenan solas desde el cuadro «Menciones» del Etiquetador; también puedes escribirlas aquí):")
@@ -230,6 +230,15 @@ repetir 10"""
     override fun onPause() {
         super.onPause()
         saveAll()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // El Etiquetador puede haber cambiado los comentarios o las menciones mientras esta pantalla estaba en segundo plano.
+        val c = prefs.getString("comments", "") ?: ""
+        if (box.text.toString() != c) box.setText(c)
+        val f = prefs.getString("friends", "") ?: ""
+        if (friendsBox.text.toString() != f) friendsBox.setText(f)
     }
 
     private fun saveAll() {

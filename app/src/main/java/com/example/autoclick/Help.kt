@@ -19,6 +19,7 @@ PREPARACIÓN (solo la primera vez)
 MENCIONES
 1. Abre «Abrir el Etiquetador de sorteos» y escribe tus amigos en el cuadro «Menciones» (uno por línea).
 2. Se copian solos al guion. También puedes escribirlos en «TUS MENCIONES» dentro de «Comentarios automáticos (guion)».
+3. Los comentarios que genera el Etiquetador en su lista también pasan solos a «TUS COMENTARIOS» (no hace falta copiarlos). Si la lista está vacía no se borra lo que ya tengas allí.
 
 COMENTARIOS AUTOMÁTICOS
 1. Entra en «Comentarios automáticos (guion)».

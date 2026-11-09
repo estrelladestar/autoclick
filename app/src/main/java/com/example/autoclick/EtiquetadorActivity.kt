@@ -94,6 +94,13 @@ class EtiquetadorActivity : Activity() {
                 .putString("friends", text).apply()
         }
 
+        /** Guarda los comentarios generados en la lista de la página («TUS COMENTARIOS» del guion). */
+        @JavascriptInterface
+        fun saveComments(text: String) {
+            getSharedPreferences("cfg", Context.MODE_PRIVATE).edit()
+                .putString("comments", text).apply()
+        }
+
         /** Guarda el guion y los comentarios e inicia el guion. Devuelve un mensaje para mostrar. */
         @JavascriptInterface
         fun run(script: String, comments: String): String {
