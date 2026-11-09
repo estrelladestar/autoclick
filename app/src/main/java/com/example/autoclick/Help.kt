@@ -38,6 +38,9 @@ ASISTENTE (decirle lo que quieres)
 6. «vuelve a pulsar» (o «de nuevo») repite el último toque. «pulsa el icono del perfil de abajo a la derecha» toca esa zona de la pantalla.
 7. «cambia a otra cuenta» mantiene pulsado el perfil para abrir la lista de cuentas; para elegir una di su nombre («cambia a la cuenta NOMBRE») o sube una captura suya y di «pulsa la imagen N».
 
+ESTADO Y SEGUIMIENTO
+Arriba de la pantalla del guion ves un resumen: si el servicio está activo y cuántos enlaces, imágenes, comentarios y menciones tienes, y qué falta. Ahí mismo tienes el botón «▶ Iniciar». Mientras se ejecuta, el botón flotante te dice en qué paso va (por ejemplo ■ 3/9 imagen 2), la vuelta y cuántos comentarios lleva. Al terminar te da un resumen.
+
 IMÁGENES
 «imagen 1» del guion es la primera imagen de la lista, «imagen 2» la segunda… (se cuentan solo las imágenes). Puedes añadirlas en la pantalla principal o en el panel «Imágenes» de la pantalla del guion. Sube una captura recortada del botón que quieres pulsar. Al pulsar «Iniciar», la app comprueba que no falte nada (imágenes, enlaces, comentarios, menciones) y te avisa antes de empezar; también te avisa al crear un guion con el asistente.
 

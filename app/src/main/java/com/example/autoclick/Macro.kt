@@ -176,7 +176,7 @@ object Macro {
             if (i >= cmds.size) {
                 loop++
                 if (loop >= repeats) {
-                    finish("Guion terminado")
+                    finish("Guion terminado: $repeats vuelta(s)" + (if (used > 0) ", $used comentario(s) escritos" else ""))
                     return
                 }
                 i = 0
@@ -187,6 +187,7 @@ object Macro {
                 finish("Instagram muestra un aviso de bloqueo o límite. Guion detenido para proteger tu cuenta.")
                 return
             }
+            showProgress()
             val c = cmds[i]
             when (c.op) {
                 "esperar" -> {
@@ -221,6 +222,18 @@ object Macro {
                 }
                 else -> advance(0L)
             }
+        }
+
+        /** Muestra en el botón flotante el paso en el que va, la vuelta y los comentarios escritos. */
+        private fun showProgress() {
+            val c = cmds.getOrNull(i) ?: return
+            val what = (c.op + " " + c.arg).trim().take(14)
+            var t = "■ ${i + 1}/${cmds.size} $what"
+            val extra = ArrayList<String>()
+            if (repeats > 1) extra.add("vuelta ${loop + 1}/$repeats")
+            if (used > 0) extra.add("$used/$MAX_COMMENTS")
+            if (extra.isNotEmpty()) t += "\n" + extra.joinToString(" · ")
+            s.setOverlayText(t)
         }
 
         private fun blocked(): Boolean {
@@ -344,7 +357,7 @@ object Macro {
             usedCombos.add(key)
             used++
             last = System.currentTimeMillis()
-            s.setOverlayText("■ $used/$MAX_COMMENTS")
+            showProgress()
             advance(c.extra())
         }
 
@@ -394,7 +407,7 @@ object Macro {
                 commentIdx++
                 used++
                 last = System.currentTimeMillis()
-                s.setOverlayText("■ $used/$MAX_COMMENTS")
+                showProgress()
             }
             advance(c.extra())
         }

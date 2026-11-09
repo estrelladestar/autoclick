@@ -43,6 +43,8 @@ repetir 10"""
     private lateinit var askBox: EditText
     private lateinit var apiKeyBox: EditText
     private lateinit var imagesBox: LinearLayout
+    private lateinit var statusBox: TextView
+    private lateinit var startBtn: Button
     private val voiceCode = 77
     private val pickCode = 42
 
@@ -70,6 +72,18 @@ repetir 10"""
         Button(ctx).apply {
             text = "❓ Cómo se usa (instrucciones)"
             setOnClickListener { Help.show(this@CommentActivity) }
+            root.addView(this)
+        }
+
+        // ---------- Estado y arranque rápido ----------
+        statusBox = TextView(ctx).apply {
+            textSize = 15f
+            setPadding(0, 24, 0, 8)
+            root.addView(this)
+        }
+        Button(ctx).apply {
+            text = "▶ Iniciar"
+            setOnClickListener { startBtn.performClick() }
             root.addView(this)
         }
 
@@ -230,7 +244,7 @@ repetir 10"""
             "Si aparece un aviso de bloqueo de Instagram, el guion se para solo y el móvil vibra."
         )
 
-        Button(ctx).apply {
+        startBtn = Button(ctx).apply {
             text = "Iniciar"
             setOnClickListener {
                 val list = box.text.toString().lines().map { it.trim() }.filter { it.isNotEmpty() }
@@ -255,6 +269,7 @@ repetir 10"""
             }
             root.addView(this)
         }
+        refreshStatus()
         setContentView(ScrollView(ctx).apply { addView(root) })
     }
 
@@ -271,6 +286,7 @@ repetir 10"""
         val f = prefs.getString("friends", "") ?: ""
         if (friendsBox.text.toString() != f) friendsBox.setText(f)
         refreshImages()
+        refreshStatus()
     }
 
     private fun saveAll() {
@@ -313,6 +329,32 @@ repetir 10"""
             val uri = data?.data ?: return
             addImage(uri)
         }
+    }
+
+    /** Resumen de lo que está conectado y listo, y de lo que falta. */
+    private fun refreshStatus() {
+        val svc = ClickService.instance != null
+        val images = StepStore.load(this).count { it.type == "image" }
+        val links = (0 until 5).count { (prefs.getString("link$it", "") ?: "").trim().isNotEmpty() }
+        val marked = (prefs.getString("linkSelUrl", "") ?: "").trim().isNotEmpty()
+        val comments = box.text.toString().lines().count { it.trim().isNotEmpty() }
+        val friends = friendsBox.text.toString().lines().count { it.trim().isNotEmpty() }
+        val steps = script.text.toString().lines().map { it.trim() }
+            .count { it.isNotEmpty() && !it.startsWith("#") && !it.startsWith("repetir") }
+        val blockers = ArrayList<String>()
+        if (!svc) blockers.add("Activa el servicio de accesibilidad de AutoClick Imagen (pantalla principal, botón 1).")
+        blockers.addAll(problems(script.text.toString()))
+        fun mark(ok: Boolean) = if (ok) "✅" else "➖"
+        val sb = StringBuilder()
+        sb.append(if (blockers.isEmpty()) "✅ TODO LISTO PARA INICIAR ($steps pasos)" else "⚠ FALTA ALGO ANTES DE INICIAR")
+        sb.append("\n").append(if (svc) "✅" else "❌").append(" Servicio de accesibilidad: ").append(if (svc) "activo" else "desactivado")
+        sb.append("\n").append(mark(links > 0 || marked)).append(" Enlaces: ")
+            .append(if (marked) "uno marcado en el Etiquetador, " else "").append(links).append(" guardado(s)")
+        sb.append("\n").append(mark(images > 0)).append(" Imágenes: ").append(images)
+        sb.append("\n").append(mark(comments > 0)).append(" Comentarios: ").append(comments)
+        sb.append("\n").append(mark(friends > 0)).append(" Menciones: ").append(friends)
+        if (blockers.isNotEmpty()) sb.append("\n\nFalta:\n• ").append(blockers.joinToString("\n• "))
+        statusBox.text = sb.toString()
     }
 
     private fun startScript(s: ClickService, list: List<String>) {
@@ -422,6 +464,7 @@ repetir 10"""
                 File(filesDir, st.value).delete()
                 StepStore.save(this, all)
                 refreshImages()
+                refreshStatus()
             }
             .setNegativeButton("Cancelar", null)
             .show()
@@ -442,6 +485,7 @@ repetir 10"""
         all.add(Step(id, "image", name))
         StepStore.save(this, all)
         refreshImages()
+        refreshStatus()
         toast("Añadida como imagen " + all.count { it.type == "image" })
     }
 
@@ -504,6 +548,7 @@ repetir 10"""
             .setView(ScrollView(this).apply { addView(ed) })
             .setPositiveButton("Usar este guion") { _, _ ->
                 script.setText(ed.text.toString())
+                refreshStatus()
                 toast("Guion puesto. Comprueba tus comentarios y menciones y pulsa Iniciar.")
             }
             .setNegativeButton("Cancelar", null)
