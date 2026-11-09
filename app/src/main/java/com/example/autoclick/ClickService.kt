@@ -172,6 +172,7 @@ class ClickService : AccessibilityService() {
                 MotionEvent.ACTION_UP -> {
                     if (!moved) {
                         if (e.eventTime - downTime > 700) hideOverlay()
+                        else if (Macro.running) Macro.stop()
                         else if (running) stopClicking()
                         else startClicking()
                     }
@@ -184,7 +185,18 @@ class ClickService : AccessibilityService() {
         overlay = b
     }
 
+    /** Para que el guion de Comentarios automáticos pueda cambiar el texto del botón flotante. */
+    fun setOverlayText(t: String) {
+        overlay?.text = t
+    }
+
+    /** Para que el guion pueda tocar una posición de la pantalla. */
+    fun tapAt(x: Float, y: Float) {
+        tap(x, y)
+    }
+
     private fun hideOverlay() {
+        Macro.stop()
         val o = overlay
         if (o != null) {
             try {
