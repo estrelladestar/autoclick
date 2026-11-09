@@ -116,7 +116,7 @@ repetir 10"""
             "• escribir menciones → pone @amigos al azar de tu cuadro de menciones (cuántos: selector de abajo), con una frase tuya si quieres\n" +
             "• escribir menciones 3 → igual, con 3 menciones (de 1 a 5)\n" +
             "• escribir copiados menciones 2 → un comentario copiado al azar (de TUS COMENTARIOS) + 2 menciones\n" +
-            "• enlace → abre el siguiente enlace guardado (o enlace 2 = el enlace 2)\n" +
+            "• enlace → abre el enlace marcado en el Etiquetador (si no hay, el siguiente de los guardados); enlace 2 = el enlace 2\n" +
             "• imagen 1 → busca en pantalla la imagen 1 de la app y la pulsa (imagen 2 = otra)\n" +
             "• escribir Hola → pone ese texto fijo\n" +
             "• campo → selecciona la caja de texto\n" +

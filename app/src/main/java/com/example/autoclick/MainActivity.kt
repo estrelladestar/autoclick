@@ -189,6 +189,13 @@ class MainActivity : Activity() {
         super.onResume()
         steps = StepStore.load(this)
         refreshList()
+        // El Etiquetador puede haber cambiado los enlaces mientras esta pantalla estaba en segundo plano.
+        // Se leen todos antes de escribir ninguno, porque cada cambio de texto vuelve a guardar los cuadros.
+        val p = getSharedPreferences("cfg", Context.MODE_PRIVATE)
+        val fresh = linkFields.indices.map { p.getString("link$it", "") ?: "" }
+        for (i in linkFields.indices) {
+            if (linkFields[i].text.toString() != fresh[i]) linkFields[i].setText(fresh[i])
+        }
     }
 
     override fun onPause() {

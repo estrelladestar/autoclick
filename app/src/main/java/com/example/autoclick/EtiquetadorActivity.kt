@@ -94,6 +94,24 @@ class EtiquetadorActivity : Activity() {
                 .putString("friends", text).apply()
         }
 
+        /**
+         * Guarda los enlaces del sorteo de la página: los 5 primeros en «Enlace 1…5» de la app y el que esté marcado
+         * como el que usa el paso «enlace» del guion. Si todos están vacíos solo se quita el marcado.
+         */
+        @JavascriptInterface
+        fun saveLinks(urlsJson: String, sel: Int) {
+            val arr = try { org.json.JSONArray(urlsJson) } catch (e: Exception) { return }
+            val urls = (0 until arr.length()).map { arr.optString(it, "").trim() }
+            val e = getSharedPreferences("cfg", Context.MODE_PRIVATE).edit()
+            if (urls.all { it.isEmpty() }) {
+                e.putString("linkSelUrl", "").apply()
+                return
+            }
+            for (i in 0 until 5) e.putString("link$i", urls.getOrNull(i) ?: "")
+            e.putString("linkSelUrl", urls.getOrNull(sel) ?: "")
+            e.apply()
+        }
+
         /** Guarda los comentarios generados en la lista de la página («TUS COMENTARIOS» del guion). */
         @JavascriptInterface
         fun saveComments(text: String) {

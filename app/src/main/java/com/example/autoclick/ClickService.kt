@@ -222,6 +222,15 @@ class ClickService : AccessibilityService() {
         return true
     }
 
+    /** Enlace marcado en el Etiquetador (vacío si no hay ninguno). */
+    fun selectedLinkUrl(): String =
+        (getSharedPreferences("cfg", Context.MODE_PRIVATE).getString("linkSelUrl", "") ?: "").trim()
+
+    /** Abre una dirección (la del enlace marcado en el Etiquetador). */
+    fun openUrl(url: String) {
+        openLink(url)
+    }
+
     /** Cuántos enlaces hay guardados (los que no están vacíos). */
     fun savedLinks(): List<Int> {
         val prefs = getSharedPreferences("cfg", Context.MODE_PRIVATE)

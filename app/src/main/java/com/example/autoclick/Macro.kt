@@ -237,15 +237,22 @@ object Macro {
             val ok = if (n != null) {
                 s.openSavedLink(n - 1)
             } else {
-                val all = s.savedLinks()
-                if (all.isEmpty()) false else {
-                    val idx = all[linkTurn % all.size]
-                    linkTurn++
-                    s.openSavedLink(idx)
+                val marked = s.selectedLinkUrl()
+                if (marked.isNotEmpty()) {
+                    // El enlace marcado con el círculo en el Etiquetador
+                    s.openUrl(marked)
+                    true
+                } else {
+                    val all = s.savedLinks()
+                    if (all.isEmpty()) false else {
+                        val idx = all[linkTurn % all.size]
+                        linkTurn++
+                        s.openSavedLink(idx)
+                    }
                 }
             }
             if (!ok) {
-                finish("No hay ningún enlace guardado. Escríbelo en «Enlace 1» de la pantalla principal y pulsa «Guardar enlaces». Guion detenido.")
+                finish("No hay ningún enlace. Ponlo en «Enlaces del sorteo» del Etiquetador o en «Enlace 1» de la pantalla principal. Guion detenido.")
                 return
             }
             advance(maxOf(c.extra(), 3000L))

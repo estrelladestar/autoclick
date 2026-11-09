@@ -949,6 +949,22 @@ details.sec[open] summary{margin-bottom:8px}
     new MutationObserver(function(){clearTimeout(pushT);pushT=setTimeout(pushList,400)}).observe(lst,{childList:true,subtree:true});
   }
   setTimeout(pushList,900);
+  /* Pasa los enlaces del sorteo a la app: el paso «enlace» del guion abre el que tengas marcado. */
+  function pushLinks(raw){
+    try{
+      var d=JSON.parse(raw),urls=[],src=(d&&d.urls)||[];
+      for(var i=0;i<src.length;i++){urls.push(String(src[i]||"").trim())}
+      AutoClickApp.saveLinks(JSON.stringify(urls),(d&&typeof d.sel==="number")?d.sel:0);
+    }catch(e){}
+  }
+  try{
+    var origSet=Storage.prototype.setItem;
+    Storage.prototype.setItem=function(k,v){
+      origSet.apply(this,arguments);
+      if(k==="enlaces")pushLinks(v);
+    };
+  }catch(e){}
+  setTimeout(function(){try{var raw=localStorage.getItem("enlaces");if(raw)pushLinks(raw)}catch(e){}},900);
   /* En la app no sirven: la lista personal se queda guardada en la propia app y las descargas no están disponibles. */
   var r=$("restore");if(r)r.style.display="none";
   var sv=$("savefile");if(sv){var sec=sv.closest("section");if(sec)sec.style.display="none"}
