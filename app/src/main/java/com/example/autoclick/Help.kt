@@ -24,8 +24,12 @@ COMENTARIOS AUTOMÁTICOS
 1. Entra en «Comentarios automáticos (guion)».
 2. Pulsa «Restaurar guion de ejemplo».
 3. Elige cuántas menciones por comentario (1 a 5).
-4. Pulsa «Iniciar». La app se esconde y empieza sola.
-5. Para parar, toca ■ en el botón flotante.
+4. Si quieres, escribe tus frases en «TUS FRASES» (una por línea), elige si van delante o detrás y con qué probabilidad. Se juntan con las menciones.
+5. Pulsa «Iniciar». La app se esconde y empieza sola.
+6. Para parar, toca ■ en el botón flotante. El botón muestra cuántos comentarios lleva (por ejemplo ■ 7/50).
+
+GUIONES GUARDADOS
+Con «Guardar como…» guardas el guion con un nombre (por ejemplo Instagram o TikTok). Elígelo en la lista para cargarlo, y «Borrar este» lo elimina.
 
 QUÉ HACE EL GUION DE EJEMPLO
 enlace → abre el siguiente enlace
@@ -33,7 +37,7 @@ esperar 8 → espera a que cargue
 campo → abre la caja de comentarios
 escribir menciones → escribe @amigos al azar
 imagen 1 → pulsa tu imagen (Publicar)
-| 30 → espera 30 s después
+| 30-60 → espera entre 30 y 60 s al azar (| 30 = siempre 30)
 repetir 10 → lo hace 10 veces
 
 OTROS PASOS
@@ -43,12 +47,15 @@ escribir azar → comentario al azar de tu lista
 escribir lista → comentarios de tu lista en orden
 escribir Hola → texto fijo
 imagen 2 → usa la segunda imagen subida
+esperar 5-10 → espera entre 5 y 10 s al azar
 # → nota, se ignora
 
 CONSEJOS
 • Haz primero una prueba con «repetir 1».
 • Si dice que no encuentra algo, revisa el texto del botón o usa la imagen.
 • Máximo 50 comentarios por tanda y 10 s entre uno y otro.
+• Si aparece un aviso de bloqueo de Instagram, el guion se para solo y el móvil vibra. Espera unas horas antes de volver a probar.
+• Tras instalar una versión nueva, mira el número de versión arriba en la pantalla principal para saber que es la última.
 • Instagram y TikTok pueden limitar cuentas que comentan mucho seguido: ve despacio."""
 
     fun show(a: Activity) {

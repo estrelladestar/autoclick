@@ -1,36 +1,61 @@
 package com.example.autoclick
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
 import android.graphics.Typeface
 import android.os.Bundle
 import android.text.InputType
 import android.view.Gravity
+import android.view.View
 import android.widget.*
+import org.json.JSONObject
 
 class CommentActivity : Activity() {
     private val defaultScript = """# Cada línea es un paso. Lo que va después de | son segundos de espera extra.
 # Abre el siguiente enlace de la app, espera a que cargue,
-# abre la caja de comentarios, escribe @amigos al azar de tu cuadro de menciones
-# (cuántos, lo eliges abajo) y pulsa la imagen 1 (la de la lista de pasos de la app).
+# abre la caja de comentarios, escribe una frase y @amigos al azar
+# (lo eliges abajo) y pulsa la imagen 1 (la de la lista de pasos de la app).
+# | 30-60 = espera un tiempo al azar entre 30 y 60 segundos.
 enlace
 esperar 8
 campo
 esperar 1
 escribir menciones
 esperar 1.5
-imagen 1 | 30
+imagen 1 | 30-60
 repetir 10"""
+
+    private lateinit var prefs: android.content.SharedPreferences
+    private lateinit var script: EditText
+    private lateinit var box: EditText
+    private lateinit var friendsBox: EditText
+    private lateinit var mentionsN: Spinner
+    private lateinit var phrasesBox: EditText
+    private lateinit var phrasePos: Spinner
+    private lateinit var phraseChance: EditText
+    private lateinit var savedSpinner: Spinner
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val prefs = getSharedPreferences("cfg", Context.MODE_PRIVATE)
+        prefs = getSharedPreferences("cfg", Context.MODE_PRIVATE)
         val ctx = this
         val root = LinearLayout(ctx).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(48, 96, 48, 48)
         }
-        fun label(t: String) = TextView(ctx).apply { text = t; root.addView(this) }
+        fun label(t: String) = TextView(ctx).apply {
+            text = t
+            setPadding(0, 24, 0, 0)
+            root.addView(this)
+        }
+        fun multi(minL: Int, value: String) = EditText(ctx).apply {
+            minLines = minL
+            gravity = Gravity.TOP
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+            setText(value)
+            root.addView(this)
+        }
 
         Button(ctx).apply {
             text = "❓ Cómo se usa (instrucciones)"
@@ -40,22 +65,43 @@ repetir 10"""
 
         label(
             "GUION (un paso por línea):\n" +
-            "• esperar 5 → espera 5 segundos\n" +
+            "• esperar 5 → espera 5 segundos (esperar 5-10 = al azar entre 5 y 10)\n" +
             "• tocar Texto → toca el botón o texto que diga así\n" +
             "• tocar 500,1200 → toca esa posición de la pantalla\n" +
             "• escribir lista → pone el siguiente comentario de tu lista\n" +
             "• escribir azar → pone un comentario de tu lista al azar\n" +
-            "• escribir menciones → pone @amigos al azar de tu cuadro de menciones (cuántos: selector de abajo)\n" +
+            "• escribir menciones → pone @amigos al azar de tu cuadro de menciones (cuántos: selector de abajo), con una frase tuya si quieres\n" +
             "• escribir menciones 3 → igual, con 3 menciones (de 1 a 5)\n" +
             "• enlace → abre el siguiente enlace guardado (o enlace 2 = el enlace 2)\n" +
             "• imagen 1 → busca en pantalla la imagen 1 de la app y la pulsa (imagen 2 = otra)\n" +
             "• escribir Hola → pone ese texto fijo\n" +
             "• campo → selecciona la caja de texto\n" +
-            "• Añade | 30 al final de cualquier línea para esperar 30 s después\n" +
+            "• Añade | 30 al final de cualquier línea para esperar 30 s después (| 30-60 = al azar entre 30 y 60)\n" +
             "• repetir 10 → repite todo el guion 10 veces\n" +
             "• # al inicio = nota (se ignora)"
         )
-        val script = EditText(ctx).apply {
+
+        // ---------- Guiones guardados ----------
+        label("GUIONES GUARDADOS (por ejemplo uno para Instagram y otro para TikTok):")
+        savedSpinner = Spinner(ctx)
+        root.addView(savedSpinner)
+        refreshSaved(null)
+        val savedBar = LinearLayout(ctx).apply {
+            orientation = LinearLayout.HORIZONTAL
+            root.addView(this)
+        }
+        Button(ctx).apply {
+            text = "Guardar como…"
+            setOnClickListener { askSaveName() }
+            savedBar.addView(this, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        }
+        Button(ctx).apply {
+            text = "Borrar este"
+            setOnClickListener { deleteSaved() }
+            savedBar.addView(this, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        }
+
+        script = EditText(ctx).apply {
             minLines = 8
             gravity = Gravity.TOP
             typeface = Typeface.MONOSPACE
@@ -63,34 +109,60 @@ repetir 10"""
             setText(prefs.getString("script", defaultScript))
             root.addView(this)
         }
+        // El selector carga el guion elegido (se ignora la primera llamada automática)
+        var first = true
+        savedSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(p: AdapterView<*>?, v: View?, pos: Int, id: Long) {
+                if (first) { first = false; return }
+                if (pos > 0) {
+                    val name = savedSpinner.selectedItem.toString()
+                    val text = loadScripts().optString(name, "")
+                    if (text.isNotEmpty()) script.setText(text)
+                }
+            }
+            override fun onNothingSelected(p: AdapterView<*>?) {}
+        }
         Button(ctx).apply {
             text = "Restaurar guion de ejemplo"
             setOnClickListener { script.setText(defaultScript) }
             root.addView(this)
         }
+
         label("TUS COMENTARIOS, uno por línea (cópialos del Etiquetador con «Copiar la lista en un solo texto»):")
-        val box = EditText(ctx).apply {
-            minLines = 6
-            gravity = Gravity.TOP
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
-            setText(prefs.getString("comments", ""))
-            root.addView(this)
-        }
+        box = multi(6, prefs.getString("comments", "") ?: "")
+
         label("TUS MENCIONES, una por línea (se rellenan solas desde el cuadro «Menciones» del Etiquetador; también puedes escribirlas aquí):")
-        val friendsBox = EditText(ctx).apply {
-            minLines = 4
-            gravity = Gravity.TOP
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
-            setText(prefs.getString("friends", ""))
-            root.addView(this)
-        }
+        friendsBox = multi(4, prefs.getString("friends", "") ?: "")
+
         label("Menciones por comentario (1 a 5), para «escribir menciones»:")
-        val mentionsN = Spinner(ctx).apply {
+        mentionsN = Spinner(ctx).apply {
             adapter = ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, listOf("1", "2", "3", "4", "5"))
             setSelection((prefs.getInt("mentionsN", 2) - 1).coerceIn(0, 4))
             root.addView(this)
         }
-        label("Límites de seguridad: máximo 50 comentarios por tanda y al menos 10 s entre un comentario y el siguiente.")
+
+        label("TUS FRASES (opcional), una por línea. Con «escribir menciones» se elige una al azar y se junta con las menciones. Déjalo vacío para poner solo menciones:")
+        phrasesBox = multi(3, prefs.getString("phrases", "") ?: "")
+        label("Dónde va la frase:")
+        phrasePos = Spinner(ctx).apply {
+            adapter = ArrayAdapter(
+                ctx, android.R.layout.simple_spinner_dropdown_item,
+                listOf("Delante de las menciones", "Detrás de las menciones", "Al azar (a veces delante, a veces detrás)")
+            )
+            setSelection(prefs.getInt("phrasePos", 0).coerceIn(0, 2))
+            root.addView(this)
+        }
+        label("Probabilidad de poner frase (0 a 100 %):")
+        phraseChance = EditText(ctx).apply {
+            inputType = InputType.TYPE_CLASS_NUMBER
+            setText(prefs.getInt("phraseChance", 100).toString())
+            root.addView(this)
+        }
+
+        label(
+            "Límites de seguridad: máximo 50 comentarios por tanda y al menos 10 s entre un comentario y el siguiente. " +
+            "Si aparece un aviso de bloqueo de Instagram, el guion se para solo y el móvil vibra."
+        )
 
         Button(ctx).apply {
             text = "Iniciar"
@@ -100,12 +172,7 @@ repetir 10"""
                 when {
                     s == null -> toast("Primero activa el servicio de accesibilidad de AutoClick Imagen")
                     else -> {
-                        prefs.edit()
-                            .putString("script", script.text.toString())
-                            .putString("comments", box.text.toString())
-                            .putString("friends", friendsBox.text.toString())
-                            .putInt("mentionsN", mentionsN.selectedItemPosition + 1)
-                            .apply()
+                        saveAll()
                         Macro.start(s, script.text.toString(), list)
                         moveTaskToBack(true)
                     }
@@ -114,6 +181,69 @@ repetir 10"""
             root.addView(this)
         }
         setContentView(ScrollView(ctx).apply { addView(root) })
+    }
+
+    override fun onPause() {
+        super.onPause()
+        saveAll()
+    }
+
+    private fun saveAll() {
+        prefs.edit()
+            .putString("script", script.text.toString())
+            .putString("comments", box.text.toString())
+            .putString("friends", friendsBox.text.toString())
+            .putInt("mentionsN", mentionsN.selectedItemPosition + 1)
+            .putString("phrases", phrasesBox.text.toString())
+            .putInt("phrasePos", phrasePos.selectedItemPosition)
+            .putInt("phraseChance", (phraseChance.text.toString().toIntOrNull() ?: 100).coerceIn(0, 100))
+            .apply()
+    }
+
+    // ---------- Guiones guardados ----------
+    private fun loadScripts(): JSONObject =
+        try { JSONObject(prefs.getString("scripts", "{}") ?: "{}") } catch (e: Exception) { JSONObject() }
+
+    private fun refreshSaved(select: String?) {
+        val names = ArrayList<String>()
+        names.add("— elegir un guion guardado —")
+        val it = loadScripts().keys()
+        while (it.hasNext()) names.add(it.next())
+        savedSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, names)
+        if (select != null) savedSpinner.setSelection(names.indexOf(select).coerceAtLeast(0))
+    }
+
+    private fun askSaveName() {
+        val input = EditText(this)
+        input.hint = "Nombre (por ejemplo Instagram)"
+        AlertDialog.Builder(this)
+            .setTitle("Guardar guion")
+            .setView(input)
+            .setPositiveButton("Guardar") { _, _ ->
+                val name = input.text.toString().trim()
+                if (name.isNotEmpty()) {
+                    val all = loadScripts()
+                    all.put(name, script.text.toString())
+                    prefs.edit().putString("scripts", all.toString()).apply()
+                    refreshSaved(name)
+                    toast("Guion «$name» guardado")
+                }
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun deleteSaved() {
+        if (savedSpinner.selectedItemPosition <= 0) {
+            toast("Elige primero un guion guardado")
+            return
+        }
+        val name = savedSpinner.selectedItem.toString()
+        val all = loadScripts()
+        all.remove(name)
+        prefs.edit().putString("scripts", all.toString()).apply()
+        refreshSaved(null)
+        toast("Guion «$name» borrado")
     }
 
     private fun toast(m: String) = Toast.makeText(this, m, Toast.LENGTH_LONG).show()

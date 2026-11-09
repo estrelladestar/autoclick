@@ -10,8 +10,9 @@ android {
         applicationId = "com.example.autoclick"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        val runNumber = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
+        versionCode = runNumber
+        versionName = "1.$runNumber"
         ndk { abiFilters += listOf("arm64-v8a") }
     }
     signingConfigs {

@@ -24,7 +24,9 @@ import android.widget.Toast
  *   escribir Hola      escribe ese texto fijo
  *   repetir 10         repite todo el guion 10 veces
  *   # nota             se ignora
- * Al final de cualquier línea, "| 30" añade 30 segundos de espera.
+ * Al final de cualquier línea, "| 30" añade 30 segundos de espera, y "| 30-60" añade un tiempo
+ * al azar entre 30 y 60 segundos (también vale "esperar 5-10").
+ * El guion se para solo, con vibración, si la pantalla muestra un aviso de bloqueo de Instagram.
  *
  * Límites: máximo 50 comentarios por tanda y al menos 10 segundos entre uno y el siguiente.
  */
@@ -40,7 +42,27 @@ object Macro {
     private const val MIN_GAP_MS = 10_000L
     private const val MAX_TRIES = 25
 
-    class Cmd(val op: String, val arg: String, val extraMs: Long)
+    class Cmd(val op: String, val arg: String, val extraMs: Long, val extraMaxMs: Long = extraMs) {
+        /** Espera extra de la línea; si es un rango («30-60»), un valor al azar dentro del rango. */
+        fun extra(): Long =
+            if (extraMaxMs > extraMs) extraMs + (Math.random() * (extraMaxMs - extraMs)).toLong() else extraMs
+    }
+
+    /** «30» → (30000, 30000); «30-60» → (30000, 60000). Devuelve milisegundos. */
+    fun parseSecs(text: String): Pair<Long, Long> {
+        val t = text.trim().replace(',', '.').replace('–', '-')
+        val parts = t.split("-").map { it.trim() }
+        val a = parts.getOrNull(0)?.toDoubleOrNull() ?: 0.0
+        val b = if (parts.size > 1) (parts[1].toDoubleOrNull() ?: a) else a
+        val lo = (minOf(a, b) * 1000).toLong()
+        val hi = (maxOf(a, b) * 1000).toLong()
+        return Pair(lo, hi)
+    }
+
+    private val BLOCK_TEXTS = listOf(
+        "Acción bloqueada", "Action Blocked", "Limitamos la frecuencia",
+        "We limit how often", "Inténtalo de nuevo más tarde", "Try again later"
+    )
 
     fun start(service: ClickService, script: String, comments: List<String>) {
         if (running) {
@@ -53,10 +75,12 @@ object Macro {
             var line = raw.trim()
             if (line.isEmpty() || line.startsWith("#")) continue
             var extra = 0L
+            var extraMax = 0L
             val bar = line.lastIndexOf('|')
             if (bar >= 0) {
-                val secs = line.substring(bar + 1).trim().replace(',', '.').toDoubleOrNull() ?: 0.0
-                extra = (secs * 1000).toLong()
+                val r = parseSecs(line.substring(bar + 1))
+                extra = r.first
+                extraMax = r.second
                 line = line.substring(0, bar).trim()
             }
             val sp = line.indexOf(' ')
@@ -64,7 +88,7 @@ object Macro {
             val arg = if (sp < 0) "" else line.substring(sp + 1).trim()
             when (op) {
                 "repetir" -> repeats = (arg.toIntOrNull() ?: 1).coerceIn(1, 1000)
-                "esperar", "tocar", "escribir", "campo", "enlace", "imagen" -> cmds.add(Cmd(op, arg, extra))
+                "esperar", "tocar", "escribir", "campo", "enlace", "imagen" -> cmds.add(Cmd(op, arg, extra, extraMax))
                 else -> {
                     toast(service, "No entiendo esta línea: $raw")
                     return
@@ -85,10 +109,10 @@ object Macro {
     }
 
     fun stop() {
-        finish("Guion detenido")
+        finish("Guion detenido", false)
     }
 
-    private fun finish(msg: String) {
+    private fun finish(msg: String, alert: Boolean = true) {
         if (!running) return
         running = false
         token++
@@ -97,6 +121,16 @@ object Macro {
         if (s != null) {
             s.setOverlayText("▶")
             toast(s, msg)
+            if (alert) buzz(s)
+        }
+    }
+
+    /** Vibra tres veces para avisar de que el guion se ha parado solo. */
+    private fun buzz(s: ClickService) {
+        try {
+            val v = s.getSystemService(android.content.Context.VIBRATOR_SERVICE) as android.os.Vibrator
+            v.vibrate(android.os.VibrationEffect.createWaveform(longArrayOf(0, 400, 200, 400, 200, 400), -1))
+        } catch (e: Exception) {
         }
     }
 
@@ -148,14 +182,19 @@ object Macro {
                 later(500L)
                 return
             }
+            if (blocked()) {
+                finish("Instagram muestra un aviso de bloqueo o límite. Guion detenido para proteger tu cuenta.")
+                return
+            }
             val c = cmds[i]
             when (c.op) {
                 "esperar" -> {
-                    val secs = c.arg.replace(',', '.').toDoubleOrNull() ?: 0.0
-                    advance((secs * 1000).toLong() + c.extraMs)
+                    val r = parseSecs(c.arg)
+                    val wait = r.first + (Math.random() * (r.second - r.first)).toLong()
+                    advance(wait + c.extra())
                 }
                 "tocar" -> {
-                    if (tapTarget(c.arg)) advance(c.extraMs) else retry("«" + c.arg + "»")
+                    if (tapTarget(c.arg)) advance(c.extra()) else retry("«" + c.arg + "»")
                 }
                 "campo" -> {
                     val f = findField()
@@ -164,7 +203,7 @@ object Macro {
                     } else {
                         f.performAction(AccessibilityNodeInfo.ACTION_CLICK)
                         f.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
-                        advance(c.extraMs)
+                        advance(c.extra())
                     }
                 }
                 "escribir" -> write(c)
@@ -172,6 +211,15 @@ object Macro {
                 "imagen" -> tapImage(c)
                 else -> advance(0L)
             }
+        }
+
+        private fun blocked(): Boolean {
+            val root = s.rootInActiveWindow ?: return false
+            for (t in BLOCK_TEXTS) {
+                val found = root.findAccessibilityNodeInfosByText(t)
+                if (found != null && found.isNotEmpty()) return true
+            }
+            return false
         }
 
         private fun openLink(c: Cmd) {
@@ -190,7 +238,7 @@ object Macro {
                 finish("No hay ningún enlace guardado en la app. Guion detenido.")
                 return
             }
-            advance(maxOf(c.extraMs, 3000L))
+            advance(maxOf(c.extra(), 3000L))
         }
 
         private fun tapImage(c: Cmd) {
@@ -202,7 +250,7 @@ object Macro {
                     missing -> finish("No encuentro la imagen $n. Añádela en la app. Guion detenido.")
                     pos != null -> {
                         s.tapAt(pos.first, pos.second)
-                        advance(c.extraMs)
+                        advance(c.extra())
                     }
                     else -> retry("la imagen $n en la pantalla")
                 }
@@ -249,16 +297,27 @@ object Macro {
                 retry("la caja de texto")
                 return
             }
+            var text = pick.joinToString(" ")
+            val phrases = (prefs.getString("phrases", "") ?: "").lines()
+                .map { it.trim() }.filter { it.isNotEmpty() }
+            val chance = prefs.getInt("phraseChance", 100).coerceIn(0, 100)
+            if (phrases.isNotEmpty() && Math.random() * 100 < chance) {
+                val phrase = phrases[(Math.random() * phrases.size).toInt().coerceAtMost(phrases.size - 1)]
+                val pos = prefs.getInt("phrasePos", 0)
+                val before = if (pos == 2) Math.random() < 0.5 else pos == 0
+                text = if (before) "$phrase $text" else "$text $phrase"
+            }
             val b = Bundle()
             b.putCharSequence(
                 AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE,
-                pick.joinToString(" ")
+                text
             )
             f.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, b)
             usedCombos.add(key)
             used++
             last = System.currentTimeMillis()
-            advance(c.extraMs)
+            s.setOverlayText("■ $used/$MAX_COMMENTS")
+            advance(c.extra())
         }
 
         private fun write(c: Cmd) {
@@ -306,8 +365,9 @@ object Macro {
                 commentIdx++
                 used++
                 last = System.currentTimeMillis()
+                s.setOverlayText("■ $used/$MAX_COMMENTS")
             }
-            advance(c.extraMs)
+            advance(c.extra())
         }
 
         private fun tapTarget(arg: String): Boolean {
