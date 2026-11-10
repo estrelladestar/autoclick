@@ -555,7 +555,7 @@ object Macro {
             }
             if (current == null) {
                 // La primera de la lista es la cuenta en la que estamos
-                list.firstOrNull()?.let { first ->
+                list.firstOrNull()?.first?.let { first ->
                     current = first
                     if (pending > 0) repeat(pending) { addCount(s, first) }
                     pending = 0
