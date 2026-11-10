@@ -187,6 +187,7 @@ class MainActivity : Activity() {
         }
 
         setContentView(ScrollView(ctx).apply { addView(root) })
+        StarColors.watch(root)
     }
 
     override fun onResume() {

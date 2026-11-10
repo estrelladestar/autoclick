@@ -137,6 +137,7 @@ class ClickService : AccessibilityService() {
         if (overlay != null) return
         val wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         val b = Button(this).apply { text = if (running) "■" else "▶" }
+        StarColors.overlay(b)
         val lp = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -190,6 +191,7 @@ class ClickService : AccessibilityService() {
     /** Para que el guion de Comentarios automáticos pueda cambiar el texto del botón flotante. */
     fun setOverlayText(t: String) {
         overlay?.text = t
+        overlay?.let { StarColors.overlay(it) }
     }
 
     /** Para que el guion pueda tocar una posición de la pantalla. */
@@ -403,7 +405,7 @@ class ClickService : AccessibilityService() {
         clicksDone = 0
         loopsDone = 0
         running = true
-        overlay?.text = "■"
+        setOverlayText("■")
 
         links.forEachIndexed { k, u -> main.postDelayed({ openLink(u) }, k * linkWaitMs) }
         val wait = links.size * linkWaitMs
@@ -415,7 +417,7 @@ class ClickService : AccessibilityService() {
         running = false
         runId++
         main.removeCallbacksAndMessages(null)
-        overlay?.text = "▶"
+        setOverlayText("▶")
     }
 
     private fun openLink(url: String) {

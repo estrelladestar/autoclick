@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Colores de Star App -->
+    <style name="StarTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">#6A3DE8</item>
+        <item name="android:colorPrimaryDark">#4B23B8</item>
+        <item name="android:colorAccent">#FF2D87</item>
+        <item name="android:statusBarColor">#4B23B8</item>
+        <item name="android:navigationBarColor">#2B1B5A</item>
+        <item name="android:windowBackground">@drawable/star_window_bg</item>
+        <item name="android:textColorPrimary">#2D1B69</item>
+        <item name="android:textColorHighlight">#66FF2D87</item>
+    </style>
+</resources>
