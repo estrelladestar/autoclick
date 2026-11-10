@@ -32,7 +32,7 @@ import android.widget.Toast
  * al azar entre 30 y 60 segundos (también vale "esperar 5-10").
  * El guion se para solo, con vibración, si la pantalla muestra un aviso de bloqueo de Instagram.
  *
- * Límites: máximo 50 comentarios por tanda y al menos 10 segundos entre uno y el siguiente.
+ * Límite: al menos 10 segundos entre un comentario y el siguiente.
  */
 object Macro {
     @Volatile
@@ -42,7 +42,6 @@ object Macro {
     private var token = 0
     private var svc: ClickService? = null
 
-    private const val MAX_COMMENTS = 50
     private const val MIN_GAP_MS = 10_000L
     private const val MAX_TRIES = 25
     private const val NEXT_ACCOUNT = "\u0001siguiente"
@@ -291,7 +290,7 @@ object Macro {
             var t = "■ ${i + 1}/${cmds.size} $what"
             val extra = ArrayList<String>()
             if (repeats > 1) extra.add("vuelta ${loop + 1}/$repeats")
-            if (used > 0) extra.add("$used/$MAX_COMMENTS")
+            if (used > 0) extra.add("$used escritos")
             if (extra.isNotEmpty()) t += "\n" + extra.joinToString(" · ")
             s.setOverlayText(t)
         }
@@ -364,10 +363,6 @@ object Macro {
             }
             val asked = tokens.lastOrNull()?.toIntOrNull()
             val n = (asked ?: prefs.getInt("mentionsN", 2)).coerceIn(1, 5).coerceAtMost(friends.size)
-            if (used >= MAX_COMMENTS) {
-                finish("Límite de $MAX_COMMENTS comentarios por tanda alcanzado")
-                return
-            }
             if (last != 0L) {
                 val wait = last + MIN_GAP_MS - System.currentTimeMillis()
                 if (wait > 0) {
@@ -441,10 +436,6 @@ object Macro {
             if (isList) {
                 if (comments.isEmpty() || (!isRandom && commentIdx >= comments.size)) {
                     finish("Se acabaron los comentarios de tu lista")
-                    return
-                }
-                if (used >= MAX_COMMENTS) {
-                    finish("Límite de $MAX_COMMENTS comentarios por tanda alcanzado")
                     return
                 }
                 if (last != 0L) {

@@ -71,7 +71,7 @@ esperar 5-10 → espera entre 5 y 10 s al azar
 CONSEJOS
 • Haz primero una prueba con «repetir 1».
 • Si dice que no encuentra algo, revisa el texto del botón o usa la imagen.
-• Máximo 50 comentarios por tanda y 10 s entre uno y otro.
+• Al menos 10 s entre un comentario y otro.
 • Si aparece un aviso de bloqueo de Instagram, el guion se para solo y el móvil vibra. Espera unas horas antes de volver a probar.
 • Tras instalar una versión nueva, mira el número de versión arriba en la pantalla principal para saber que es la última.
 • Instagram y TikTok pueden limitar cuentas que comentan mucho seguido: ve despacio."""

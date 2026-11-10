@@ -251,7 +251,7 @@ details.sec[open] summary{margin-bottom:8px}
       <button id="appstart" type="button">2. Iniciar con la lista</button>
     </div>
     <p id="appmsg" class="meta">Si todavía no hay lista de comentarios, se genera una con tus ajustes.</p>
-    <p class="meta">La app usa como máximo 50 comentarios por tanda y deja al menos 10 s entre uno y otro. Aun así, Instagram puede limitar tu cuenta si publicas muchos comentarios seguidos: ve despacio. Para parar, toca ■ en el botón flotante.</p>
+    <p class="meta">La app deja al menos 10 s entre un comentario y otro. Aun así, Instagram puede limitar tu cuenta si publicas muchos comentarios seguidos: ve despacio. Para parar, toca ■ en el botón flotante.</p>
   </section>
 
   <!-- RESULTADO -->
@@ -905,7 +905,7 @@ details.sec[open] summary{margin-bottom:8px}
     if(!t.length){msg.textContent="No se pudo generar la lista. Revisa que haya amigos y que queden combinaciones sin usar.";return}
     copyTxt(t.join("\n")).then(function(ok){
       msg.textContent=ok
-        ?"Copiados "+t.length+" comentarios (uno por línea). Pégalos en la caja «TUS COMENTARIOS» de la app."+(t.length>50?" La app solo usa 50 por tanda.":"")
+        ?"Copiados "+t.length+" comentarios (uno por línea). Pégalos en la caja «TUS COMENTARIOS» de la app."
         :"No se pudo copiar. Usa «Copiar la lista en un solo texto» en la lista de comentarios.";
     });
   });

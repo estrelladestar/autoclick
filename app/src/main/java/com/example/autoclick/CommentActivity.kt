@@ -240,7 +240,7 @@ repetir 10"""
         }
 
         label(
-            "Límites de seguridad: máximo 50 comentarios por tanda y al menos 10 s entre un comentario y el siguiente. " +
+            "Límite de seguridad: al menos 10 s entre un comentario y el siguiente. " +
             "Si aparece un aviso de bloqueo de Instagram, el guion se para solo y el móvil vibra."
         )
 
