@@ -349,29 +349,32 @@ object Macro {
                 "mirar" -> look(c)
                 "inicio" -> feed(c)
                 "irperfil" -> {
-                    // Vuelve atrás hasta que se vea la barra de abajo de Instagram con tu icono de perfil.
-                    // Si al volver atrás se sale de Instagram (pasa cuando el enlace lo abrió desde fuera), lo vuelve a abrir.
-                    if (profileIcon() != null || tries >= 8) {
+                    // Ir a la pantalla principal de Instagram (con la barra de abajo y tu icono de perfil).
+                    // Primero cierra el teclado; luego abre Instagram desde cero en su pantalla principal,
+                    // porque ir hacia atrás a veces vuelve a la publicación con los comentarios.
+                    if (profileIcon() != null || tries >= 4) {
                         advance(c.extra())
                         return
                     }
-                    tries++
-                    val pkg = s.rootInActiveWindow?.packageName?.toString()
-                    if (pkg != null && pkg != INSTAGRAM) {
-                        val i = s.packageManager.getLaunchIntentForPackage(INSTAGRAM)
-                        if (i != null) {
-                            i.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-                            try { s.startActivity(i) } catch (e: Exception) {}
-                        }
-                        later(3500L)
-                    } else {
+                    if (tries == 0) {
+                        tries++
                         s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
-                        later(1500L)
+                        later(1000L)
+                    } else {
+                        tries++
+                        openInstagramHome()
+                        later(4500L)
                     }
                 }
                 "perfil" -> {
                     // Pulsación larga en el icono de perfil de abajo (lo busca por su nombre; si no, abajo a la derecha)
                     val p = profileIcon() ?: run {
+                        if (tries < 3) {
+                            tries++
+                            openInstagramHome()
+                            later(4500L)
+                            return
+                        }
                         val size = s.screenSize()
                         Pair(size.first * 0.90f, size.second * 0.92f)
                     }
@@ -919,7 +922,7 @@ object Macro {
                 }
                 1 -> {
                     // Atrás hasta ver la barra de abajo de Instagram (si se sale de Instagram, lo vuelve a abrir)
-                    if (profileIcon() != null || tries >= 8) {
+                    if (profileIcon() != null || tries >= 4) {
                         homeIcon()?.let { s.tapAt(it.first, it.second) }
                         val plan = ArrayDeque<Boolean>()
                         repeat(3 + (Math.random() * 4).toInt()) { plan.add(true) }
@@ -930,17 +933,12 @@ object Macro {
                         return
                     }
                     tries++
-                    val pkg = s.rootInActiveWindow?.packageName?.toString()
-                    if (pkg != null && pkg != INSTAGRAM) {
-                        val i = s.packageManager.getLaunchIntentForPackage(INSTAGRAM)
-                        if (i != null) {
-                            i.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-                            try { s.startActivity(i) } catch (e: Exception) {}
-                        }
-                        later(3500L)
-                    } else {
+                    if (tries == 1) {
                         s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
-                        later(1500L)
+                        later(1000L)
+                    } else {
+                        openInstagramHome()
+                        later(4500L)
                     }
                 }
                 else -> {
@@ -960,8 +958,31 @@ object Macro {
             }
         }
 
+        /** Centro de una vista de Instagram por su nombre interno (por ejemplo «profile_tab»), si se ve. */
+        private fun byInstagramId(name: String): Pair<Float, Float>? {
+            for (root in windowRoots()) {
+                if (root.packageName?.toString() != INSTAGRAM) continue
+                val found = try { root.findAccessibilityNodeInfosByViewId("$INSTAGRAM:id/$name") } catch (e: Exception) { null } ?: continue
+                for (n in found) {
+                    if (!n.isVisibleToUser) continue
+                    val r = Rect()
+                    n.getBoundsInScreen(r)
+                    if (r.width() > 0 && r.height() > 0) return Pair(r.exactCenterX(), r.exactCenterY())
+                }
+            }
+            return null
+        }
+
+        /** Abre Instagram desde cero en su pantalla principal (Inicio, con la barra de abajo). */
+        private fun openInstagramHome() {
+            val i = s.packageManager.getLaunchIntentForPackage(INSTAGRAM) ?: return
+            i.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            try { s.startActivity(i) } catch (e: Exception) {}
+        }
+
         /** Centro del icono «Inicio» (la casita de abajo a la izquierda de Instagram), o null. */
         private fun homeIcon(): Pair<Float, Float>? {
+            byInstagramId("feed_tab")?.let { return it }
             val (w, h) = s.screenSize()
             for (root in windowRoots()) {
                 if (root.packageName?.toString() != INSTAGRAM) continue
@@ -1068,6 +1089,7 @@ object Macro {
          * y estar abajo del todo y a la derecha.
          */
         private fun profileIcon(): Pair<Float, Float>? {
+            byInstagramId("profile_tab")?.let { return it }
             val (w, h) = s.screenSize()
             var best: Rect? = null
             for (root in windowRoots()) {
