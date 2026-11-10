@@ -13,7 +13,7 @@ android {
         val runNumber = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
         versionCode = runNumber
         versionName = "1.$runNumber"
-        ndk { abiFilters += listOf("arm64-v8a") }
+        ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }  // 64 y 32 bits (p. ej. Redmi 8A)
     }
     signingConfigs {
         getByName("debug") {
