@@ -208,6 +208,17 @@ class ClickService : AccessibilityService() {
         dispatchGesture(g, null, null)
     }
 
+    /** Doble toque rápido (como el doble toque en la foto de perfil de Instagram, que cambia de cuenta). */
+    fun doubleTapAt(x: Float, y: Float) {
+        val p1 = Path().apply { moveTo(x, y) }
+        val p2 = Path().apply { moveTo(x, y) }
+        val g = GestureDescription.Builder()
+            .addStroke(GestureDescription.StrokeDescription(p1, 0, 40))
+            .addStroke(GestureDescription.StrokeDescription(p2, 140, 40))
+            .build()
+        dispatchGesture(g, null, null)
+    }
+
     fun longPressAt(x: Float, y: Float) {
         val path = Path().apply { moveTo(x, y) }
         val g = GestureDescription.Builder()

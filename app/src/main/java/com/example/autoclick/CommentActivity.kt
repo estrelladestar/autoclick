@@ -208,6 +208,7 @@ repetir 8"""
             "• cuentas a b c → tus cuentas en orden; con «cuenta siguiente» + «repetir» cambia a la siguiente en cada vuelta\n" +
             "• mirar → baja y sube por los comentarios un rato (con «mirar azar», solo a veces)\n" +
             "• cuenta siguiente (sin línea «cuentas») → va pasando por TODAS las cuentas que tengas en Instagram\n" +
+            "• cuenta doble → cambia de cuenta con doble toque en tu foto de perfil (sin nombres)\n" +
             "• descanso 10-20 → pausa al azar de 10 a 20 minutos\n" +
             "• inicio → sale a la pantalla principal y baja y sube por las publicaciones (con «inicio azar», solo a veces); después pon «enlace»\n" +
             "• limite 20 → cada cuenta hace como mucho 20 comentarios al día; luego pasa a la siguiente\n" +

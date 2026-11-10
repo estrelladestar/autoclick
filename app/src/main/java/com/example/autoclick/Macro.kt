@@ -120,6 +120,12 @@ object Macro {
                     }
                     cmds.add(Cmd("irperfil", "", 800L))
                     cmds.add(Cmd("perfil", "", 3000L))
+                    if (arg.lowercase() == "doble") {
+                        // «cuenta doble»: doble toque en la foto de perfil de abajo a la derecha (Instagram cambia de cuenta)
+                        cmds.add(Cmd("irperfil", "", 800L))
+                        cmds.add(Cmd("dobleperfil", "", maxOf(extra, 4000L), maxOf(extraMax, 4000L)))
+                        continue
+                    }
                     val name = if (arg.lowercase() == "siguiente") NEXT_ACCOUNT else arg.removePrefix("@")
                     cmds.add(Cmd("tocarcuenta", name, maxOf(extra, 5000L), maxOf(extraMax, 5000L)))
                 }
@@ -366,6 +372,24 @@ object Macro {
                         later(4500L)
                     }
                 }
+                "dobleperfil" -> {
+                    val p = profileIcon()
+                    if (p == null) {
+                        if (tries < 3) {
+                            tries++
+                            openInstagramHome()
+                            later(4500L)
+                            return
+                        }
+                        retry("tu foto de perfil abajo a la derecha")
+                        return
+                    }
+                    s.doubleTapAt(p.first, p.second)
+                    current = null
+                    used = 0
+                    toast(s, "Doble toque en tu perfil: cambio de cuenta")
+                    advance(c.extra())
+                }
                 "perfil" -> {
                     // Pulsación larga en el icono de perfil de abajo (lo busca por su nombre; si no, abajo a la derecha)
                     val p = profileIcon() ?: run {
@@ -399,7 +423,7 @@ object Macro {
             val c = cmds.getOrNull(i) ?: return
             val what = override ?: when {
                 c.label.isNotEmpty() -> c.label + " " + c.arg + " min"
-                c.op == "tocarcuenta" || c.op == "irperfil" || c.op == "perfil" -> "cambiando cuenta"
+                c.op == "tocarcuenta" || c.op == "irperfil" || c.op == "perfil" || c.op == "dobleperfil" -> "cambiando cuenta"
                 c.op == "inicio" -> "paseo por inicio"
                 else -> (c.op + " " + c.arg).trim().take(14)
             }
