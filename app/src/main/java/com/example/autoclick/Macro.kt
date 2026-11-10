@@ -356,9 +356,11 @@ object Macro {
                 text = if (before) "$phrase $text" else "$text $phrase"
             }
             if (!putText(f, text)) {
-                retry("dónde escribir (la caja no deja escribir)")
+                if (tries == 0) toast(s, "Intento escribir: $text")
+                retry("dónde escribir: Instagram no deja escribir en la caja")
                 return
             }
+            toast(s, "Escrito: $text")
             usedCombos.add(key)
             used++
             last = System.currentTimeMillis()
