@@ -576,6 +576,11 @@ object Macro {
                 s.readScreen { lines ->
                     if (myTry != token || !running) return@readScreen
                     if (lines != null && autoAccountOcr(c, lines)) return@readScreen
+                    if (tries == 3 || tries == 12) {
+                        // Aviso para saber qué está viendo la app (ayuda a encontrar el fallo)
+                        val seen = lines?.map { it.first }?.filter { it.isNotBlank() }?.take(6)?.joinToString(" | ")
+                        toast(s, "Paso de cambiar cuenta. Veo: " + (seen ?: "no puedo leer la pantalla"))
+                    }
                     // La lista aún no está abierta
                     if (tries == 10) {
                         val p = profileIcon() ?: s.screenSize().let { Pair(it.first * 0.90f, it.second * 0.92f) }
@@ -644,7 +649,10 @@ object Macro {
                 .map { Pair(it.first.removePrefix("@"), it.second) }
                 .distinctBy { it.first.lowercase() }
                 .sortedBy { it.second.top }
-            if (names.isEmpty()) return false
+            if (names.isEmpty()) {
+                if (tries == 3) toast(s, "Veo la lista de cuentas pero no sus nombres")
+                return false
+            }
             if (current == null) {
                 current = names.first().first
                 if (pending > 0) repeat(pending) { addCount(s, names.first().first) }
