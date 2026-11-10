@@ -934,7 +934,7 @@ details.sec[open] summary{margin-bottom:8px}
   });
   /* Pasa el cuadro de menciones a la app para el paso «escribir menciones» del guion. */
   var fr=$("friends");
-  function pushFriends(){try{AutoClickApp.saveFriends(fr.value)}catch(e){}}
+  function pushFriends(){try{if(fr.value.trim())AutoClickApp.saveFriends(fr.value)}catch(e){}}
   if(fr){fr.addEventListener("input",pushFriends);setTimeout(pushFriends,800)}
   /* Pasa los comentarios generados en la lista a la app («TUS COMENTARIOS»), sin copiarlos a mano.
      Si la lista está vacía no toca lo que ya haya en la app. */
