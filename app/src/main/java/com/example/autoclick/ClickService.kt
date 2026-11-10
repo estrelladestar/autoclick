@@ -200,6 +200,14 @@ class ClickService : AccessibilityService() {
     }
 
     /** Para que el guion pueda mantener pulsada una posición de la pantalla (pulsación larga). */
+    /** Desliza el dedo de (x1,y1) a (x2,y2) en ms milisegundos (para mover listas como los comentarios). */
+    fun swipe(x1: Float, y1: Float, x2: Float, y2: Float, ms: Long) {
+        val path = Path().apply { moveTo(x1, y1); lineTo(x2, y2) }
+        val g = GestureDescription.Builder()
+            .addStroke(GestureDescription.StrokeDescription(path, 0, ms)).build()
+        dispatchGesture(g, null, null)
+    }
+
     fun longPressAt(x: Float, y: Float) {
         val path = Path().apply { moveTo(x, y) }
         val g = GestureDescription.Builder()

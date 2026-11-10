@@ -93,7 +93,7 @@ object Macro {
             val arg = if (sp < 0) "" else line.substring(sp + 1).trim()
             when (op) {
                 "repetir" -> repeats = (arg.toIntOrNull() ?: 1).coerceIn(1, 1000)
-                "esperar", "tocar", "escribir", "campo", "enlace", "imagen", "mantener" -> cmds.add(Cmd(op, arg, extra, extraMax))
+                "esperar", "tocar", "escribir", "campo", "enlace", "imagen", "mantener", "mirar" -> cmds.add(Cmd(op, arg, extra, extraMax))
                 "atras", "atrás" -> cmds.add(Cmd("atras", arg, extra, extraMax))
                 "clic", "click", "pulsar" -> cmds.add(Cmd("tocar", arg, extra, extraMax))
                 "cuenta" -> {
@@ -178,6 +178,8 @@ object Macro {
         private var i = 0
         private var loop = 0
         private var tries = 0
+        /** Para «mirar»: los deslizamientos que quedan por hacer (true = bajar por los comentarios). */
+        private var swipes: ArrayDeque<Boolean>? = null
         /** Paso (vuelta y línea) en el que ya se pulsó la caja de comentarios; así se espera a que se abra antes de escribir. */
         private var openedAt = -1
         private var commentIdx = 0
@@ -193,6 +195,7 @@ object Macro {
 
         private fun advance(ms: Long) {
             tries = 0
+            swipes = null
             openedAt = -1
             i++
             later(maxOf(ms, 400L))
@@ -253,6 +256,7 @@ object Macro {
                     val name = if (c.arg == NEXT_ACCOUNT) accounts[(loop + 1) % accounts.size] else c.arg
                     tapAccount(c, name)
                 }
+                "mirar" -> look(c)
                 "perfil" -> {
                     // Pulsación larga en el icono de perfil de abajo (lo busca por su nombre; si no, abajo a la derecha)
                     val p = profileIcon() ?: run {
@@ -538,6 +542,50 @@ object Macro {
             } catch (e: Exception) {
             }
             return false
+        }
+
+        /**
+         * «mirar»: baja por los comentarios unas cuantas veces y vuelve a subir, con pausas al azar, como una persona.
+         * «mirar 3» = 3 deslizamientos hacia abajo; «mirar azar» = solo la mitad de las veces.
+         */
+        private fun look(c: Cmd) {
+            if (swipes == null) {
+                val a = c.arg.trim().lowercase()
+                if (a.startsWith("azar") && Math.random() < 0.5) {
+                    advance(c.extra())
+                    return
+                }
+                val n = (a.filter { it.isDigit() }.toIntOrNull() ?: (2 + (Math.random() * 3).toInt())).coerceIn(1, 10)
+                val plan = ArrayDeque<Boolean>()
+                repeat(n) { plan.add(true) }
+                repeat(n) { plan.add(false) }
+                swipes = plan
+                // Con el teclado abierto se cierra primero, para no deslizar sobre el teclado
+                val keyboard = try {
+                    s.windows.any { it.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD }
+                } catch (e: Exception) { false }
+                if (keyboard) {
+                    s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
+                    later(900L)
+                    return
+                }
+            }
+            val down = swipes?.removeFirstOrNull()
+            if (down == null) {
+                advance(c.extra())
+                return
+            }
+            val (w, h) = s.screenSize()
+            val x = w * (0.42f + (Math.random() * 0.16).toFloat())
+            val ms = 300L + (Math.random() * 300).toLong()
+            if (down) {
+                // Dedo hacia arriba: se ven comentarios de más abajo
+                s.swipe(x, h * 0.66f, x, h * (0.34f + (Math.random() * 0.06).toFloat()), ms)
+            } else {
+                // Dedo hacia abajo (un poco menos, para no cerrar los comentarios)
+                s.swipe(x, h * 0.34f, x, h * (0.56f + (Math.random() * 0.04).toFloat()), ms)
+            }
+            later(900L + (Math.random() * 1600).toLong())
         }
 
         /** Las ventanas de la pantalla, de la de más arriba (por ejemplo la lista de cuentas) a la de más abajo. */
