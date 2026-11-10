@@ -50,8 +50,7 @@ Con «Guardar como…» guardas el guion con un nombre (por ejemplo Instagram o 
 QUÉ HACE EL GUION DE EJEMPLO
 enlace → abre el enlace marcado (o el siguiente)
 esperar 8 → espera a que cargue
-campo → abre la caja de comentarios
-escribir menciones → escribe @amigos al azar
+escribir menciones → abre la caja de comentarios y escribe @amigos al azar
 imagen 1 → pulsa tu imagen (Publicar)
 | 30-60 → espera entre 30 y 60 s al azar (| 30 = siempre 30)
 repetir 10 → lo hace 10 veces

@@ -226,7 +226,7 @@ object Assistant {
                     if (next !is Step.Wait) lines.add("esperar 8")
                 }
                 is Step.Wait -> lines.add("esperar ${s.text}")
-                is Step.Field -> lines.add("campo")
+                is Step.Field -> {}
                 is Step.Tap -> lines.add("tocar ${s.text} | 2-3")
                 is Step.Pos -> lines.add("tocar ${s.x}%,${s.y}% | 2-3")
                 is Step.Account -> {
@@ -234,15 +234,10 @@ object Assistant {
                     if (s.name != null) lines.add("tocar ${s.name} | 2-3")
                 }
                 is Step.Literal -> {
-                    if (lines.lastOrNull() != "campo") { lines.add("campo"); lines.add("esperar 1") }
                     lines.add("escribir ${s.text}")
                     lines.add("esperar 1.5")
                 }
                 is Step.Text -> {
-                    if (lines.lastOrNull() != "campo" && lines.lastOrNull() != "esperar 1") {
-                        lines.add("campo")
-                        lines.add("esperar 1")
-                    }
                     val line = when {
                         s.copied && s.mentions -> "escribir copiados menciones" + (s.count?.let { " $it" } ?: "")
                         s.mentions -> "escribir menciones" + (s.count?.let { " $it" } ?: "")
@@ -288,8 +283,7 @@ Instrucciones permitidas:
 esperar 5            (espera 5 s; esperar 5-10 = al azar entre 5 y 10)
 enlace               (abre el siguiente enlace guardado; enlace 2 = el enlace 2)
 imagen 1             (busca en pantalla la imagen 1 guardada y la pulsa; imagen 2 = otra)
-campo                (selecciona la caja de texto)
-escribir azar        (escribe un comentario copiado al azar)
+escribir azar        (abre la caja de comentarios y escribe un comentario copiado al azar)
 escribir lista       (escribe los comentarios copiados en orden)
 escribir menciones   (escribe @amigos al azar; escribir menciones 3 = con 3 menciones, de 1 a 5)
 escribir copiados menciones 2   (un comentario copiado al azar más 2 menciones)
@@ -301,7 +295,7 @@ mantener 90%,95%     (pulsación larga en esa zona; en Instagram, sobre el perfi
 repetir 10           (repite todo el guion 10 veces; va una sola vez, en cualquier línea)
 # nota               (se ignora)
 Al final de cualquier línea, | 30 espera 30 s más y | 30-60 espera entre 30 y 60 s al azar.
-Reglas: después de «enlace» pon «esperar 8» para que cargue la página. Antes de escribir pon «campo» y «esperar 1».
+Reglas: después de «enlace» pon «esperar 8» para que cargue la página.
 Si la persona dice «vuelve a pulsar» o «de nuevo», repite la línea del último toque.
 Para cambiar de cuenta: «mantener 90%,95% | 2» y, si la persona dice el nombre de la cuenta, «tocar NOMBRE». Si no dice cuál, solo pon el «mantener».
 Si la persona no dice cuántas veces, no pongas «repetir». Si pide algo que no se puede hacer con estas instrucciones, usa solo las que sí se puedan."""

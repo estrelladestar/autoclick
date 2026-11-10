@@ -24,8 +24,6 @@ class CommentActivity : Activity() {
 # | 30-60 = espera un tiempo al azar entre 30 y 60 segundos.
 enlace
 esperar 8
-campo
-esperar 1
 escribir menciones
 esperar 1.5
 imagen 1 | 30-60
@@ -155,7 +153,6 @@ repetir 10"""
             "• enlace → abre el enlace marcado en el Etiquetador (si no hay, el siguiente de los guardados); enlace 2 = el enlace 2\n" +
             "• imagen 1 → busca en pantalla la imagen 1 de la app y la pulsa (imagen 2 = otra)\n" +
             "• escribir Hola → pone ese texto fijo\n" +
-            "• campo → selecciona la caja de texto\n" +
             "• Añade | 30 al final de cualquier línea para esperar 30 s después (| 30-60 = al azar entre 30 y 60)\n" +
             "• repetir 10 → repite todo el guion 10 veces\n" +
             "• # al inicio = nota (se ignora)"

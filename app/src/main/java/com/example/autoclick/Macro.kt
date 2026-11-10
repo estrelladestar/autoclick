@@ -14,7 +14,6 @@ import android.widget.Toast
  *   esperar 5          espera 5 segundos
  *   tocar Texto        toca el botón o texto que diga así
  *   tocar 500,1200     toca esa posición de la pantalla
- *   campo              selecciona la caja de texto
  *   escribir lista     escribe el siguiente comentario de la lista
  *   escribir azar      escribe un comentario de la lista elegido al azar
  *   escribir menciones     escribe @amigos al azar de tu cuadro de menciones (cuántos: el selector 1 a 5)
@@ -333,6 +332,9 @@ object Macro {
                 retry("la caja de texto")
                 return
             }
+            // «escribir» ya abre la caja de comentarios por sí solo (no hace falta poner «campo»)
+            f.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+            f.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
             var text = pick.joinToString(" ")
             val phrases = if (withCopied) {
                 // Un comentario copiado al azar, sin repetir hasta haber usado todos los de la lista
@@ -400,6 +402,9 @@ object Macro {
                 retry("la caja de texto")
                 return
             }
+            // «escribir» ya abre la caja de comentarios por sí solo (no hace falta poner «campo»)
+            f.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+            f.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
             val b = Bundle()
             b.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text)
             f.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, b)
