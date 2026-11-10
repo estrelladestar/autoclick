@@ -44,6 +44,7 @@ object Macro {
 
     private const val MIN_GAP_MS = 10_000L
     private const val MAX_TRIES = 25
+    private const val INSTAGRAM = "com.instagram.android"
     private const val NEXT_ACCOUNT = "\u0001siguiente"
 
     class Cmd(val op: String, val arg: String, val extraMs: Long, val extraMaxMs: Long = extraMs) {
@@ -103,8 +104,7 @@ object Macro {
                         toast(service, "Pon el nombre de la cuenta: por ejemplo «cuenta del_mar190»")
                         return
                     }
-                    cmds.add(Cmd("atras", "", 1500L))
-                    cmds.add(Cmd("atras", "", 1500L))
+                    cmds.add(Cmd("irperfil", "", 800L))
                     cmds.add(Cmd("perfil", "", 3000L))
                     val name = if (arg.lowercase() == "siguiente") NEXT_ACCOUNT else arg.removePrefix("@")
                     cmds.add(Cmd("tocarcuenta", name, maxOf(extra, 5000L), maxOf(extraMax, 5000L)))
@@ -257,6 +257,27 @@ object Macro {
                     tapAccount(c, name)
                 }
                 "mirar" -> look(c)
+                "irperfil" -> {
+                    // Vuelve atrás hasta que se vea la barra de abajo de Instagram con tu icono de perfil.
+                    // Si al volver atrás se sale de Instagram (pasa cuando el enlace lo abrió desde fuera), lo vuelve a abrir.
+                    if (profileIcon() != null || tries >= 8) {
+                        advance(c.extra())
+                        return
+                    }
+                    tries++
+                    val pkg = s.rootInActiveWindow?.packageName?.toString()
+                    if (pkg != null && pkg != INSTAGRAM) {
+                        val i = s.packageManager.getLaunchIntentForPackage(INSTAGRAM)
+                        if (i != null) {
+                            i.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                            try { s.startActivity(i) } catch (e: Exception) {}
+                        }
+                        later(3500L)
+                    } else {
+                        s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
+                        later(1500L)
+                    }
+                }
                 "perfil" -> {
                     // Pulsación larga en el icono de perfil de abajo (lo busca por su nombre; si no, abajo a la derecha)
                     val p = profileIcon() ?: run {
