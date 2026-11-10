@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.accessibility.AccessibilityNodeInfo
+import android.view.accessibility.AccessibilityWindowInfo
 import android.widget.Toast
 
 /**
@@ -491,9 +492,10 @@ object Macro {
             if (tryOn(f)) return true
             try {
                 for (w in s.windows) {
+                    if (w.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD) continue
                     val r = w.root ?: continue
                     val focused = r.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
-                    val e = if (focused != null && focused.isEditable) focused else findEditable(r)
+                    val e = if (okField(focused)) focused else findEditable(r)
                     if (e != null && e != f && tryOn(e)) return true
                 }
             } catch (e: Exception) {
@@ -501,16 +503,42 @@ object Macro {
             return false
         }
 
+        /** Una caja donde se puede escribir que no sea del teclado ni de esta misma app. */
+        private fun okField(n: AccessibilityNodeInfo?): Boolean {
+            if (n == null || !n.isEditable) return false
+            if (n.packageName?.toString() == s.packageName) return false
+            return try { n.window?.type != AccessibilityWindowInfo.TYPE_INPUT_METHOD } catch (e: Exception) { true }
+        }
+
+        /**
+         * Busca la caja de comentarios: primero la que tiene el cursor en cualquier ventana
+         * (en Instagram la caja de comentarios a veces va en una ventana aparte), luego cualquier caja visible.
+         */
         private fun findField(): AccessibilityNodeInfo? {
-            val root = s.rootInActiveWindow ?: return null
-            val focused = root.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
-            if (focused != null && focused.isEditable) return focused
-            return findEditable(root)
+            try {
+                val f = s.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
+                if (okField(f)) return f
+            } catch (e: Exception) {
+            }
+            val root = s.rootInActiveWindow
+            if (root != null) {
+                val focused = root.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
+                if (okField(focused)) return focused
+                findEditable(root)?.let { return it }
+            }
+            try {
+                for (w in s.windows) {
+                    if (w.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD) continue
+                    findEditable(w.root)?.let { return it }
+                }
+            } catch (e: Exception) {
+            }
+            return null
         }
 
         private fun findEditable(n: AccessibilityNodeInfo?): AccessibilityNodeInfo? {
             if (n == null) return null
-            if (n.isEditable && n.isVisibleToUser) return n
+            if (n.isVisibleToUser && okField(n)) return n
             for (k in 0 until n.childCount) {
                 val f = findEditable(n.getChild(k))
                 if (f != null) return f
