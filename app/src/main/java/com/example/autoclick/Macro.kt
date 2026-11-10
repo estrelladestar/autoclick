@@ -108,7 +108,7 @@ object Macro {
                     }
                     cmds.add(Cmd("hora", arg.replace('.', ':'), 0L, 0L))
                 }
-                "esperar", "tocar", "escribir", "campo", "enlace", "imagen", "mantener", "mirar" -> cmds.add(Cmd(op, arg, extra, extraMax))
+                "esperar", "tocar", "escribir", "campo", "enlace", "imagen", "mantener", "mirar", "inicio" -> cmds.add(Cmd(op, arg, extra, extraMax))
                 "atras", "atrás" -> cmds.add(Cmd("atras", arg, extra, extraMax))
                 "clic", "click", "pulsar" -> cmds.add(Cmd("tocar", arg, extra, extraMax))
                 "cuenta" -> {
@@ -228,6 +228,8 @@ object Macro {
         private var tries = 0
         /** Para «mirar»: los deslizamientos que quedan por hacer (true = bajar por los comentarios). */
         private var swipes: ArrayDeque<Boolean>? = null
+        /** Para «inicio»: 0 = empezar, 1 = volviendo a la pantalla principal, 2 = mirando publicaciones. */
+        private var feedPhase = 0
         /** Paso (vuelta y línea) en el que ya se pulsó la caja de comentarios; así se espera a que se abra antes de escribir. */
         private var openedAt = -1
         private var commentIdx = 0
@@ -244,6 +246,7 @@ object Macro {
         private fun advance(ms: Long) {
             tries = 0
             swipes = null
+            feedPhase = 0
             openedAt = -1
             i++
             later(maxOf(ms, 400L))
@@ -323,6 +326,7 @@ object Macro {
                     }
                 }
                 "mirar" -> look(c)
+                "inicio" -> feed(c)
                 "irperfil" -> {
                     // Vuelve atrás hasta que se vea la barra de abajo de Instagram con tu icono de perfil.
                     // Si al volver atrás se sale de Instagram (pasa cuando el enlace lo abrió desde fuera), lo vuelve a abrir.
@@ -372,6 +376,7 @@ object Macro {
             val what = when {
                 c.label.isNotEmpty() -> c.label + " " + c.arg + " min"
                 c.op == "tocarcuenta" || c.op == "irperfil" || c.op == "perfil" -> "cambiando cuenta"
+                c.op == "inicio" -> "paseo por inicio"
                 else -> (c.op + " " + c.arg).trim().take(14)
             }
             var t = "■ ${i + 1}/${cmds.size} $what"
@@ -809,6 +814,86 @@ object Macro {
                 s.swipe(x, h * 0.34f, x, h * (0.56f + (Math.random() * 0.04).toFloat()), ms)
             }
             later(900L + (Math.random() * 1600).toLong())
+        }
+
+        /**
+         * «inicio»: sale a la pantalla principal de Instagram, baja y sube por las publicaciones un rato
+         * (con pausas al azar) y sigue. «inicio azar» = solo la mitad de las veces.
+         * Después en el guion conviene poner «enlace» para volver a la publicación del sorteo.
+         */
+        private fun feed(c: Cmd) {
+            when (feedPhase) {
+                0 -> {
+                    if (c.arg.trim().lowercase().startsWith("azar") && Math.random() < 0.5) {
+                        advance(c.extra())
+                        return
+                    }
+                    feedPhase = 1
+                    tries = 0
+                    later(200L)
+                }
+                1 -> {
+                    // Atrás hasta ver la barra de abajo de Instagram (si se sale de Instagram, lo vuelve a abrir)
+                    if (profileIcon() != null || tries >= 8) {
+                        homeIcon()?.let { s.tapAt(it.first, it.second) }
+                        val plan = ArrayDeque<Boolean>()
+                        repeat(3 + (Math.random() * 4).toInt()) { plan.add(true) }
+                        repeat(1 + (Math.random() * 3).toInt()) { plan.add(false) }
+                        swipes = plan
+                        feedPhase = 2
+                        later(2000L)
+                        return
+                    }
+                    tries++
+                    val pkg = s.rootInActiveWindow?.packageName?.toString()
+                    if (pkg != null && pkg != INSTAGRAM) {
+                        val i = s.packageManager.getLaunchIntentForPackage(INSTAGRAM)
+                        if (i != null) {
+                            i.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                            try { s.startActivity(i) } catch (e: Exception) {}
+                        }
+                        later(3500L)
+                    } else {
+                        s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
+                        later(1500L)
+                    }
+                }
+                else -> {
+                    val down = swipes?.removeFirstOrNull()
+                    if (down == null) {
+                        advance(c.extra())
+                        return
+                    }
+                    val (w, h) = s.screenSize()
+                    val x = w * (0.40f + (Math.random() * 0.20).toFloat())
+                    val ms = 280L + (Math.random() * 320).toLong()
+                    if (down) s.swipe(x, h * 0.74f, x, h * (0.26f + (Math.random() * 0.08).toFloat()), ms)
+                    else s.swipe(x, h * 0.30f, x, h * (0.68f + (Math.random() * 0.06).toFloat()), ms)
+                    // Se para un poco en cada publicación, como si la mirara
+                    later(1500L + (Math.random() * 3500).toLong())
+                }
+            }
+        }
+
+        /** Centro del icono «Inicio» (la casita de abajo a la izquierda de Instagram), o null. */
+        private fun homeIcon(): Pair<Float, Float>? {
+            val (w, h) = s.screenSize()
+            for (root in windowRoots()) {
+                if (root.packageName?.toString() != INSTAGRAM) continue
+                for (word in listOf("Inicio", "Home")) {
+                    val found = root.findAccessibilityNodeInfosByText(word) ?: continue
+                    for (n in found) {
+                        if (!n.isVisibleToUser) continue
+                        val low = ((n.contentDescription ?: n.text)?.toString() ?: "").trim().lowercase()
+                        if (!low.startsWith(word.lowercase())) continue
+                        val r = Rect()
+                        n.getBoundsInScreen(r)
+                        if (r.centerY() < h * 0.80f || r.centerX() > w * 0.40f) continue
+                        return Pair(r.exactCenterX(), r.exactCenterY())
+                    }
+                }
+            }
+            return null
         }
 
         /** Las ventanas de la pantalla, de la de más arriba (por ejemplo la lista de cuentas) a la de más abajo. */
