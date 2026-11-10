@@ -94,6 +94,19 @@ object Macro {
                 "repetir" -> repeats = (arg.toIntOrNull() ?: 1).coerceIn(1, 1000)
                 "esperar", "tocar", "escribir", "campo", "enlace", "imagen", "mantener" -> cmds.add(Cmd(op, arg, extra, extraMax))
                 "atras", "atrás" -> cmds.add(Cmd("atras", arg, extra, extraMax))
+                "clic", "click", "pulsar" -> cmds.add(Cmd("tocar", arg, extra, extraMax))
+                "cuenta" -> {
+                    // «cuenta nombre»: cierra teclado y comentarios, abre la lista de cuentas
+                    // (pulsación larga en el perfil, abajo a la derecha) y pulsa esa cuenta
+                    if (arg.isEmpty()) {
+                        toast(service, "Pon el nombre de la cuenta: por ejemplo «cuenta del_mar190»")
+                        return
+                    }
+                    cmds.add(Cmd("atras", "", 1500L))
+                    cmds.add(Cmd("atras", "", 1500L))
+                    cmds.add(Cmd("mantener", "90%,95%", 3000L))
+                    cmds.add(Cmd("tocar", arg.removePrefix("@"), maxOf(extra, 5000L), maxOf(extraMax, 5000L)))
+                }
                 else -> {
                     toast(service, "No entiendo esta línea: $raw")
                     return
