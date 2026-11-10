@@ -553,6 +553,42 @@ class ClickService : AccessibilityService() {
         })
     }
 
+    /**
+     * Para el guion: busca un texto en la pantalla con OCR (lee la captura) y devuelve dónde está.
+     * Compara solo letras y números, sin mayúsculas, para que «del_mar190» se encuentre aunque el OCR lea mal el «_».
+     * El resultado se entrega en el hilo principal.
+     */
+    fun locateText(word: String, done: (Pair<Float, Float>?) -> Unit) {
+        val want = word.lowercase().filter { it.isLetterOrDigit() }
+        if (want.isEmpty()) { main.post { done(null) }; return }
+        capture({ bmp ->
+            if (bmp == null) {
+                main.post { done(null) }
+            } else {
+                recognizer.process(InputImage.fromBitmap(bmp, 0))
+                    .addOnSuccessListener { text ->
+                        var found: Pair<Float, Float>? = null
+                        loop@ for (block in text.textBlocks) for (line in block.lines) {
+                            for (el in line.elements) {
+                                if (el.text.lowercase().filter { it.isLetterOrDigit() } == want) {
+                                    val b = el.boundingBox ?: continue
+                                    found = Pair(b.exactCenterX(), b.exactCenterY()); break@loop
+                                }
+                            }
+                            if (line.text.lowercase().filter { it.isLetterOrDigit() } == want) {
+                                val b = line.boundingBox ?: continue
+                                found = Pair(b.exactCenterX(), b.exactCenterY()); break@loop
+                            }
+                        }
+                        main.post { done(found) }
+                    }
+                    .addOnFailureListener { main.post { done(null) } }
+            }
+        }, {
+            main.post { done(null) }
+        })
+    }
+
     private fun findWord(text: Text, words: List<String>): Pair<Float, Float>? {
         for (block in text.textBlocks) for (line in block.lines) {
             val lt = line.text.lowercase()

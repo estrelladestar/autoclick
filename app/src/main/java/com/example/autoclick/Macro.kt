@@ -251,15 +251,7 @@ object Macro {
                 "tocarcuenta" -> {
                     // En la vuelta 1 se comenta con la primera cuenta de «cuentas» y se pasa a la segunda, etc.
                     val name = if (c.arg == NEXT_ACCOUNT) accounts[(loop + 1) % accounts.size] else c.arg
-                    if (tapTarget(name)) {
-                        // El límite de comentarios por tanda cuenta por separado en cada cuenta
-                        used = 0
-                        advance(c.extra())
-                    } else {
-                        // Con muchas cuentas la lista no cabe: baja (y luego sube) para buscarla
-                        scrollList(tries < 6)
-                        retry("la cuenta «$name» en la lista de cuentas")
-                    }
+                    tapAccount(c, name)
                 }
                 "perfil" -> {
                     // Pulsación larga en el icono de perfil de abajo (lo busca por su nombre; si no, abajo a la derecha)
@@ -548,15 +540,82 @@ object Macro {
             return false
         }
 
-        /** Desplaza la primera lista de la pantalla hacia abajo (o hacia arriba). */
+        /** Las ventanas de la pantalla, de la de más arriba (por ejemplo la lista de cuentas) a la de más abajo. */
+        private fun windowRoots(): List<AccessibilityNodeInfo> {
+            val out = ArrayList<AccessibilityNodeInfo>()
+            try {
+                for (w in s.windows.sortedByDescending { it.layer }) {
+                    if (w.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD) continue
+                    val r = w.root ?: continue
+                    if (r.packageName?.toString() == s.packageName) continue
+                    out.add(r)
+                }
+            } catch (e: Exception) {
+            }
+            if (out.isEmpty()) s.rootInActiveWindow?.let { out.add(it) }
+            return out
+        }
+
+        /** Busca el nombre exacto de la cuenta (no otro que lo contenga) en todas las ventanas. */
+        private fun findAccountNode(name: String): AccessibilityNodeInfo? {
+            val low = name.lowercase()
+            val exact = Regex("(^|[^a-z0-9._])" + Regex.escape(low) + "($|[^a-z0-9._])")
+            for (root in windowRoots()) {
+                val found = root.findAccessibilityNodeInfosByText(name) ?: continue
+                for (n in found) {
+                    if (!n.isVisibleToUser) continue
+                    val t = ((n.text ?: n.contentDescription)?.toString() ?: "").lowercase()
+                    if (exact.containsMatchIn(t)) return n
+                }
+            }
+            return null
+        }
+
+        /** Pulsa la cuenta en la lista de cuentas: la busca por su nombre; si no, leyendo la pantalla; si no, baja por la lista. */
+        private fun tapAccount(c: Cmd, name: String) {
+            val node = findAccountNode(name)
+            if (node != null) {
+                var n: AccessibilityNodeInfo? = node
+                while (n != null && !n.isClickable) n = n.parent
+                if (n == null || !n.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
+                    val r = Rect()
+                    node.getBoundsInScreen(r)
+                    s.tapAt(r.exactCenterX(), r.exactCenterY())
+                }
+                used = 0
+                advance(c.extra())
+                return
+            }
+            val myTry = id
+            s.locateText(name) { pos ->
+                if (myTry != token || !running) return@locateText
+                if (pos != null) {
+                    s.tapAt(pos.first, pos.second)
+                    used = 0
+                    advance(c.extra())
+                    return@locateText
+                }
+                // Si a la mitad no ha salido, a lo mejor no se abrió la lista: vuelve a mantener pulsado el perfil
+                if (tries == 10) {
+                    val p = profileIcon() ?: s.screenSize().let { Pair(it.first * 0.90f, it.second * 0.92f) }
+                    s.longPressAt(p.first, p.second)
+                } else {
+                    // Con muchas cuentas la lista no cabe: baja y luego sube para buscarla
+                    scrollList(tries % 10 < 5)
+                }
+                retry("la cuenta «$name» en la lista de cuentas")
+            }
+        }
+
+        /** Desplaza la lista de la ventana de más arriba hacia abajo (o hacia arriba). */
         private fun scrollList(down: Boolean) {
-            val root = s.rootInActiveWindow ?: return
             fun find(n: AccessibilityNodeInfo?): AccessibilityNodeInfo? {
                 if (n == null) return null
                 if (n.isScrollable && n.isVisibleToUser) return n
                 for (k in 0 until n.childCount) find(n.getChild(k))?.let { return it }
                 return null
             }
+            val root = windowRoots().firstOrNull() ?: return
             find(root)?.performAction(
                 if (down) AccessibilityNodeInfo.ACTION_SCROLL_FORWARD else AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD
             )
