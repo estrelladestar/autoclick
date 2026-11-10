@@ -10,7 +10,7 @@ object Help {
     private const val TEXT = """CÓMO SE USA
 
 PREPARACIÓN (solo la primera vez)
-1. En la pantalla principal pulsa «1. Activar servicio de accesibilidad», busca AutoClick Imagen y actívalo.
+1. En la pantalla principal pulsa «1. Activar servicio de accesibilidad», busca Star App y actívalo.
 2. Si tu Android es anterior al 11, pulsa también «Permitir captura de pantalla» (hay que repetirlo cada vez que abras la app).
 3. Pulsa «+ Añadir imagen» y elige una captura del botón que quieres pulsar (por ejemplo «Publicar»). Es la imagen 1. Para cambiarla, bórrala con ✕ y añade otra.
 4. Pon tus enlaces en los cuadros «Enlace 1…5» (hasta 5). También valen los de «Enlaces del sorteo» del Etiquetador: pasan solos a la app, y el paso «enlace» del guion abre el que tengas marcado con el círculo.

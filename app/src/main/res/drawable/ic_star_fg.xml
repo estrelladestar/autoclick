@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Estrella de colores de Star App -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#FF3B30" android:pathData="M54,54 L46.06,43.08 L54.00,23.00 Z"/>
+    <path android:fillColor="#D62A20" android:pathData="M54,54 L54.00,23.00 L61.94,43.08 Z"/>
+    <path android:fillColor="#FFCC00" android:pathData="M54,54 L61.94,43.08 L83.48,44.42 Z"/>
+    <path android:fillColor="#E0A800" android:pathData="M54,54 L83.48,44.42 L66.84,58.17 Z"/>
+    <path android:fillColor="#34C759" android:pathData="M54,54 L66.84,58.17 L72.22,79.08 Z"/>
+    <path android:fillColor="#22A045" android:pathData="M54,54 L72.22,79.08 L54.00,67.50 Z"/>
+    <path android:fillColor="#0A84FF" android:pathData="M54,54 L54.00,67.50 L35.78,79.08 Z"/>
+    <path android:fillColor="#0066D6" android:pathData="M54,54 L35.78,79.08 L41.16,58.17 Z"/>
+    <path android:fillColor="#BF5AF2" android:pathData="M54,54 L41.16,58.17 L24.52,44.42 Z"/>
+    <path android:fillColor="#9B3ED0" android:pathData="M54,54 L24.52,44.42 L46.06,43.08 Z"/>
+</vector>

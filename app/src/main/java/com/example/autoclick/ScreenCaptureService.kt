@@ -86,7 +86,7 @@ class ScreenCaptureService : Service() {
             NotificationChannel(CHANNEL, "Captura de pantalla", NotificationManager.IMPORTANCE_LOW)
         )
         val n = Notification.Builder(this, CHANNEL)
-            .setContentTitle("AutoClick Imagen")
+            .setContentTitle("Star App")
             .setContentText("Captura de pantalla activa")
             .setSmallIcon(android.R.drawable.ic_menu_camera)
             .build()

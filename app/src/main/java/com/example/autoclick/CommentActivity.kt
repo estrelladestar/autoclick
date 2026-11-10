@@ -286,7 +286,7 @@ repetir 8"""
                 val list = box.text.toString().lines().map { it.trim() }.filter { it.isNotEmpty() }
                 val s = ClickService.instance
                 when {
-                    s == null -> toast("Primero activa el servicio de accesibilidad de AutoClick Imagen")
+                    s == null -> toast("Primero activa el servicio de accesibilidad de Star App")
                     else -> {
                         saveAll()
                         val missing = problems(script.text.toString())
@@ -378,7 +378,7 @@ repetir 8"""
         val steps = script.text.toString().lines().map { it.trim() }
             .count { it.isNotEmpty() && !it.startsWith("#") && !it.startsWith("repetir") }
         val blockers = ArrayList<String>()
-        if (!svc) blockers.add("Activa el servicio de accesibilidad de AutoClick Imagen (pantalla principal, botón 1).")
+        if (!svc) blockers.add("Activa el servicio de accesibilidad de Star App (pantalla principal, botón 1).")
         blockers.addAll(problems(script.text.toString()))
         fun mark(ok: Boolean) = if (ok) "✅" else "➖"
         val sb = StringBuilder()
