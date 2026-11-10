@@ -263,7 +263,7 @@ object Assistant {
     // Comprobación del guion
     // ---------------------------------------------------------------------------------------------
 
-    private val OPS = setOf("esperar", "tocar", "escribir", "campo", "enlace", "imagen", "mantener", "repetir")
+    private val OPS = setOf("esperar", "tocar", "escribir", "campo", "enlace", "imagen", "mantener", "repetir", "atras", "atrás")
 
     /** Líneas del guion que la app no entiende (vacío si todo está bien). */
     fun badLines(script: String): List<String> =
@@ -292,6 +292,7 @@ tocar Texto          (toca el botón o texto que diga así)
 tocar 500,1200       (toca esa posición en píxeles)
 tocar 90%,95%        (toca esa zona: porcentaje del ancho y del alto; 90%,95% es abajo a la derecha, donde está el icono del perfil de Instagram)
 mantener 90%,95%     (pulsación larga en esa zona; en Instagram, sobre el perfil abre la lista de cuentas)
+atrás                (como el botón atrás del móvil: cierra el teclado o los comentarios)
 repetir 10           (repite todo el guion 10 veces; va una sola vez, en cualquier línea)
 # nota               (se ignora)
 Al final de cualquier línea, | 30 espera 30 s más y | 30-60 espera entre 30 y 60 s al azar.

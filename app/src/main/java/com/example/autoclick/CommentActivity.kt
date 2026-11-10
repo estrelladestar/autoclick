@@ -145,6 +145,7 @@ repetir 10"""
             "• tocar 500,1200 → toca esa posición de la pantalla\n" +
             "• tocar 90%,95% → toca esa zona (porcentaje del ancho y del alto; 90%,95% = abajo a la derecha)\n" +
             "• mantener 90%,95% → pulsación larga en esa zona\n" +
+            "• atrás → como el botón atrás del móvil (cierra el teclado o los comentarios)\n" +
             "• escribir lista → pone el siguiente comentario de tu lista\n" +
             "• escribir azar → pone un comentario de tu lista al azar\n" +
             "• escribir menciones → pone @amigos al azar de tu cuadro de menciones (cuántos: selector de abajo), con una frase tuya si quieres\n" +

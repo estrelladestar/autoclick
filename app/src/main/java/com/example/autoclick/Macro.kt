@@ -93,6 +93,7 @@ object Macro {
             when (op) {
                 "repetir" -> repeats = (arg.toIntOrNull() ?: 1).coerceIn(1, 1000)
                 "esperar", "tocar", "escribir", "campo", "enlace", "imagen", "mantener" -> cmds.add(Cmd(op, arg, extra, extraMax))
+                "atras", "atrás" -> cmds.add(Cmd("atras", arg, extra, extraMax))
                 else -> {
                     toast(service, "No entiendo esta línea: $raw")
                     return
@@ -213,6 +214,11 @@ object Macro {
                         f.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
                         advance(c.extra())
                     }
+                }
+                "atras" -> {
+                    // Como el botón «atrás» del móvil: cierra el teclado, los comentarios…
+                    s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
+                    advance(maxOf(c.extra(), 1000L))
                 }
                 "escribir" -> write(c)
                 "enlace" -> openLink(c)
