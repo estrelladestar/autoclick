@@ -46,6 +46,11 @@ object Macro {
     private const val MAX_TRIES = 25
     private const val INSTAGRAM = "com.instagram.android"
     private const val NEXT_ACCOUNT = "\u0001siguiente"
+    /** Textos que solo salen en la lista de cuentas de Instagram (para saber que está abierta). */
+    private val LIST_MARKS = listOf("usar otro perfil", "crear cuenta nueva", "añadir cuenta", "agregar cuenta",
+        "centro de cuentas", "cambiar de cuenta", "iniciar sesión en una cuenta existente",
+        "use another profile", "create new account", "add account", "add instagram account", "accounts center",
+        "switch account", "log into an existing account")
 
     class Cmd(val op: String, val arg: String, val extraMs: Long, val extraMaxMs: Long = extraMs, val label: String = "") {
         /** Espera extra de la línea; si es un rango («30-60»), un valor al azar dentro del rango. */
@@ -62,6 +67,32 @@ object Macro {
         val lo = (minOf(a, b) * 1000).toLong()
         val hi = (maxOf(a, b) * 1000).toLong()
         return Pair(lo, hi)
+    }
+
+    // ---------- Informe de lo que va haciendo el guion (para poder encontrar fallos) ----------
+    private val traceLines = ArrayDeque<String>()
+    private var traceCtx: Context? = null
+
+    /** Apunta una línea en el informe del guion (se guardan las últimas 400). */
+    fun trace(msg: String) {
+        val t = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.US).format(java.util.Date())
+        synchronized(traceLines) {
+            traceLines.addLast("$t $msg")
+            while (traceLines.size > 400) traceLines.removeFirst()
+        }
+    }
+
+    /** El informe del último guion (o del que está en marcha), para copiarlo y enviarlo. */
+    fun traceText(ctx: Context): String {
+        val live = synchronized(traceLines) { traceLines.joinToString("\n") }
+        if (live.isNotEmpty()) return live
+        return ctx.getSharedPreferences("cfg", Context.MODE_PRIVATE).getString("informe", "") ?: ""
+    }
+
+    private fun saveTrace() {
+        val c = traceCtx ?: return
+        val txt = synchronized(traceLines) { traceLines.joinToString("\n") }
+        c.getSharedPreferences("cfg", Context.MODE_PRIVATE).edit().putString("informe", txt).apply()
     }
 
     private val BLOCK_TEXTS = listOf(
@@ -118,14 +149,15 @@ object Macro {
                         toast(service, "Pon el nombre de la cuenta: por ejemplo «cuenta del_mar190»")
                         return
                     }
-                    cmds.add(Cmd("irperfil", "", 800L))
-                    cmds.add(Cmd("perfil", "", 3000L))
                     if (arg.lowercase() == "doble") {
-                        // «cuenta doble»: doble toque en la foto de perfil de abajo a la derecha (Instagram cambia de cuenta)
+                        // «cuenta doble»: doble toque en la foto de perfil de abajo a la derecha.
+                        // Ojo: Instagram así solo salta entre las dos últimas cuentas usadas.
                         cmds.add(Cmd("irperfil", "", 800L))
                         cmds.add(Cmd("dobleperfil", "", maxOf(extra, 4000L), maxOf(extraMax, 4000L)))
                         continue
                     }
+                    cmds.add(Cmd("irperfil", "", 800L))
+                    cmds.add(Cmd("abrirlista", "", 0L))
                     val name = if (arg.lowercase() == "siguiente") NEXT_ACCOUNT else arg.removePrefix("@")
                     cmds.add(Cmd("tocarcuenta", name, maxOf(extra, 5000L), maxOf(extraMax, 5000L)))
                 }
@@ -149,6 +181,10 @@ object Macro {
             return
         }
         svc = service
+        traceCtx = service.applicationContext
+        synchronized(traceLines) { traceLines.clear() }
+        trace("INICIO: ${cmds.size} pasos, repetir $repeats, cuentas=${if (accounts.isEmpty()) "todas las de Instagram" else accounts.joinToString(",")}, límite=$dailyLimit")
+        trace("Android ${android.os.Build.VERSION.RELEASE} · ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL} · pantalla ${service.screenSize().first}x${service.screenSize().second}")
         running = true
         token++
         service.showOverlay()
@@ -163,6 +199,8 @@ object Macro {
 
     private fun finish(msg: String, alert: Boolean = true) {
         if (!running) return
+        trace("FIN: $msg")
+        saveTrace()
         running = false
         token++
         main.removeCallbacksAndMessages(null)
@@ -238,6 +276,12 @@ object Macro {
         private var feedPhase = 0
         /** Para esperas largas: cuándo acaba (0 = no hay espera en marcha). */
         private var waitEnd = 0L
+        /** Para «abrirlista»: en qué parte va (0 = mantener pulsado, 2 = por el perfil, …). */
+        private var listPhase = 0
+        /** Veces que se ha vuelto a intentar abrir la lista de cuentas desde el paso de pulsar la cuenta. */
+        private var reopens = 0
+        /** Último paso apuntado en el informe (para no repetirlo en cada reintento). */
+        private var tracedAt = -1
         /** Paso (vuelta y línea) en el que ya se pulsó la caja de comentarios; así se espera a que se abra antes de escribir. */
         private var openedAt = -1
         private var commentIdx = 0
@@ -256,12 +300,14 @@ object Macro {
             swipes = null
             feedPhase = 0
             waitEnd = 0L
+            listPhase = 0
             openedAt = -1
             i++
             later(maxOf(ms, 400L))
         }
 
         private fun retry(what: String) {
+            trace("  reintento ${tries + 1}/$MAX_TRIES: no encuentro $what")
             tries++
             if (tries > MAX_TRIES) finish("No encontré $what. Guion detenido.") else later(800L)
         }
@@ -284,6 +330,11 @@ object Macro {
             }
             showProgress()
             val c = cmds[i]
+            val here = loop * 100000 + i
+            if (here != tracedAt) {
+                tracedAt = here
+                trace("paso ${i + 1}/${cmds.size} (vuelta ${loop + 1}): ${c.op} ${if (c.arg == NEXT_ACCOUNT) "siguiente" else c.arg}".trimEnd())
+            }
             when (c.op) {
                 "esperar" -> {
                     val now = System.currentTimeMillis()
@@ -358,20 +409,26 @@ object Macro {
                     // Ir a la pantalla principal de Instagram (con la barra de abajo y tu icono de perfil).
                     // Primero cierra el teclado; luego abre Instagram desde cero en su pantalla principal,
                     // porque ir hacia atrás a veces vuelve a la publicación con los comentarios.
-                    if (profileIcon() != null || tries >= 4) {
+                    val icon = profileIcon()
+                    if (icon != null || tries >= 4) {
+                        trace(if (icon != null) "  ya se ve la barra de Instagram (perfil en ${icon.first.toInt()},${icon.second.toInt()})"
+                              else "  no veo la barra de Instagram, sigo igualmente")
                         advance(c.extra())
                         return
                     }
                     if (tries == 0) {
                         tries++
+                        trace("  atrás (cerrar teclado)")
                         s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
                         later(1000L)
                     } else {
                         tries++
+                        trace("  abro Instagram en su pantalla principal (intento $tries)")
                         openInstagramHome()
                         later(4500L)
                     }
                 }
+                "abrirlista" -> openAccountList(c)
                 "dobleperfil" -> {
                     val p = profileIcon()
                     if (p == null) {
@@ -384,6 +441,7 @@ object Macro {
                         retry("tu foto de perfil abajo a la derecha")
                         return
                     }
+                    trace("  doble toque en el perfil en ${p.first.toInt()},${p.second.toInt()}")
                     s.doubleTapAt(p.first, p.second)
                     current = null
                     used = 0
@@ -399,8 +457,8 @@ object Macro {
                             later(4500L)
                             return
                         }
-                        val size = s.screenSize()
-                        Pair(size.first * 0.90f, size.second * 0.92f)
+                        finish("No veo tu foto de perfil abajo a la derecha de Instagram. Guion detenido.")
+                        return
                     }
                     s.longPressAt(p.first, p.second)
                     advance(maxOf(c.extra(), 1500L))
@@ -418,12 +476,131 @@ object Macro {
             }
         }
 
+        /**
+         * «abrirlista»: abre la lista de cuentas de Instagram y comprueba que de verdad está abierta.
+         * 1) Mantiene pulsada la foto de perfil de abajo a la derecha.
+         * 2) Si no se abre, va a tu perfil y pulsa tu nombre de arriba (la otra forma que tiene Instagram).
+         * Lo intenta hasta 3 veces; si no hay manera, para el guion y avisa.
+         */
+        private fun openAccountList(c: Cmd) {
+            val myTry = id
+            when (listPhase) {
+                0 -> {
+                    val p = profileIcon()
+                    if (p == null) {
+                        if (tries < 3) {
+                            tries++
+                            trace("  no veo tu foto de perfil abajo: abro Instagram en su pantalla principal")
+                            openInstagramHome()
+                            later(4500L)
+                        } else {
+                            finish("No veo la barra de abajo de Instagram (tu foto de perfil). Guion detenido.")
+                        }
+                        return
+                    }
+                    trace("  mantengo pulsada tu foto de perfil en ${p.first.toInt()},${p.second.toInt()}")
+                    s.longPressAt(p.first, p.second)
+                    listPhase = 1
+                    later(2800L)
+                }
+                1, 4 -> {
+                    checkListOpen { open ->
+                        if (myTry != token || !running) return@checkListOpen
+                        if (open) {
+                            trace("  la lista de cuentas está abierta")
+                            advance(maxOf(c.extra(), 600L))
+                        } else if (listPhase == 1) {
+                            trace("  la lista no se abrió manteniendo pulsado: pruebo por tu perfil")
+                            listPhase = 2
+                            later(300L)
+                        } else if (tries < 3) {
+                            tries++
+                            trace("  tampoco se abrió por el perfil: vuelvo a empezar (intento $tries)")
+                            listPhase = 0
+                            openInstagramHome()
+                            later(4500L)
+                        } else {
+                            finish("No consigo abrir la lista de cuentas de Instagram. Guion detenido.")
+                        }
+                    }
+                }
+                2 -> {
+                    // Ir a tu perfil (toque normal en la foto de abajo)
+                    val p = profileIcon()
+                    if (p == null) {
+                        trace("  no veo tu foto de perfil: abro Instagram")
+                        openInstagramHome()
+                        listPhase = 0
+                        tries++
+                        if (tries > 3) finish("No veo la barra de abajo de Instagram. Guion detenido.") else later(4500L)
+                        return
+                    }
+                    trace("  toco tu foto de perfil para ir a tu perfil")
+                    s.tapAt(p.first, p.second)
+                    listPhase = 3
+                    later(3000L)
+                }
+                3 -> {
+                    // Pulsar tu nombre de usuario de arriba del todo
+                    val t = profileTitle()
+                    if (t != null) {
+                        trace("  toco tu nombre de arriba en ${t.first.toInt()},${t.second.toInt()}")
+                        s.tapAt(t.first, t.second)
+                        listPhase = 4
+                        later(2500L)
+                        return
+                    }
+                    s.readScreen { lines ->
+                        if (myTry != token || !running) return@readScreen
+                        val (w, h) = s.screenSize()
+                        val nameRx = Regex("^@?[A-Za-z0-9._]{2,30}\\s*[vV⌄˅∨]?$")
+                        val top = lines?.filter { it.second.centerY() > h * 0.035f && it.second.centerY() < h * 0.16f }
+                            ?.sortedBy { it.second.top }
+                        trace("  arriba leo: " + (top?.joinToString(" | ") { it.first } ?: "nada"))
+                        val title = top?.firstOrNull { nameRx.matches(it.first.trim()) && it.second.centerX() < w * 0.85f }
+                        if (title != null) {
+                            trace("  toco «${title.first}» (tu nombre de arriba)")
+                            s.tapAt(title.second.exactCenterX(), title.second.exactCenterY())
+                        } else {
+                            trace("  no encuentro tu nombre de arriba")
+                        }
+                        listPhase = 4
+                        later(2500L)
+                    }
+                }
+            }
+        }
+
+        /** Tu nombre de usuario arriba del todo en tu perfil (el que abre la lista de cuentas), o null. */
+        private fun profileTitle(): Pair<Float, Float>? {
+            for (id in listOf("action_bar_large_title_auto_size", "action_bar_large_title", "action_bar_title_chevron",
+                "action_bar_title", "action_bar_textview_title", "title_chevron")) {
+                byInstagramId(id)?.let { return it }
+            }
+            return null
+        }
+
+        /** ¿Está abierta la lista de cuentas? Primero por accesibilidad; si no, leyendo la pantalla. */
+        private fun checkListOpen(done: (Boolean) -> Unit) {
+            val list = accountListNames()
+            if (list != null) {
+                trace("  lista (accesibilidad): " + list.joinToString(", ") { it.first })
+                done(true)
+                return
+            }
+            s.readScreen { lines ->
+                val open = lines != null && lines.any { l -> LIST_MARKS.any { l.first.lowercase().contains(it) } }
+                trace("  leo en pantalla: " + (lines?.take(14)?.joinToString(" | ") { it.first } ?: "no puedo leer la pantalla"))
+                done(open)
+            }
+        }
+
         /** Muestra en el botón flotante el paso en el que va, la vuelta y los comentarios escritos. */
         private fun showProgress(override: String? = null) {
             val c = cmds.getOrNull(i) ?: return
             val what = override ?: when {
                 c.label.isNotEmpty() -> c.label + " " + c.arg + " min"
-                c.op == "tocarcuenta" || c.op == "irperfil" || c.op == "perfil" || c.op == "dobleperfil" -> "cambiando cuenta"
+                c.op == "tocarcuenta" || c.op == "irperfil" || c.op == "perfil" || c.op == "dobleperfil" || c.op == "abrirlista" -> "cambiando cuenta"
                 c.op == "inicio" -> "paseo por inicio"
                 else -> (c.op + " " + c.arg).trim().take(14)
             }
@@ -479,6 +656,7 @@ object Macro {
                 when {
                     missing -> finish("No encuentro la imagen $n. Añádela en la app. Guion detenido.")
                     pos != null -> {
+                        trace("  imagen $n encontrada: toco ${pos.first.toInt()},${pos.second.toInt()}")
                         s.tapAt(pos.first, pos.second)
                         advance(c.extra())
                     }
@@ -552,6 +730,7 @@ object Macro {
                 return
             }
             toast(s, "Escrito: $text")
+            trace("  escrito: $text")
             usedCombos.add(key)
             countComment()
             used++
@@ -587,8 +766,25 @@ object Macro {
 
         /** Ya estamos en la cuenta [name]. */
         private fun switchedTo(name: String) {
+            trace("  CAMBIO A LA CUENTA $name")
             current = name
             used = 0
+            reopens = 0
+        }
+
+        /** La lista de cuentas no está: se vuelve al paso de abrirla (como mucho 2 veces seguidas). */
+        private fun reopenList() {
+            if (reopens < 2 && i > 0 && cmds[i - 1].op == "abrirlista") {
+                reopens++
+                trace("  vuelvo a abrir la lista de cuentas (vez $reopens)")
+                i -= 1
+                tries = 0
+                listPhase = 0
+                tracedAt = -1
+                later(500L)
+            } else {
+                finish("No encontré la lista de cuentas de Instagram. Guion detenido.")
+            }
         }
 
         /**
@@ -603,17 +799,9 @@ object Macro {
                 s.readScreen { lines ->
                     if (myTry != token || !running) return@readScreen
                     if (lines != null && autoAccountOcr(c, lines)) return@readScreen
-                    if (tries == 3 || tries == 12) {
-                        // Aviso para saber qué está viendo la app (ayuda a encontrar el fallo)
-                        val seen = lines?.map { it.first }?.filter { it.isNotBlank() }?.take(6)?.joinToString(" | ")
-                        toast(s, "Paso de cambiar cuenta. Veo: " + (seen ?: "no puedo leer la pantalla"))
-                    }
-                    // La lista aún no está abierta
-                    if (tries == 10) {
-                        val p = profileIcon() ?: s.screenSize().let { Pair(it.first * 0.90f, it.second * 0.92f) }
-                        s.longPressAt(p.first, p.second)
-                    }
-                    retry("la lista de cuentas de Instagram")
+                    trace("  no veo la lista de cuentas. Leo: " + (lines?.take(14)?.joinToString(" | ") { it.first } ?: "no puedo leer la pantalla"))
+                    // La lista no está abierta (o se ha cerrado): se vuelve a abrir
+                    if (tries >= 5) reopenList() else retry("la lista de cuentas de Instagram")
                 }
                 return
             }
@@ -667,8 +855,7 @@ object Macro {
 
         /** Igual que [autoAccount] pero con el texto leído de la pantalla. Devuelve false si la lista no está abierta. */
         private fun autoAccountOcr(c: Cmd, lines: List<Pair<String, Rect>>): Boolean {
-            val marks = listOf("usar otro perfil", "crear cuenta nueva", "añadir cuenta", "agregar cuenta",
-                "use another profile", "create new account", "add account", "cambiar de cuenta", "switch account")
+            val marks = LIST_MARKS
             if (lines.none { l -> marks.any { l.first.lowercase().contains(it) } }) return false
             val nameRx = Regex("^@?[A-Za-z0-9._]{2,30}$")
             val skip = setOf("instagram", "meta", "facebook", "threads")
@@ -676,6 +863,7 @@ object Macro {
                 .map { Pair(it.first.removePrefix("@"), it.second) }
                 .distinctBy { it.first.lowercase() }
                 .sortedBy { it.second.top }
+            trace("  lista (leída de la pantalla): " + names.joinToString(", ") { it.first })
             if (names.isEmpty()) {
                 if (tries == 3) toast(s, "Veo la lista de cuentas pero no sus nombres")
                 return false
@@ -723,8 +911,7 @@ object Macro {
          * si no está abierta, null.
          */
         private fun accountListNames(): List<Pair<String, AccessibilityNodeInfo>>? {
-            val marks = listOf("usar otro perfil", "crear cuenta nueva", "añadir cuenta", "agregar cuenta",
-                "use another profile", "create new account", "add account", "iniciar sesión en una cuenta existente")
+            val marks = LIST_MARKS
             val nameRx = Regex("^[A-Za-z0-9._]{2,30}$")
             val skip = setOf("instagram", "meta", "facebook", "threads")
             for (root in windowRoots()) {
@@ -799,6 +986,7 @@ object Macro {
                 return
             }
             toast(s, "Escrito: $text")
+            trace("  escrito: $text")
             countComment()
             if (isList) {
                 commentIdx++
@@ -947,7 +1135,9 @@ object Macro {
                 1 -> {
                     // Atrás hasta ver la barra de abajo de Instagram (si se sale de Instagram, lo vuelve a abrir)
                     if (profileIcon() != null || tries >= 4) {
-                        homeIcon()?.let { s.tapAt(it.first, it.second) }
+                        val home = homeIcon()
+                        trace(if (home != null) "  en Inicio: toco la casita y bajo por las publicaciones" else "  no veo la casita; bajo por lo que haya")
+                        home?.let { s.tapAt(it.first, it.second) }
                         val plan = ArrayDeque<Boolean>()
                         repeat(3 + (Math.random() * 4).toInt()) { plan.add(true) }
                         repeat(1 + (Math.random() * 3).toInt()) { plan.add(false) }
@@ -1081,14 +1271,12 @@ object Macro {
                     advance(c.extra())
                     return@locateText
                 }
-                // Si a la mitad no ha salido, a lo mejor no se abrió la lista: vuelve a mantener pulsado el perfil
-                if (tries == 10) {
-                    val p = profileIcon() ?: s.screenSize().let { Pair(it.first * 0.90f, it.second * 0.92f) }
-                    s.longPressAt(p.first, p.second)
-                } else {
-                    // Con muchas cuentas la lista no cabe: baja y luego sube para buscarla
-                    scrollList(tries % 10 < 5)
+                // Con muchas cuentas la lista no cabe: baja y luego sube para buscarla
+                if (tries >= 8) {
+                    reopenList()
+                    return@locateText
                 }
+                scrollList(tries < 4)
                 retry("la cuenta «$name» en la lista de cuentas")
             }
         }

@@ -522,15 +522,21 @@ class ClickService : AccessibilityService() {
                     ok(bmp)
                 }
 
-                override fun onFailure(errorCode: Int) { fail() }
+                override fun onFailure(errorCode: Int) {
+                    Macro.trace("  no se pudo capturar la pantalla (código $errorCode)")
+                    fail()
+                }
             })
         } else {
             val svc = ScreenCaptureService.instance
             if (svc == null) {
                 main.post {
-                    stopClicking()
-                    toast("Falta permitir la captura de pantalla (botón en la app)")
+                    if (running) stopClicking()
+                    toast("Falta permitir la captura de pantalla (botón «Permitir captura» en la app)")
                 }
+                Macro.trace("  falta el permiso de captura de pantalla")
+                // Avisar al que esperaba la captura, para que no se quede colgado
+                fail()
             } else {
                 worker.execute { ok(svc.grab()) }
             }

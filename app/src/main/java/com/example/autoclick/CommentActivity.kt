@@ -142,6 +142,20 @@ repetir 8"""
             setOnClickListener { showLog() }
             toolsBar.addView(this, LinearLayout.LayoutParams(third))
         }
+        val testBar = LinearLayout(ctx).apply {
+            orientation = LinearLayout.HORIZONTAL
+            root.addView(this)
+        }
+        Button(ctx).apply {
+            text = "🧪 Probar cambio de cuenta"
+            setOnClickListener { testAccountSwitch() }
+            testBar.addView(this, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { setMargins(4, 0, 4, 0) })
+        }
+        Button(ctx).apply {
+            text = "🐞 Informe"
+            setOnClickListener { showReport() }
+            testBar.addView(this, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { setMargins(4, 0, 4, 0) })
+        }
 
         // ---------- Asistente ----------
         label(
@@ -208,7 +222,7 @@ repetir 8"""
             "• cuentas a b c → tus cuentas en orden; con «cuenta siguiente» + «repetir» cambia a la siguiente en cada vuelta\n" +
             "• mirar → baja y sube por los comentarios un rato (con «mirar azar», solo a veces)\n" +
             "• cuenta siguiente (sin línea «cuentas») → va pasando por TODAS las cuentas que tengas en Instagram\n" +
-            "• cuenta doble → cambia de cuenta con doble toque en tu foto de perfil (sin nombres)\n" +
+            "• cuenta doble → doble toque en tu foto de perfil (Instagram solo salta entre tus 2 últimas cuentas)\n" +
             "• descanso 10-20 → pausa al azar de 10 a 20 minutos\n" +
             "• inicio → sale a la pantalla principal y baja y sube por las publicaciones (con «inicio azar», solo a veces); después pon «enlace»\n" +
             "• limite 20 → cada cuenta hace como mucho 20 comentarios al día; luego pasa a la siguiente\n" +
@@ -482,6 +496,45 @@ repetir 8"""
         } catch (e: Exception) {
             toast("No se pudo leer la copia: ${e.message}")
         }
+    }
+
+    // ---------- Pruebas e informe ----------
+    /** Prueba solo el cambio de cuenta (con la línea «cuentas» del guion, si la hay). */
+    private fun testAccountSwitch() {
+        val s = ClickService.instance
+        if (s == null) {
+            toast("Primero activa el servicio de accesibilidad de Star App")
+            return
+        }
+        saveAll()
+        val cuentas = script.text.toString().lines().map { it.trim() }
+            .firstOrNull { it.lowercase().startsWith("cuentas ") }
+        val test = (if (cuentas != null) "$cuentas\n" else "") + "cuenta siguiente"
+        AlertDialog.Builder(this)
+            .setTitle("🧪 Probar cambio de cuenta")
+            .setMessage("Star App abrirá Instagram y cambiará a otra cuenta, sin comentar nada.\n\n" +
+                "Cuando termine (o si se para), vuelve aquí y pulsa «🐞 Informe» para ver qué ha pasado.")
+            .setPositiveButton("Probar") { _, _ ->
+                Macro.start(s, test, emptyList())
+                moveTaskToBack(true)
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    /** Enseña el informe del último guion, con un botón para copiarlo y pegarlo en el chat. */
+    private fun showReport() {
+        val txt = Macro.traceText(this)
+        AlertDialog.Builder(this)
+            .setTitle("🐞 Informe del último guion")
+            .setMessage(if (txt.isBlank()) "Todavía no hay informe. Inicia el guion o pulsa «🧪 Probar cambio de cuenta»." else txt.takeLast(6000))
+            .setPositiveButton("Copiar") { _, _ ->
+                val cm = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                cm.setPrimaryClip(android.content.ClipData.newPlainText("informe Star App", txt))
+                toast("Informe copiado. Pégalo en el chat.")
+            }
+            .setNegativeButton("Cerrar", null)
+            .show()
     }
 
     // ---------- Registro ----------
