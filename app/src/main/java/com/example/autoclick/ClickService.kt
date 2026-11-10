@@ -425,7 +425,8 @@ class ClickService : AccessibilityService() {
         running = false
         runId++
         main.removeCallbacksAndMessages(null)
-        setOverlayText("▶")
+        // Si el guion de comentarios sigue en marcha, el botón no se toca (seguiría en rojo)
+        if (!Macro.running) setOverlayText("▶")
     }
 
     private fun openLink(url: String) {

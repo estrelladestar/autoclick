@@ -230,6 +230,8 @@ object Macro {
         private var swipes: ArrayDeque<Boolean>? = null
         /** Para «inicio»: 0 = empezar, 1 = volviendo a la pantalla principal, 2 = mirando publicaciones. */
         private var feedPhase = 0
+        /** Para esperas largas: cuándo acaba (0 = no hay espera en marcha). */
+        private var waitEnd = 0L
         /** Paso (vuelta y línea) en el que ya se pulsó la caja de comentarios; así se espera a que se abra antes de escribir. */
         private var openedAt = -1
         private var commentIdx = 0
@@ -247,6 +249,7 @@ object Macro {
             tries = 0
             swipes = null
             feedPhase = 0
+            waitEnd = 0L
             openedAt = -1
             i++
             later(maxOf(ms, 400L))
@@ -277,10 +280,28 @@ object Macro {
             val c = cmds[i]
             when (c.op) {
                 "esperar" -> {
-                    val r = parseSecs(c.arg)
-                    var wait = r.first + (Math.random() * (r.second - r.first)).toLong()
-                    if (c.label == "descanso") wait *= 60
-                    advance(wait + c.extra())
+                    val now = System.currentTimeMillis()
+                    if (waitEnd == 0L) {
+                        val r = parseSecs(c.arg)
+                        var wait = r.first + (Math.random() * (r.second - r.first)).toLong()
+                        if (c.label == "descanso") wait *= 60
+                        wait += c.extra()
+                        if (wait <= 10000L) {
+                            advance(wait)
+                            return
+                        }
+                        waitEnd = now + wait
+                    }
+                    val left = waitEnd - now
+                    if (left <= 0L) {
+                        advance(400L)
+                        return
+                    }
+                    // Espera larga: el botón flotante enseña cuánto falta
+                    val secs = (left + 999) / 1000
+                    showProgress(String.format(java.util.Locale.US, "%s · quedan %d:%02d",
+                        if (c.label.isNotEmpty()) c.label else "esperando", secs / 60, secs % 60))
+                    later(minOf(left, 1000L))
                 }
                 "hora" -> {
                     // Espera hasta esa hora (hoy, o mañana si ya ha pasado)
@@ -371,9 +392,9 @@ object Macro {
         }
 
         /** Muestra en el botón flotante el paso en el que va, la vuelta y los comentarios escritos. */
-        private fun showProgress() {
+        private fun showProgress(override: String? = null) {
             val c = cmds.getOrNull(i) ?: return
-            val what = when {
+            val what = override ?: when {
                 c.label.isNotEmpty() -> c.label + " " + c.arg + " min"
                 c.op == "tocarcuenta" || c.op == "irperfil" || c.op == "perfil" -> "cambiando cuenta"
                 c.op == "inicio" -> "paseo por inicio"
