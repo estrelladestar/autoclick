@@ -340,16 +340,6 @@ object Macro {
                 retry("la caja de texto")
                 return
             }
-            // «escribir» ya abre la caja de comentarios por sí solo (no hace falta poner «campo»):
-            // la pulsa, espera 1,5 s a que se abra y vuelve a este paso para escribir
-            val here = loop * 100000 + i
-            if (openedAt != here) {
-                openedAt = here
-                f.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-                f.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
-                later(1500L)
-                return
-            }
             var text = pick.joinToString(" ")
             val phrases = if (withCopied) {
                 // Un comentario copiado al azar, sin repetir hasta haber usado todos los de la lista
@@ -385,20 +375,9 @@ object Macro {
             val word = if (low.startsWith("copiado")) "azar" else low
             val isRandom = word == "azar"
             val isList = word == "lista" || isRandom
-            // Primero abre la caja de comentarios (antes de elegir el comentario, para no gastar ninguno)
-            val box = findField()
-            if (box == null) {
+            // Comprueba que hay una caja donde escribir antes de elegir el comentario, para no gastar ninguno
+            if (findField() == null) {
                 retry("la caja de texto")
-                return
-            }
-            // «escribir» ya abre la caja de comentarios por sí solo (no hace falta poner «campo»):
-            // la pulsa, espera 1,5 s a que se abra y vuelve a este paso para escribir
-            val here = loop * 100000 + i
-            if (openedAt != here) {
-                openedAt = here
-                box.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-                box.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
-                later(1500L)
                 return
             }
             var text = c.arg

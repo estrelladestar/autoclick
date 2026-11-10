@@ -283,7 +283,7 @@ Instrucciones permitidas:
 esperar 5            (espera 5 s; esperar 5-10 = al azar entre 5 y 10)
 enlace               (abre el siguiente enlace guardado; enlace 2 = el enlace 2)
 imagen 1             (busca en pantalla la imagen 1 guardada y la pulsa; imagen 2 = otra)
-escribir azar        (abre la caja de comentarios y escribe un comentario copiado al azar)
+escribir azar        (escribe un comentario copiado al azar)
 escribir lista       (escribe los comentarios copiados en orden)
 escribir menciones   (escribe @amigos al azar; escribir menciones 3 = con 3 menciones, de 1 a 5)
 escribir copiados menciones 2   (un comentario copiado al azar más 2 menciones)
