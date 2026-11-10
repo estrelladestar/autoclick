@@ -859,10 +859,27 @@ object Macro {
             if (lines.none { l -> marks.any { l.first.lowercase().contains(it) } }) return false
             val nameRx = Regex("^@?[A-Za-z0-9._]{2,30}$")
             val skip = setOf("instagram", "meta", "facebook", "threads")
-            val names = lines.filter { nameRx.matches(it.first) && it.first.any { ch -> ch.isLetter() } && it.first.lowercase() !in skip }
+            val (w, h) = s.screenSize()
+            val all = lines.filter { nameRx.matches(it.first) && it.first.any { ch -> ch.isLetter() } && it.first.lowercase() !in skip }
                 .map { Pair(it.first.removePrefix("@"), it.second) }
                 .distinctBy { it.first.lowercase() }
                 .sortedBy { it.second.top }
+            // Los nombres de la lista están alineados (empiezan a la misma altura por la izquierda) y van seguidos,
+            // justo encima de «Añadir cuenta» / «Usar otro perfil». Así no se cuelan nombres de publicaciones de detrás.
+            val markTop = lines.filter { l -> marks.any { l.first.lowercase().contains(it) } }.minOfOrNull { it.second.top } ?: h
+            val above = all.filter { it.second.top < markTop }
+            val anchor = above.lastOrNull()
+            val names = if (anchor == null) all else {
+                val col = above.filter { Math.abs(it.second.left - anchor.second.left) < w * 0.06f }
+                val chain = ArrayList<Pair<String, Rect>>()
+                var prevTop = anchor.second.top
+                for (it in col.reversed()) {
+                    if (prevTop - it.second.top > h * 0.2f) break
+                    chain.add(0, it)
+                    prevTop = it.second.top
+                }
+                chain
+            }
             trace("  lista (leída de la pantalla): " + names.joinToString(", ") { it.first })
             if (names.isEmpty()) {
                 if (tries == 3) toast(s, "Veo la lista de cuentas pero no sus nombres")
@@ -914,26 +931,39 @@ object Macro {
             val marks = LIST_MARKS
             val nameRx = Regex("^[A-Za-z0-9._]{2,30}$")
             val skip = setOf("instagram", "meta", "facebook", "threads")
+            val h = s.screenSize().second
             for (root in windowRoots()) {
                 if (root.packageName?.toString() != INSTAGRAM) continue
                 val texts = ArrayList<Pair<String, AccessibilityNodeInfo>>()
-                var isList = false
+                var markNode: AccessibilityNodeInfo? = null
                 fun walk(n: AccessibilityNodeInfo?) {
                     if (n == null) return
                     val t = (n.text ?: n.contentDescription)?.toString()?.trim() ?: ""
-                    if (t.isNotEmpty()) {
+                    if (t.isNotEmpty() && n.isVisibleToUser) {
                         val low = t.lowercase()
-                        if (marks.any { low.contains(it) }) isList = true
-                        if (n.isVisibleToUser && nameRx.matches(t) && t.any { it.isLetter() } && low !in skip) {
-                            texts.add(Pair(t, n))
-                        }
+                        if (markNode == null && marks.any { low.contains(it) }) markNode = n
+                        if (nameRx.matches(t) && t.any { it.isLetter() } && low !in skip) texts.add(Pair(t, n))
                     }
                     for (k in 0 until n.childCount) walk(n.getChild(k))
                 }
                 walk(root)
-                if (!isList) continue
+                val mark = markNode ?: continue
+                // Solo los nombres que están dentro de la lista (no los de las publicaciones que quedan detrás)
+                var box: AccessibilityNodeInfo = mark
+                while (true) {
+                    val parent = box.parent ?: break
+                    val pr = Rect()
+                    parent.getBoundsInScreen(pr)
+                    if (pr.height() >= h * 0.97f) break
+                    box = parent
+                }
+                val area = Rect()
+                box.getBoundsInScreen(area)
+                val limit = area.height() >= h * 0.25f
                 val r = Rect()
-                return texts.distinctBy { it.first.lowercase() }
+                return texts
+                    .filter { !limit || run { it.second.getBoundsInScreen(r); area.contains(r.centerX(), r.centerY()) } }
+                    .distinctBy { it.first.lowercase() }
                     .sortedBy { it.second.getBoundsInScreen(r); r.top }
             }
             return null
