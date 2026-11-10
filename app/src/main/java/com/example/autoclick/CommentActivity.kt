@@ -17,17 +17,53 @@ import org.json.JSONObject
 import java.io.File
 
 class CommentActivity : Activity() {
-    private val defaultScript = """# Cada línea es un paso. Lo que va después de | son segundos de espera extra.
-# Abre el siguiente enlace de la app, espera a que cargue,
-# abre la caja de comentarios, escribe una frase y @amigos al azar
-# (lo eliges abajo) y pulsa la imagen 1 (la de la lista de pasos de la app).
-# | 30-60 = espera un tiempo al azar entre 30 y 60 segundos.
+    /** Guion fijo: siempre está en «Guiones guardados», no se puede borrar y es el que pone «Restaurar». */
+    private val fixedName = "⭐ Mi guion (fijo)"
+    private val defaultScript = """cuentas cory_gm0 nuberosa56 del_mar190 amimanera6 mama.dedylan morenina.iscar comoyoquiero1 mimi88red
 enlace
 esperar 8
-escribir menciones
-esperar 1.5
-imagen 1 | 30-60
-repetir 10"""
+imagen 1 | 3-8
+escribir menciones 2
+esperar 3-8
+imagen 3 | 3-8
+imagen 2 | 3-8
+escribir menciones 2
+esperar 3-8
+imagen 3 | 3-8
+imagen 2 | 3-8
+escribir menciones 2
+esperar 3-8
+imagen 3 | 3-8
+imagen 2 | 3-8
+escribir menciones 2
+esperar 3-8
+imagen 3 | 3-8
+imagen 2 | 3-8
+escribir menciones 2
+esperar 3-8
+imagen 3 | 3-8
+imagen 2 | 3-8
+escribir menciones 2
+esperar 3-8
+imagen 3 | 3-8
+imagen 2 | 3-8
+escribir menciones 2
+esperar 3-8
+imagen 3 | 3-8
+imagen 2 | 3-8
+escribir menciones 2
+esperar 3-8
+imagen 3 | 3-8
+imagen 2 | 3-8
+escribir menciones 2
+esperar 3-8
+imagen 3 | 3-8
+imagen 2 | 3-8
+escribir menciones 2
+esperar 3-8
+imagen 3 | 3-8
+cuenta siguiente
+repetir 8"""
 
     private lateinit var prefs: android.content.SharedPreferences
     private lateinit var script: EditText
@@ -196,14 +232,14 @@ repetir 10"""
                 if (first) { first = false; return }
                 if (pos > 0) {
                     val name = savedSpinner.selectedItem.toString()
-                    val text = loadScripts().optString(name, "")
+                    val text = if (name == fixedName) defaultScript else loadScripts().optString(name, "")
                     if (text.isNotEmpty()) script.setText(text)
                 }
             }
             override fun onNothingSelected(p: AdapterView<*>?) {}
         }
         Button(ctx).apply {
-            text = "Restaurar guion de ejemplo"
+            text = "Poner mi guion fijo"
             setOnClickListener { script.setText(defaultScript) }
             root.addView(this)
         }
@@ -562,8 +598,9 @@ repetir 10"""
     private fun refreshSaved(select: String?) {
         val names = ArrayList<String>()
         names.add("— elegir un guion guardado —")
+        names.add(fixedName)
         val it = loadScripts().keys()
-        while (it.hasNext()) names.add(it.next())
+        while (it.hasNext()) { val n = it.next(); if (n != fixedName) names.add(n) }
         savedSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, names)
         if (select != null) savedSpinner.setSelection(names.indexOf(select).coerceAtLeast(0))
     }
@@ -576,7 +613,9 @@ repetir 10"""
             .setView(input)
             .setPositiveButton("Guardar") { _, _ ->
                 val name = input.text.toString().trim()
-                if (name.isNotEmpty()) {
+                if (name == fixedName) {
+                    toast("Ese nombre es el del guion fijo. Elige otro nombre.")
+                } else if (name.isNotEmpty()) {
                     val all = loadScripts()
                     all.put(name, script.text.toString())
                     prefs.edit().putString("scripts", all.toString()).apply()
@@ -594,6 +633,10 @@ repetir 10"""
             return
         }
         val name = savedSpinner.selectedItem.toString()
+        if (name == fixedName) {
+            toast("El guion fijo no se puede borrar")
+            return
+        }
         val all = loadScripts()
         all.remove(name)
         prefs.edit().putString("scripts", all.toString()).apply()
