@@ -607,7 +607,8 @@ details.sec[open] summary{margin-bottom:8px}
     }
     buildListBookmark();
     updateNext();saveList();
-    if(made<total){$("err").textContent="Solo hay "+made+" combinaciones distintas. Añade más amigos."}
+    if(made===0){$("err").textContent="No se generó ningún comentario: ya usaste todas las combinaciones de tus amigos. Pulsa «Borrar historial de combinaciones» (en Menciones) o añade más amigos.";try{$("err").scrollIntoView({block:"center",behavior:"smooth"})}catch(e){}}
+    else if(made<total){$("err").textContent="Solo quedaban "+made+" combinaciones sin usar. Para más, pulsa «Borrar historial de combinaciones» o añade más amigos."}
   }
   $("genlist").addEventListener("click",makeList);
   function go(){
@@ -889,12 +890,12 @@ details.sec[open] summary{margin-bottom:8px}
     for(var i=0;i<spans.length;i++){out.push(spans[i].textContent)}
     return out;
   }
-  $("appcopyscript").addEventListener("click",function(){
+  if($("appcopyscript"))$("appcopyscript").addEventListener("click",function(){
     copyTxt(box.value).then(function(ok){
       msg.textContent=ok?"Guion copiado. Pégalo en la caja «GUION» de la app.":"No se pudo copiar. Selecciona el texto y cópialo a mano.";
     });
   });
-  $("appcopylist").addEventListener("click",function(){
+  if($("appcopylist"))$("appcopylist").addEventListener("click",function(){
     var t=listTexts();
     if(!t.length){$("genlist").click();t=listTexts()}
     if(!t.length){msg.textContent="No se pudo generar la lista. Revisa que haya amigos y que queden combinaciones sin usar.";return}
