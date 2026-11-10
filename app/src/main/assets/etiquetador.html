@@ -597,18 +597,22 @@ details.sec[open] summary{margin-bottom:8px}
     var total=Math.max(2,Math.min(100,parseInt($("batch").value,10)||10));
     if(friends.length<n){$("err").textContent="Necesitas al menos "+n+" amigo(s) en la lista.";return}
     $("list").innerHTML="";listItems=[];nextIdx=0;$("copyallmsg").textContent="";
-    var made=0,tries=0;
-    while(made<total&&tries<500){
+    var made=0,tries=0,miss=0,reset=false;
+    while(made<total&&tries<5000){
       tries++;
       var chosen=pick(friends,n);var key=chosen.slice().sort().join("|");
-      if(used.indexOf(key)>-1){continue}
+      if(used.indexOf(key)>-1){
+        // Sin límite: si ya no quedan combinaciones nuevas, se borra el historial solo y se sigue
+        if(++miss<60)continue;
+        used.length=0;saveJSON("usadas",used);miss=0;reset=true;continue;
+      }
+      miss=0;
       registerUse(chosen,key);made++;
       addItem(buildComment(chosen));
     }
     buildListBookmark();
     updateNext();saveList();
-    if(made===0){$("err").textContent="No se generó ningún comentario: ya usaste todas las combinaciones de tus amigos. Pulsa «Borrar historial de combinaciones» (en Menciones) o añade más amigos.";try{$("err").scrollIntoView({block:"center",behavior:"smooth"})}catch(e){}}
-    else if(made<total){$("err").textContent="Solo quedaban "+made+" combinaciones sin usar. Para más, pulsa «Borrar historial de combinaciones» o añade más amigos."}
+    if(reset){$("copyallmsg").textContent="Se gastaron todas las combinaciones de tus amigos y se volvió a empezar, así que algunas se repiten. Añade más amigos para que se repitan menos."}
   }
   $("genlist").addEventListener("click",makeList);
   function go(){

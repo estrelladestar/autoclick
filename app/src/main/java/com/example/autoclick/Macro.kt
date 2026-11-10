@@ -327,8 +327,10 @@ object Macro {
                 if (key !in usedCombos) { found = true; break }
             }
             if (!found) {
-                finish("Ya no quedan combinaciones nuevas de menciones. Guion detenido.")
-                return
+                // Sin límite: si se gastaron todas las combinaciones, se vuelve a empezar
+                usedCombos.clear()
+                pick = friends.shuffled().take(n)
+                key = pick.sorted().joinToString(",")
             }
             val f = findField()
             if (f == null) {
