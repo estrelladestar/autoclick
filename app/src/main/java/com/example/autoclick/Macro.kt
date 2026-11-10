@@ -45,6 +45,7 @@ object Macro {
     private const val MAX_COMMENTS = 50
     private const val MIN_GAP_MS = 10_000L
     private const val MAX_TRIES = 25
+    private const val NEXT_ACCOUNT = "\u0001siguiente"
 
     class Cmd(val op: String, val arg: String, val extraMs: Long, val extraMaxMs: Long = extraMs) {
         /** Espera extra de la línea; si es un rango («30-60»), un valor al azar dentro del rango. */
@@ -75,6 +76,7 @@ object Macro {
         }
         val cmds = ArrayList<Cmd>()
         var repeats = 1
+        val accounts = ArrayList<String>()
         for (raw in script.lines()) {
             var line = raw.trim()
             if (line.isEmpty() || line.startsWith("#")) continue
@@ -105,13 +107,23 @@ object Macro {
                     cmds.add(Cmd("atras", "", 1500L))
                     cmds.add(Cmd("atras", "", 1500L))
                     cmds.add(Cmd("perfil", "", 3000L))
-                    cmds.add(Cmd("tocar", arg.removePrefix("@"), maxOf(extra, 5000L), maxOf(extraMax, 5000L)))
+                    val name = if (arg.lowercase() == "siguiente") NEXT_ACCOUNT else arg.removePrefix("@")
+                    cmds.add(Cmd("tocarcuenta", name, maxOf(extra, 5000L), maxOf(extraMax, 5000L)))
+                }
+                "cuentas" -> {
+                    // «cuentas a b c»: las cuentas por las que va pasando «cuenta siguiente», en orden
+                    accounts.clear()
+                    accounts.addAll(arg.split(Regex("[\\s,;]+")).map { it.trim().removePrefix("@") }.filter { it.isNotEmpty() })
                 }
                 else -> {
                     toast(service, "No entiendo esta línea: $raw")
                     return
                 }
             }
+        }
+        if (cmds.any { it.arg == NEXT_ACCOUNT } && accounts.size < 2) {
+            toast(service, "Para «cuenta siguiente» pon antes una línea «cuentas» con al menos 2 cuentas, por ejemplo: cuentas cory_gm0 nuberosa56")
+            return
         }
         if (cmds.isEmpty()) {
             toast(service, "El guion está vacío")
@@ -123,7 +135,7 @@ object Macro {
         service.showOverlay()
         service.setOverlayText("■")
         toast(service, "Guion iniciado. Toca ■ en el botón flotante para parar.")
-        Runner(service, cmds, repeats, comments, token).step()
+        Runner(service, cmds, repeats, comments, token, accounts.toList()).step()
     }
 
     fun stop() {
@@ -161,7 +173,8 @@ object Macro {
         private val cmds: List<Cmd>,
         private val repeats: Int,
         private val comments: List<String>,
-        private val id: Int
+        private val id: Int,
+        private val accounts: List<String> = emptyList()
     ) {
         private var i = 0
         private var loop = 0
@@ -236,6 +249,19 @@ object Macro {
                 "escribir" -> write(c)
                 "enlace" -> openLink(c)
                 "imagen" -> tapImage(c)
+                "tocarcuenta" -> {
+                    // En la vuelta 1 se comenta con la primera cuenta de «cuentas» y se pasa a la segunda, etc.
+                    val name = if (c.arg == NEXT_ACCOUNT) accounts[(loop + 1) % accounts.size] else c.arg
+                    if (tapTarget(name)) {
+                        // El límite de comentarios por tanda cuenta por separado en cada cuenta
+                        used = 0
+                        advance(c.extra())
+                    } else {
+                        // Con muchas cuentas la lista no cabe: baja (y luego sube) para buscarla
+                        scrollList(tries < 6)
+                        retry("la cuenta «$name» en la lista de cuentas")
+                    }
+                }
                 "perfil" -> {
                     // Pulsación larga en el icono de perfil de abajo (lo busca por su nombre; si no, abajo a la derecha)
                     val p = profileIcon() ?: run {
@@ -529,6 +555,20 @@ object Macro {
             } catch (e: Exception) {
             }
             return false
+        }
+
+        /** Desplaza la primera lista de la pantalla hacia abajo (o hacia arriba). */
+        private fun scrollList(down: Boolean) {
+            val root = s.rootInActiveWindow ?: return
+            fun find(n: AccessibilityNodeInfo?): AccessibilityNodeInfo? {
+                if (n == null) return null
+                if (n.isScrollable && n.isVisibleToUser) return n
+                for (k in 0 until n.childCount) find(n.getChild(k))?.let { return it }
+                return null
+            }
+            find(root)?.performAction(
+                if (down) AccessibilityNodeInfo.ACTION_SCROLL_FORWARD else AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD
+            )
         }
 
         /** Centro del icono «Perfil» de la barra de abajo de Instagram (el más bajo de la pantalla), o null. */

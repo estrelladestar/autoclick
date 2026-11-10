@@ -147,6 +147,7 @@ repetir 10"""
             "• mantener 90%,95% → pulsación larga en esa zona\n" +
             "• atrás → como el botón atrás del móvil (cierra el teclado o los comentarios)\n" +
             "• cuenta NOMBRE → cambia a esa cuenta de Instagram (cierra los comentarios, abre la lista de cuentas y la pulsa)\n" +
+            "• cuentas a b c → tus cuentas en orden; con «cuenta siguiente» + «repetir» cambia a la siguiente en cada vuelta\n" +
             "• escribir lista → pone el siguiente comentario de tu lista\n" +
             "• escribir azar → pone un comentario de tu lista al azar\n" +
             "• escribir menciones → pone @amigos al azar de tu cuadro de menciones (cuántos: selector de abajo), con una frase tuya si quieres\n" +
