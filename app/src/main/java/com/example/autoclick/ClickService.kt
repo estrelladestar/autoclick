@@ -598,6 +598,28 @@ class ClickService : AccessibilityService() {
         })
     }
 
+    /** Para el guion: lee con OCR todas las líneas de texto de la pantalla con su posición. Resultado en el hilo principal. */
+    fun readScreen(done: (List<Pair<String, android.graphics.Rect>>?) -> Unit) {
+        capture({ bmp ->
+            if (bmp == null) {
+                main.post { done(null) }
+            } else {
+                recognizer.process(InputImage.fromBitmap(bmp, 0))
+                    .addOnSuccessListener { text ->
+                        val out = ArrayList<Pair<String, android.graphics.Rect>>()
+                        for (block in text.textBlocks) for (line in block.lines) {
+                            val b = line.boundingBox ?: continue
+                            out.add(Pair(line.text.trim(), b))
+                        }
+                        main.post { done(out) }
+                    }
+                    .addOnFailureListener { main.post { done(null) } }
+            }
+        }, {
+            main.post { done(null) }
+        })
+    }
+
     private fun findWord(text: Text, words: List<String>): Pair<Float, Float>? {
         for (block in text.textBlocks) for (line in block.lines) {
             val lt = line.text.lowercase()

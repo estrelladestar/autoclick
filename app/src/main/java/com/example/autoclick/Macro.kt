@@ -571,12 +571,18 @@ object Macro {
         private fun autoAccount(c: Cmd) {
             val list = accountListNames()
             if (list == null) {
-                // La lista aún no está abierta
-                if (tries == 10) {
-                    val p = profileIcon() ?: s.screenSize().let { Pair(it.first * 0.90f, it.second * 0.92f) }
-                    s.longPressAt(p.first, p.second)
+                // Este móvil no da los nombres por accesibilidad: se lee la pantalla como una foto
+                val myTry = id
+                s.readScreen { lines ->
+                    if (myTry != token || !running) return@readScreen
+                    if (lines != null && autoAccountOcr(c, lines)) return@readScreen
+                    // La lista aún no está abierta
+                    if (tries == 10) {
+                        val p = profileIcon() ?: s.screenSize().let { Pair(it.first * 0.90f, it.second * 0.92f) }
+                        s.longPressAt(p.first, p.second)
+                    }
+                    retry("la lista de cuentas de Instagram")
                 }
-                retry("la lista de cuentas de Instagram")
                 return
             }
             if (current == null) {
@@ -625,6 +631,56 @@ object Macro {
             toast(s, "Cambio a la cuenta $target")
             switchedTo(target)
             advance(c.extra())
+        }
+
+        /** Igual que [autoAccount] pero con el texto leído de la pantalla. Devuelve false si la lista no está abierta. */
+        private fun autoAccountOcr(c: Cmd, lines: List<Pair<String, Rect>>): Boolean {
+            val marks = listOf("usar otro perfil", "crear cuenta nueva", "añadir cuenta", "agregar cuenta",
+                "use another profile", "create new account", "add account", "cambiar de cuenta", "switch account")
+            if (lines.none { l -> marks.any { l.first.lowercase().contains(it) } }) return false
+            val nameRx = Regex("^@?[A-Za-z0-9._]{2,30}$")
+            val skip = setOf("instagram", "meta", "facebook", "threads")
+            val names = lines.filter { nameRx.matches(it.first) && it.first.any { ch -> ch.isLetter() } && it.first.lowercase() !in skip }
+                .map { Pair(it.first.removePrefix("@"), it.second) }
+                .distinctBy { it.first.lowercase() }
+                .sortedBy { it.second.top }
+            if (names.isEmpty()) return false
+            if (current == null) {
+                current = names.first().first
+                if (pending > 0) repeat(pending) { addCount(s, names.first().first) }
+                pending = 0
+            }
+            current?.let { visited.add(it) }
+            fun seen(n: String) = visited.any { it.equals(n, ignoreCase = true) }
+            var target = names.firstOrNull { !seen(it.first) }
+            if (target == null && scrolls < 3) {
+                scrolls++
+                scrollList(true)
+                later(1200L)
+                return true
+            }
+            if (target == null) {
+                visited.clear()
+                current?.let { visited.add(it) }
+                if (scrolls > 0) {
+                    scrolls = 0
+                    scrollList(false); scrollList(false); scrollList(false)
+                    later(1200L)
+                    return true
+                }
+                target = names.firstOrNull { !seen(it.first) }
+            }
+            if (target == null) {
+                finish("Solo veo una cuenta en Instagram. Añade otra cuenta en Instagram o pon la línea «cuentas».")
+                return true
+            }
+            scrolls = 0
+            s.tapAt(target.second.exactCenterX(), target.second.exactCenterY())
+            visited.add(target.first)
+            toast(s, "Cambio a la cuenta ${target.first}")
+            switchedTo(target.first)
+            advance(c.extra())
+            return true
         }
 
         /**
