@@ -705,7 +705,8 @@ object Macro {
                     for (n in found) {
                         if (!n.isVisibleToUser) continue
                         val label = ((n.contentDescription ?: n.text)?.toString() ?: "").trim()
-                        if (!label.equals(word, ignoreCase = true)) continue
+                        val low = label.lowercase()
+                        if (!low.startsWith(word.lowercase()) || low.contains("foto") || low.contains("photo")) continue
                         val r = Rect()
                         n.getBoundsInScreen(r)
                         if (r.width() <= 0 || r.height() <= 0) continue
