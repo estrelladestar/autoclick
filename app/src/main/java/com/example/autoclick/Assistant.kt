@@ -263,7 +263,7 @@ object Assistant {
     // Comprobación del guion
     // ---------------------------------------------------------------------------------------------
 
-    private val OPS = setOf("esperar", "tocar", "escribir", "campo", "enlace", "imagen", "mantener", "repetir", "atras", "atrás", "cuenta", "cuentas", "clic", "click", "pulsar", "mirar")
+    private val OPS = setOf("esperar", "tocar", "escribir", "campo", "enlace", "imagen", "mantener", "repetir", "atras", "atrás", "cuenta", "cuentas", "clic", "click", "pulsar", "mirar", "descanso", "limite", "límite", "hora")
 
     /** Líneas del guion que la app no entiende (vacío si todo está bien). */
     fun badLines(script: String): List<String> =

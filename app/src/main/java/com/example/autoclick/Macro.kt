@@ -47,7 +47,7 @@ object Macro {
     private const val INSTAGRAM = "com.instagram.android"
     private const val NEXT_ACCOUNT = "\u0001siguiente"
 
-    class Cmd(val op: String, val arg: String, val extraMs: Long, val extraMaxMs: Long = extraMs) {
+    class Cmd(val op: String, val arg: String, val extraMs: Long, val extraMaxMs: Long = extraMs, val label: String = "") {
         /** Espera extra de la línea; si es un rango («30-60»), un valor al azar dentro del rango. */
         fun extra(): Long =
             if (extraMaxMs > extraMs) extraMs + (Math.random() * (extraMaxMs - extraMs)).toLong() else extraMs
@@ -76,6 +76,7 @@ object Macro {
         }
         val cmds = ArrayList<Cmd>()
         var repeats = 1
+        var dailyLimit = 0
         val accounts = ArrayList<String>()
         for (raw in script.lines()) {
             var line = raw.trim()
@@ -94,6 +95,19 @@ object Macro {
             val arg = if (sp < 0) "" else line.substring(sp + 1).trim()
             when (op) {
                 "repetir" -> repeats = (arg.toIntOrNull() ?: 1).coerceIn(1, 1000)
+                "limite", "límite" -> dailyLimit = arg.filter { it.isDigit() }.toIntOrNull() ?: 0
+                "descanso" -> {
+                    // «descanso 10-20» = pausa al azar entre 10 y 20 minutos (sin número: 10-20)
+                    val r = parseSecs(if (arg.isEmpty()) "10-20" else arg)
+                    cmds.add(Cmd("esperar", "${r.first * 60 / 1000}-${r.second * 60 / 1000}", 0L, 0L, "descanso"))
+                }
+                "hora" -> {
+                    if (!Regex("\\d{1,2}[:.]\\d{2}").matches(arg)) {
+                        toast(service, "Pon la hora así: «hora 21:30»")
+                        return
+                    }
+                    cmds.add(Cmd("hora", arg.replace('.', ':'), 0L, 0L))
+                }
                 "esperar", "tocar", "escribir", "campo", "enlace", "imagen", "mantener", "mirar" -> cmds.add(Cmd(op, arg, extra, extraMax))
                 "atras", "atrás" -> cmds.add(Cmd("atras", arg, extra, extraMax))
                 "clic", "click", "pulsar" -> cmds.add(Cmd("tocar", arg, extra, extraMax))
@@ -120,8 +134,8 @@ object Macro {
                 }
             }
         }
-        if (cmds.any { it.arg == NEXT_ACCOUNT } && accounts.size < 2) {
-            toast(service, "Para «cuenta siguiente» pon antes una línea «cuentas» con al menos 2 cuentas, por ejemplo: cuentas cory_gm0 nuberosa56")
+        if (cmds.any { it.arg == NEXT_ACCOUNT } && accounts.size == 1) {
+            toast(service, "En «cuentas» pon al menos 2 cuentas, o quita esa línea para que use todas las de Instagram")
             return
         }
         if (cmds.isEmpty()) {
@@ -134,7 +148,7 @@ object Macro {
         service.showOverlay()
         service.setOverlayText("■")
         toast(service, "Guion iniciado. Toca ■ en el botón flotante para parar.")
-        Runner(service, cmds, repeats, comments, token, accounts.toList()).step()
+        Runner(service, cmds, repeats, comments, token, accounts.toList(), dailyLimit).step()
     }
 
     fun stop() {
@@ -163,6 +177,30 @@ object Macro {
         }
     }
 
+    private fun today(): String =
+        java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date())
+
+    /** Registro: {"2026-11-10": {"cory_gm0": 12, ...}, ...} (se guardan los últimos 30 días). */
+    fun loadLog(ctx: android.content.Context): org.json.JSONObject = try {
+        org.json.JSONObject(ctx.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE).getString("registro", "{}") ?: "{}")
+    } catch (e: Exception) {
+        org.json.JSONObject()
+    }
+
+    fun todayCount(ctx: android.content.Context, account: String): Int =
+        loadLog(ctx).optJSONObject(today())?.optInt(account.lowercase(), 0) ?: 0
+
+    fun addCount(ctx: android.content.Context, account: String) {
+        val log = loadLog(ctx)
+        val d = today()
+        val day = log.optJSONObject(d) ?: org.json.JSONObject().also { log.put(d, it) }
+        val k = account.lowercase()
+        day.put(k, day.optInt(k, 0) + 1)
+        val days = log.keys().asSequence().toList().sorted()
+        if (days.size > 30) days.take(days.size - 30).forEach { log.remove(it) }
+        ctx.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE).edit().putString("registro", log.toString()).apply()
+    }
+
     private fun toast(s: ClickService, m: String) {
         Toast.makeText(s, m, Toast.LENGTH_LONG).show()
     }
@@ -173,8 +211,18 @@ object Macro {
         private val repeats: Int,
         private val comments: List<String>,
         private val id: Int,
-        private val accounts: List<String> = emptyList()
+        private val accounts: List<String> = emptyList(),
+        private val dailyLimit: Int = 0
     ) {
+        /** Cuenta con la que se está comentando ahora (null = aún no se sabe, en modo «todas las cuentas»). */
+        private var current: String? = accounts.firstOrNull()
+        /** Comentarios hechos antes de saber el nombre de la cuenta actual. */
+        private var pending = 0
+        /** Cuentas ya usadas en esta ronda (modo «todas las cuentas de Instagram»). */
+        private val visited = LinkedHashSet<String>()
+        private var scrolls = 0
+        /** Veces seguidas que se ha saltado una cuenta por el límite diario. */
+        private var skipsInARow = 0
         private var i = 0
         private var loop = 0
         private var tries = 0
@@ -227,8 +275,22 @@ object Macro {
             when (c.op) {
                 "esperar" -> {
                     val r = parseSecs(c.arg)
-                    val wait = r.first + (Math.random() * (r.second - r.first)).toLong()
+                    var wait = r.first + (Math.random() * (r.second - r.first)).toLong()
+                    if (c.label == "descanso") wait *= 60
                     advance(wait + c.extra())
+                }
+                "hora" -> {
+                    // Espera hasta esa hora (hoy, o mañana si ya ha pasado)
+                    val (hh, mm) = c.arg.split(":").map { it.trim().toInt() }
+                    val now = java.util.Calendar.getInstance()
+                    val at = (now.clone() as java.util.Calendar).apply {
+                        set(java.util.Calendar.HOUR_OF_DAY, hh.coerceIn(0, 23))
+                        set(java.util.Calendar.MINUTE, mm.coerceIn(0, 59))
+                        set(java.util.Calendar.SECOND, 0)
+                        if (!after(now)) add(java.util.Calendar.DAY_OF_MONTH, 1)
+                    }
+                    toast(s, "El guion seguirá a las ${c.arg}. Deja el móvil encendido y sin bloquear.")
+                    advance(at.timeInMillis - now.timeInMillis)
                 }
                 "tocar" -> {
                     if (tapTarget(c.arg)) advance(c.extra()) else retry("«" + c.arg + "»")
@@ -253,8 +315,12 @@ object Macro {
                 "imagen" -> tapImage(c)
                 "tocarcuenta" -> {
                     // En la vuelta 1 se comenta con la primera cuenta de «cuentas» y se pasa a la segunda, etc.
-                    val name = if (c.arg == NEXT_ACCOUNT) accounts[(loop + 1) % accounts.size] else c.arg
-                    tapAccount(c, name)
+                    if (c.arg == NEXT_ACCOUNT && accounts.isEmpty()) {
+                        autoAccount(c)
+                    } else {
+                        val name = if (c.arg == NEXT_ACCOUNT) accounts[(loop + 1) % accounts.size] else c.arg
+                        tapAccount(c, name)
+                    }
                 }
                 "mirar" -> look(c)
                 "irperfil" -> {
@@ -303,11 +369,16 @@ object Macro {
         /** Muestra en el botón flotante el paso en el que va, la vuelta y los comentarios escritos. */
         private fun showProgress() {
             val c = cmds.getOrNull(i) ?: return
-            val what = (c.op + " " + c.arg).trim().take(14)
+            val what = when {
+                c.label.isNotEmpty() -> c.label + " " + c.arg + " min"
+                c.op == "tocarcuenta" || c.op == "irperfil" || c.op == "perfil" -> "cambiando cuenta"
+                else -> (c.op + " " + c.arg).trim().take(14)
+            }
             var t = "■ ${i + 1}/${cmds.size} $what"
             val extra = ArrayList<String>()
             if (repeats > 1) extra.add("vuelta ${loop + 1}/$repeats")
             if (used > 0) extra.add("$used escritos")
+            current?.let { extra.add(it) }
             if (extra.isNotEmpty()) t += "\n" + extra.joinToString(" · ")
             s.setOverlayText(t)
         }
@@ -429,13 +500,143 @@ object Macro {
             }
             toast(s, "Escrito: $text")
             usedCombos.add(key)
+            countComment()
             used++
             last = System.currentTimeMillis()
             showProgress()
             advance(c.extra())
         }
 
+        /** Si la cuenta actual ya llegó al límite de hoy, salta al cambio de cuenta. Devuelve true si ha saltado. */
+        private fun overLimit(): Boolean {
+            val who = current ?: return false
+            if (dailyLimit <= 0 || todayCount(s, who) < dailyLimit) return false
+            val j = (i + 1 until cmds.size).firstOrNull { cmds[it].op == "irperfil" }
+            skipsInARow++
+            val total = if (accounts.isNotEmpty()) accounts.size else maxOf(visited.size, 2)
+            if (j == null || skipsInARow > total) {
+                finish("Todas las cuentas han hecho ya $dailyLimit comentarios hoy. Guion detenido.")
+                return true
+            }
+            toast(s, "$who ya hizo $dailyLimit comentarios hoy: paso a la siguiente cuenta")
+            tries = 0
+            swipes = null
+            i = j
+            later(600L)
+            return true
+        }
+
+        private fun countComment() {
+            skipsInARow = 0
+            val who = current
+            if (who == null) pending++ else addCount(s, who)
+        }
+
+        /** Ya estamos en la cuenta [name]. */
+        private fun switchedTo(name: String) {
+            current = name
+            used = 0
+        }
+
+        /**
+         * «cuenta siguiente» sin línea «cuentas»: lee los nombres de la lista de cuentas de Instagram
+         * y pulsa el primero que no se haya usado en esta ronda. Cuando se han usado todas, empieza otra ronda.
+         */
+        private fun autoAccount(c: Cmd) {
+            val list = accountListNames()
+            if (list == null) {
+                // La lista aún no está abierta
+                if (tries == 10) {
+                    val p = profileIcon() ?: s.screenSize().let { Pair(it.first * 0.90f, it.second * 0.92f) }
+                    s.longPressAt(p.first, p.second)
+                }
+                retry("la lista de cuentas de Instagram")
+                return
+            }
+            if (current == null) {
+                // La primera de la lista es la cuenta en la que estamos
+                list.firstOrNull()?.let { first ->
+                    current = first
+                    if (pending > 0) repeat(pending) { addCount(s, first) }
+                    pending = 0
+                }
+            }
+            current?.let { visited.add(it) }
+            var target = list.map { it.first }.firstOrNull { it !in visited }
+            if (target == null && scrolls < 3) {
+                // Puede que haya más cuentas más abajo
+                scrolls++
+                scrollList(true)
+                later(1200L)
+                return
+            }
+            if (target == null) {
+                // Ronda terminada: se vuelve a empezar por las demás
+                visited.clear()
+                current?.let { visited.add(it) }
+                if (scrolls > 0) {
+                    scrolls = 0
+                    scrollList(false); scrollList(false); scrollList(false)
+                    later(1200L)
+                    return
+                }
+                target = list.map { it.first }.firstOrNull { it !in visited }
+            }
+            if (target == null) {
+                finish("Solo veo una cuenta en Instagram. Añade otra cuenta en Instagram o pon la línea «cuentas».")
+                return
+            }
+            scrolls = 0
+            val node = list.first { it.first == target }.second
+            var n: AccessibilityNodeInfo? = node
+            while (n != null && !n.isClickable) n = n.parent
+            if (n == null || !n.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
+                val r = Rect()
+                node.getBoundsInScreen(r)
+                s.tapAt(r.exactCenterX(), r.exactCenterY())
+            }
+            visited.add(target)
+            toast(s, "Cambio a la cuenta $target")
+            switchedTo(target)
+            advance(c.extra())
+        }
+
+        /**
+         * Si la lista de cuentas de Instagram está abierta, los nombres que se ven (de arriba abajo) con su texto;
+         * si no está abierta, null.
+         */
+        private fun accountListNames(): List<Pair<String, AccessibilityNodeInfo>>? {
+            val marks = listOf("usar otro perfil", "crear cuenta nueva", "añadir cuenta", "agregar cuenta",
+                "use another profile", "create new account", "add account", "iniciar sesión en una cuenta existente")
+            val nameRx = Regex("^[A-Za-z0-9._]{2,30}$")
+            val skip = setOf("instagram", "meta", "facebook", "threads")
+            for (root in windowRoots()) {
+                if (root.packageName?.toString() != INSTAGRAM) continue
+                val texts = ArrayList<Pair<String, AccessibilityNodeInfo>>()
+                var isList = false
+                fun walk(n: AccessibilityNodeInfo?) {
+                    if (n == null) return
+                    val t = (n.text ?: n.contentDescription)?.toString()?.trim() ?: ""
+                    if (t.isNotEmpty()) {
+                        val low = t.lowercase()
+                        if (marks.any { low.contains(it) }) isList = true
+                        if (n.isVisibleToUser && nameRx.matches(t) && t.any { it.isLetter() } && low !in skip) {
+                            texts.add(Pair(t, n))
+                        }
+                    }
+                    for (k in 0 until n.childCount) walk(n.getChild(k))
+                }
+                walk(root)
+                if (!isList) continue
+                val r = Rect()
+                return texts.distinctBy { it.first.lowercase() }
+                    .sortedBy { it.second.getBoundsInScreen(r); r.top }
+            }
+            return null
+        }
+
         private fun write(c: Cmd) {
+            if (overLimit()) return
             val low = c.arg.lowercase()
             if (low.startsWith("menciones") || (low.startsWith("copiado") && low.contains("mencion"))) {
                 writeMentions(c)
@@ -481,6 +682,7 @@ object Macro {
                 return
             }
             toast(s, "Escrito: $text")
+            countComment()
             if (isList) {
                 commentIdx++
                 used++
@@ -651,7 +853,7 @@ object Macro {
                     node.getBoundsInScreen(r)
                     s.tapAt(r.exactCenterX(), r.exactCenterY())
                 }
-                used = 0
+                switchedTo(name)
                 advance(c.extra())
                 return
             }
@@ -660,7 +862,7 @@ object Macro {
                 if (myTry != token || !running) return@locateText
                 if (pos != null) {
                     s.tapAt(pos.first, pos.second)
-                    used = 0
+                    switchedTo(name)
                     advance(c.extra())
                     return@locateText
                 }

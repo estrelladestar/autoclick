@@ -81,6 +81,8 @@ repetir 8"""
     private lateinit var startBtn: Button
     private val voiceCode = 77
     private val pickCode = 42
+    private val exportCode = 91
+    private val importCode = 92
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -119,6 +121,26 @@ repetir 8"""
             text = "▶ Iniciar"
             setOnClickListener { startBtn.performClick() }
             root.addView(this)
+        }
+        val toolsBar = LinearLayout(ctx).apply {
+            orientation = LinearLayout.HORIZONTAL
+            root.addView(this)
+        }
+        val third = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { setMargins(4, 0, 4, 0) }
+        Button(ctx).apply {
+            text = "💾 Guardar copia"
+            setOnClickListener { exportBackup() }
+            toolsBar.addView(this, third)
+        }
+        Button(ctx).apply {
+            text = "📂 Cargar copia"
+            setOnClickListener { importBackup() }
+            toolsBar.addView(this, LinearLayout.LayoutParams(third))
+        }
+        Button(ctx).apply {
+            text = "📊 Registro"
+            setOnClickListener { showLog() }
+            toolsBar.addView(this, LinearLayout.LayoutParams(third))
         }
 
         // ---------- Asistente ----------
@@ -185,6 +207,10 @@ repetir 8"""
             "• cuenta NOMBRE → cambia a esa cuenta de Instagram (cierra los comentarios, abre la lista de cuentas y la pulsa)\n" +
             "• cuentas a b c → tus cuentas en orden; con «cuenta siguiente» + «repetir» cambia a la siguiente en cada vuelta\n" +
             "• mirar → baja y sube por los comentarios un rato (con «mirar azar», solo a veces)\n" +
+            "• cuenta siguiente (sin línea «cuentas») → va pasando por TODAS las cuentas que tengas en Instagram\n" +
+            "• descanso 10-20 → pausa al azar de 10 a 20 minutos\n" +
+            "• limite 20 → cada cuenta hace como mucho 20 comentarios al día; luego pasa a la siguiente\n" +
+            "• hora 21:30 → espera hasta esa hora para seguir (deja el móvil encendido)\n" +
             "• escribir lista → pone el siguiente comentario de tu lista\n" +
             "• escribir azar → pone un comentario de tu lista al azar\n" +
             "• escribir menciones → pone @amigos al azar de tu cuadro de menciones (cuántos: selector de abajo), con una frase tuya si quieres\n" +
@@ -367,6 +393,119 @@ repetir 8"""
             val uri = data?.data ?: return
             addImage(uri)
         }
+        if (requestCode == exportCode && resultCode == RESULT_OK) {
+            val uri = data?.data ?: return
+            writeBackup(uri)
+        }
+        if (requestCode == importCode && resultCode == RESULT_OK) {
+            val uri = data?.data ?: return
+            readBackup(uri)
+        }
+    }
+
+    // ---------- Copia de seguridad ----------
+    /** Lo que no se copia: las imágenes (hay que hacerlas en cada móvil) y el registro. */
+    private val notInBackup = setOf("steps", "registro")
+
+    private fun exportBackup() {
+        saveAll()
+        val name = "StarApp-copia-" + java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date()) + ".json"
+        val i = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "application/json"
+            putExtra(Intent.EXTRA_TITLE, name)
+        }
+        try { startActivityForResult(i, exportCode) } catch (e: Exception) { toast("No se pudo abrir el selector de archivos") }
+    }
+
+    private fun writeBackup(uri: android.net.Uri) {
+        try {
+            val o = org.json.JSONObject()
+            o.put("app", "StarApp")
+            val data = org.json.JSONObject()
+            for ((k, v) in prefs.all) {
+                if (k in notInBackup || v == null) continue
+                val t = when (v) {
+                    is Boolean -> "b"; is Int -> "i"; is Long -> "l"; is Float -> "f"; is String -> "s"; else -> null
+                } ?: continue
+                data.put(k, org.json.JSONObject().put("t", t).put("v", v))
+            }
+            o.put("datos", data)
+            contentResolver.openOutputStream(uri)?.use { it.write(o.toString(1).toByteArray()) }
+            toast("Copia guardada. Pásala al otro móvil y allí pulsa «📂 Cargar copia».")
+        } catch (e: Exception) {
+            toast("No se pudo guardar la copia: ${e.message}")
+        }
+    }
+
+    private fun importBackup() {
+        val i = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "*/*"
+        }
+        try { startActivityForResult(i, importCode) } catch (e: Exception) { toast("No se pudo abrir el selector de archivos") }
+    }
+
+    private fun readBackup(uri: android.net.Uri) {
+        try {
+            val txt = contentResolver.openInputStream(uri)?.use { it.readBytes().toString(Charsets.UTF_8) } ?: return
+            val o = org.json.JSONObject(txt)
+            val data = o.optJSONObject("datos")
+            if (o.optString("app") != "StarApp" || data == null) {
+                toast("Ese archivo no es una copia de Star App")
+                return
+            }
+            AlertDialog.Builder(this)
+                .setTitle("Cargar copia")
+                .setMessage("Se cambiarán tus menciones, comentarios, guiones, enlaces y ajustes por los de la copia. Las imágenes no se tocan. ¿Seguir?")
+                .setPositiveButton("Cargar") { _, _ ->
+                    val e = prefs.edit()
+                    for (k in data.keys()) {
+                        if (k in notInBackup) continue
+                        val item = data.optJSONObject(k) ?: continue
+                        when (item.optString("t")) {
+                            "b" -> e.putBoolean(k, item.optBoolean("v"))
+                            "i" -> e.putInt(k, item.optInt("v"))
+                            "l" -> e.putLong(k, item.optLong("v"))
+                            "f" -> e.putFloat(k, item.optDouble("v").toFloat())
+                            "s" -> e.putString(k, item.optString("v"))
+                        }
+                    }
+                    e.commit()
+                    toast("Copia cargada. Las imágenes tienes que hacerlas en este móvil.")
+                    recreate()
+                }
+                .setNegativeButton("Cancelar", null)
+                .show()
+        } catch (e: Exception) {
+            toast("No se pudo leer la copia: ${e.message}")
+        }
+    }
+
+    // ---------- Registro ----------
+    private fun showLog() {
+        val log = Macro.loadLog(this)
+        val days = log.keys().asSequence().toList().sortedDescending().take(7)
+        val sb = StringBuilder()
+        if (days.isEmpty()) sb.append("Todavía no hay comentarios registrados.")
+        for (d in days) {
+            val day = log.optJSONObject(d) ?: continue
+            var total = 0
+            val lines = ArrayList<Pair<String, Int>>()
+            for (k in day.keys()) { val n = day.optInt(k); total += n; lines.add(Pair(k, n)) }
+            sb.append("📅 ").append(d).append(" — ").append(total).append(" comentarios\n")
+            for ((k, n) in lines.sortedByDescending { it.second }) sb.append("   • ").append(k).append(": ").append(n).append("\n")
+            sb.append("\n")
+        }
+        AlertDialog.Builder(this)
+            .setTitle("📊 Comentarios por cuenta (últimos 7 días)")
+            .setMessage(sb.toString().trim())
+            .setPositiveButton("Cerrar", null)
+            .setNeutralButton("Borrar registro") { _, _ ->
+                prefs.edit().remove("registro").apply()
+                toast("Registro borrado")
+            }
+            .show()
     }
 
     /** Resumen de lo que está conectado y listo, y de lo que falta. */
