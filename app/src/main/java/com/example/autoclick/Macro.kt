@@ -690,23 +690,32 @@ object Macro {
             )
         }
 
-        /** Centro del icono «Perfil» de la barra de abajo de Instagram (el más bajo de la pantalla), o null. */
+        /**
+         * Centro del icono «Perfil» de la pestaña de abajo a la derecha de Instagram, o null si no se ve
+         * (por ejemplo con los comentarios abiertos). Tiene que llamarse exactamente «Perfil» (no «foto del perfil»)
+         * y estar abajo del todo y a la derecha.
+         */
         private fun profileIcon(): Pair<Float, Float>? {
-            val root = s.rootInActiveWindow ?: return null
+            val (w, h) = s.screenSize()
             var best: Rect? = null
-            for (word in listOf("Perfil", "Profile")) {
-                val found = root.findAccessibilityNodeInfosByText(word) ?: continue
-                for (n in found) {
-                    if (!n.isVisibleToUser) continue
-                    val r = Rect()
-                    n.getBoundsInScreen(r)
-                    if (r.width() <= 0 || r.height() <= 0) continue
-                    if (best == null || r.centerY() > best!!.centerY()) best = r
+            for (root in windowRoots()) {
+                if (root.packageName?.toString() != INSTAGRAM) continue
+                for (word in listOf("Perfil", "Profile")) {
+                    val found = root.findAccessibilityNodeInfosByText(word) ?: continue
+                    for (n in found) {
+                        if (!n.isVisibleToUser) continue
+                        val label = ((n.contentDescription ?: n.text)?.toString() ?: "").trim()
+                        if (!label.equals(word, ignoreCase = true)) continue
+                        val r = Rect()
+                        n.getBoundsInScreen(r)
+                        if (r.width() <= 0 || r.height() <= 0) continue
+                        if (r.centerY() < h * 0.80f || r.centerX() < w * 0.60f) continue
+                        if (best == null || r.centerY() > best!!.centerY()) best = r
+                    }
                 }
+                if (best != null) break
             }
             val b = best ?: return null
-            // Solo vale si está en la parte de abajo de la pantalla (la barra de pestañas)
-            if (b.centerY() < s.screenSize().second * 0.75f) return null
             return Pair(b.exactCenterX(), b.exactCenterY())
         }
 
