@@ -104,7 +104,7 @@ object Macro {
                     }
                     cmds.add(Cmd("atras", "", 1500L))
                     cmds.add(Cmd("atras", "", 1500L))
-                    cmds.add(Cmd("mantener", "90%,95%", 3000L))
+                    cmds.add(Cmd("perfil", "", 3000L))
                     cmds.add(Cmd("tocar", arg.removePrefix("@"), maxOf(extra, 5000L), maxOf(extraMax, 5000L)))
                 }
                 else -> {
@@ -236,6 +236,15 @@ object Macro {
                 "escribir" -> write(c)
                 "enlace" -> openLink(c)
                 "imagen" -> tapImage(c)
+                "perfil" -> {
+                    // Pulsación larga en el icono de perfil de abajo (lo busca por su nombre; si no, abajo a la derecha)
+                    val p = profileIcon() ?: run {
+                        val size = s.screenSize()
+                        Pair(size.first * 0.90f, size.second * 0.92f)
+                    }
+                    s.longPressAt(p.first, p.second)
+                    advance(maxOf(c.extra(), 1500L))
+                }
                 "mantener" -> {
                     val p = parsePoint(c.arg)
                     if (p == null) {
@@ -520,6 +529,26 @@ object Macro {
             } catch (e: Exception) {
             }
             return false
+        }
+
+        /** Centro del icono «Perfil» de la barra de abajo de Instagram (el más bajo de la pantalla), o null. */
+        private fun profileIcon(): Pair<Float, Float>? {
+            val root = s.rootInActiveWindow ?: return null
+            var best: Rect? = null
+            for (word in listOf("Perfil", "Profile")) {
+                val found = root.findAccessibilityNodeInfosByText(word) ?: continue
+                for (n in found) {
+                    if (!n.isVisibleToUser) continue
+                    val r = Rect()
+                    n.getBoundsInScreen(r)
+                    if (r.width() <= 0 || r.height() <= 0) continue
+                    if (best == null || r.centerY() > best!!.centerY()) best = r
+                }
+            }
+            val b = best ?: return null
+            // Solo vale si está en la parte de abajo de la pantalla (la barra de pestañas)
+            if (b.centerY() < s.screenSize().second * 0.75f) return null
+            return Pair(b.exactCenterX(), b.exactCenterY())
         }
 
         /** Una caja donde se puede escribir que no sea del teclado ni de esta misma app. */

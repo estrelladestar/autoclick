@@ -230,7 +230,7 @@ object Assistant {
                 is Step.Tap -> lines.add("tocar ${s.text} | 2-3")
                 is Step.Pos -> lines.add("tocar ${s.x}%,${s.y}% | 2-3")
                 is Step.Account -> {
-                    lines.add("mantener 90%,95% | 2")
+                    lines.add("mantener 90%,92% | 2")
                     if (s.name != null) lines.add("tocar ${s.name} | 2-3")
                 }
                 is Step.Literal -> {
@@ -290,8 +290,8 @@ escribir copiados menciones 2   (un comentario copiado al azar más 2 menciones)
 escribir Hola        (escribe ese texto fijo)
 tocar Texto          (toca el botón o texto que diga así)
 tocar 500,1200       (toca esa posición en píxeles)
-tocar 90%,95%        (toca esa zona: porcentaje del ancho y del alto; 90%,95% es abajo a la derecha, donde está el icono del perfil de Instagram)
-mantener 90%,95%     (pulsación larga en esa zona; en Instagram, sobre el perfil abre la lista de cuentas)
+tocar 90%,92%        (toca esa zona: porcentaje del ancho y del alto; 90%,92% es abajo a la derecha, donde está el icono del perfil de Instagram)
+mantener 90%,92%     (pulsación larga en esa zona; en Instagram, sobre el perfil abre la lista de cuentas)
 atrás                (como el botón atrás del móvil: cierra el teclado o los comentarios)
 cuenta NOMBRE        (cambia a la cuenta de Instagram NOMBRE: cierra los comentarios, abre la lista de cuentas y la pulsa)
 repetir 10           (repite todo el guion 10 veces; va una sola vez, en cualquier línea)
@@ -299,7 +299,7 @@ repetir 10           (repite todo el guion 10 veces; va una sola vez, en cualqui
 Al final de cualquier línea, | 30 espera 30 s más y | 30-60 espera entre 30 y 60 s al azar.
 Reglas: después de «enlace» pon «esperar 8» para que cargue la página.
 Si la persona dice «vuelve a pulsar» o «de nuevo», repite la línea del último toque.
-Para cambiar de cuenta: «mantener 90%,95% | 2» y, si la persona dice el nombre de la cuenta, «tocar NOMBRE». Si no dice cuál, solo pon el «mantener».
+Para cambiar de cuenta: si la persona dice el nombre de la cuenta, «cuenta NOMBRE». Si no dice cuál, pon «mantener 90%,92% | 2».
 Si la persona no dice cuántas veces, no pongas «repetir». Si pide algo que no se puede hacer con estas instrucciones, usa solo las que sí se puedan."""
 
     /** Llama a la IA en un hilo aparte. onDone se llama en ese hilo: usa runOnUiThread. */
