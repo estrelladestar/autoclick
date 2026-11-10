@@ -1,5 +1,8 @@
 package com.example.autoclick
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.graphics.Rect
 import android.os.Bundle
 import android.os.Handler
@@ -362,12 +365,10 @@ object Macro {
                 val before = if (pos == 2) Math.random() < 0.5 else pos == 0
                 text = if (before) "$phrase $text" else "$text $phrase"
             }
-            val b = Bundle()
-            b.putCharSequence(
-                AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE,
-                text
-            )
-            f.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, b)
+            if (!putText(f, text)) {
+                retry("dónde escribir (la caja no deja escribir)")
+                return
+            }
             usedCombos.add(key)
             used++
             last = System.currentTimeMillis()
@@ -430,9 +431,10 @@ object Macro {
                 retry("la caja de texto")
                 return
             }
-            val b = Bundle()
-            b.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text)
-            f.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, b)
+            if (!putText(f, text)) {
+                retry("dónde escribir (la caja no deja escribir)")
+                return
+            }
             if (isList) {
                 commentIdx++
                 used++
@@ -476,6 +478,44 @@ object Macro {
             node.getBoundsInScreen(r)
             s.tapAt(r.exactCenterX(), r.exactCenterY())
             return true
+        }
+
+        /**
+         * Escribe el texto en la caja y comprueba que de verdad se ha escrito.
+         * Si Instagram no lo acepta, lo pega como desde el portapapeles; y si aun así no, prueba en las demás ventanas.
+         */
+        private fun putText(first: AccessibilityNodeInfo, text: String): Boolean {
+            val want = text.trim()
+            fun has(n: AccessibilityNodeInfo): Boolean {
+                n.refresh()
+                return (n.text?.toString() ?: "").contains(want)
+            }
+            fun tryOn(n: AccessibilityNodeInfo): Boolean {
+                n.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
+                val b = Bundle()
+                b.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text)
+                n.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, b)
+                if (has(n)) return true
+                try {
+                    val cm = s.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    cm.setPrimaryClip(ClipData.newPlainText("comentario", text))
+                    n.performAction(AccessibilityNodeInfo.ACTION_PASTE)
+                } catch (e: Exception) {
+                }
+                return has(n)
+            }
+            val f = findField() ?: first
+            if (tryOn(f)) return true
+            try {
+                for (w in s.windows) {
+                    val r = w.root ?: continue
+                    val focused = r.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
+                    val e = if (focused != null && focused.isEditable) focused else findEditable(r)
+                    if (e != null && e != f && tryOn(e)) return true
+                }
+            } catch (e: Exception) {
+            }
+            return false
         }
 
         private fun findField(): AccessibilityNodeInfo? {
