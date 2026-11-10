@@ -99,7 +99,7 @@ object Macro {
                 "descanso" -> {
                     // «descanso 10-20» = pausa al azar entre 10 y 20 minutos (sin número: 10-20)
                     val r = parseSecs(if (arg.isEmpty()) "10-20" else arg)
-                    cmds.add(Cmd("esperar", "${r.first * 60 / 1000}-${r.second * 60 / 1000}", 0L, 0L, "descanso"))
+                    cmds.add(Cmd("esperar", "${r.first / 1000.0}-${r.second / 1000.0}", 0L, 0L, "descanso"))
                 }
                 "hora" -> {
                     if (!Regex("\\d{1,2}[:.]\\d{2}").matches(arg)) {
