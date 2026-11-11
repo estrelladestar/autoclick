@@ -116,6 +116,8 @@ class ClickService : AccessibilityService() {
     private var stepStart = 0L
 
     private var overlay: Button? = null
+    /** Lo que se añade a la pantalla: el botón flotante y su ✕ para quitarlo. */
+    private var overlayRoot: View? = null
     private var pickView: View? = null
 
     override fun onServiceConnected() {
@@ -152,6 +154,28 @@ class ClickService : AccessibilityService() {
         var touchY = 0f
         var moved = false
         var downTime = 0L
+        // ✕ pequeño al lado para quitar el botón flotante (y parar lo que esté en marcha)
+        val d = resources.displayMetrics.density
+        val close = Button(this).apply {
+            text = "✕"
+            textSize = 13f
+            setTextColor(android.graphics.Color.WHITE)
+            minWidth = 0; minimumWidth = 0; minHeight = 0; minimumHeight = 0
+            setPadding((10 * d).toInt(), (6 * d).toInt(), (10 * d).toInt(), (6 * d).toInt())
+            background = android.graphics.drawable.GradientDrawable().apply {
+                shape = android.graphics.drawable.GradientDrawable.OVAL
+                setColor(0xCC2D1B69.toInt())
+            }
+            elevation = 6 * d
+            setOnClickListener { hideOverlay() }
+        }
+        val box = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            addView(b)
+            addView(close, android.widget.LinearLayout.LayoutParams(
+                (34 * d).toInt(), (34 * d).toInt()).apply { leftMargin = (6 * d).toInt() })
+        }
         b.setOnTouchListener { _, e ->
             when (e.action) {
                 MotionEvent.ACTION_DOWN -> {
@@ -168,7 +192,7 @@ class ClickService : AccessibilityService() {
                     if (moved) {
                         lp.x = startX + dx
                         lp.y = startY + dy
-                        wm.updateViewLayout(b, lp)
+                        wm.updateViewLayout(box, lp)
                     }
                     true
                 }
@@ -184,9 +208,13 @@ class ClickService : AccessibilityService() {
                 else -> false
             }
         }
-        wm.addView(b, lp)
+        wm.addView(box, lp)
         overlay = b
+        overlayRoot = box
     }
+
+    /** ¿Se ve el botón flotante? */
+    fun overlayShown(): Boolean = overlayRoot != null
 
     /** Para que el guion de Comentarios automáticos pueda cambiar el texto del botón flotante. */
     fun setOverlayText(t: String) {
@@ -295,9 +323,11 @@ class ClickService : AccessibilityService() {
         })
     }
 
-    private fun hideOverlay() {
+    /** Quita el botón flotante y para el guion o la secuencia que esté en marcha. */
+    fun hideOverlay() {
         Macro.stop()
-        val o = overlay
+        stopClicking()
+        val o = overlayRoot ?: overlay
         if (o != null) {
             try {
                 (getSystemService(Context.WINDOW_SERVICE) as WindowManager).removeView(o)
@@ -305,7 +335,7 @@ class ClickService : AccessibilityService() {
             }
         }
         overlay = null
-        stopClicking()
+        overlayRoot = null
     }
 
     // ---------- Elegir un punto de la pantalla ----------

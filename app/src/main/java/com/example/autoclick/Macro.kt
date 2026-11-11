@@ -245,6 +245,35 @@ object Macro {
         ctx.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE).edit().putString("registro", log.toString()).apply()
     }
 
+    /** Menciones hechas: {"2026-11-11": {"cuentas": {"cory_gm0": 10}, "personas": {"@ana": 3}}} (últimos 30 días). */
+    fun loadMentions(ctx: android.content.Context): org.json.JSONObject = try {
+        org.json.JSONObject(ctx.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE).getString("registro_menciones", "{}") ?: "{}")
+    } catch (e: Exception) {
+        org.json.JSONObject()
+    }
+
+    fun addMentions(ctx: android.content.Context, account: String?, handles: List<String>, extraForAccount: Int = 0) {
+        if (handles.isEmpty() && extraForAccount == 0) return
+        val log = loadMentions(ctx)
+        val d = today()
+        val day = log.optJSONObject(d) ?: org.json.JSONObject().also { log.put(d, it) }
+        val accts = day.optJSONObject("cuentas") ?: org.json.JSONObject().also { day.put("cuentas", it) }
+        val people = day.optJSONObject("personas") ?: org.json.JSONObject().also { day.put("personas", it) }
+        if (account != null) {
+            val k = account.lowercase()
+            accts.put(k, accts.optInt(k, 0) + handles.size + extraForAccount)
+        } else {
+            accts.put("(sin saber la cuenta)", accts.optInt("(sin saber la cuenta)", 0) + handles.size)
+        }
+        for (h in handles) {
+            val k = h.lowercase()
+            people.put(k, people.optInt(k, 0) + 1)
+        }
+        val days = log.keys().asSequence().toList().sorted()
+        if (days.size > 30) days.take(days.size - 30).forEach { log.remove(it) }
+        ctx.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE).edit().putString("registro_menciones", log.toString()).apply()
+    }
+
     private fun toast(s: ClickService, m: String) {
         Toast.makeText(s, m, Toast.LENGTH_LONG).show()
     }
@@ -267,6 +296,8 @@ object Macro {
         private var scrolls = 0
         /** Veces seguidas que se ha saltado una cuenta por el límite diario. */
         private var skipsInARow = 0
+        /** Menciones escritas en este guion (todas las cuentas). */
+        private var mentionsRun = 0
         private var i = 0
         private var loop = 0
         private var tries = 0
@@ -608,6 +639,7 @@ object Macro {
             val extra = ArrayList<String>()
             if (repeats > 1) extra.add("vuelta ${loop + 1}/$repeats")
             if (used > 0) extra.add("$used escritos")
+            if (mentionsRun > 0) extra.add("$mentionsRun menciones")
             current?.let { extra.add(it) }
             if (extra.isNotEmpty()) t += "\n" + extra.joinToString(" · ")
             s.setOverlayText(t)
@@ -732,7 +764,7 @@ object Macro {
             toast(s, "Escrito: $text")
             trace("  escrito: $text")
             usedCombos.add(key)
-            countComment()
+            countComment(text)
             used++
             last = System.currentTimeMillis()
             showProgress()
@@ -758,10 +790,14 @@ object Macro {
             return true
         }
 
-        private fun countComment() {
+        private fun countComment(text: String) {
             skipsInARow = 0
             val who = current
             if (who == null) pending++ else addCount(s, who)
+            // Menciones de este comentario (@nombre)
+            val handles = Regex("@[A-Za-z0-9._]+").findAll(text).map { it.value.trimEnd('.') }.toList()
+            mentionsRun += handles.size
+            addMentions(s, who, handles)
         }
 
         /** Ya estamos en la cuenta [name]. */
@@ -1017,7 +1053,7 @@ object Macro {
             }
             toast(s, "Escrito: $text")
             trace("  escrito: $text")
-            countComment()
+            countComment(text)
             if (isList) {
                 commentIdx++
                 used++

@@ -156,6 +156,18 @@ repetir 8"""
             setOnClickListener { showReport() }
             testBar.addView(this, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { setMargins(4, 0, 4, 0) })
         }
+        Button(ctx).apply {
+            text = "❌ Quitar botón flotante (y parar)"
+            setOnClickListener {
+                val s = ClickService.instance
+                if (s == null || !s.overlayShown()) toast("El botón flotante no está puesto")
+                else {
+                    s.hideOverlay()
+                    toast("Botón flotante quitado")
+                }
+            }
+            root.addView(this)
+        }
 
         // ---------- Asistente ----------
         label(
@@ -421,7 +433,7 @@ repetir 8"""
 
     // ---------- Copia de seguridad ----------
     /** Lo que no se copia: las imágenes (hay que hacerlas en cada móvil) y el registro. */
-    private val notInBackup = setOf("steps", "registro")
+    private val notInBackup = setOf("steps", "registro", "registro_menciones", "informe")
 
     private fun exportBackup() {
         saveAll()
@@ -540,24 +552,40 @@ repetir 8"""
     // ---------- Registro ----------
     private fun showLog() {
         val log = Macro.loadLog(this)
-        val days = log.keys().asSequence().toList().sortedDescending().take(7)
+        val men = Macro.loadMentions(this)
+        val days = (log.keys().asSequence() + men.keys().asSequence()).toSortedSet().toList().sortedDescending().take(7)
         val sb = StringBuilder()
         if (days.isEmpty()) sb.append("Todavía no hay comentarios registrados.")
+        var weekMentions = 0
         for (d in days) {
-            val day = log.optJSONObject(d) ?: continue
+            val day = log.optJSONObject(d) ?: org.json.JSONObject()
+            val mday = men.optJSONObject(d)
+            val maccts = mday?.optJSONObject("cuentas") ?: org.json.JSONObject()
+            val people = mday?.optJSONObject("personas") ?: org.json.JSONObject()
             var total = 0
-            val lines = ArrayList<Pair<String, Int>>()
-            for (k in day.keys()) { val n = day.optInt(k); total += n; lines.add(Pair(k, n)) }
-            sb.append("📅 ").append(d).append(" — ").append(total).append(" comentarios\n")
-            for ((k, n) in lines.sortedByDescending { it.second }) sb.append("   • ").append(k).append(": ").append(n).append("\n")
+            for (k in day.keys()) total += day.optInt(k)
+            var totalM = 0
+            for (k in maccts.keys()) totalM += maccts.optInt(k)
+            weekMentions += totalM
+            sb.append("📅 ").append(d).append(" — ").append(total).append(" comentarios · ").append(totalM).append(" menciones\n")
+            val accounts = (day.keys().asSequence() + maccts.keys().asSequence()).toSortedSet()
+            val lines = accounts.map { Triple(it, day.optInt(it, 0), maccts.optInt(it, 0)) }.sortedByDescending { it.second }
+            for ((k, n, m) in lines) {
+                sb.append("   • ").append(k).append(": ").append(n).append(" comentarios · ").append(m).append(" menciones\n")
+            }
+            val top = people.keys().asSequence().map { Pair(it, people.optInt(it)) }.sortedByDescending { it.second }.take(8).toList()
+            if (top.isNotEmpty()) {
+                sb.append("   👥 Más mencionados: ").append(top.joinToString(", ") { "${it.first} ×${it.second}" }).append("\n")
+            }
             sb.append("\n")
         }
+        if (days.isNotEmpty()) sb.append("Menciones en estos días: ").append(weekMentions)
         AlertDialog.Builder(this)
-            .setTitle("📊 Comentarios por cuenta (últimos 7 días)")
+            .setTitle("📊 Comentarios y menciones (últimos 7 días)")
             .setMessage(sb.toString().trim())
             .setPositiveButton("Cerrar", null)
             .setNeutralButton("Borrar registro") { _, _ ->
-                prefs.edit().remove("registro").apply()
+                prefs.edit().remove("registro").remove("registro_menciones").apply()
                 toast("Registro borrado")
             }
             .show()

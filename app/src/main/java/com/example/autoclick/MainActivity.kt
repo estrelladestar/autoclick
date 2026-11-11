@@ -182,7 +182,15 @@ class MainActivity : Activity() {
             if (s == null) toast("Primero activa el servicio de accesibilidad")
             else {
                 s.showOverlay()
-                toast("Arrastra el botón donde quieras. Toca ▶ para iniciar y ■ para parar. Mantenlo pulsado para ocultarlo.")
+                toast("Arrastra el botón donde quieras. Toca ▶ para iniciar y ■ para parar. Con la ✕ de al lado lo quitas.")
+            }
+        }
+        button("❌ Quitar botón flotante (y parar)") {
+            val s = ClickService.instance
+            if (s == null || !s.overlayShown()) toast("El botón flotante no está puesto")
+            else {
+                s.hideOverlay()
+                toast("Botón flotante quitado")
             }
         }
 
