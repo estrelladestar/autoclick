@@ -647,6 +647,48 @@ object Macro {
             }
         }
 
+        /**
+         * Reconoce la lista de cuentas por su forma: varios nombres de cuenta uno debajo de otro,
+         * alineados por la izquierda y a la misma distancia (como sale en la ventana que sube desde abajo).
+         * Devuelve esos nombres de arriba abajo, o null si en la pantalla no hay nada así.
+         */
+        private fun accountColumn(items: List<Pair<String, Rect>>): List<Pair<String, Rect>>? {
+            val (w, h) = s.screenSize()
+            val userRx = Regex("^@?[A-Za-z0-9._]{2,30}$")
+            val skip = setOf("instagram", "meta", "facebook", "threads", "home", "inicio")
+            val names = items
+                .map { Pair(it.first.trim().removePrefix("@"), it.second) }
+                .filter { userRx.matches(it.first) && it.first.any { ch -> ch.isLetter() } && it.first.lowercase() !in skip }
+                .filter { it.second.centerY() > h * 0.12f }
+                .distinctBy { it.first.lowercase() }
+            val hint = items.any { l ->
+                val low = l.first.lowercase()
+                LIST_MARKS.any { low.contains(it) } || low.contains("insignias") || low.contains("chats y") || low.contains("notificaciones")
+            }
+            var best: List<Pair<String, Rect>> = emptyList()
+            for (a in names) {
+                val col = names.filter { Math.abs(it.second.left - a.second.left) < w * 0.04f }.sortedBy { it.second.top }
+                var run = ArrayList<Pair<String, Rect>>()
+                var bestRun: List<Pair<String, Rect>> = emptyList()
+                for (it in col) {
+                    if (run.isEmpty()) {
+                        run.add(it)
+                    } else {
+                        val gap = it.second.top - run.last().second.top
+                        if (gap > h * 0.035f && gap < h * 0.17f) {
+                            run.add(it)
+                        } else {
+                            if (run.size > bestRun.size) bestRun = run
+                            run = arrayListOf(it)
+                        }
+                    }
+                }
+                if (run.size > bestRun.size) bestRun = run
+                if (bestRun.size > best.size) best = bestRun
+            }
+            return if (best.size >= 3 || (best.size >= 2 && hint)) best else null
+        }
+
         /** Tu nombre de usuario arriba del todo en tu perfil (el que abre la lista de cuentas), o null. */
         private fun profileTitle(): Pair<Float, Float>? {
             for (id in listOf("action_bar_large_title_auto_size", "action_bar_large_title", "action_bar_title_chevron",
@@ -665,9 +707,10 @@ object Macro {
                 return
             }
             s.readScreen { lines ->
-                val open = lines != null && lines.any { l -> LIST_MARKS.any { l.first.lowercase().contains(it) } }
-                trace("  leo en pantalla: " + (lines?.take(14)?.joinToString(" | ") { it.first } ?: "no puedo leer la pantalla"))
-                done(open)
+                val col = if (lines != null) accountColumn(lines) else null
+                trace("  leo en pantalla: " + (lines?.take(16)?.joinToString(" | ") { it.first } ?: "no puedo leer la pantalla"))
+                if (col != null) trace("  lista (leída de la pantalla): " + col.joinToString(", ") { it.first })
+                done(col != null)
             }
         }
 
@@ -915,6 +958,7 @@ object Macro {
                 }
                 return
             }
+            trace("  lista (accesibilidad): " + list.joinToString(", ") { it.first })
             if (current == null) {
                 // La primera de la lista es la cuenta en la que estamos
                 list.firstOrNull()?.first?.let { first ->
@@ -925,10 +969,12 @@ object Macro {
             }
             current?.let { visited.add(it) }
             var target = list.map { it.first }.firstOrNull { it !in visited }
+            val spot = Rect().also { list.last().second.getBoundsInScreen(it) }
             if (target == null && scrolls < 3) {
                 // Puede que haya más cuentas más abajo
                 scrolls++
-                scrollList(true)
+                trace("  ya usé todas las cuentas que se ven: bajo por la lista")
+                scrollList(true, spot)
                 later(1200L)
                 return
             }
@@ -938,7 +984,8 @@ object Macro {
                 current?.let { visited.add(it) }
                 if (scrolls > 0) {
                     scrolls = 0
-                    scrollList(false); scrollList(false); scrollList(false)
+                    trace("  ronda terminada: vuelvo arriba de la lista")
+                    scrollList(false, spot); scrollList(false, spot); scrollList(false, spot)
                     later(1200L)
                     return
                 }
@@ -965,36 +1012,8 @@ object Macro {
 
         /** Igual que [autoAccount] pero con el texto leído de la pantalla. Devuelve false si la lista no está abierta. */
         private fun autoAccountOcr(c: Cmd, lines: List<Pair<String, Rect>>): Boolean {
-            val marks = LIST_MARKS
-            if (lines.none { l -> marks.any { l.first.lowercase().contains(it) } }) return false
-            val nameRx = Regex("^@?[A-Za-z0-9._]{2,30}$")
-            val skip = setOf("instagram", "meta", "facebook", "threads")
-            val (w, h) = s.screenSize()
-            val all = lines.filter { nameRx.matches(it.first) && it.first.any { ch -> ch.isLetter() } && it.first.lowercase() !in skip }
-                .map { Pair(it.first.removePrefix("@"), it.second) }
-                .distinctBy { it.first.lowercase() }
-                .sortedBy { it.second.top }
-            // Los nombres de la lista están alineados (empiezan a la misma altura por la izquierda) y van seguidos,
-            // justo encima de «Añadir cuenta» / «Usar otro perfil». Así no se cuelan nombres de publicaciones de detrás.
-            val markTop = lines.filter { l -> marks.any { l.first.lowercase().contains(it) } }.minOfOrNull { it.second.top } ?: h
-            val above = all.filter { it.second.top < markTop }
-            val anchor = above.lastOrNull()
-            val names = if (anchor == null) all else {
-                val col = above.filter { Math.abs(it.second.left - anchor.second.left) < w * 0.06f }
-                val chain = ArrayList<Pair<String, Rect>>()
-                var prevTop = anchor.second.top
-                for (it in col.reversed()) {
-                    if (prevTop - it.second.top > h * 0.2f) break
-                    chain.add(0, it)
-                    prevTop = it.second.top
-                }
-                chain
-            }
+            val names = accountColumn(lines) ?: return false
             trace("  lista (leída de la pantalla): " + names.joinToString(", ") { it.first })
-            if (names.isEmpty()) {
-                if (tries == 3) toast(s, "Veo la lista de cuentas pero no sus nombres")
-                return false
-            }
             if (current == null) {
                 current = names.first().first
                 if (pending > 0) repeat(pending) { addCount(s, names.first().first) }
@@ -1003,9 +1022,11 @@ object Macro {
             current?.let { visited.add(it) }
             fun seen(n: String) = visited.any { it.equals(n, ignoreCase = true) }
             var target = names.firstOrNull { !seen(it.first) }
+            val spot = names.last().second
             if (target == null && scrolls < 3) {
                 scrolls++
-                scrollList(true)
+                trace("  ya usé todas las cuentas que se ven: bajo por la lista")
+                scrollList(true, spot)
                 later(1200L)
                 return true
             }
@@ -1014,7 +1035,8 @@ object Macro {
                 current?.let { visited.add(it) }
                 if (scrolls > 0) {
                     scrolls = 0
-                    scrollList(false); scrollList(false); scrollList(false)
+                    trace("  ronda terminada: vuelvo arriba de la lista")
+                    scrollList(false, spot); scrollList(false, spot); scrollList(false, spot)
                     later(1200L)
                     return true
                 }
@@ -1038,43 +1060,25 @@ object Macro {
          * si no está abierta, null.
          */
         private fun accountListNames(): List<Pair<String, AccessibilityNodeInfo>>? {
-            val marks = LIST_MARKS
-            val nameRx = Regex("^[A-Za-z0-9._]{2,30}$")
-            val skip = setOf("instagram", "meta", "facebook", "threads")
-            val h = s.screenSize().second
             for (root in windowRoots()) {
                 if (root.packageName?.toString() != INSTAGRAM) continue
-                val texts = ArrayList<Pair<String, AccessibilityNodeInfo>>()
-                var markNode: AccessibilityNodeInfo? = null
+                val items = ArrayList<Triple<String, Rect, AccessibilityNodeInfo>>()
                 fun walk(n: AccessibilityNodeInfo?) {
                     if (n == null) return
                     val t = (n.text ?: n.contentDescription)?.toString()?.trim() ?: ""
                     if (t.isNotEmpty() && n.isVisibleToUser) {
-                        val low = t.lowercase()
-                        if (markNode == null && marks.any { low.contains(it) }) markNode = n
-                        if (nameRx.matches(t) && t.any { it.isLetter() } && low !in skip) texts.add(Pair(t, n))
+                        val r = Rect()
+                        n.getBoundsInScreen(r)
+                        if (r.width() > 0 && r.height() > 0) items.add(Triple(t, r, n))
                     }
                     for (k in 0 until n.childCount) walk(n.getChild(k))
                 }
                 walk(root)
-                val mark = markNode ?: continue
-                // Solo los nombres que están dentro de la lista (no los de las publicaciones que quedan detrás)
-                var box: AccessibilityNodeInfo = mark
-                while (true) {
-                    val parent = box.parent ?: break
-                    val pr = Rect()
-                    parent.getBoundsInScreen(pr)
-                    if (pr.height() >= h * 0.97f) break
-                    box = parent
+                val col = accountColumn(items.map { Pair(it.first, it.second) }) ?: continue
+                return col.mapNotNull { c ->
+                    items.firstOrNull { it.second == c.second && it.first.trim().removePrefix("@") == c.first }
+                        ?.let { Pair(c.first, it.third) }
                 }
-                val area = Rect()
-                box.getBoundsInScreen(area)
-                val limit = area.height() >= h * 0.25f
-                val r = Rect()
-                return texts
-                    .filter { !limit || run { it.second.getBoundsInScreen(r); area.contains(r.centerX(), r.centerY()) } }
-                    .distinctBy { it.first.lowercase() }
-                    .sortedBy { it.second.getBoundsInScreen(r); r.top }
             }
             return null
         }
@@ -1421,18 +1425,38 @@ object Macro {
             }
         }
 
-        /** Desplaza la lista de la ventana de más arriba hacia abajo (o hacia arriba). */
-        private fun scrollList(down: Boolean) {
+        /**
+         * Desplaza una lista hacia abajo (o hacia arriba). Si se da [near], usa la lista que está en ese sitio
+         * (la de cuentas, no la de publicaciones que queda detrás); si no, la primera de la ventana de más arriba.
+         */
+        private fun scrollList(down: Boolean, near: Rect? = null) {
             fun find(n: AccessibilityNodeInfo?): AccessibilityNodeInfo? {
                 if (n == null) return null
-                if (n.isScrollable && n.isVisibleToUser) return n
+                if (n.isScrollable && n.isVisibleToUser) {
+                    if (near == null) return n
+                    val r = Rect()
+                    n.getBoundsInScreen(r)
+                    if (r.contains(near.centerX(), near.centerY())) {
+                        // Si dentro hay otra lista más ajustada a ese sitio, mejor esa
+                        for (k in 0 until n.childCount) find(n.getChild(k))?.let { return it }
+                        return n
+                    }
+                }
                 for (k in 0 until n.childCount) find(n.getChild(k))?.let { return it }
                 return null
             }
-            val root = windowRoots().firstOrNull() ?: return
-            find(root)?.performAction(
-                if (down) AccessibilityNodeInfo.ACTION_SCROLL_FORWARD else AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD
-            )
+            val action = if (down) AccessibilityNodeInfo.ACTION_SCROLL_FORWARD else AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD
+            for (root in windowRoots()) {
+                val list = find(root) ?: continue
+                list.performAction(action)
+                return
+            }
+            if (near != null) {
+                // Sin lista desplazable a la vista: se desliza con el dedo sobre la lista de cuentas
+                val (w, h) = s.screenSize()
+                val x = w * 0.5f
+                if (down) s.swipe(x, h * 0.80f, x, h * 0.55f, 500L) else s.swipe(x, h * 0.55f, x, h * 0.80f, 500L)
+            }
         }
 
         /**
