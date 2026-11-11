@@ -8,3 +8,4 @@ rootProject.name = "AutoClickImagen"
 include(":app")
 include(":juego")
 include(":lengua")
+include(":facil")
