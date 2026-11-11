@@ -1452,7 +1452,15 @@ object Macro {
                 }
                 2 -> {
                     if (inStoryViewer()) {
-                        storiesLeft = (a.filter { it.isDigit() }.toIntOrNull() ?: 3).coerceIn(1, 20)
+                        // «historias 3» = 3; «historias 3-5» = entre 3 y 5 al azar
+                        val m = Regex("(\\d+)\\s*-\\s*(\\d+)").find(a)
+                        storiesLeft = if (m != null) {
+                            val lo = m.groupValues[1].toInt()
+                            val hi = maxOf(lo, m.groupValues[2].toInt())
+                            lo + (Math.random() * (hi - lo + 1)).toInt()
+                        } else {
+                            Regex("\\d+").find(a)?.value?.toIntOrNull() ?: 3
+                        }.coerceIn(1, 20)
                         trace("  viendo historias ($storiesLeft)")
                         storyPhase = 3
                         later(3000L + (Math.random() * 3000).toLong())
