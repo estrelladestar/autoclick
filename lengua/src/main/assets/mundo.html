@@ -175,6 +175,7 @@ body.mini #mini{display:flex;align-items:center;gap:10px;margin:2px;padding:8px 
 .prow .pb{display:flex;flex-direction:column;gap:5px}.prow .pb button{border:0;border-radius:10px;padding:6px 8px;font-weight:800;font-size:12px;white-space:nowrap}
 .bdado{background:#eee;color:#555}.prow.dado .bdado{background:#22c55e;color:#fff}.bver{background:#ece6ff;color:#5b3fd1}.bver.on{background:#7c4dff;color:#fff}
 .lbtns{display:flex;gap:6px;margin-top:10px}.lbtns button{flex:1;border:0;border-radius:12px;padding:9px;font-weight:800;font-size:13px}
+.gsel{display:flex;gap:10px;margin:2px 0 10px}.gsel button{flex:1;border:3px solid #fff;background:#fff;border-radius:16px;padding:10px;font-weight:900;font-size:17px;color:var(--ink);box-shadow:0 3px 0 #7c4dff22}.gsel button.on{border-color:#7c4dff;background:#efe6ff}
 </style>
 </head>
 <body>
@@ -339,6 +340,7 @@ body.mini #mini{display:flex;align-items:center;gap:10px;margin:2px;padding:8px 
   </section>
 
   <section id="t-av">
+    <div class="gsel" id="gsel"><button data-g="nina">👧 Niña</button><button data-g="nino">👦 Niño</button></div>
     <div class="avbig" id="avbig"></div>
     <div class="chips" id="avcats" style="margin-top:8px"></div>
     <div class="grid" id="avgrid"></div>
@@ -423,7 +425,7 @@ var CATS = [
 /* [id, nombre, precio] */
 var ITEMS = {
   skin:[['s1','Muy clara',0],['s2','Clara',0],['s3','Dorada',0],['s4','Morena',0],['s5','Oscura',0],['s6','Muy oscura',0]],
-  hair:[['largo','Largo',0],['corto','Corto',0],['flequillo','Media melena',0],['coletas','Coletas',30],['cola','Cola de caballo',35],['mono','Moño',30],['rizos','Rizos',40],['pinchos','Pinchos',40],['trenzas','Trenzas',50],['ondas','Ondas de princesa',60]],
+  hair:[['largo','Largo',0],['corto','Corto',0],['lado','Raya al lado',0],['rapado','Rapado',0],['despeinado','Despeinado',30],['flequillo','Media melena',0],['coletas','Coletas',30],['cola','Cola de caballo',35],['mono','Moño',30],['rizos','Rizos',40],['pinchos','Pinchos',40],['trenzas','Trenzas',50],['ondas','Ondas de princesa',60]],
   hcol:[['castano','Castaño',0],['negro','Negro',0],['rubio','Rubio',0],['pelirrojo','Pelirrojo',20],['rosa','Rosa',40],['azul','Azul',40],['morado','Morado',40],['menta','Menta',40],['plata','Plateado',50],['arcoiris','Arcoíris',90]],
   eyes:[['grandes','Grandes',0],['redondos','Redondos',0],['alegres','Alegres',0],['gato','De gatita',30],['dormilones','Dormilones',30],['guino','Guiño',40],['brillo','Con brillo',40],['estrellas','Estrellas',60],['corazon','Corazones',60]],
   ecol:[['cafe','Café',0],['azul','Azul',0],['verde','Verde',0],['miel','Miel',20],['gris','Gris',20],['violeta','Violeta',40],['turquesa','Turquesa',40],['rubi','Rubí',50]],
@@ -459,7 +461,7 @@ var SPECIES = {
 };
 
 /* ======================= estado ======================= */
-var DEF_EQ = {skin:'s2', hair:'largo', hcol:'castano', eyes:'grandes', ecol:'cafe', brows:'suaves', mouth:'sonrisa', top:'cam_rosa', bottom:'vaqueros', shoes:'deportivas', head:'none', face:'none', neck:'none', hand:'none', back:'none', bg:'habitacion'};
+var DEF_EQ = {g:'nina', skin:'s2', hair:'largo', hcol:'castano', eyes:'grandes', ecol:'cafe', brows:'suaves', mouth:'sonrisa', top:'cam_rosa', bottom:'vaqueros', shoes:'deportivas', head:'none', face:'none', neck:'none', hand:'none', back:'none', bg:'habitacion'};
 var S;
 function freshState(){
   return {v:1, coins:20, xp:0, owned:{}, eq:JSON.parse(JSON.stringify(DEF_EQ)), pet:null, food:{manzana:3, galleta:1},
@@ -564,6 +566,9 @@ function hairParts(id, hf, hd, hl){
   var centerPart = '<path d="M44,100 C38,12 162,12 156,100 C150,78 132,64 104,64 L100,56 L96,64 C68,64 50,78 44,100 Z" fill="' + hf + '"/>';
   var sideLocks = '<path d="M44,96 C40,122 44,150 52,170 L61,166 C53,142 53,118 53,100 Z" fill="' + hf + '"/><path d="M156,96 C160,122 156,150 148,170 L139,166 C147,142 147,118 147,100 Z" fill="' + hf + '"/>';
   switch (id) {
+    case 'lado': return {b:headBack, f:'<path d="M44,100 C38,24 162,24 156,100 C154,80 146,66 132,60 C110,52 80,54 64,72 C54,82 47,90 44,100 Z" fill="' + hf + '"/><path d="M80,34 Q86,46 84,58" stroke="' + hd + '" stroke-width="2.5" fill="none" stroke-linecap="round"/>' + hlite};
+    case 'rapado': return {b:'', f:'<path d="M46,96 C42,26 158,26 154,96 C150,70 130,56 100,56 C70,56 50,70 46,96 Z" fill="' + hf + '"/>'};
+    case 'despeinado': return {b:headBack, f:'<path d="M44,100 C40,40 60,26 78,30 L84,18 L96,30 L108,16 L116,30 L132,22 L134,36 C156,44 160,70 156,100 C150,82 140,72 128,68 L120,76 L112,66 L100,76 L90,66 L80,76 L72,68 C58,74 48,86 44,100 Z" fill="' + hf + '"/>' + hlite};
     case 'corto': return {b:headBack, f:'<path d="M44,100 C38,46 70,28 100,30 C132,28 162,46 156,100 C154,84 148,72 138,64 C124,72 106,70 94,62 C82,72 64,72 54,80 C48,86 45,92 44,100 Z" fill="' + hf + '"/>' + hlite};
     case 'flequillo': return {
       b:'<path d="M40,92 C36,32 164,32 160,92 L162,150 Q150,160 136,150 L134,118 L66,118 L64,150 Q50,160 38,150 Z" fill="' + hf + '"/>',
@@ -605,7 +610,7 @@ function hairParts(id, hf, hd, hl){
   }
 }
 
-function eyesSVG(id, ec, sk){
+function eyesSVG(id, ec, sk, boy){
   var dark = '#2b1b2b', s = '';
   function iris(x, y){ return '<ellipse cx="' + x + '" cy="' + (y + 2) + '" rx="10" ry="12" fill="url(#ir)"/>'; }
   function big(x, y, side, opt){
@@ -618,8 +623,8 @@ function eyesSVG(id, ec, sk){
     }
     e += '<circle cx="' + (x - 4) + '" cy="' + (y - 3) + '" r="' + (opt.br ? 4.8 : 4) + '" fill="#fff"/><circle cx="' + (x + 4) + '" cy="' + (y + 7) + '" r="2" fill="#fff" opacity=".9"/>';
     if (opt.br) e += star(x + 5, y - 5, 3.2, 1.2, '#fff');
-    e += '<path d="M' + (x - 14) + ',' + (y - 4) + ' Q' + x + ',' + (y - 21) + ' ' + (x + 14) + ',' + (y - 4) + '" stroke="' + dark + '" stroke-width="3.5" fill="none" stroke-linecap="round"/>';
-    e += '<path d="M' + (x + 13 * side) + ',' + (y - 6) + ' L' + (x + 19 * side) + ',' + (y - 11) + '" stroke="' + dark + '" stroke-width="3" stroke-linecap="round"/>';
+    e += '<path d="M' + (x - 14) + ',' + (y - 4) + ' Q' + x + ',' + (y - 21) + ' ' + (x + 14) + ',' + (y - 4) + '" stroke="' + dark + '" stroke-width="' + (boy ? 2.3 : 3.5) + '" fill="none" stroke-linecap="round"/>';
+    if (!boy) e += '<path d="M' + (x + 13 * side) + ',' + (y - 6) + ' L' + (x + 19 * side) + ',' + (y - 11) + '" stroke="' + dark + '" stroke-width="3" stroke-linecap="round"/>';
     return e;
   }
   function closed(x, y){ return '<path d="M' + (x - 12) + ',' + (y + 3) + ' Q' + x + ',' + (y - 10) + ' ' + (x + 12) + ',' + (y + 3) + '" stroke="' + dark + '" stroke-width="4" fill="none" stroke-linecap="round"/>'; }
@@ -879,7 +884,7 @@ function avatarSVG(eq, o){
   s += '<path d="M97,110 Q100,113 103,110" stroke="' + skd + '" stroke-width="2" fill="none" stroke-linecap="round"/>';
   s += '<ellipse cx="66" cy="116" rx="9" ry="5" fill="#ff7b9c" opacity=".38"/><ellipse cx="134" cy="116" rx="9" ry="5" fill="#ff7b9c" opacity=".38"/>';
   s += faceUnderSVG(eq.face);
-  s += eyesSVG(eq.eyes, ec, sk);
+  s += eyesSVG(eq.eyes, ec, sk, eq.g === 'nino');
   s += browsSVG(eq.brows, brow);
   s += mouthSVG(eq.mouth);
   s += hair.f;
@@ -1752,6 +1757,17 @@ window.pauseAll = function(){ paused = true; musicUpdate(); if (AC) try { AC.sus
 window.resumeAll = function(){ paused = false; if (AC) try { AC.resume(); } catch (e) {} musicUpdate(); };
 
 /* ======================= avatar y tienda ======================= */
+var GONLY = {hair:{largo:'nina', flequillo:'nina', coletas:'nina', cola:'nina', mono:'nina', trenzas:'nina', ondas:'nina', corto:'nino', lado:'nino', rapado:'nino', despeinado:'nino', pinchos:'nino'},
+  top:{princesa:'nina', lunares:'nina'}, bottom:{falda:'nina', escocesa:'nina', tutu:'nina', leggings:'nina'}};
+function forG(cat, id){ var g = (GONLY[cat] || {})[id]; return !g || g === (S.eq.g || 'nina'); }
+function setGender(g){
+  if ((S.eq.g || 'nina') === g) return;
+  var e = S.eq; e.g = g; trying = null;
+  if (g === 'nino') { e.hair = 'corto'; e.brows = 'gruesas'; if (!forG('top', e.top) || e.top === 'cam_rosa') e.top = 'cam_azul'; if (!forG('bottom', e.bottom)) e.bottom = 'vaqueros'; }
+  else { e.hair = 'largo'; e.brows = 'suaves'; if (e.top === 'cam_azul') e.top = 'cam_rosa'; }
+  save(); renderAv(); renderPet(); sfx('coin'); toast(g === 'nino' ? '👦 ¡Ahora tu avatar es un niño!' : '👧 ¡Ahora tu avatar es una niña!');
+}
+function renderGender(){ var bs = document.querySelectorAll('#gsel button'); for (var i = 0; i < bs.length; i++) bs[i].classList.toggle('on', bs[i].dataset.g === (S.eq.g || 'nina')); }
 var avCat = 'hair', trying = null;
 function renderAvCats(){
   $('avcats').innerHTML = CATS.map(function(c){ return '<button class="chip' + (avCat === c.id ? ' on' : '') + '" data-c="' + c.id + '">' + c.e + ' ' + c.n + '</button>'; }).join('');
@@ -1764,7 +1780,7 @@ function renderAvBig(){
 function renderAvGrid(){
   var cat = CATS.filter(function(c){ return c.id === avCat; })[0];
   var cur = previewEq();
-  $('avgrid').innerHTML = ITEMS[avCat].map(function(it){
+  $('avgrid').innerHTML = ITEMS[avCat].filter(function(it){ return forG(avCat, it[0]); }).map(function(it){
     var e = Object.assign({}, S.eq); e[avCat] = it[0];
     if (avCat === 'bottom' && isDress(e.top)) e.top = 'cam_rosa';
     var own = owns(avCat, it[0]), on = S.eq[avCat] === it[0], tr = trying && trying.cat === avCat && trying.id === it[0];
@@ -1773,7 +1789,7 @@ function renderAvGrid(){
     return '<button class="item' + (on ? ' on' : '') + (tr ? ' try' : '') + '" data-i="' + it[0] + '"><div class="th">' + th + '</div>' + it[1] + tag + '</button>';
   }).join('');
 }
-function renderAv(){ renderAvCats(); renderAvBig(); renderAvGrid(); renderBuyBar(); }
+function renderAv(){ renderGender(); renderAvCats(); renderAvBig(); renderAvGrid(); renderBuyBar(); }
 function tapItem(id){
   if (owns(avCat, id)) {
     S.eq[avCat] = id; trying = null; save();
@@ -1964,6 +1980,7 @@ function bind(){
   $('modalBox').addEventListener('click', function(e){ var b = e.target.closest('#spGrid button'); if (!b) return; var old = SPECIES[chooseSp].name, inp = $('petNameIn'); chooseSp = b.dataset.s; if (inp && (!inp.value.trim() || inp.value.trim() === old)) inp.value = SPECIES[chooseSp].name; renderSp(); });
   $('mini').addEventListener('click', openFull);
   initApr();
+  $('gsel').addEventListener('click', function(e){ var b = e.target.closest('button'); if (b) setGender(b.dataset.g); });
   setInterval(function(){ if (!MINI && S.pet) { updatePet(); save(); if (curTab === 'pet' && !tempMood) renderPet(); } }, 30000);
 }
 load();
