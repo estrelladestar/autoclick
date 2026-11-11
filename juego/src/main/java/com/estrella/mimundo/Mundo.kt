@@ -50,6 +50,14 @@ object Mundo {
         @JavascriptInterface fun stopSpeak() { main.post { hush() } }
 
         @JavascriptInterface
+        fun notifyLater(minutes: Int, title: String, text: String) {
+            try { Avisos.programar(activity, minutes, title, text) } catch (e: Exception) { }
+        }
+
+        @JavascriptInterface
+        fun savePhoto(base64: String, name: String): String = Avisos.guardarFoto(activity, base64, name)
+
+        @JavascriptInterface
         fun vibrate(ms: Int) {
             try {
                 @Suppress("DEPRECATION")
@@ -81,6 +89,10 @@ class MainActivity : Activity() {
         }
         web = Mundo.webView(this, false, { text, lang -> speak(text, lang) }, { tts?.stop() })
         setContentView(web)
+        // Android 13 o más nuevo: pedir permiso para los avisos de la mascota
+        if (android.os.Build.VERSION.SDK_INT >= 33 &&
+            checkSelfPermission("android.permission.POST_NOTIFICATIONS") != android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) requestPermissions(arrayOf("android.permission.POST_NOTIFICATIONS"), 5)
     }
 
     private var curLang = ""
