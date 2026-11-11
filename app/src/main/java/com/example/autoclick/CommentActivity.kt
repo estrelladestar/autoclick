@@ -641,12 +641,17 @@ repetir 8"""
         val steps = script.text.toString().lines().map { it.trim() }
             .count { it.isNotEmpty() && !it.startsWith("#") && !it.startsWith("repetir") }
         val blockers = ArrayList<String>()
-        if (!svc) blockers.add("Activa el servicio de accesibilidad de Star App (pantalla principal, botón 1).")
+        val onInSettings = ClickService.enabledInSettings(this)
+        if (!svc && onInSettings) blockers.add("La accesibilidad de Star App está activada en Ajustes, pero el servicio no ha arrancado. " +
+            "Apágala y vuelve a encenderla (Ajustes → Accesibilidad → Aplicaciones instaladas → Star App). " +
+            "Si sigue igual, reinicia el móvil y pon la batería de Star App en «Sin restricciones».")
+        else if (!svc) blockers.add("Activa el servicio de accesibilidad de Star App (pantalla principal, botón 1).")
         blockers.addAll(problems(script.text.toString()))
         fun mark(ok: Boolean) = if (ok) "✅" else "➖"
         val sb = StringBuilder()
         sb.append(if (blockers.isEmpty()) "✅ TODO LISTO PARA INICIAR ($steps pasos)" else "⚠ FALTA ALGO ANTES DE INICIAR")
-        sb.append("\n").append(if (svc) "✅" else "❌").append(" Servicio de accesibilidad: ").append(if (svc) "activo" else "desactivado")
+        sb.append("\n").append(if (svc) "✅" else "❌").append(" Servicio de accesibilidad: ")
+            .append(if (svc) "activo" else if (onInSettings) "activado en Ajustes pero sin arrancar" else "desactivado")
         sb.append("\n").append(mark(links > 0 || marked)).append(" Enlaces: ")
             .append(if (marked) "uno marcado en el Etiquetador, " else "").append(links).append(" guardado(s)")
         sb.append("\n").append(mark(images > 0)).append(" Imágenes: ").append(images)

@@ -95,7 +95,7 @@ object StepStore {
 }
 
 class ClickService : AccessibilityService() {
-    companion object { var instance: ClickService? = null }
+
 
     private val main = Handler(Looper.getMainLooper())
     private val worker = Executors.newSingleThreadExecutor()
@@ -122,7 +122,20 @@ class ClickService : AccessibilityService() {
 
     override fun onServiceConnected() {
         instance = this
-        OpenCVLoader.initLocal()
+        // Que un fallo al cargar OpenCV no tumbe el servicio (en algunos móviles el servicio quedaba «activado» pero muerto)
+        try { OpenCVLoader.initLocal() } catch (e: Throwable) { Macro.trace("OpenCV no se pudo cargar: ${e.message}") }
+    }
+
+    companion object {
+        var instance: ClickService? = null
+
+        /** ¿Está Star App encendida en Ajustes → Accesibilidad (aunque el servicio no haya arrancado)? */
+        fun enabledInSettings(ctx: Context): Boolean {
+            val list = android.provider.Settings.Secure.getString(
+                ctx.contentResolver, android.provider.Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+            ) ?: return false
+            return list.split(':').any { it.startsWith(ctx.packageName + "/") }
+        }
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {}
