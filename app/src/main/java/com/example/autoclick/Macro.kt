@@ -1434,13 +1434,16 @@ object Macro {
                     val g = stepGen
                     s.readScreen { lines ->
                         if (g != stepGen || id != token || !running) return@readScreen
-                        val (w, h) = s.screenSize()
+                        val (_, h) = s.screenSize()
                         val yours = lines?.firstOrNull { it.first.lowercase().contains("tu historia") || it.first.lowercase().contains("your story") }
-                        if (yours != null) {
-                            // La siguiente burbuja a la derecha de «Tu historia», a la altura de las fotos
-                            val x = yours.second.exactCenterX() + w * 0.273f
-                            val y = yours.second.top - h * 0.068f
-                            trace("  abro la primera historia (al lado de «Tu historia») en ${x.toInt()},${y.toInt()}")
+                        // El nombre que hay debajo de la burbuja de al lado de «Tu historia» (tocarlo también abre la historia)
+                        val next = if (yours == null) null else lines.filter {
+                            Math.abs(it.second.centerY() - yours.second.centerY()) < h * 0.02f && it.second.left > yours.second.right
+                        }.minByOrNull { it.second.left }
+                        if (next != null) {
+                            val x = next.second.exactCenterX()
+                            val y = next.second.exactCenterY()
+                            trace("  abro la primera historia tocando su nombre «${next.first}» en ${x.toInt()},${y.toInt()}")
                             s.fingerTap(x, y)
                             storyPhase = 2
                             later(2500L)
@@ -1504,27 +1507,41 @@ object Macro {
 
         /** Centro de la primera historia de arriba que no es la tuya, o null. */
         private fun firstStory(): Pair<Float, Float>? {
+            val (_, h) = s.screenSize()
             for (root in windowRoots()) {
                 if (root.packageName?.toString() != INSTAGRAM) continue
+                // 1) Por su descripción: «Historia de …» / «…'s story» (las burbujas de arriba)
+                val bubbles = ArrayList<Rect>()
                 var tray: AccessibilityNodeInfo? = null
                 fun walk(n: AccessibilityNodeInfo?) {
-                    if (n == null || tray != null) return
-                    if (n.viewIdResourceName?.endsWith(":id/reels_tray_container") == true && n.isVisibleToUser) {
-                        tray = n
-                        return
+                    if (n == null) return
+                    if (n.isVisibleToUser) {
+                        val d = ((n.contentDescription ?: n.text)?.toString() ?: "").lowercase()
+                        val r = Rect()
+                        n.getBoundsInScreen(r)
+                        val isStory = (d.contains("historia de ") || d.contains("'s story") || d.contains("story by") ||
+                            d.contains("historia sin ver") || d.contains("unseen story")) &&
+                            !d.contains("tu historia") && !d.contains("your story")
+                        if (isStory && r.width() > 0 && r.centerY() < h * 0.45f) bubbles.add(r)
+                        if (tray == null && n.viewIdResourceName?.endsWith(":id/reels_tray_container") == true) tray = n
                     }
                     for (k in 0 until n.childCount) walk(n.getChild(k))
                 }
                 walk(root)
+                bubbles.minByOrNull { it.left }?.let {
+                    trace("  historia encontrada por su descripción")
+                    return Pair(it.exactCenterX(), it.exactCenterY())
+                }
+                // 2) Por la fila de historias: la segunda (la primera es «Tu historia»)
                 val t = tray ?: continue
                 val items = (0 until t.childCount).mapNotNull { t.getChild(it) }
                     .filter { it.isVisibleToUser }
                     .map { val r = Rect(); it.getBoundsInScreen(r); r }
-                    .filter { it.width() > 0 }
+                    .filter { it.width() > 0 && it.height() > 0 }
                     .sortedBy { it.left }
-                // La primera es «Tu historia»; la segunda es la primera de los demás
                 val r = items.getOrNull(1) ?: continue
-                return Pair(r.exactCenterX(), r.top + r.height() * 0.40f)
+                trace("  historia encontrada en la fila de historias")
+                return Pair(r.exactCenterX(), r.exactCenterY())
             }
             return null
         }
