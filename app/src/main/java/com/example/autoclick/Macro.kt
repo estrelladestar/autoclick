@@ -929,9 +929,9 @@ object Macro {
 
         /** Toca la cuenta [name] de la lista como lo haría un dedo y luego comprueba que Instagram ha cambiado. */
         private fun startSwitch(name: String, x: Float, y: Float) {
-            trace("  toco la cuenta $name en ${x.toInt()},${y.toInt()}")
+            trace("  toco el nombre de la cuenta $name en ${x.toInt()},${y.toInt()}")
             showProgress("cambiando a $name")
-            s.tapAt(x, y)
+            s.fingerTap(x, y)
             pendingSwitch = Triple(name, x, y)
             switchChecks = 0
             later(2600L)
@@ -950,12 +950,12 @@ object Macro {
                     advance(c.extra())
                 } else if (switchChecks < 2) {
                     switchChecks++
-                    // Segunda vez en la foto de esa cuenta (a la izquierda), tercera otra vez en el nombre
+                    // Siempre en el NOMBRE de la cuenta (nunca en su foto): la segunda vez un poco más a la derecha
                     val (w, _) = s.screenSize()
-                    val tx = if (switchChecks == 1) w * 0.14f else x
-                    trace("  la lista sigue abierta: vuelvo a tocar $name (vez ${switchChecks + 1}) en ${tx.toInt()},${y.toInt()}")
-                    s.tapAt(tx, y)
-                    later(2600L)
+                    val tx = if (switchChecks == 1) x else minOf(x + w * 0.10f, w * 0.85f)
+                    trace("  la lista sigue abierta: vuelvo a tocar el nombre $name (vez ${switchChecks + 1}) en ${tx.toInt()},${y.toInt()}")
+                    s.fingerTap(tx, y, 220L)
+                    later(3000L)
                 } else {
                     trace("  no consigo cambiar a $name: pruebo con otra cuenta")
                     pendingSwitch = null

@@ -227,6 +227,14 @@ class ClickService : AccessibilityService() {
         tap(x, y)
     }
 
+    /** Toque un poco más largo, como el de un dedo (para listas que no hacen caso a toques muy cortos). */
+    fun fingerTap(x: Float, y: Float, ms: Long = 150L) {
+        val path = Path().apply { moveTo(x, y) }
+        val g = GestureDescription.Builder()
+            .addStroke(GestureDescription.StrokeDescription(path, 0, ms)).build()
+        dispatchGesture(g, null, null)
+    }
+
     /** Para que el guion pueda mantener pulsada una posición de la pantalla (pulsación larga). */
     /** Desliza el dedo de (x1,y1) a (x2,y2) en ms milisegundos (para mover listas como los comentarios). */
     fun swipe(x1: Float, y1: Float, x2: Float, y2: Float, ms: Long) {
