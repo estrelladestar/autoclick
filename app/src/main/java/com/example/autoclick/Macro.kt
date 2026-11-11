@@ -324,6 +324,9 @@ object Macro {
         private var reopens = 0
         /** Veces que se ha esperado un poco más a que se abra la lista de cuentas. */
         private var listWaits = 0
+        /** Cuenta que se acaba de tocar en la lista y dónde (para comprobar que de verdad se cambió). */
+        private var pendingSwitch: Triple<String, Float, Float>? = null
+        private var switchChecks = 0
         /** Último paso apuntado en el informe (para no repetirlo en cada reintento). */
         private var tracedAt = -1
         /** Cambia en cada llamada a step(): las respuestas que llegan tarde de un intento anterior se ignoran. */
@@ -362,6 +365,8 @@ object Macro {
             waitEnd = 0L
             listPhase = 0
             listWaits = 0
+            pendingSwitch = null
+            switchChecks = 0
             openedAt = -1
             i++
             later(maxOf(ms, 400L))
@@ -458,6 +463,10 @@ object Macro {
                 "enlace" -> openLink(c)
                 "imagen" -> tapImage(c)
                 "tocarcuenta" -> {
+                    if (pendingSwitch != null) {
+                        verifySwitch(c)
+                        return
+                    }
                     showProgress("leyendo la lista de cuentas")
                     // En la vuelta 1 se comenta con la primera cuenta de «cuentas» y se pasa a la segunda, etc.
                     if (c.arg == NEXT_ACCOUNT && accounts.isEmpty()) {
@@ -918,6 +927,44 @@ object Macro {
             addMentions(s, who, handles)
         }
 
+        /** Toca la cuenta [name] de la lista como lo haría un dedo y luego comprueba que Instagram ha cambiado. */
+        private fun startSwitch(name: String, x: Float, y: Float) {
+            trace("  toco la cuenta $name en ${x.toInt()},${y.toInt()}")
+            showProgress("cambiando a $name")
+            s.tapAt(x, y)
+            pendingSwitch = Triple(name, x, y)
+            switchChecks = 0
+            later(2600L)
+        }
+
+        /** Después de tocar una cuenta: si la lista se ha cerrado, el cambio está hecho; si no, se vuelve a tocar. */
+        private fun verifySwitch(c: Cmd) {
+            val (name, x, y) = pendingSwitch ?: return
+            val g = stepGen
+            checkListOpen { open ->
+                if (g != stepGen || id != token || !running) return@checkListOpen
+                if (!open) {
+                    trace("  la lista se ha cerrado: cambio hecho")
+                    pendingSwitch = null
+                    switchedTo(name)
+                    advance(c.extra())
+                } else if (switchChecks < 2) {
+                    switchChecks++
+                    // Segunda vez en la foto de esa cuenta (a la izquierda), tercera otra vez en el nombre
+                    val (w, _) = s.screenSize()
+                    val tx = if (switchChecks == 1) w * 0.14f else x
+                    trace("  la lista sigue abierta: vuelvo a tocar $name (vez ${switchChecks + 1}) en ${tx.toInt()},${y.toInt()}")
+                    s.tapAt(tx, y)
+                    later(2600L)
+                } else {
+                    trace("  no consigo cambiar a $name: pruebo con otra cuenta")
+                    pendingSwitch = null
+                    visited.add(name)
+                    retry("cómo cambiar a la cuenta $name")
+                }
+            }
+        }
+
         /** Ya estamos en la cuenta [name]. */
         private fun switchedTo(name: String) {
             trace("  CAMBIO A LA CUENTA $name")
@@ -998,17 +1045,11 @@ object Macro {
             }
             scrolls = 0
             val node = list.first { it.first == target }.second
-            var n: AccessibilityNodeInfo? = node
-            while (n != null && !n.isClickable) n = n.parent
-            if (n == null || !n.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
-                val r = Rect()
-                node.getBoundsInScreen(r)
-                s.tapAt(r.exactCenterX(), r.exactCenterY())
-            }
+            val r = Rect()
+            node.getBoundsInScreen(r)
             visited.add(target)
             toast(s, "Cambio a la cuenta $target")
-            switchedTo(target)
-            advance(c.extra())
+            startSwitch(target, r.exactCenterX(), r.exactCenterY())
         }
 
         /** Igual que [autoAccount] pero con el texto leído de la pantalla. Devuelve false si la lista no está abierta. */
@@ -1048,11 +1089,9 @@ object Macro {
                 return true
             }
             scrolls = 0
-            s.tapAt(target.second.exactCenterX(), target.second.exactCenterY())
             visited.add(target.first)
             toast(s, "Cambio a la cuenta ${target.first}")
-            switchedTo(target.first)
-            advance(c.extra())
+            startSwitch(target.first, target.second.exactCenterX(), target.second.exactCenterY())
             return true
         }
 
@@ -1396,24 +1435,16 @@ object Macro {
         private fun tapAccount(c: Cmd, name: String) {
             val node = findAccountNode(name)
             if (node != null) {
-                var n: AccessibilityNodeInfo? = node
-                while (n != null && !n.isClickable) n = n.parent
-                if (n == null || !n.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
-                    val r = Rect()
-                    node.getBoundsInScreen(r)
-                    s.tapAt(r.exactCenterX(), r.exactCenterY())
-                }
-                switchedTo(name)
-                advance(c.extra())
+                val r = Rect()
+                node.getBoundsInScreen(r)
+                startSwitch(name, r.exactCenterX(), r.exactCenterY())
                 return
             }
             val myTry = stepGen
             s.locateText(name) { pos ->
                 if (myTry != stepGen || id != token || !running) return@locateText
                 if (pos != null) {
-                    s.tapAt(pos.first, pos.second)
-                    switchedTo(name)
-                    advance(c.extra())
+                    startSwitch(name, pos.first, pos.second)
                     return@locateText
                 }
                 // Con muchas cuentas la lista no cabe: baja y luego sube para buscarla
