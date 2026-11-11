@@ -30,6 +30,13 @@ jobs:
           name: MiMundoLengua-apk
           path: lengua/build/outputs/apk/debug/*.apk
       - run: cp lengua/src/main/assets/mundo.html MiMundo_Lengua_Tema3.html  # versión HTML para descargar
+      - run: mkdir -p web && cp lengua/src/main/assets/mundo.html web/index.html && touch web/.nojekyll  # página web del juego
+      - uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./web
+          publish_branch: gh-pages
+          force_orphan: true
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ultima-version
