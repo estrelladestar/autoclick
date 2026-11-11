@@ -121,8 +121,14 @@ class ClickService : AccessibilityService() {
     private var overlayLp: WindowManager.LayoutParams? = null
     private var pickView: View? = null
 
+    override fun onCreate() {
+        super.onCreate()
+        Macro.installCrashLogger(this)
+    }
+
     override fun onServiceConnected() {
         instance = this
+        Macro.trace("servicio de accesibilidad arrancado")
         // Que un fallo al cargar OpenCV no tumbe el servicio (en algunos móviles el servicio quedaba «activado» pero muerto)
         try { OpenCVLoader.initLocal() } catch (e: Throwable) { Macro.trace("OpenCV no se pudo cargar: ${e.message}") }
     }

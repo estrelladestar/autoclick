@@ -84,9 +84,34 @@ object Macro {
 
     /** El informe del último guion (o del que está en marcha), para copiarlo y enviarlo. */
     fun traceText(ctx: Context): String {
+        val p = ctx.getSharedPreferences("cfg", Context.MODE_PRIVATE)
+        val crash = p.getString("ultimo_fallo", "") ?: ""
         val live = synchronized(traceLines) { traceLines.joinToString("\n") }
-        if (live.isNotEmpty()) return live
-        return ctx.getSharedPreferences("cfg", Context.MODE_PRIVATE).getString("informe", "") ?: ""
+        val body = if (live.isNotEmpty()) live else (p.getString("informe", "") ?: "")
+        return if (crash.isNotEmpty()) "⚠ ÚLTIMO FALLO DE LA APP:\n$crash\n\n$body" else body
+    }
+
+    /** Guarda el motivo si la app (o su servicio) se cierra por un fallo, para verlo en el informe. */
+    fun installCrashLogger(ctx: Context) {
+        val app = ctx.applicationContext
+        val prev = Thread.getDefaultUncaughtExceptionHandler()
+        if (prev is CrashLogger) return
+        Thread.setDefaultUncaughtExceptionHandler(CrashLogger(app, prev))
+    }
+
+    private class CrashLogger(val app: Context, val prev: Thread.UncaughtExceptionHandler?) : Thread.UncaughtExceptionHandler {
+        override fun uncaughtException(t: Thread, e: Throwable) {
+            try {
+                val sw = java.io.StringWriter()
+                e.printStackTrace(java.io.PrintWriter(sw))
+                val when_ = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US).format(java.util.Date())
+                val ver = try { app.packageManager.getPackageInfo(app.packageName, 0).versionName } catch (x: Exception) { "?" }
+                app.getSharedPreferences("cfg", Context.MODE_PRIVATE).edit()
+                    .putString("ultimo_fallo", "$when_ (versión $ver)\n" + sw.toString().take(3000)).commit()
+            } catch (x: Throwable) {
+            }
+            prev?.uncaughtException(t, e)
+        }
     }
 
     private fun saveTrace() {

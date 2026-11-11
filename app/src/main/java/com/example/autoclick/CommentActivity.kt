@@ -120,6 +120,7 @@ repetir 8"""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Macro.installCrashLogger(this)
         prefs = getSharedPreferences("cfg", Context.MODE_PRIVATE)
         val ctx = this
         val root = LinearLayout(ctx).apply {
@@ -472,7 +473,7 @@ repetir 8"""
 
     // ---------- Copia de seguridad ----------
     /** Lo que no se copia: las imágenes (hay que hacerlas en cada móvil) y el registro. */
-    private val notInBackup = setOf("steps", "registro", "registro_menciones", "informe")
+    private val notInBackup = setOf("steps", "registro", "registro_menciones", "informe", "ultimo_fallo")
 
     private fun exportBackup() {
         saveAll()
@@ -585,6 +586,10 @@ repetir 8"""
                 toast("Informe copiado. Pégalo en el chat.")
             }
             .setNegativeButton("Cerrar", null)
+            .setNeutralButton("Borrar fallo") { _, _ ->
+                prefs.edit().remove("ultimo_fallo").apply()
+                toast("Fallo borrado del informe")
+            }
             .show()
     }
 
