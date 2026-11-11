@@ -721,8 +721,36 @@ object Macro {
                         s.tapAt(pos.first, pos.second)
                         advance(c.extra())
                     }
-                    else -> retry("la imagen $n en la pantalla")
+                    else -> {
+                        nudgeToFind(n)
+                        retry("la imagen $n en la pantalla")
+                    }
                 }
+            }
+        }
+
+        /**
+         * Si no se ve la imagen, a veces está un poco más abajo (por ejemplo al abrir el enlace):
+         * baja la pantalla poco a poco unas veces y, si tampoco, vuelve a subir.
+         * Con el teclado abierto no se desliza, para no escribir nada sin querer.
+         */
+        private fun nudgeToFind(n: Int) {
+            val attempt = tries + 1
+            val down = attempt == 2 || attempt == 4 || attempt == 6
+            val up = attempt == 9 || attempt == 11 || attempt == 13 || attempt == 15
+            if (!down && !up) return
+            val keyboard = try {
+                s.windows.any { it.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD }
+            } catch (e: Exception) { false }
+            if (keyboard) return
+            val (w, h) = s.screenSize()
+            val x = w * 0.5f
+            if (down) {
+                trace("  no veo la imagen $n: bajo un poco la pantalla para buscarla")
+                s.swipe(x, h * 0.68f, x, h * 0.46f, 550L)
+            } else {
+                trace("  sigo sin ver la imagen $n: vuelvo a subir un poco")
+                s.swipe(x, h * 0.46f, x, h * 0.68f, 550L)
             }
         }
 
