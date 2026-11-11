@@ -516,7 +516,7 @@ object Macro {
                     val icon = profileIcon()
                     if (icon != null || tries >= 4) {
                         trace(if (icon != null) "  ya se ve la barra de Instagram (perfil en ${icon.first.toInt()},${icon.second.toInt()})"
-                              else "  no veo la barra de Instagram, sigo igualmente")
+                              else "  no veo la barra de Instagram, sigo igualmente. " + describeBottom())
                         advance(c.extra())
                         return
                     }
@@ -598,6 +598,7 @@ object Macro {
                             openInstagramHome()
                             later(4500L)
                         } else {
+                            trace("  " + describeBottom())
                             finish("No veo la barra de abajo de Instagram (tu foto de perfil). Guion detenido.")
                         }
                         return
@@ -1603,6 +1604,11 @@ object Macro {
         /** Centro del icono «Inicio» (la casita de abajo a la izquierda de Instagram), o null. */
         private fun homeIcon(): Pair<Float, Float>? {
             byInstagramId("feed_tab")?.let { return it }
+            homeByLabel()?.let { return it }
+            return tabBar()?.first()?.let { Pair(it.exactCenterX(), it.exactCenterY()) }
+        }
+
+        private fun homeByLabel(): Pair<Float, Float>? {
             val (w, h) = s.screenSize()
             for (root in windowRoots()) {
                 if (root.packageName?.toString() != INSTAGRAM) continue
@@ -1718,6 +1724,66 @@ object Macro {
          * (por ejemplo con los comentarios abiertos). Tiene que llamarse exactamente «Perfil» (no «foto del perfil»)
          * y estar abajo del todo y a la derecha.
          */
+        /**
+         * La barra de abajo de Instagram (Inicio, Reels, Mensajes, Buscar, Perfil) buscada por su forma:
+         * 4 a 6 botones en fila abajo del todo, repartidos por todo el ancho. Devuelve sus posiciones de izquierda a derecha.
+         * Sirve aunque cada versión de Instagram llame a los botones de otra manera.
+         */
+        private fun tabBar(): List<Rect>? {
+            val (w, h) = s.screenSize()
+            for (root in windowRoots()) {
+                if (root.packageName?.toString() != INSTAGRAM) continue
+                val cands = ArrayList<Rect>()
+                fun walk(n: AccessibilityNodeInfo?, depth: Int) {
+                    if (n == null || depth > 60) return
+                    if (n.isVisibleToUser && (n.isClickable || !n.contentDescription.isNullOrEmpty())) {
+                        val r = Rect()
+                        n.getBoundsInScreen(r)
+                        if (r.centerY() > h * 0.82f && r.height() in 1..(h * 0.12f).toInt() && r.width() in 1..(w * 0.35f).toInt()) {
+                            cands.add(r)
+                        }
+                    }
+                    for (k in 0 until n.childCount) walk(n.getChild(k), depth + 1)
+                }
+                walk(root, 0)
+                // Agrupar por altura y quedarse con una fila de 4 a 6 botones que ocupe casi todo el ancho
+                val rows = cands.groupBy { (it.centerY() / (h * 0.03f)).toInt() }.values
+                for (row in rows.sortedByDescending { it.first().centerY() }) {
+                    val cols = row.sortedBy { it.centerX() }
+                        .fold(ArrayList<Rect>()) { acc, r ->
+                            if (acc.isEmpty() || r.centerX() - acc.last().centerX() > w * 0.08f) acc.add(r)
+                            acc
+                        }
+                    if (cols.size in 4..6 && cols.last().centerX() - cols.first().centerX() > w * 0.6f) return cols
+                }
+            }
+            return null
+        }
+
+        /** Qué hay abajo del todo de la pantalla (para el informe cuando no se encuentra la barra de Instagram). */
+        private fun describeBottom(): String {
+            val (_, h) = s.screenSize()
+            val out = ArrayList<String>()
+            val pkg = s.rootInActiveWindow?.packageName?.toString() ?: "?"
+            for (root in windowRoots()) {
+                fun walk(n: AccessibilityNodeInfo?, depth: Int) {
+                    if (n == null || depth > 60 || out.size > 14) return
+                    if (n.isVisibleToUser) {
+                        val r = Rect()
+                        n.getBoundsInScreen(r)
+                        if (r.centerY() > h * 0.82f) {
+                            val d = (n.contentDescription ?: n.text)?.toString()?.take(25) ?: ""
+                            val vid = n.viewIdResourceName?.substringAfter(":id/") ?: ""
+                            if (d.isNotEmpty() || vid.isNotEmpty()) out.add("$d[$vid]@${r.centerX()},${r.centerY()}")
+                        }
+                    }
+                    for (k in 0 until n.childCount) walk(n.getChild(k), depth + 1)
+                }
+                walk(root, 0)
+            }
+            return "app delante: $pkg · abajo: " + (if (out.isEmpty()) "nada" else out.joinToString(" | "))
+        }
+
         private fun profileIcon(): Pair<Float, Float>? {
             byInstagramId("profile_tab")?.let { return it }
             val (w, h) = s.screenSize()
@@ -1740,7 +1806,7 @@ object Macro {
                 }
                 if (best != null) break
             }
-            val b = best ?: return null
+            val b = best ?: return tabBar()?.last()?.let { Pair(it.exactCenterX(), it.exactCenterY()) }
             return Pair(b.exactCenterX(), b.exactCenterY())
         }
 
