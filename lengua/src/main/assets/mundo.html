@@ -176,6 +176,13 @@ body.mini #mini{display:flex;align-items:center;gap:10px;margin:2px;padding:8px 
 .bdado{background:#eee;color:#555}.prow.dado .bdado{background:#22c55e;color:#fff}.bver{background:#ece6ff;color:#5b3fd1}.bver.on{background:#7c4dff;color:#fff}
 .lbtns{display:flex;gap:6px;margin-top:10px}.lbtns button{flex:1;border:0;border-radius:12px;padding:9px;font-weight:800;font-size:13px}
 .gsel{display:flex;gap:10px;margin:2px 0 10px}.gsel button{flex:1;border:3px solid #fff;background:#fff;border-radius:16px;padding:10px;font-weight:900;font-size:17px;color:var(--ink);box-shadow:0 3px 0 #7c4dff22}.gsel button.on{border-color:#7c4dff;background:#efe6ff}
+.extras{display:flex;gap:8px;margin:0 0 10px}.extras button{flex:1;border:0;border-radius:18px;padding:10px 4px;font-weight:900;font-size:13px;color:#fff;box-shadow:0 3px 0 #0002;line-height:1.2}.extras button b{display:block;font-size:26px}
+.extras .x1{background:linear-gradient(180deg,#5cc8ff,#2563eb)}.extras .x2{background:linear-gradient(180deg,#ffbe4d,#f57c00)}.extras .x3{background:linear-gradient(180deg,#ff7fb5,#e0307a)}
+.pbar{height:9px;background:#ece6fb;border-radius:6px;overflow:hidden;margin:6px 0 10px}.pbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7c4dff,#ff5fa2);transition:width .4s}
+.din{width:100%;font-size:26px;font-weight:800;text-align:center;padding:12px;border-radius:16px;border:3px solid #c9b8ff;color:var(--ink);background:#fff;margin:6px 0}
+.pin{width:100%;font-size:15px;padding:9px;border-radius:12px;border:2px solid #e2d8ff;margin:4px 0;font-family:inherit;color:var(--ink)}
+textarea.pin{min-height:150px;font-size:16px;line-height:1.5}
+.row2{display:flex;gap:8px}.row2>*{flex:1}
 </style>
 </head>
 <body>
@@ -210,6 +217,7 @@ body.mini #mini{display:flex;align-items:center;gap:10px;margin:2px;padding:8px 
   </section>
 
   <section id="t-quiz">
+    <div class="extras" id="extras"><button class="x1" data-x="dict"><b>✍️</b>Dictado</button><button class="x2" data-x="exam"><b>📝</b>Examen</button><button class="x3" data-x="poema"><b>🎤</b>Mi poema</button></div>
     <div class="chal" id="qchal"></div>
     <div class="chips" id="qcats"></div>
     <div class="qtop">
@@ -325,6 +333,63 @@ body.mini #mini{display:flex;align-items:center;gap:10px;margin:2px;padding:8px 
 </ul>
 </div>
 </div>
+  </section>
+
+  <section id="t-dict">
+    <div id="dback"></div>
+    <h2>✍️ Dictado de palabras</h2>
+    <div class="pbar"><i id="dbar"></i></div>
+    <div class="qtop"><div class="qpet" id="dpet"></div><div class="qbubble" id="dtext"></div></div>
+    <input class="din" id="din" type="text" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="Escribe aquí">
+    <div class="row2"><button class="btn blue" id="dsay">🔊 Repetir palabra</button><button class="btn green" id="dcheck">✅ Comprobar</button></div>
+    <div id="dres" style="margin-top:10px"></div>
+    <button class="btn pink big" id="dnext" style="display:none;margin-top:6px">Siguiente ▶</button>
+  </section>
+
+  <section id="t-exam">
+    <div id="eback"></div>
+    <h2>📝 Modo examen</h2>
+    <div class="card" style="font-size:13px;font-weight:700">10 preguntas mezcladas de lo que has dado, sin pistas. Al final te doy la nota (8 🪙 por acierto, +20 si sacas un 9 o más).</div>
+    <div class="pbar"><i id="ebar"></i></div>
+    <div class="qtop"><div class="qpet" id="epet"></div><div class="qbubble" id="etext"></div></div>
+    <div class="opts" id="eopts"></div>
+    <div id="eres" style="margin-top:10px"></div>
+  </section>
+
+  <section id="t-poema">
+    <div id="pback"></div>
+    <h2>🎤 Taller de poemas</h2>
+    <div class="card" style="font-size:13.5px;font-weight:700">Vamos a escribir tu poema para el festival, paso a paso. Al guardarlo (4 versos o más) ganas 30 🪙, y al grabar tu ensayo, 10 🪙 al día.</div>
+    <div class="card"><b>1️⃣ Elige el tema</b><div class="chips" id="ptemas" style="flex-wrap:wrap;margin:6px 0"></div>
+      <input class="pin" id="ptopic" placeholder="¿Sobre qué exactamente? Ej.: los semáforos, la pizza, mi gato…"></div>
+    <div class="card"><b>2️⃣ ¿Cómo es? ¿Qué te hace sentir?</b>
+      <input class="pin" placeholder="Forma y color: Ej.: alto, con tres ojos de colores">
+      <input class="pin" placeholder="Olor, sabor o sonido: Ej.: hace pip pip">
+      <input class="pin" placeholder="Carácter: Ej.: serio, mandón, me vigila">
+      <input class="pin" placeholder="¿Qué sientes? Ej.: me da un poco de miedo"></div>
+    <div class="card"><b>3️⃣ Inventa una comparación</b> <small>(usa «como»)</small>
+      <input class="pin" id="pc1" placeholder="¿Qué? Ej.: El semáforo">
+      <input class="pin" id="pc2" placeholder="es como… Ej.: un monstruo de ojos verticales">
+      <input class="pin" id="pc3" placeholder="(opcional) porque… Ej.: que nunca duerme">
+      <button class="btn blue" style="width:100%;margin-top:4px" onclick="addComp()">➕ Añadir a mi poema</button></div>
+    <div class="card"><b>4️⃣ Inventa una metáfora</b> <small>(una cosa ES otra)</small>
+      <div class="row2"><input class="pin" id="pm1" placeholder="El semáforo"><input class="pin" id="pm2" placeholder="un árbitro imparcial"></div>
+      <button class="btn blue" style="width:100%;margin-top:4px" onclick="addMeta()">➕ Añadir a mi poema</button></div>
+    <div class="card"><b>5️⃣ Busca palabras que rimen</b>
+      <div class="row2"><input class="pin" id="prw" placeholder="Ej.: calle, peatón, cruce…"><button class="btn orange" style="flex:0 0 96px" onclick="doRhymes()">🔎 Buscar</button></div>
+      <div id="prr" style="font-size:13.5px;margin-top:6px"></div></div>
+    <div class="card"><b>6️⃣ Escribe tu poema</b> <small>(cada renglón es un verso)</small>
+      <input class="pin" id="ptitle" placeholder="Título del poema">
+      <textarea class="pin" id="ptext" placeholder="Escribe aquí tus versos…"></textarea>
+      <div id="pinfo" style="font-size:13px;margin:6px 0"></div>
+      <div class="row2"><button class="btn green" onclick="savePoem()">💾 Guardar</button><button class="btn blue" onclick="recitePoem()">🐾 Que lo recite</button></div>
+      <button class="btn" style="width:100%;margin-top:8px;background:#ddd;color:#333" onclick="newPoem()">📄 Empezar un poema nuevo</button></div>
+    <div class="card"><b>7️⃣ Ensaya para el festival</b>
+      <div style="font-size:13px;margin:6px 0">💡 Cambia la voz según el sentimiento (alegre, triste, misterioso), haz una pausa al final de cada verso, mira al público y acompaña con gestos. Si te equivocas, sigue con calma y una sonrisa.</div>
+      <button class="btn pink big" id="precbtn" onclick="toggleRec()">🎤 Grabarme recitando</button>
+      <div id="paudio" style="margin-top:8px"></div></div>
+    <h2>📚 Mis poemas</h2>
+    <div id="pmine"></div>
   </section>
 
   <section id="t-logros">
@@ -1262,6 +1327,7 @@ const W=['ca-mión','can-ción','ra-tón','a-vión','li-món','co-ra-zón','ja-b
 'ár-bol','lá-piz','fá-cil','di-fí-cil','ca-rác-ter','cés-ped','ál-bum','mó-vil','dé-bil','a-zú-car','tú-nel','már-mol','cón-dor','ú-til','án-gel','cár-cel',
 'ca-sa','me-sa','pe-rro','ca-mi-no','ven-ta-na','es-cue-la','pla-ya','flo-res','jo-ven','e-xa-men','man-za-na','ca-mi-sa','pin-güi-no','li-bro','mon-ta-ña','pa-ra-guas','za-pa-tos','tor-tu-ga','ma-ri-po-sa','re-ga-lo','co-le-gio','lu-nes','mar-tes',
 'pá-ja-ro','lá-gri-ma','mú-si-ca','mé-di-co','plá-ta-no','brú-ju-la','sá-ba-do','nú-me-ro','pá-gi-na','cá-ma-ra','re-lám-pa-go','mur-cié-la-go','te-lé-fo-no','bo-lí-gra-fo','An-tár-ti-da','ma-te-má-ti-cas','sí-la-ba','ví-bo-ra','pi-rá-mi-de','có-di-go','pú-bli-co','cás-ca-ra','fan-tás-ti-co','sim-pá-ti-co','ú-ni-co','pe-lí-cu-la','ár-bi-tro','lám-pa-ra','rá-pi-do'];
+window.DICTH = W.slice();
 const MONO=['sol','mar','pan','flor','luz','miel','pie','tren','sal','mes','pez','voz','gris','cien'];
 const ACC={a:'á',e:'é',i:'í',o:'ó',u:'ú'},UN={'á':'a','é':'e','í':'i','ó':'o','ú':'u'};
 const hasAcc=x=>/[áéíóú]/.test(x);
@@ -1883,7 +1949,7 @@ function tab(t){
   curTab = t;
   var bs = document.querySelectorAll('nav button');
   for (var i = 0; i < bs.length; i++) bs[i].classList.toggle('on', bs[i].dataset.t === t);
-  ['pet', 'quiz', 'apr', 'av', 'shop', 'logros'].forEach(function(x){ $('t-' + x).classList.toggle('on', x === t); });
+  ['pet', 'quiz', 'apr', 'av', 'shop', 'logros', 'dict', 'exam', 'poema'].forEach(function(x){ $('t-' + x).classList.toggle('on', x === t); });
   if (t !== 'av') trying = null;
   window.scrollTo(0, 0);
   if (t === 'pet') { renderPet(); say(moodPhrase()); }
@@ -1895,6 +1961,272 @@ function tab(t){
   renderBuyBar();
 }
 function renderAll(){ renderHeader(); renderPet(); if (curTab === 'av') renderAv(); if (curTab === 'shop') renderShop(); }
+
+/* ======================= extras: dictado, examen y taller de poemas ======================= */
+var UNACC = {'á':'a','é':'e','í':'i','ó':'o','ú':'u'};
+function stripAcc(t){ return String(t).replace(/[áéíóú]/g, function(c){ return UNACC[c]; }); }
+function hasTilde(t){ return /[áéíóú]/.test(t); }
+function petMiniSVG(mood){ return S.pet ? petSVG(S.pet, mood || 'pensar', S.pet.acc) : '<div style="font-size:60px;text-align:center">🐣</div>'; }
+function backBtn(){ return '<button class="btn" style="background:#ddd;color:#333;padding:8px 14px;font-size:13px;margin-bottom:6px" onclick="tab(\'quiz\')">⬅ Volver a preguntas</button>'; }
+function wordRule(h){
+  var sy = h.split('-'), w = sy.join('').toLowerCase(), n = sy.length, ti = -1;
+  for (var i = 0; i < n; i++) if (hasTilde(sy[i])) ti = i;
+  if (ti < 0) { var l = stripAcc(w).slice(-1); ti = /[aeiouns]/.test(l) ? n - 2 : n - 1; }
+  if (n === 1) return '«' + w + '» es monosílaba.';
+  var pos = n - ti, tipo = pos === 1 ? 'aguda' : pos === 2 ? 'llana' : 'esdrújula';
+  var donde = pos === 1 ? 'la última' : pos === 2 ? 'la penúltima' : 'la antepenúltima';
+  var regla;
+  if (hasTilde(w)) regla = pos === 1 ? 'Es aguda y termina en -n, -s o vocal: lleva tilde.' : pos === 2 ? 'Es llana y termina en consonante que no es -n ni -s: lleva tilde.' : 'Es esdrújula: las esdrújulas siempre llevan tilde.';
+  else regla = pos === 1 ? 'Es aguda pero no termina en -n, -s ni vocal: no lleva tilde.' : 'Es llana y termina en vocal, -n o -s: no lleva tilde.';
+  return 'Se separa ' + sy.join('-').toLowerCase() + '. Suena más fuerte «' + sy[ti].toLowerCase() + '», ' + donde + ' sílaba: es ' + tipo + '. ' + regla;
+}
+
+/* ---------- dictado ---------- */
+var D = null;
+function startDict(){
+  if (!S.dseen) S.dseen = {};
+  var words = shuffle(DICTH.slice()).sort(function(a, b){ return (S.dseen[a] || 0) - (S.dseen[b] || 0); });
+  var con = words.filter(function(h){ return hasTilde(h); }).slice(0, 6), sin = words.filter(function(h){ return !hasTilde(h); }).slice(0, 4);
+  D = {list:shuffle(con.concat(sin)), i:0, ok:0, coins:0, done:false};
+  tab('dict'); showDict();
+}
+function showDict(){
+  var h = D.list[D.i], w = h.replace(/-/g, '').toLowerCase();
+  D.done = false;
+  $('dpet').innerHTML = petMiniSVG('pensar');
+  $('dtext').innerHTML = '<small>✍️ Dictado · palabra ' + (D.i + 1) + ' de ' + D.list.length + '</small>Escucha y escribe la palabra. ¡Ojo con la tilde! 🔊';
+  $('din').value = ''; $('din').disabled = false; $('dres').innerHTML = ''; $('dnext').style.display = 'none'; $('dcheck').style.display = '';
+  $('dbar').style.width = (D.i * 100 / D.list.length) + '%';
+  setTimeout(function(){ sayWord(true); }, 300);
+  setTimeout(function(){ try { $('din').focus(); } catch (e) {} }, 400);
+}
+function sayWord(intro){ if (!D || D.i >= D.list.length) return; var w = D.list[D.i].replace(/-/g, '').toLowerCase(); if (!S.sound) { toast('🗣️ Activa la voz (botón de arriba) para oír el dictado'); return; } speak((intro ? 'Escribe: ' : '') + w); }
+function checkDict(){
+  if (!D || D.done) return;
+  var h = D.list[D.i], w = h.replace(/-/g, '').toLowerCase(), v = $('din').value.trim().toLowerCase().replace(/\s+/g, ' ');
+  if (!v) { toast('Escribe la palabra primero ✍️'); return; }
+  D.done = true; $('din').disabled = true; S.dseen[h] = (S.dseen[h] || 0) + 1;
+  var rule = '<span class="fact">📘 ' + wordRule(h) + '</span>', msg, voice;
+  if (v === w) {
+    D.ok++; D.coins += 5; addCoins(5); addXp(5); S.catOk.til = (S.catOk.til || 0) + 1; S.catAns.til = (S.catAns.til || 0) + 1;
+    msg = '✅ ¡Perfecto! Se escribe <b>' + w + '</b>. +5 🪙'; voice = '¡Perfecto!'; sfx('ok'); quizMood = 'celebra';
+  } else if (stripAcc(v) === stripAcc(w)) {
+    S.catAns.til = (S.catAns.til || 0) + 1;
+    var why = hasTilde(w) ? (hasTilde(v) ? 'la tilde va en otra vocal' : 'te ha faltado la tilde') : 'esta palabra no lleva tilde';
+    msg = '🟡 ¡Casi! Las letras están bien, pero ' + why + '. Se escribe <b>' + w + '</b>. +1 🪙'; voice = '¡Casi! ' + why; D.coins += 1; addCoins(1); sfx('bad');
+  } else {
+    S.catAns.til = (S.catAns.til || 0) + 1;
+    msg = '❌ Se escribe <b>' + w + '</b> (tú has escrito «' + esc(v) + '»).'; voice = 'Se escribe ' + w; sfx('bad');
+  }
+  $('dres').innerHTML = '<div class="card" style="font-weight:700">' + msg + rule + '</div>';
+  speak(voice + '. ' + wordRule(h));
+  checkStickers(); checkMedals(); save();
+  $('dcheck').style.display = 'none'; $('dnext').style.display = '';
+  $('dnext').textContent = D.i + 1 < D.list.length ? 'Siguiente palabra ▶' : 'Ver resultado 🏆';
+}
+function nextDict(){
+  D.i++;
+  if (D.i < D.list.length) { showDict(); return; }
+  var bonus = D.ok === D.list.length ? 20 : 0; if (bonus) addCoins(bonus);
+  $('dbar').style.width = '100%';
+  $('dpet').innerHTML = petMiniSVG(D.ok >= 7 ? 'celebra' : 'normal');
+  $('dtext').innerHTML = '<small>✍️ Dictado terminado</small>Has escrito bien <b>' + D.ok + ' de ' + D.list.length + '</b> palabras. Has ganado ' + (D.coins + bonus) + ' 🪙' + (bonus ? ' (¡+20 por hacerlo perfecto!)' : '');
+  $('din').disabled = true; $('dcheck').style.display = 'none'; $('dres').innerHTML = '<button class="btn pink big" onclick="startDict()">🔁 Otro dictado</button>';
+  $('dnext').style.display = 'none';
+  speak('Has escrito bien ' + D.ok + ' de ' + D.list.length + ' palabras');
+  if (D.ok >= 8) sfx('level');
+  save();
+}
+
+/* ---------- modo examen ---------- */
+var E = null;
+function examPick(n){
+  var parts = dadosList().length ? dadosList() : PARTS.map(function(p){ return p[0]; });
+  if (!S.seen) S.seen = {};
+  var lists = shuffle(parts).map(function(p){
+    var ids = []; for (var i = 0; i < Q.length; i++) if (Q[i][0] === p) ids.push(i);
+    return shuffle(ids).sort(function(a, b){ return (S.seen[QK[a]] || 0) - (S.seen[QK[b]] || 0); });
+  });
+  var out = [], k = 0;
+  while (out.length < n && lists.some(function(l){ return l.length; })) { var l = lists[k % lists.length]; if (l.length) out.push(l.shift()); k++; }
+  return shuffle(out);
+}
+function startExam(){
+  E = {qs:examPick(10).map(function(i){ S.seen[QK[i]] = (S.seen[QK[i]] || 0) + 1; return staticQ(i); }), i:0, ans:[]};
+  tab('exam'); showExam();
+}
+function showExam(){
+  var q = E.qs[E.i];
+  $('ebar').style.width = (E.i * 100 / E.qs.length) + '%';
+  $('epet').innerHTML = petMiniSVG('pensar');
+  $('etext').innerHTML = '<small>📝 Examen · pregunta ' + (E.i + 1) + ' de ' + E.qs.length + ' · sin pistas</small>' + q.q;
+  $('eopts').innerHTML = q.opts.map(function(o, i){ return '<button class="opt" data-o="' + i + '"><span>' + 'ABCD'[i] + '</span>' + o + '</button>'; }).join('');
+  $('eres').innerHTML = '';
+  speak(q.q + '. ' + q.opts.map(function(o, i){ return 'ABCD'[i] + ': ' + o; }).join('. '));
+}
+function answerExam(i){
+  var q = E.qs[E.i]; E.ans.push(q.opts[i]);
+  var b = $('eopts').querySelectorAll('.opt')[i]; b.style.background = '#e9e2ff'; sfx('tap');
+  setTimeout(function(){ E.i++; if (E.i < E.qs.length) showExam(); else finishExam(); }, 250);
+}
+function finishExam(){
+  var ok = 0, fails = [];
+  E.qs.forEach(function(q, k){
+    S.stats.answered++; S.catAns[q.cat] = (S.catAns[q.cat] || 0) + 1;
+    if (E.ans[k] === q.ok) { ok++; S.stats.correct++; S.catOk[q.cat] = (S.catOk[q.cat] || 0) + 1; }
+    else { fails.push([q, E.ans[k]]); if (q.key && S.wrong.indexOf(q.key) < 0) { S.wrong.push(q.key); if (S.wrong.length > 60) S.wrong.shift(); } }
+  });
+  var nota = Math.round(ok * 100 / E.qs.length) / 10, earn = ok * 8 + (nota >= 9 ? 20 : 0);
+  addCoins(earn); addXp(ok * 8);
+  if (!S.exams) S.exams = [];
+  S.exams.push({d:today(), n:nota}); if (S.exams.length > 10) S.exams.shift();
+  var msg = nota >= 9 ? '¡Sobresaliente! 🌟' : nota >= 7 ? '¡Notable! 👏' : nota >= 5 ? '¡Aprobado! 🙂' : '¡A repasar! 💪';
+  $('ebar').style.width = '100%';
+  $('epet').innerHTML = petMiniSVG(nota >= 5 ? 'celebra' : 'triste');
+  $('etext').innerHTML = '<small>📝 Resultado del examen</small><span class="bige">' + nota + '</span>' + msg + ' Has acertado ' + ok + ' de ' + E.qs.length + '. +' + earn + ' 🪙';
+  $('eopts').innerHTML = '';
+  var hist = S.exams.slice().reverse().map(function(x){ return x.d + ': <b>' + x.n + '</b>'; }).join(' · ');
+  $('eres').innerHTML = (fails.length ? '<h2>❌ Para repasar (ya están en 📝 Repaso)</h2>' + fails.map(function(f){ return '<div class="card" style="font-size:14px"><b>' + f[0].q + '</b><br>Tu respuesta: ' + esc(f[1]) + '<br>✅ Correcta: <b>' + f[0].ok + '</b>' + (f[0].fact ? '<span class="fact">📘 ' + f[0].fact + '</span>' : '') + '</div>'; }).join('') : '<div class="card" style="font-weight:800">¡Ningún fallo! 🎉</div>') +
+    '<div class="card" style="font-size:13px">📈 Tus últimos exámenes: ' + hist + '</div><button class="btn pink big" onclick="startExam()">🔁 Otro examen</button>';
+  speak('Tu nota es ' + String(nota).replace('.', ' coma ') + '. ' + msg);
+  sfx(nota >= 5 ? 'level' : 'bad');
+  checkStickers(); checkMedals(); save();
+}
+
+/* ---------- taller de poemas ---------- */
+var RWORDS = (function(){
+  var extra = ['amigo','trigo','abrigo','canción','ilusión','corazón','emoción','montaña','araña','castaña','mañana','ventana','hermana','semana','helado','prado','soldado','dorado','pescado','tejado','cielo','vuelo','pelo','hielo','abuelo','caramelo','río','frío','mío','tío','nieve','breve','llueve','mueve','calle','valle','detalle','cruce','luce','dulce','peatón','montón','cartón','botón','reloj','rojo','ojo','antojo','verde','pierde','semáforo','farola','sola','ola','cola','bola','hola','escuela','abuela','vela','canela','pingüino','camino','destino','vecino','fino','marino','barco','arco','charco','sol','girasol','farol','caracol','flor','color','amor','calor','olor','tambor','luna','cuna','una','alguna','estrella','bella','huella','botella','rosa','mariposa','cosa','hermosa','gato','pato','zapato','plato','rato','ratón','balón','limón','avión','camión','dragón','fuente','puente','gente','diente','valiente','mar','cantar','jugar','volar','soñar','pan','tren','sartén','también','papel','miel','cartel','pastel','árbol','fútbol','lápiz','nariz','feliz','perdiz','verdad','ciudad','amistad','tortuga','oruga','lechuga','pizza','sopa','tarta','fresa','mesa','princesa','sorpresa','monstruo','hada','nada','espada','mirada','alegría','día','tranquilo','hilo','grillo','brillo','castillo','amarillo','bosque','duende','planeta','cometa','bicicleta','galleta','maleta','poeta'];
+  var all = {}; DICTH.forEach(function(h){ all[h.replace(/-/g, '').toLowerCase()] = 1; }); extra.forEach(function(w){ all[w] = 1; });
+  return Object.keys(all);
+})();
+function nuclei(w){
+  w = w.toLowerCase().replace(/qu([eéií])/g, 'q$1').replace(/gu([eéií])/g, 'g$1').replace(/ü/g, 'u').replace(/y$/, 'i');
+  var V = 'aeiouáéíóú', strong = 'aeoáéóíú', res = [], i = 0;
+  while (i < w.length) {
+    if (V.indexOf(w[i]) < 0) { i++; continue; }
+    var j = i + 1;
+    while (j < w.length && V.indexOf(w[j]) >= 0) { if (strong.indexOf(w[j - 1]) >= 0 && strong.indexOf(w[j]) >= 0) break; j++; }
+    res.push([i, j]); i = j;
+  }
+  return {w:w, n:res};
+}
+function rhymeKeys(word){
+  var x = nuclei(word.replace(/[^a-záéíóúüñ]/gi, '')), w = x.w, n = x.n; if (!n.length) return null;
+  var si = -1;
+  for (var k = 0; k < n.length; k++) if (/[áéíóú]/.test(w.slice(n[k][0], n[k][1]))) si = k;
+  if (si < 0) si = /[aeiouns]$/.test(w) && n.length > 1 ? n.length - 2 : n.length - 1;
+  var nu = w.slice(n[si][0], n[si][1]), off = n[si][0];
+  var sv = 0; for (var q = 0; q < nu.length; q++) if ('aeoáéó'.indexOf(nu[q]) >= 0 || /[áéíóú]/.test(nu[q])) { sv = q; break; } else sv = nu.length - 1;
+  var cons = stripAcc(w.slice(off + sv));
+  var last = n[n.length - 1], ln = stripAcc(w.slice(last[0], last[1])), lv = ln.replace(/^[iu](?=[aeo])/, '').replace(/([aeo])[iu]$/, '$1');
+  var aso = stripAcc(w[off + sv]) + (si < n.length - 1 ? lv[lv.length - 1] : '');
+  return {c:cons, a:aso};
+}
+function findRhymes(word){
+  var k = rhymeKeys(word); if (!k) return null;
+  var me = stripAcc(word.toLowerCase()), con = [], aso = [];
+  RWORDS.forEach(function(r){ if (stripAcc(r) === me) return; var rk = rhymeKeys(r); if (!rk) return; if (rk.c === k.c) con.push(r); else if (rk.a === k.a) aso.push(r); });
+  return {c:shuffle(con).slice(0, 18), a:shuffle(aso).slice(0, 18)};
+}
+var PT = {tema:'', poemId:null, rec:null, chunks:[], url:null};
+function openPoema(){ tab('poema'); renderPoema(); }
+function renderPoema(){
+  var temas = [['comida','🍕 Comida'], ['animales','🐾 Animales'], ['fantasticos','🐉 Seres fantásticos'], ['urbanos','🚦 Elementos urbanos'], ['otro','✨ Otro']];
+  $('ptemas').innerHTML = temas.map(function(t){ return '<button class="chip' + (PT.tema === t[0] ? ' on' : '') + '" data-pt="' + t[0] + '">' + t[1] + '</button>'; }).join('');
+  analysePoem();
+  renderMyPoems();
+}
+function addLine(t){ var ta = $('ptext'); ta.value = (ta.value.replace(/\s+$/, '') + (ta.value.trim() ? '\n' : '') + t); analysePoem(); toast('➕ Añadido a tu poema'); }
+function addComp(){
+  var a = $('pc1').value.trim(), b = $('pc2').value.trim(), c = $('pc3').value.trim();
+  if (!a || !b) { toast('Rellena al menos las dos primeras casillas'); return; }
+  addLine(a.charAt(0).toUpperCase() + a.slice(1) + ' es como ' + b + (c ? ', ' + c : ''));
+}
+function addMeta(){
+  var a = $('pm1').value.trim(), b = $('pm2').value.trim();
+  if (!a || !b) { toast('Rellena las dos casillas'); return; }
+  addLine(a.charAt(0).toUpperCase() + a.slice(1) + ' es ' + b);
+}
+function doRhymes(){
+  var w = $('prw').value.trim().split(/\s+/).pop();
+  if (!w) { toast('Escribe una palabra'); return; }
+  var r = findRhymes(w), box = $('prr');
+  if (!r) { box.innerHTML = ''; return; }
+  function list(a){ return a.length ? a.map(function(x){ return '<button class="chip" data-rw="' + x + '">' + x + '</button>'; }).join('') : '<i>No encuentro ninguna en mi lista. Prueba con otra palabra del tema.</i>'; }
+  box.innerHTML = '<b>Rima consonante</b> (suena igual desde la vocal fuerte):<div class="chips" style="flex-wrap:wrap">' + list(r.c) + '</div><b>Rima asonante</b> (solo coinciden las vocales):<div class="chips" style="flex-wrap:wrap">' + list(r.a) + '</div><small>Toca una palabra para buscar sus rimas.</small>';
+}
+function analysePoem(){
+  var lines = $('ptext').value.split('\n').map(function(l){ return l.trim(); }).filter(function(l){ return l; });
+  if (!lines.length) { $('pinfo').innerHTML = 'Cada renglón es un <b>verso</b>. Cuando escribas, aquí verás qué versos riman.'; return; }
+  var keys = lines.map(function(l){ var ws = l.replace(/[¡!¿?.,;:«»"()…\-]/g, ' ').trim().split(/\s+/); var w = ws[ws.length - 1] || ''; return {w:w, k:rhymeKeys(w)}; });
+  var cc = {}, ac = {};
+  keys.forEach(function(x){ if (x.k) { cc[x.k.c] = (cc[x.k.c] || 0) + 1; ac[x.k.a] = (ac[x.k.a] || 0) + 1; } });
+  var L = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', used = {}, li = 0, rimas = 0;
+  var tags = keys.map(function(x){
+    if (!x.k) return '';
+    if (cc[x.k.c] > 1) { var id = 'c' + x.k.c; if (!used[id]) used[id] = L[li++ % 26]; rimas++; return used[id] + ' · consonante'; }
+    if (ac[x.k.a] > 1) { var id2 = 'a' + x.k.a; if (!used[id2]) used[id2] = L[li++ % 26].toLowerCase(); rimas++; return used[id2] + ' · asonante'; }
+    return 'no rima';
+  });
+  $('pinfo').innerHTML = '<b>' + lines.length + ' versos</b>' + (rimas ? ' · ' + rimas + ' versos riman' : ' · aún no riman') + '<br>' + keys.map(function(x, i){ return 'Verso ' + (i + 1) + ' → «' + esc(x.w) + '» <b>' + tags[i] + '</b>'; }).join('<br>');
+}
+function savePoem(){
+  var t = $('ptitle').value.trim() || 'Mi poema', txt = $('ptext').value.trim();
+  var nv = txt.split('\n').filter(function(l){ return l.trim(); }).length;
+  if (nv < 2) { toast('Escribe al menos 2 versos'); return; }
+  if (!S.poems) S.poems = [];
+  var p = PT.poemId ? S.poems.filter(function(x){ return x.id === PT.poemId; })[0] : null;
+  if (p) { p.t = t; p.txt = txt; p.d = today(); }
+  else { p = {id:Date.now(), t:t, txt:txt, d:today(), paid:false}; S.poems.unshift(p); PT.poemId = p.id; }
+  if (!p.paid && nv >= 4) { p.paid = true; addCoins(30); addXp(20); sfx('level'); toast('💾 ¡Poema guardado! +30 🪙'); } else { sfx('coin'); toast('💾 Poema guardado'); }
+  save(); renderMyPoems();
+}
+function recitePoem(txt){
+  txt = txt || $('ptext').value.trim(); if (!txt) { toast('Primero escribe tu poema'); return; }
+  if (!S.sound) { toast('🗣️ Activa la voz (botón de arriba)'); return; }
+  var t = ($('ptitle').value.trim() || '');
+  speak((t ? t + '. ' : '') + txt.split('\n').filter(function(l){ return l.trim(); }).join('. '));
+}
+function renderMyPoems(){
+  var ps = S.poems || [];
+  $('pmine').innerHTML = ps.length ? ps.map(function(p){ return '<div class="card" style="font-size:14px"><b>📜 ' + esc(p.t) + '</b> <small>(' + p.d + ')</small><div style="white-space:pre-line;margin:6px 0">' + esc(p.txt) + '</div><button class="btn blue" style="padding:7px 10px;font-size:12.5px" onclick="recitePoemId(' + p.id + ')">🐾 Recitar</button> <button class="btn" style="padding:7px 10px;font-size:12.5px" onclick="editPoem(' + p.id + ')">✏️ Editar</button> <button class="btn red" style="padding:7px 10px;font-size:12.5px" onclick="delPoem(' + p.id + ')">🗑️</button></div>'; }).join('') : '<div class="card">Aún no has guardado ningún poema.</div>';
+}
+function findPoem(id){ return (S.poems || []).filter(function(x){ return x.id === id; })[0]; }
+function recitePoemId(id){ var p = findPoem(id); if (p) speak(p.t + '. ' + p.txt.split('\n').filter(function(l){ return l.trim(); }).join('. ')); }
+function editPoem(id){ var p = findPoem(id); if (!p) return; PT.poemId = id; $('ptitle').value = p.t; $('ptext').value = p.txt; analysePoem(); $('ptext').scrollIntoView({behavior:'smooth', block:'center'}); }
+function delPoem(id){ S.poems = (S.poems || []).filter(function(x){ return x.id !== id; }); if (PT.poemId === id) PT.poemId = null; save(); renderMyPoems(); }
+function newPoem(){ PT.poemId = null; $('ptitle').value = ''; $('ptext').value = ''; analysePoem(); }
+function toggleRec(){
+  if (PT.rec && PT.rec.state === 'recording') { PT.rec.stop(); return; }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) { toast('🎤 Este móvil no deja grabar aquí'); return; }
+  navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+    try { if (B && B.stopSpeak) B.stopSpeak(); } catch (e) {}
+    window.pauseAll && pauseAll();
+    PT.chunks = []; PT.rec = new MediaRecorder(stream);
+    PT.rec.ondataavailable = function(e){ if (e.data && e.data.size) PT.chunks.push(e.data); };
+    PT.rec.onstop = function(){
+      stream.getTracks().forEach(function(t){ t.stop(); });
+      if (PT.url) URL.revokeObjectURL(PT.url);
+      PT.url = URL.createObjectURL(new Blob(PT.chunks, {type:PT.rec.mimeType || 'audio/webm'}));
+      $('precbtn').textContent = '🎤 Grabarme otra vez'; $('precbtn').className = 'btn pink big';
+      $('paudio').innerHTML = '<div class="card" style="font-weight:700">▶ Escucha cómo lo has recitado:<audio controls src="' + PT.url + '" style="width:100%;margin-top:8px"></audio><small>¿Has cambiado la voz según el sentimiento? ¿Has hecho pausas al final de cada verso?</small></div>';
+      window.resumeAll && resumeAll();
+      if (!S.recCoins || S.recCoins !== today()) { S.recCoins = today(); addCoins(10); toast('🎤 ¡Ensayo grabado! +10 🪙 (una vez al día)'); save(); }
+    };
+    PT.rec.start();
+    $('precbtn').textContent = '⏹ Parar la grabación'; $('precbtn').className = 'btn red big';
+    $('paudio').innerHTML = '<div class="card" style="font-weight:800;color:#dc2626">🔴 Grabando… recita tu poema</div>';
+  }).catch(function(){ toast('🎤 Necesito permiso para usar el micrófono'); });
+}
+function bindExtras(){
+  $('extras').addEventListener('click', function(e){ var b = e.target.closest('button'); if (!b) return; var x = b.dataset.x; if (x === 'dict') startDict(); if (x === 'exam') startExam(); if (x === 'poema') openPoema(); });
+  $('dcheck').onclick = checkDict; $('dnext').onclick = nextDict; $('dsay').onclick = function(){ sayWord(false); };
+  $('din').addEventListener('keydown', function(e){ if (e.key === 'Enter') { if (D && !D.done) checkDict(); else if (D && D.i < D.list.length) nextDict(); } });
+  $('eopts').addEventListener('click', function(e){ var b = e.target.closest('.opt'); if (b && E && E.i < E.qs.length && !b.disabled) { var bs = $('eopts').querySelectorAll('.opt'); for (var i = 0; i < bs.length; i++) bs[i].disabled = true; answerExam(+b.dataset.o); } });
+  $('ptemas').addEventListener('click', function(e){ var b = e.target.closest('.chip'); if (!b) return; PT.tema = b.dataset.pt; renderPoema(); });
+  $('prr').addEventListener('click', function(e){ var b = e.target.closest('.chip'); if (!b) return; $('prw').value = b.dataset.rw; doRhymes(); });
+  $('ptext').addEventListener('input', analysePoem);
+}
 
 /* ======================= aprende (tema 3) ======================= */
 var aprView = null;
@@ -1980,6 +2312,8 @@ function bind(){
   $('modalBox').addEventListener('click', function(e){ var b = e.target.closest('#spGrid button'); if (!b) return; var old = SPECIES[chooseSp].name, inp = $('petNameIn'); chooseSp = b.dataset.s; if (inp && (!inp.value.trim() || inp.value.trim() === old)) inp.value = SPECIES[chooseSp].name; renderSp(); });
   $('mini').addEventListener('click', openFull);
   initApr();
+  bindExtras();
+  ['dback', 'eback', 'pback'].forEach(function(id){ $(id).innerHTML = backBtn(); });
   $('gsel').addEventListener('click', function(e){ var b = e.target.closest('button'); if (b) setGender(b.dataset.g); });
   setInterval(function(){ if (!MINI && S.pet) { updatePet(); save(); if (curTab === 'pet' && !tempMood) renderPet(); } }, 30000);
 }

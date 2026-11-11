@@ -1,8 +1,10 @@
 package com.estrella.mimundo
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
@@ -11,6 +13,8 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.speech.tts.TextToSpeech
 import android.webkit.JavascriptInterface
+import android.webkit.PermissionRequest
+import android.webkit.WebChromeClient
 import android.webkit.WebView
 import java.util.Locale
 
@@ -19,6 +23,10 @@ import java.util.Locale
  * Los datos se guardan en SharedPreferences («mundo»).
  */
 object Mundo {
+    /** Petición de micrófono pendiente mientras el sistema pregunta el permiso (ensayo del poema). */
+    var pendingMic: PermissionRequest? = null
+    const val MIC_CODE = 77
+
     @SuppressLint("SetJavaScriptEnabled", "JavascriptInterface")
     fun webView(activity: Activity, mini: Boolean, say: (String, String) -> Unit, hush: () -> Unit): WebView {
         val web = WebView(activity)
@@ -28,6 +36,24 @@ object Mundo {
         web.setBackgroundColor(Color.TRANSPARENT)
         web.isVerticalScrollBarEnabled = !mini
         web.addJavascriptInterface(Bridge(activity, mini, say, hush), "MundoApp")
+        // Micrófono para «Grabarme recitando» (taller de poemas)
+        web.webChromeClient = object : WebChromeClient() {
+            override fun onPermissionRequest(request: PermissionRequest) {
+                activity.runOnUiThread {
+                    if (request.resources.contains(PermissionRequest.RESOURCE_AUDIO_CAPTURE)) {
+                        if (activity.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                            request.grant(arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE))
+                        } else {
+                            pendingMic?.deny()
+                            pendingMic = request
+                            activity.requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), MIC_CODE)
+                        }
+                    } else {
+                        request.deny()
+                    }
+                }
+            }
+        }
         val html = activity.assets.open("mundo.html").bufferedReader(Charsets.UTF_8).use { it.readText() }
         web.loadDataWithBaseURL("https://mundo.local/", html, "text/html", "UTF-8", null)
         return web
@@ -103,6 +129,18 @@ class MainActivity : Activity() {
         setLang(t, lang)
         // Las palabras en inglés van a la cola para no cortar lo que esté diciendo en español.
         t.speak(text, if (lang == "en") TextToSpeech.QUEUE_ADD else TextToSpeech.QUEUE_FLUSH, null, "mascota")
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode != Mundo.MIC_CODE) return
+        val req = Mundo.pendingMic ?: return
+        Mundo.pendingMic = null
+        if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            req.grant(arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE))
+        } else {
+            req.deny()
+        }
     }
 
     override fun onPause() {
