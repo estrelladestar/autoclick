@@ -19,7 +19,41 @@ import java.io.File
 class CommentActivity : Activity() {
     /** Guion fijo: siempre está en «Guiones guardados», no se puede borrar y es el que pone «Restaurar». */
     private val fixedName = "⭐ Mi guion (fijo)"
-    private val defaultScript = """cuentas cory_gm0 nuberosa56 del_mar190 amimanera6 mama.dedylan morenina.iscar comoyoquiero1 mimi88red
+    private val defaultScript = """enlace
+esperar 8
+imagen 1 | 3-8
+escribir menciones 1
+esperar 3-8
+imagen 3 | 3-8
+mirar azar
+imagen 2 | 3-8
+escribir menciones 1
+esperar 3-8
+imagen 3 | 3-8
+historias 3-5
+enlace
+esperar 8
+imagen 1 | 3-8
+escribir menciones 1
+esperar 3-8
+imagen 3 | 3-8
+mirar azar
+imagen 2 | 3-8
+escribir menciones 1
+esperar 3-8
+imagen 3 | 3-8
+mirar azar
+imagen 2 | 3-8
+escribir menciones 1
+esperar 3-8
+imagen 3 | 3-8
+inicio azar
+descanso 1-2
+cuenta siguiente
+repetir 1000"""
+    /** El guion fijo de antes (con la línea «cuentas» y 10 comentarios de 2 menciones). */
+    private val previousName = "⭐ Guion anterior (fijo)"
+    private val previousScript = """cuentas cory_gm0 nuberosa56 del_mar190 amimanera6 mama.dedylan morenina.iscar comoyoquiero1 mimi88red
 enlace
 esperar 8
 imagen 1 | 3-8
@@ -157,6 +191,11 @@ repetir 8"""
             testBar.addView(this, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { setMargins(4, 0, 4, 0) })
         }
         Button(ctx).apply {
+            text = "🔒 Cambiar contraseña"
+            setOnClickListener { AppLock.change(this@CommentActivity) }
+            root.addView(this)
+        }
+        Button(ctx).apply {
             text = "❌ Quitar botón flotante (y parar)"
             setOnClickListener {
                 val s = ClickService.instance
@@ -288,7 +327,11 @@ repetir 8"""
                 if (first) { first = false; return }
                 if (pos > 0) {
                     val name = savedSpinner.selectedItem.toString()
-                    val text = if (name == fixedName) defaultScript else loadScripts().optString(name, "")
+                    val text = when (name) {
+                        fixedName -> defaultScript
+                        previousName -> previousScript
+                        else -> loadScripts().optString(name, "")
+                    }
                     if (text.isNotEmpty()) script.setText(text)
                 }
             }
@@ -368,11 +411,13 @@ repetir 8"""
 
     override fun onPause() {
         super.onPause()
+        AppLock.onPause()
         saveAll()
     }
 
     override fun onResume() {
         super.onResume()
+        AppLock.check(this)
         // El Etiquetador puede haber cambiado los comentarios o las menciones mientras esta pantalla estaba en segundo plano.
         val c = prefs.getString("comments", "") ?: ""
         if (box.text.toString() != c) box.setText(c)
@@ -434,7 +479,7 @@ repetir 8"""
 
     // ---------- Copia de seguridad ----------
     /** Lo que no se copia: las imágenes (hay que hacerlas en cada móvil) y el registro. */
-    private val notInBackup = setOf("steps", "registro", "registro_menciones", "informe")
+    private val notInBackup = setOf("steps", "registro", "registro_menciones", "informe", "lock_hash", "lock_salt")
 
     private fun exportBackup() {
         saveAll()
@@ -824,8 +869,9 @@ repetir 8"""
         val names = ArrayList<String>()
         names.add("— elegir un guion guardado —")
         names.add(fixedName)
+        names.add(previousName)
         val it = loadScripts().keys()
-        while (it.hasNext()) { val n = it.next(); if (n != fixedName) names.add(n) }
+        while (it.hasNext()) { val n = it.next(); if (n != fixedName && n != previousName) names.add(n) }
         savedSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, names)
         if (select != null) savedSpinner.setSelection(names.indexOf(select).coerceAtLeast(0))
     }
@@ -838,8 +884,8 @@ repetir 8"""
             .setView(input)
             .setPositiveButton("Guardar") { _, _ ->
                 val name = input.text.toString().trim()
-                if (name == fixedName) {
-                    toast("Ese nombre es el del guion fijo. Elige otro nombre.")
+                if (name == fixedName || name == previousName) {
+                    toast("Ese nombre es el de un guion fijo. Elige otro nombre.")
                 } else if (name.isNotEmpty()) {
                     val all = loadScripts()
                     all.put(name, script.text.toString())
@@ -858,8 +904,8 @@ repetir 8"""
             return
         }
         val name = savedSpinner.selectedItem.toString()
-        if (name == fixedName) {
-            toast("El guion fijo no se puede borrar")
+        if (name == fixedName || name == previousName) {
+            toast("Los guiones fijos no se pueden borrar")
             return
         }
         val all = loadScripts()
