@@ -191,11 +191,6 @@ repetir 8"""
             testBar.addView(this, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { setMargins(4, 0, 4, 0) })
         }
         Button(ctx).apply {
-            text = "🔒 Cambiar contraseña"
-            setOnClickListener { AppLock.change(this@CommentActivity) }
-            root.addView(this)
-        }
-        Button(ctx).apply {
             text = "❌ Quitar botón flotante (y parar)"
             setOnClickListener {
                 val s = ClickService.instance
@@ -411,13 +406,11 @@ repetir 8"""
 
     override fun onPause() {
         super.onPause()
-        AppLock.onPause()
         saveAll()
     }
 
     override fun onResume() {
         super.onResume()
-        AppLock.check(this)
         // El Etiquetador puede haber cambiado los comentarios o las menciones mientras esta pantalla estaba en segundo plano.
         val c = prefs.getString("comments", "") ?: ""
         if (box.text.toString() != c) box.setText(c)
@@ -479,7 +472,7 @@ repetir 8"""
 
     // ---------- Copia de seguridad ----------
     /** Lo que no se copia: las imágenes (hay que hacerlas en cada móvil) y el registro. */
-    private val notInBackup = setOf("steps", "registro", "registro_menciones", "informe", "lock_hash", "lock_salt")
+    private val notInBackup = setOf("steps", "registro", "registro_menciones", "informe")
 
     private fun exportBackup() {
         saveAll()

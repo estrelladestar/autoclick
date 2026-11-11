@@ -200,7 +200,6 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
-        AppLock.check(this)
         steps = StepStore.load(this)
         refreshList()
         // El Etiquetador puede haber cambiado los enlaces mientras esta pantalla estaba en segundo plano.
@@ -214,7 +213,6 @@ class MainActivity : Activity() {
 
     override fun onPause() {
         super.onPause()
-        AppLock.onPause()
         saveSettings()
     }
 
