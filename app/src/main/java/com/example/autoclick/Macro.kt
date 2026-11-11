@@ -190,7 +190,17 @@ object Macro {
         service.showOverlay()
         service.setOverlayText("■")
         toast(service, "Guion iniciado. Toca ■ en el botón flotante para parar.")
-        Runner(service, cmds, repeats, comments, token, accounts.toList(), dailyLimit).step()
+        val r = Runner(service, cmds, repeats, comments, token, accounts.toList(), dailyLimit)
+        val myToken = token
+        val dog = object : Runnable {
+            override fun run() {
+                if (!running || token != myToken) return
+                r.watchdog()
+                main.postDelayed(this, 15_000L)
+            }
+        }
+        main.postDelayed(dog, 15_000L)
+        r.step()
     }
 
     fun stop() {
@@ -313,6 +323,10 @@ object Macro {
         private var reopens = 0
         /** Último paso apuntado en el informe (para no repetirlo en cada reintento). */
         private var tracedAt = -1
+        /** Cambia en cada llamada a step(): las respuestas que llegan tarde de un intento anterior se ignoran. */
+        private var stepGen = 0
+        /** Cuándo debería volver a moverse el guion; si pasa mucho más, la alarma de atasco lo reintenta. */
+        @Volatile var nextDue = System.currentTimeMillis()
         /** Paso (vuelta y línea) en el que ya se pulsó la caja de comentarios; así se espera a que se abra antes de escribir. */
         private var openedAt = -1
         private var commentIdx = 0
@@ -323,7 +337,19 @@ object Macro {
         private val pool = ArrayList<String>()
 
         private fun later(ms: Long) {
+            nextDue = System.currentTimeMillis() + ms
             main.postDelayed({ step() }, ms)
+        }
+
+        /** Alarma de atasco: el paso lleva más de un minuto sin responder (por ejemplo, una captura que no llegó). */
+        fun watchdog() {
+            if (id != token || !running) return
+            val late = System.currentTimeMillis() - nextDue
+            if (late > 60_000L) {
+                val c = cmds.getOrNull(i)
+                trace("⚠ atasco: el paso ${i + 1} (${c?.op}) lleva ${late / 1000} s sin responder; lo vuelvo a intentar")
+                retry("respuesta en el paso ${i + 1}")
+            }
         }
 
         private fun advance(ms: Long) {
@@ -345,6 +371,8 @@ object Macro {
 
         fun step() {
             if (id != token || !running) return
+            stepGen++
+            nextDue = System.currentTimeMillis()
             if (i >= cmds.size) {
                 loop++
                 if (loop >= repeats) {
@@ -514,7 +542,7 @@ object Macro {
          * Lo intenta hasta 3 veces; si no hay manera, para el guion y avisa.
          */
         private fun openAccountList(c: Cmd) {
-            val myTry = id
+            val myTry = stepGen
             when (listPhase) {
                 0 -> {
                     val p = profileIcon()
@@ -536,7 +564,7 @@ object Macro {
                 }
                 1, 4 -> {
                     checkListOpen { open ->
-                        if (myTry != token || !running) return@checkListOpen
+                        if (myTry != stepGen || id != token || !running) return@checkListOpen
                         if (open) {
                             trace("  la lista de cuentas está abierta")
                             advance(maxOf(c.extra(), 600L))
@@ -582,7 +610,7 @@ object Macro {
                         return
                     }
                     s.readScreen { lines ->
-                        if (myTry != token || !running) return@readScreen
+                        if (myTry != stepGen || id != token || !running) return@readScreen
                         val (w, h) = s.screenSize()
                         val nameRx = Regex("^@?[A-Za-z0-9._]{2,30}\\s*[vV⌄˅∨]?$")
                         val top = lines?.filter { it.second.centerY() > h * 0.035f && it.second.centerY() < h * 0.16f }
@@ -636,6 +664,7 @@ object Macro {
                 else -> (c.op + " " + c.arg).trim().take(14)
             }
             var t = "■ ${i + 1}/${cmds.size} $what"
+            if (tries > 0) t += " · intento $tries/$MAX_TRIES"
             val extra = ArrayList<String>()
             if (repeats > 1) extra.add("vuelta ${loop + 1}/$repeats")
             if (used > 0) extra.add("$used escritos")
@@ -682,9 +711,9 @@ object Macro {
 
         private fun tapImage(c: Cmd) {
             val n = c.arg.trim().toIntOrNull() ?: 1
-            val myTry = id
+            val myTry = stepGen
             s.locateSavedImage(n) { pos, missing ->
-                if (myTry != token || !running) return@locateSavedImage
+                if (myTry != stepGen || id != token || !running) return@locateSavedImage
                 when {
                     missing -> finish("No encuentro la imagen $n. Añádela en la app. Guion detenido.")
                     pos != null -> {
@@ -831,9 +860,9 @@ object Macro {
             val list = accountListNames()
             if (list == null) {
                 // Este móvil no da los nombres por accesibilidad: se lee la pantalla como una foto
-                val myTry = id
+                val myTry = stepGen
                 s.readScreen { lines ->
-                    if (myTry != token || !running) return@readScreen
+                    if (myTry != stepGen || id != token || !running) return@readScreen
                     if (lines != null && autoAccountOcr(c, lines)) return@readScreen
                     trace("  no veo la lista de cuentas. Leo: " + (lines?.take(14)?.joinToString(" | ") { it.first } ?: "no puedo leer la pantalla"))
                     // La lista no está abierta (o se ha cerrado): se vuelve a abrir
@@ -1328,9 +1357,9 @@ object Macro {
                 advance(c.extra())
                 return
             }
-            val myTry = id
+            val myTry = stepGen
             s.locateText(name) { pos ->
-                if (myTry != token || !running) return@locateText
+                if (myTry != stepGen || id != token || !running) return@locateText
                 if (pos != null) {
                     s.tapAt(pos.first, pos.second)
                     switchedTo(name)

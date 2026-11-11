@@ -545,11 +545,16 @@ class ClickService : AccessibilityService() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             takeScreenshot(Display.DEFAULT_DISPLAY, worker, object : TakeScreenshotCallback {
                 override fun onSuccess(result: ScreenshotResult) {
-                    val hw = result.hardwareBuffer
-                    val bmp = Bitmap.wrapHardwareBuffer(hw, result.colorSpace)
-                        ?.copy(Bitmap.Config.ARGB_8888, false)
-                    hw.close()
-                    ok(bmp)
+                    val bmp = try {
+                        val hw = result.hardwareBuffer
+                        val b = Bitmap.wrapHardwareBuffer(hw, result.colorSpace)
+                            ?.copy(Bitmap.Config.ARGB_8888, false)
+                        hw.close()
+                        b
+                    } catch (e: Exception) {
+                        null
+                    }
+                    try { ok(bmp) } catch (e: Exception) { fail() }
                 }
 
                 override fun onFailure(errorCode: Int) {
@@ -568,7 +573,10 @@ class ClickService : AccessibilityService() {
                 // Avisar al que esperaba la captura, para que no se quede colgado
                 fail()
             } else {
-                worker.execute { ok(svc.grab()) }
+                worker.execute {
+                    val b = try { svc.grab() } catch (e: Exception) { null }
+                    try { ok(b) } catch (e: Exception) { fail() }
+                }
             }
         }
     }
