@@ -69,6 +69,16 @@ class EtiquetadorActivity : Activity() {
         setContentView(web)
     }
 
+    override fun onResume() {
+        super.onResume()
+        AppLock.check(this)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        AppLock.onPause()
+    }
+
     override fun onDestroy() {
         web.destroy()
         super.onDestroy()
