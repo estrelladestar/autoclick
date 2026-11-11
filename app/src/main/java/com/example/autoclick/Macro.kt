@@ -711,11 +711,12 @@ object Macro {
                     s.readScreen { lines ->
                         if (myTry != stepGen || id != token || !running) return@readScreen
                         val (w, h) = s.screenSize()
-                        val nameRx = Regex("^@?[A-Za-z0-9._]{2,30}\\s*[vV⌄˅∨]?$")
                         val top = lines?.filter { it.second.centerY() > h * 0.035f && it.second.centerY() < h * 0.16f }
                             ?.sortedBy { it.second.top }
                         trace("  arriba leo: " + (top?.joinToString(" | ") { it.first } ?: "nada"))
-                        val title = top?.firstOrNull { nameRx.matches(it.first.trim()) && it.second.centerX() < w * 0.85f }
+                        // Tu nombre (aunque salga cortado con «…»), el más cerca del centro
+                        val title = top?.filter { looksLikeTitle(it.first) && it.second.centerX() < w * 0.85f }
+                            ?.minByOrNull { Math.abs(it.second.centerX() - w / 2) }
                         if (title != null) {
                             trace("  toco «${title.first}» (tu nombre de arriba)")
                             s.tapAt(title.second.exactCenterX(), title.second.exactCenterY())
@@ -778,7 +779,42 @@ object Macro {
                 "action_bar_title", "action_bar_textview_title", "title_chevron")) {
                 byInstagramId(id)?.let { return it }
             }
-            return null
+            // Por lo que pone: tu nombre (aunque salga cortado «enamorada_d…») o «Cambiar de cuenta», arriba del todo
+            val (w, h) = s.screenSize()
+            var best: Rect? = null
+            for (root in windowRoots()) {
+                if (root.packageName?.toString() != INSTAGRAM) continue
+                fun walk(n: AccessibilityNodeInfo?, depth: Int) {
+                    if (n == null || depth > 60) return
+                    if (n.isVisibleToUser) {
+                        val r = Rect()
+                        n.getBoundsInScreen(r)
+                        if (r.centerY() > h * 0.03f && r.centerY() < h * 0.16f && r.width() > 0) {
+                            val t = ((n.text ?: n.contentDescription)?.toString() ?: "")
+                            val low = t.lowercase()
+                            val ok = looksLikeTitle(t) || low.contains("cambiar de cuenta") || low.contains("switch account")
+                            if (ok && (best == null || Math.abs(r.centerX() - w / 2) < Math.abs(best!!.centerX() - w / 2))) best = r
+                        }
+                    }
+                    for (k in 0 until n.childCount) walk(n.getChild(k), depth + 1)
+                }
+                walk(root, 0)
+                if (best != null) break
+            }
+            return best?.let { Pair(it.exactCenterX(), it.exactCenterY()) }
+        }
+
+        /**
+         * ¿Parece tu nombre de usuario de arriba? Acepta que salga cortado («enamorada_d…» / «enamorada_d...»)
+         * y con la flechita ⌄ al lado.
+         */
+        private fun looksLikeTitle(t: String): Boolean {
+            var x = t.trim().removePrefix("@")
+            x = x.replace("…", "").replace("...", "")
+            x = x.trimEnd(' ', '⌄', '˅', '∨', '▾', '▼', '~', '.', '·', '•')
+            if (x.endsWith(" v") || x.endsWith(" V")) x = x.dropLast(2).trimEnd()
+            return Regex("^[A-Za-z0-9._]{2,30}$").matches(x) && x.any { it.isLetter() } &&
+                x.lowercase() !in setOf("instagram", "threads", "editar", "compartir")
         }
 
         /** ¿Está abierta la lista de cuentas? Primero por accesibilidad; si no, leyendo la pantalla. */
