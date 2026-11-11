@@ -184,7 +184,8 @@ object Macro {
         traceCtx = service.applicationContext
         synchronized(traceLines) { traceLines.clear() }
         trace("INICIO: ${cmds.size} pasos, repetir $repeats, cuentas=${if (accounts.isEmpty()) "todas las de Instagram" else accounts.joinToString(",")}, límite=$dailyLimit")
-        trace("Android ${android.os.Build.VERSION.RELEASE} · ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL} · pantalla ${service.screenSize().first}x${service.screenSize().second}")
+        val ver = try { service.packageManager.getPackageInfo(service.packageName, 0).versionName } catch (e: Exception) { "?" }
+        trace("Star App versión $ver · Android ${android.os.Build.VERSION.RELEASE} · ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL} · pantalla ${service.screenSize().first}x${service.screenSize().second}")
         running = true
         token++
         service.showOverlay()

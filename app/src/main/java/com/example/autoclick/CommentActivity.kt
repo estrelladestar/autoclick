@@ -538,7 +538,7 @@ repetir 8"""
     private fun showReport() {
         val txt = Macro.traceText(this)
         AlertDialog.Builder(this)
-            .setTitle("🐞 Informe del último guion")
+            .setTitle("🐞 Informe (versión " + (try { packageManager.getPackageInfo(packageName, 0).versionName } catch (e: Exception) { "?" }) + ")")
             .setMessage(if (txt.isBlank()) "Todavía no hay informe. Inicia el guion o pulsa «🧪 Probar cambio de cuenta»." else txt.takeLast(6000))
             .setPositiveButton("Copiar") { _, _ ->
                 val cm = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
