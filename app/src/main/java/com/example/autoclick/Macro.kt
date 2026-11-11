@@ -82,13 +82,43 @@ object Macro {
         }
     }
 
+    /**
+     * Apunta al momento (en disco) cuándo arranca, se para o carga algo el servicio de accesibilidad.
+     * Así, si la app se cierra de golpe (por ejemplo al cargar una librería), se sabe qué estaba haciendo.
+     */
+    fun mark(ctx: Context, msg: String) {
+        trace(msg)
+        try {
+            val p = ctx.applicationContext.getSharedPreferences("cfg", Context.MODE_PRIVATE)
+            val t = java.text.SimpleDateFormat("dd/MM HH:mm:ss", java.util.Locale.US).format(java.util.Date())
+            val old = (p.getString("servicio_eventos", "") ?: "").lines().filter { it.isNotBlank() }
+            p.edit().putString("servicio_eventos", (old + "$t $msg").takeLast(15).joinToString("\n")).commit()
+        } catch (e: Exception) {
+        }
+    }
+
+    /** Los últimos arranques y paradas del servicio (lo que apuntó mark). */
+    fun marks(ctx: Context): String =
+        ctx.getSharedPreferences("cfg", Context.MODE_PRIVATE).getString("servicio_eventos", "") ?: ""
+
+    /** Lo importante del informe (fallo de la app y arranques del servicio), que va siempre arriba. */
+    fun reportHead(ctx: Context): String {
+        val p = ctx.getSharedPreferences("cfg", Context.MODE_PRIVATE)
+        val crash = p.getString("ultimo_fallo", "") ?: ""
+        val ev = marks(ctx)
+        val sb = StringBuilder()
+        if (crash.isNotEmpty()) sb.append("⚠ ÚLTIMO FALLO DE LA APP:\n").append(crash).append("\n\n")
+        sb.append("SERVICIO (arranques y paradas):\n")
+            .append(if (ev.isBlank()) "nunca ha arrancado en este móvil" else ev).append("\n\n")
+        return sb.toString()
+    }
+
     /** El informe del último guion (o del que está en marcha), para copiarlo y enviarlo. */
     fun traceText(ctx: Context): String {
         val p = ctx.getSharedPreferences("cfg", Context.MODE_PRIVATE)
-        val crash = p.getString("ultimo_fallo", "") ?: ""
         val live = synchronized(traceLines) { traceLines.joinToString("\n") }
         val body = if (live.isNotEmpty()) live else (p.getString("informe", "") ?: "")
-        return if (crash.isNotEmpty()) "⚠ ÚLTIMO FALLO DE LA APP:\n$crash\n\n$body" else body
+        return reportHead(ctx) + body
     }
 
     /** Guarda el motivo si la app (o su servicio) se cierra por un fallo, para verlo en el informe. */

@@ -157,6 +157,24 @@ repetir 8"""
             setOnClickListener { startBtn.performClick() }
             root.addView(this)
         }
+        if (isXiaomi()) {
+            // En Xiaomi / Redmi / POCO el móvil para la app si no se le dan estos permisos
+            val xBar = LinearLayout(ctx).apply {
+                orientation = LinearLayout.HORIZONTAL
+                root.addView(this)
+            }
+            val half = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { setMargins(4, 0, 4, 0) }
+            Button(ctx).apply {
+                text = "⚙ Inicio automático (Xiaomi)"
+                setOnClickListener { openXiaomi(autostart = true) }
+                xBar.addView(this, half)
+            }
+            Button(ctx).apply {
+                text = "⚙ Otros permisos (Xiaomi)"
+                setOnClickListener { openXiaomi(autostart = false) }
+                xBar.addView(this, LinearLayout.LayoutParams(half))
+            }
+        }
         val toolsBar = LinearLayout(ctx).apply {
             orientation = LinearLayout.HORIZONTAL
             root.addView(this)
@@ -381,7 +399,7 @@ repetir 8"""
                 val list = box.text.toString().lines().map { it.trim() }.filter { it.isNotEmpty() }
                 val s = ClickService.instance
                 when {
-                    s == null -> toast("Primero activa el servicio de accesibilidad de Star App")
+                    s == null -> askForService()
                     else -> {
                         saveAll()
                         val missing = problems(script.text.toString())
@@ -493,7 +511,7 @@ repetir 8"""
 
     // ---------- Copia de seguridad ----------
     /** Lo que no se copia: las imágenes (hay que hacerlas en cada móvil) y el registro. */
-    private val notInBackup = setOf("steps", "registro", "registro_menciones", "informe", "ultimo_fallo")
+    private val notInBackup = setOf("steps", "registro", "registro_menciones", "informe", "ultimo_fallo", "servicio_eventos")
 
     private fun exportBackup() {
         saveAll()
@@ -575,7 +593,7 @@ repetir 8"""
     private fun testAccountSwitch() {
         val s = ClickService.instance
         if (s == null) {
-            toast("Primero activa el servicio de accesibilidad de Star App")
+            askForService()
             return
         }
         saveAll()
@@ -600,12 +618,63 @@ repetir 8"""
             .show()
     }
 
+    private fun isXiaomi(): Boolean {
+        val m = (android.os.Build.MANUFACTURER + " " + android.os.Build.BRAND).lowercase()
+        return m.contains("xiaomi") || m.contains("redmi") || m.contains("poco")
+    }
+
+    /** Abre en Xiaomi la pantalla de «Inicio automático» o la de «Otros permisos» de Star App (o su información si no se puede). */
+    private fun openXiaomi(autostart: Boolean) {
+        val tries = if (autostart) listOf(
+            Intent().setComponent(android.content.ComponentName("com.miui.securitycenter", "com.miui.permcenter.autostart.AutoStartManagementActivity"))
+        ) else listOf(
+            Intent("miui.intent.action.APP_PERM_EDITOR").setClassName("com.miui.securitycenter", "com.miui.permcenter.permissions.PermissionsEditorActivity").putExtra("extra_pkgname", packageName),
+            Intent("miui.intent.action.APP_PERM_EDITOR").setClassName("com.miui.securitycenter", "com.miui.permcenter.permissions.AppPermissionsEditorActivity").putExtra("extra_pkgname", packageName)
+        )
+        for (i in tries) {
+            try {
+                startActivity(i)
+                toast(if (autostart) "Busca Star App y actívala" else "Permite «Mostrar ventanas emergentes mientras se ejecuta en segundo plano»")
+                return
+            } catch (e: Exception) {
+            }
+        }
+        try {
+            startActivity(Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:$packageName")))
+            toast(if (autostart) "Busca «Inicio automático» y actívalo" else "Entra en «Otros permisos»")
+        } catch (e: Exception) {
+            toast("No he podido abrir los ajustes")
+        }
+    }
+
+    /** Falta el servicio de accesibilidad: explica qué hacer y abre los Ajustes de accesibilidad. */
+    private fun askForService() {
+        val on = ClickService.enabledInSettings(this)
+        val msg = if (on) {
+            "Star App está activada en Accesibilidad, pero el servicio no está funcionando.\n\n" +
+                "Pulsa «Abrir Ajustes», entra en Star App, APÁGALA y vuelve a ENCENDERLA." +
+                (if (isXiaomi()) "\n\nEn Xiaomi/Redmi, antes: «⚙ Inicio automático» activado para Star App y su batería en «Sin restricciones»." else "")
+        } else {
+            "Pulsa «Abrir Ajustes», busca Star App y actívala."
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Falta la accesibilidad de Star App")
+            .setMessage(msg)
+            .setPositiveButton("Abrir Ajustes") { _, _ ->
+                try { startActivity(Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)) } catch (e: Exception) {}
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
     /** Enseña el informe del último guion, con un botón para copiarlo y pegarlo en el chat. */
     private fun showReport() {
         val txt = Macro.traceText(this)
+        val head = Macro.reportHead(this)
+        val body = txt.removePrefix(head)
         AlertDialog.Builder(this)
             .setTitle("🐞 Informe (versión " + (try { packageManager.getPackageInfo(packageName, 0).versionName } catch (e: Exception) { "?" }) + ")")
-            .setMessage(if (txt.isBlank()) "Todavía no hay informe. Inicia el guion o pulsa «🧪 Probar cambio de cuenta»." else txt.takeLast(6000))
+            .setMessage(head + (if (body.isBlank()) "Todavía no hay informe del guion. Inícialo o pulsa «🧪 Probar cambio de cuenta»." else body.takeLast(6000)))
             .setPositiveButton("Copiar") { _, _ ->
                 val cm = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
                 cm.setPrimaryClip(android.content.ClipData.newPlainText("informe Star App", txt))
@@ -673,9 +742,15 @@ repetir 8"""
             .count { it.isNotEmpty() && !it.startsWith("#") && !it.startsWith("repetir") }
         val blockers = ArrayList<String>()
         val onInSettings = ClickService.enabledInSettings(this)
-        if (!svc && onInSettings) blockers.add("La accesibilidad de Star App está activada en Ajustes, pero el servicio no ha arrancado. " +
-            "Apágala y vuelve a encenderla (Ajustes → Accesibilidad → Aplicaciones instaladas → Star App). " +
-            "Si sigue igual, reinicia el móvil y pon la batería de Star App en «Sin restricciones».")
+        if (!svc && onInSettings) {
+            val ev = Macro.marks(this).lines().filter { it.isNotBlank() }
+            val last = ev.takeLast(3).joinToString("\n   ")
+            blockers.add("La accesibilidad de Star App está activada en Ajustes, pero el servicio no está funcionando. " +
+                "Apágala y vuelve a encenderla (Ajustes → Accesibilidad → Star App)." +
+                (if (isXiaomi()) " En Xiaomi/Redmi, antes activa «⚙ Inicio automático» (botón de abajo) y pon la batería de Star App en «Sin restricciones»."
+                 else " Si sigue igual, reinicia el móvil y pon la batería de Star App en «Sin restricciones».") +
+                "\n   Lo último que apuntó el servicio: " + (if (ev.isEmpty()) "nada, nunca ha arrancado en este móvil" else "\n   $last"))
+        }
         else if (!svc) blockers.add("Activa el servicio de accesibilidad de Star App (pantalla principal, botón 1).")
         blockers.addAll(problems(script.text.toString()))
         fun mark(ok: Boolean) = if (ok) "✅" else "➖"

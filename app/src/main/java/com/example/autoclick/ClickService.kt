@@ -100,11 +100,28 @@ class ClickService : AccessibilityService() {
     private val main = Handler(Looper.getMainLooper())
     private val worker = Executors.newSingleThreadExecutor()
     private val recognizer by lazy { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
+    private var ocrChecked = false
+
+    /** Lee el texto de una captura. La primera vez apunta que carga el lector (por si cierra la app). */
+    private fun ocr(bmp: Bitmap): com.google.android.gms.tasks.Task<Text> {
+        val first = !ocrChecked
+        if (first) {
+            ocrChecked = true
+            Macro.mark(this, "cargando el lector de texto…")
+        }
+        val task = recognizer.process(InputImage.fromBitmap(bmp, 0))
+        if (first) task.addOnCompleteListener {
+            Macro.mark(this, if (it.isSuccessful) "lector de texto listo" else "el lector de texto falló: ${it.exception?.message}")
+        }
+        return task
+    }
 
     private var running = false
     private var runId = 0
     private var steps = listOf<Step>()
     private val templates = HashMap<Long, Mat>()
+    /** Las mismas imágenes en gris, para buscarlas sin OpenCV. */
+    private val grayTemplates = HashMap<Long, FastMatch.Gray>()
     private var threshold = 0.8
     private var delayMs = 500L
     private var repeatTotal = 1
@@ -121,16 +138,35 @@ class ClickService : AccessibilityService() {
     private var overlayLp: WindowManager.LayoutParams? = null
     private var pickView: View? = null
 
+    /** ¿Se cargó OpenCV? Si no (móvil de 32 bits o falló), las imágenes se buscan con FastMatch. */
+    private var cvOk = false
+
     override fun onCreate() {
         super.onCreate()
         Macro.installCrashLogger(this)
+        Macro.mark(this, "Android crea el servicio")
     }
 
     override fun onServiceConnected() {
         instance = this
-        Macro.trace("servicio de accesibilidad arrancado")
-        // Que un fallo al cargar OpenCV no tumbe el servicio (en algunos móviles el servicio quedaba «activado» pero muerto)
-        try { OpenCVLoader.initLocal() } catch (e: Throwable) { Macro.trace("OpenCV no se pudo cargar: ${e.message}") }
+        val ver = try { packageManager.getPackageInfo(packageName, 0).versionName } catch (e: Exception) { "?" }
+        val is64 = Build.SUPPORTED_64_BIT_ABIS.isNotEmpty()
+        Macro.mark(this, "servicio de accesibilidad arrancado (versión $ver, Android ${Build.VERSION.RELEASE}, ${if (is64) "64" else "32"} bits)")
+        if (is64) {
+            // Que un fallo al cargar OpenCV no tumbe el servicio
+            Macro.mark(this, "cargando OpenCV…")
+            cvOk = try { OpenCVLoader.initLocal() } catch (e: Throwable) { Macro.trace("OpenCV: ${e.message}"); false }
+            Macro.mark(this, if (cvOk) "OpenCV cargado" else "OpenCV no se pudo cargar: busco las imágenes sin él")
+        } else {
+            // En móviles de 32 bits OpenCV podía cerrar el servicio nada más arrancar: no se carga
+            Macro.mark(this, "móvil de 32 bits: busco las imágenes sin OpenCV")
+        }
+    }
+
+    override fun onDestroy() {
+        Macro.mark(this, "servicio cerrado")
+        if (instance === this) instance = null
+        super.onDestroy()
     }
 
     companion object {
@@ -149,6 +185,7 @@ class ClickService : AccessibilityService() {
     override fun onInterrupt() { stopClicking() }
 
     override fun onUnbind(intent: Intent?): Boolean {
+        Macro.mark(this, "servicio parado (apagado en Ajustes o cerrado por el móvil)")
         stopClicking(); hideOverlay(); closePicker(); instance = null
         ScreenCaptureService.instance?.stopSelf()
         return super.onUnbind(intent)
@@ -358,24 +395,14 @@ class ClickService : AccessibilityService() {
             main.post { done(null, true) }
             return
         }
-        var t = templates[step.id]
-        if (t == null) {
-            val bmp = BitmapFactory.decodeFile(File(filesDir, step.value).path)
-            if (bmp == null) {
-                main.post { done(null, true) }
-                return
-            }
-            val m = Mat()
-            Utils.bitmapToMat(bmp, m)
-            Imgproc.cvtColor(m, m, Imgproc.COLOR_RGBA2GRAY)
-            templates[step.id] = m
-            t = m
+        if (!prepareTemplate(step)) {
+            main.post { done(null, true) }
+            return
         }
         val prefs = getSharedPreferences("cfg", Context.MODE_PRIVATE)
         threshold = prefs.getFloat("th", 0.8f).toDouble()
-        val tpl: Mat = t ?: run { main.post { done(null, true) }; return }
         capture({ bmp ->
-            val p = if (bmp == null) null else findImage(bmp, tpl)
+            val p = if (bmp == null) null else findSaved(bmp, step.id)
             main.post { done(p, false) }
         }, {
             main.post { done(null, false) }
@@ -498,14 +525,10 @@ class ClickService : AccessibilityService() {
         }
 
         templates.clear()
+        grayTemplates.clear()
         for (s in steps) {
             if (s.type != "image") continue
-            val bmp = BitmapFactory.decodeFile(File(filesDir, s.value).path)
-            if (bmp == null) { toast("Falta una imagen: vuelve a añadirla en la app"); return }
-            val m = Mat()
-            Utils.bitmapToMat(bmp, m)
-            Imgproc.cvtColor(m, m, Imgproc.COLOR_RGBA2GRAY)
-            templates[s.id] = m
+            if (!prepareTemplate(s)) { toast("Falta una imagen: vuelve a añadirla en la app"); return }
         }
 
         main.removeCallbacksAndMessages(null)
@@ -663,7 +686,7 @@ class ClickService : AccessibilityService() {
             if (bmp == null) {
                 main.post { if (id == runId) miss() }
             } else {
-                recognizer.process(InputImage.fromBitmap(bmp, 0))
+                ocr(bmp)
                     .addOnSuccessListener {
                         if (id == runId) {
                             val p = findWord(it, words)
@@ -689,7 +712,7 @@ class ClickService : AccessibilityService() {
             if (bmp == null) {
                 main.post { done(null) }
             } else {
-                recognizer.process(InputImage.fromBitmap(bmp, 0))
+                ocr(bmp)
                     .addOnSuccessListener { text ->
                         var found: Pair<Float, Float>? = null
                         loop@ for (block in text.textBlocks) for (line in block.lines) {
@@ -719,7 +742,7 @@ class ClickService : AccessibilityService() {
             if (bmp == null) {
                 main.post { done(null) }
             } else {
-                recognizer.process(InputImage.fromBitmap(bmp, 0))
+                ocr(bmp)
                     .addOnSuccessListener { text ->
                         val out = ArrayList<Pair<String, android.graphics.Rect>>()
                         for (block in text.textBlocks) for (line in block.lines) {
@@ -751,8 +774,7 @@ class ClickService : AccessibilityService() {
 
     // ---------- Buscar imagen ----------
     private fun findImageStep(step: Step, id: Int) {
-        val t = templates[step.id]
-        if (t == null) {
+        if (templates[step.id] == null && grayTemplates[step.id] == null) {
             stopClicking()
             toast("Falta la imagen del paso ${idx + 1}")
             return
@@ -761,7 +783,7 @@ class ClickService : AccessibilityService() {
             if (bmp == null) {
                 main.post { if (id == runId) miss() }
             } else {
-                val p = findImage(bmp, t)
+                val p = findSaved(bmp, step.id)
                 main.post {
                     if (id == runId) {
                         if (p != null) hit(p) else miss()
@@ -771,6 +793,50 @@ class ClickService : AccessibilityService() {
         }, {
             if (id == runId && running) main.postDelayed({ runStep() }, maxOf(delayMs, 1000L))
         })
+    }
+
+    /** Prepara la imagen guardada de un paso para buscarla (con OpenCV o sin él). false si falta el archivo. */
+    private fun prepareTemplate(step: Step): Boolean {
+        if (!cvOk) {
+            if (grayTemplates[step.id] != null) return true
+            val bmp = BitmapFactory.decodeFile(File(filesDir, step.value).path) ?: return false
+            grayTemplates[step.id] = toGray(bmp) ?: return false
+            return true
+        }
+        if (templates[step.id] != null) return true
+        val bmp = BitmapFactory.decodeFile(File(filesDir, step.value).path) ?: return false
+        val m = Mat()
+        Utils.bitmapToMat(bmp, m)
+        Imgproc.cvtColor(m, m, Imgproc.COLOR_RGBA2GRAY)
+        templates[step.id] = m
+        return true
+    }
+
+    /** Busca en la captura la imagen del paso. Devuelve su centro o null. */
+    private fun findSaved(bmp: Bitmap, stepId: Long): Pair<Float, Float>? {
+        val g = grayTemplates[stepId]
+        if (g != null) {
+            val s = toGray(bmp) ?: return null
+            val r = FastMatch.find(s, g) ?: return null
+            if (r.score < threshold) {
+                Macro.trace("  (lo más parecido a la imagen da ${"%.2f".format(r.score)}; hace falta ${"%.2f".format(threshold)})")
+                return null
+            }
+            return Pair(r.x + g.w / 2f, r.y + g.h / 2f)
+        }
+        val t = templates[stepId] ?: return null
+        return findImage(bmp, t)
+    }
+
+    /** Pasa una imagen a gris (un número de 0 a 255 por píxel) para FastMatch. */
+    private fun toGray(src: Bitmap): FastMatch.Gray? {
+        val b = if (src.config == Bitmap.Config.ARGB_8888) src else (src.copy(Bitmap.Config.ARGB_8888, false) ?: return null)
+        val w = b.width
+        val h = b.height
+        val px = IntArray(w * h)
+        b.getPixels(px, 0, w, 0, 0, w, h)
+        FastMatch.toGrayInPlace(px)
+        return FastMatch.Gray(px, w, h)
     }
 
     private fun findImage(bmp: Bitmap, t: Mat): Pair<Float, Float>? {
