@@ -1,9 +1,8 @@
-package com.example.autoclick
+package com.estrella.mimundo
 
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
-import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
@@ -16,8 +15,8 @@ import android.webkit.WebView
 import java.util.Locale
 
 /**
- * «Mi mundo»: avatar, mascota tipo Tamagotchi, preguntas para ganar monedas y tienda (assets/mundo.html).
- * Los datos se guardan en SharedPreferences («mundo») para que la pantalla principal también vea la mascota.
+ * Mi Mundo: avatar, mascota tipo Tamagotchi, preguntas para ganar monedas y tienda (assets/mundo.html).
+ * Los datos se guardan en SharedPreferences («mundo»).
  */
 object Mundo {
     @SuppressLint("SetJavaScriptEnabled", "JavascriptInterface")
@@ -60,14 +59,10 @@ object Mundo {
             }
         }
 
-        @JavascriptInterface
-        fun openMundo() {
-            main.post { activity.startActivity(Intent(activity, MundoActivity::class.java)) }
-        }
     }
 }
 
-class MundoActivity : Activity() {
+class MainActivity : Activity() {
     private lateinit var web: WebView
     private var tts: TextToSpeech? = null
     private var ttsReady = false

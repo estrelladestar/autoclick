@@ -19,11 +19,20 @@ jobs:
       - run: gradle assembleDebug
       - uses: actions/upload-artifact@v4
         with:
-          name: AutoClickImagen-apk
+          name: StarApp-apk
           path: app/build/outputs/apk/debug/*.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MiMundo-juego-apk
+          path: juego/build/outputs/apk/debug/*.apk
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ultima-version
           name: AutoClick Imagen (última versión)
-          body: APK listo para instalar. Se actualiza con cada compilación.
-          files: app/build/outputs/apk/debug/*.apk
+          body: |
+            Dos apps distintas, se actualizan con cada compilación:
+            - app-debug.apk → Star App (autoclick)
+            - MiMundo-debug.apk → Mi Mundo (juego: avatar, mascota y preguntas)
+          files: |
+            app/build/outputs/apk/debug/*.apk
+            juego/build/outputs/apk/debug/*.apk

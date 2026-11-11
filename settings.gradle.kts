@@ -6,3 +6,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "AutoClickImagen"
 include(":app")
+include(":juego")

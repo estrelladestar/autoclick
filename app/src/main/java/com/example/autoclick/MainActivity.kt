@@ -19,7 +19,6 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
-import android.webkit.WebView
 import android.widget.Toast
 import java.io.File
 
@@ -33,7 +32,6 @@ class MainActivity : Activity() {
     private lateinit var pause: EditText
     private lateinit var precision: EditText
     private var steps = mutableListOf<Step>()
-    private var miniPet: WebView? = null
     private val pickCode = 42
     private val captureCode = 43
 
@@ -69,16 +67,6 @@ class MainActivity : Activity() {
         val ver = try { packageManager.getPackageInfo(packageName, 0).versionName } catch (e: Exception) { "?" }
         label("Versión $ver").textSize = 12f
 
-        // Tu mascota saluda aquí; al tocarla se abre «Mi mundo» (avatar, mascota, preguntas y tienda).
-        val dens = resources.displayMetrics.density
-        miniPet = Mundo.webView(this, true, { _, _ -> }, {}).also {
-            root.addView(it, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (140 * dens).toInt()).apply {
-                topMargin = (10 * dens).toInt()
-            })
-        }
-        button("🐾 Mi avatar, mascota y preguntas (gana monedas)") {
-            startActivity(Intent(ctx, MundoActivity::class.java))
-        }
         button("❓ Cómo se usa (instrucciones)") { Help.show(this@MainActivity) }
         button("📋 Abrir el Etiquetador de sorteos") {
             startActivity(Intent(ctx, EtiquetadorActivity::class.java))
@@ -215,7 +203,6 @@ class MainActivity : Activity() {
         super.onResume()
         steps = StepStore.load(this)
         refreshList()
-        miniPet?.evaluateJavascript("window.refresh&&refresh()", null)
         // El Etiquetador puede haber cambiado los enlaces mientras esta pantalla estaba en segundo plano.
         // Se leen todos antes de escribir ninguno, porque cada cambio de texto vuelve a guardar los cuadros.
         val p = getSharedPreferences("cfg", Context.MODE_PRIVATE)

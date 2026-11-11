@@ -9,10 +9,6 @@ import android.widget.TextView
 object Help {
     private const val TEXT = """CÓMO SE USA
 
-MI MUNDO (avatar y mascota)
-Toca tu mascota arriba en la pantalla principal o «🐾 Mi avatar, mascota y preguntas». Tu mascota te hace preguntas: cada acierto da 10 monedas (y premio extra cada 5 seguidas). Con las monedas compras ropa, ojos, boca, pelo, accesorios y fondos en «Avatar» (tócalo para probártelo y luego «Comprar»), y comida, medicina y cositas para la mascota en «Tienda». Cuídala: dale de comer, báñala, juega con ella, acuéstala y limpia sus cacas. Arriba tienes 🎵 música, 🔔 sonidos y 🗣️ voz de la mascota: tócalos para quitarlos o ponerlos. Cada día tienes un regalo de 30 monedas.
-PARA APRENDER: después de cada pregunta la mascota te cuenta un «¿Sabías que…?». Las que falles vuelven a salir en «📝 Repaso» hasta que las aciertes. En «🔤 Inglés» te dice palabras en inglés con dibujos. En «✏️ Crear mis propias preguntas» puedes escribir las tuyas (por ejemplo, del examen del cole). En «🏅 Logros» está el reto del día (5 preguntas), el álbum de pegatinas (10 aciertos de un tema = pegatina + una prenda que no se puede comprar), las medallas y lo que vas aprendiendo.
-
 PREPARACIÓN (solo la primera vez)
 1. En la pantalla principal pulsa «1. Activar servicio de accesibilidad», busca Star App y actívalo.
 2. Si tu Android es anterior al 11, pulsa también «Permitir captura de pantalla» (hay que repetirlo cada vez que abras la app).
