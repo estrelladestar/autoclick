@@ -1529,7 +1529,9 @@ object Macro {
                     for (k in 0 until n.childCount) walk(n.getChild(k))
                 }
                 walk(root)
-                bubbles.minByOrNull { it.left }?.let {
+                // La primera burbuja de la izquierda es siempre la tuya: se coge la siguiente
+                val (sw, _) = s.screenSize()
+                bubbles.filter { it.centerX() > sw * 0.25f }.minByOrNull { it.left }?.let {
                     trace("  historia encontrada por su descripción")
                     return Pair(it.exactCenterX(), it.exactCenterY())
                 }
