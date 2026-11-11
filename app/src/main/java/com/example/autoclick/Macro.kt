@@ -555,7 +555,7 @@ object Macro {
                     // Primero cierra el teclado; luego abre Instagram desde cero en su pantalla principal,
                     // porque ir hacia atrás a veces vuelve a la publicación con los comentarios.
                     val icon = profileIcon()
-                    if (icon != null || tries >= 4) {
+                    if (icon != null || tries >= 7) {
                         trace(if (icon != null) "  ya se ve la barra de Instagram (perfil en ${icon.first.toInt()},${icon.second.toInt()})"
                               else "  no veo la barra de Instagram, sigo igualmente. " + describeBottom())
                         advance(c.extra())
@@ -568,9 +568,9 @@ object Macro {
                         later(1000L)
                     } else {
                         tries++
-                        trace("  abro Instagram en su pantalla principal (intento $tries)")
+                        trace("  no veo la barra de Instagram (intento $tries)")
                         openInstagramHome()
-                        later(4500L)
+                        later(4000L)
                     }
                 }
                 "abrirlista" -> openAccountList(c)
@@ -633,11 +633,11 @@ object Macro {
                 0 -> {
                     val p = profileIcon()
                     if (p == null) {
-                        if (tries < 3) {
+                        if (tries < 6) {
                             tries++
-                            trace("  no veo tu foto de perfil abajo: abro Instagram en su pantalla principal")
+                            trace("  no veo tu foto de perfil abajo (intento $tries)")
                             openInstagramHome()
-                            later(4500L)
+                            later(4000L)
                         } else {
                             trace("  " + describeBottom())
                             recover("la barra de abajo de Instagram")
@@ -1488,7 +1488,39 @@ object Macro {
         }
 
         /** Abre Instagram desde cero en su pantalla principal (Inicio, con la barra de abajo). */
+        /** Cuántas veces se ha intentado ir a Inicio (para ir probando una forma distinta cada vez). */
+        private var homeTries = 0
+
+        /**
+         * Ir a la pantalla principal de Instagram (Inicio, con la barra de abajo). Cada vez prueba una forma distinta,
+         * porque según el móvil una funciona y otra no:
+         * 1) abrir instagram.com (Instagram lo abre en su Inicio),
+         * 2) el botón atrás (sale de la publicación que abrió el enlace),
+         * 3) abrir Instagram desde cero.
+         */
         private fun openInstagramHome() {
+            val method = homeTries % 3
+            homeTries++
+            when (method) {
+                0 -> {
+                    trace("  voy a Inicio de Instagram abriendo instagram.com")
+                    val i = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://www.instagram.com/"))
+                        .setPackage(INSTAGRAM)
+                        .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                    try { s.startActivity(i) } catch (e: Exception) { launchInstagramFresh() }
+                }
+                1 -> {
+                    trace("  voy a Inicio de Instagram con el botón atrás")
+                    s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
+                }
+                else -> {
+                    trace("  voy a Inicio de Instagram abriéndolo desde cero")
+                    launchInstagramFresh()
+                }
+            }
+        }
+
+        private fun launchInstagramFresh() {
             val i = s.packageManager.getLaunchIntentForPackage(INSTAGRAM) ?: return
             i.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK)
             try { s.startActivity(i) } catch (e: Exception) {}
