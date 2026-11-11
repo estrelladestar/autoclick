@@ -25,14 +25,20 @@ jobs:
         with:
           name: MiMundo-juego-apk
           path: juego/build/outputs/apk/debug/*.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MiMundoLengua-apk
+          path: lengua/build/outputs/apk/debug/*.apk
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ultima-version
           name: AutoClick Imagen (última versión)
           body: |
-            Dos apps distintas, se actualizan con cada compilación:
+            Tres apps distintas, se actualizan con cada compilación:
             - app-debug.apk → Star App (autoclick)
             - MiMundo-debug.apk → Mi Mundo (juego: avatar, mascota y preguntas)
+            - MiMundoLengua-debug.apk → Mi Mundo Lengua (el mismo juego con el Tema 3 de Lengua)
           files: |
             app/build/outputs/apk/debug/*.apk
             juego/build/outputs/apk/debug/*.apk
+            lengua/build/outputs/apk/debug/*.apk
