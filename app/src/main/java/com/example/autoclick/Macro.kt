@@ -1516,13 +1516,14 @@ object Macro {
                 fun walk(n: AccessibilityNodeInfo?) {
                     if (n == null) return
                     if (n.isVisibleToUser) {
-                        val d = ((n.contentDescription ?: n.text)?.toString() ?: "").lowercase()
+                        // Solo la descripción (no el texto), para no confundirla con una frase de una publicación
+                        val d = (n.contentDescription?.toString() ?: "").lowercase()
                         val r = Rect()
                         n.getBoundsInScreen(r)
                         val isStory = (d.contains("historia de ") || d.contains("'s story") || d.contains("story by") ||
                             d.contains("historia sin ver") || d.contains("unseen story")) &&
                             !d.contains("tu historia") && !d.contains("your story")
-                        if (isStory && r.width() > 0 && r.centerY() < h * 0.45f) bubbles.add(r)
+                        if (isStory && r.width() > 0 && r.centerY() < h * 0.40f) bubbles.add(r)
                         if (tray == null && n.viewIdResourceName?.endsWith(":id/reels_tray_container") == true) tray = n
                     }
                     for (k in 0 until n.childCount) walk(n.getChild(k))
