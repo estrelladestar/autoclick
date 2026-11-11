@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Mi mundo</title>
+<style>
+:root{--p:#7c4dff;--p2:#ff5fa2;--ink:#2d1b69;--muted:#7a6aa8}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:linear-gradient(180deg,#efe6ff 0%,#ffe9f4 100%);min-height:100vh;-webkit-user-select:none;user-select:none}
+button{font:inherit;cursor:pointer}
+header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:8px;padding:10px 12px;background:linear-gradient(90deg,#7c4dff,#ff5fa2);color:#fff;box-shadow:0 2px 10px #7c4dff55}
+.coins{background:#ffffff33;border-radius:20px;padding:5px 12px;font-weight:900;font-size:19px;white-space:nowrap}
+.coins.pop{animation:pop .5s}
+.lvl{flex:1;font-weight:800;font-size:14px}
+.xpbar{height:7px;background:#ffffff40;border-radius:6px;margin-top:3px;overflow:hidden}
+.xpbar i{display:block;height:100%;background:#ffe066;border-radius:6px;transition:width .5s}
+.icon{border:0;background:#ffffff33;color:#fff;border-radius:50%;width:38px;height:38px;font-size:18px}
+nav{position:sticky;top:58px;z-index:19;display:flex;gap:6px;padding:8px 10px;background:#efe6ffee;backdrop-filter:blur(6px)}
+nav button{flex:1;border:0;border-radius:14px;padding:8px 2px;font-weight:800;background:#fff;color:var(--ink);font-size:12.5px;box-shadow:0 2px 0 #0001;line-height:1.2}
+nav button b{display:block;font-size:20px}
+nav button.on{background:linear-gradient(180deg,#8b5cf6,#6a3de8);color:#fff}
+section{display:none;padding:6px 12px 40px}
+section.on{display:block}
+h2{font-size:17px;margin:16px 2px 8px;color:#6a3de8}
+.card{background:#fff;border-radius:20px;padding:12px;box-shadow:0 4px 14px #7c4dff1f;margin-bottom:12px}
+.btn{border:0;border-radius:16px;padding:12px 8px;font-weight:800;color:#fff;background:linear-gradient(180deg,#8b5cf6,#6a3de8);font-size:14.5px;box-shadow:0 3px 0 #0002;line-height:1.15}
+.btn:active{transform:translateY(2px);box-shadow:none}
+.btn.pink{background:linear-gradient(180deg,#ff7fb5,#e0307a)}
+.btn.blue{background:linear-gradient(180deg,#5cc8ff,#2563eb)}
+.btn.orange{background:linear-gradient(180deg,#ffbe4d,#f57c00)}
+.btn.green{background:linear-gradient(180deg,#4ade80,#16a34a)}
+.btn.teal{background:linear-gradient(180deg,#2dd4bf,#0d9488)}
+.btn.red{background:linear-gradient(180deg,#ff8a8a,#dc2626)}
+.btn.gray{background:linear-gradient(180deg,#c9c3dd,#9a92b8)}
+.btn.big{width:100%;font-size:17px;padding:15px}
+.btn[disabled]{opacity:.5}
+/* Escena */
+.scene{position:relative;height:330px;border-radius:24px;overflow:hidden;box-shadow:0 6px 18px #7c4dff33;background:#fde6f1}
+.scene .bgsvg{position:absolute;left:0;top:0;width:100%;height:100%}
+.scene .av{position:absolute;left:2%;bottom:4px;height:300px}
+.scene .av svg{height:100%;width:auto;display:block}
+.scene .pet{position:absolute;right:5%;bottom:6px;width:140px;height:140px}
+.scene .pet svg{width:100%;height:100%;display:block}
+.scene.night:after{content:"";position:absolute;inset:0;background:#120a3acc;pointer-events:none}
+.scene .moon{display:none;position:absolute;left:14px;top:12px;font-size:30px;z-index:3}
+.scene.night .moon{display:block}
+.bubble{position:absolute;top:12px;right:10px;left:44%;z-index:4;background:#fff;border-radius:18px;padding:10px 12px;font-weight:800;font-size:14.5px;box-shadow:0 4px 12px #0002;min-height:42px}
+.bubble:after{content:"";position:absolute;bottom:-11px;right:56px;border:11px solid transparent;border-top-color:#fff;border-bottom:0}
+.poops{position:absolute;right:46%;bottom:8px;font-size:28px;z-index:2;letter-spacing:4px}
+.fx{position:absolute;z-index:6;pointer-events:none;font-size:30px;animation:rise 1.4s ease-out forwards}
+@keyframes rise{0%{opacity:0;transform:translateY(10px) scale(.6)}20%{opacity:1;transform:translateY(0) scale(1.15)}100%{opacity:0;transform:translateY(-70px) scale(1)}}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.35)}100%{transform:scale(1)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes jump{0%,100%{transform:translateY(0) scale(1)}25%{transform:translateY(-46px) scale(1.05,.95)}55%{transform:translateY(0) scale(1.08,.9)}75%{transform:translateY(-12px)}}
+@keyframes wiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+@keyframes breathe{0%,100%{transform:translateY(0)}50%{transform:translateY(-2.5px)}}
+@keyframes blink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.08)}}
+@keyframes chomp{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.3)}}
+.pet svg{animation:bob 2.4s ease-in-out infinite;transform-origin:50% 100%}
+.pet.jump svg{animation:jump .9s ease}
+.pet.wiggle svg{animation:wiggle .5s ease 3}
+.pet.sleep svg{animation:bob 4s ease-in-out infinite}
+.breathe{animation:breathe 3.6s ease-in-out infinite}
+.blinky{transform-box:fill-box;transform-origin:center;animation:blink 5s infinite}
+.chomp{transform-box:fill-box;transform-origin:center;animation:chomp .35s infinite}
+/* Barras */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin:12px 2px}
+.stat{font-weight:800;font-size:13px}
+.stat .bar{height:12px;background:#ece6fb;border-radius:8px;overflow:hidden;margin-top:3px}
+.stat .bar i{display:block;height:100%;border-radius:8px;transition:width .6s}
+.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.petname{display:flex;align-items:center;gap:8px;margin:12px 2px 0;font-weight:900;font-size:18px}
+.petname button{border:0;background:#fff;border-radius:12px;padding:6px 10px;font-weight:800;color:#6a3de8;box-shadow:0 2px 0 #0001}
+/* Preguntas */
+.qtop{display:flex;gap:8px;align-items:flex-end;margin-top:6px}
+.qpet{width:96px;height:96px;flex:none}
+.qpet svg{width:100%;height:100%}
+.qbubble{flex:1;position:relative;background:#fff;border-radius:20px;padding:13px 14px;font-weight:800;font-size:17px;box-shadow:0 4px 14px #7c4dff22;min-height:90px;margin-bottom:24px}
+.qbubble:after{content:"";position:absolute;left:-10px;bottom:20px;border:10px solid transparent;border-right-color:#fff;border-left:0}
+.qbubble small{display:block;font-size:12px;color:var(--muted);font-weight:800;margin-bottom:4px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 8px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:0;border-radius:18px;padding:8px 12px;font-weight:800;background:#fff;color:var(--ink);font-size:13px;box-shadow:0 2px 0 #0001}
+.chip.on{background:#ff5fa2;color:#fff}
+.opts{display:grid;gap:9px;margin-top:4px}
+.opt{border:0;border-radius:16px;padding:14px 12px;font-weight:800;font-size:16px;text-align:left;background:#fff;color:var(--ink);box-shadow:0 3px 0 #7c4dff33;display:flex;gap:10px;align-items:center}
+.opt span{flex:none;width:30px;height:30px;border-radius:50%;background:#efe6ff;color:#6a3de8;display:flex;align-items:center;justify-content:center;font-weight:900}
+.opt.ok{background:#4ade80;color:#fff}
+.opt.ok span{background:#fff;color:#16a34a}
+.opt.bad{background:#ff6b6b;color:#fff}
+.opt.bad span{background:#fff;color:#dc2626}
+.qfoot{display:flex;gap:10px;align-items:center;margin-top:12px}
+.qfoot .info{flex:1;font-weight:800;font-size:13px;color:var(--muted)}
+/* Avatar */
+.avbig{position:sticky;top:122px;z-index:5;height:290px;border-radius:24px;overflow:hidden;box-shadow:0 6px 18px #7c4dff33;background:#fff;display:flex;justify-content:center}
+.avbig svg{height:100%;width:auto}
+.avbig .full{position:absolute;inset:0;width:100%;height:100%}
+.avbig .full svg{width:100%;height:100%;display:block}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.item{position:relative;border:0;background:#fff;border-radius:18px;padding:6px 4px 8px;box-shadow:0 3px 0 #7c4dff22;font-weight:800;font-size:12px;color:var(--ink);display:flex;flex-direction:column;align-items:center;gap:3px}
+.item .th{width:100%;aspect-ratio:1/1;border-radius:14px;background:linear-gradient(180deg,#f6f0ff,#ffeef7);overflow:hidden;display:flex;align-items:center;justify-content:center}
+.item .th svg{width:100%;height:100%}
+.item.on{outline:3px solid #ff5fa2}
+.item.try{outline:3px dashed #7c4dff}
+.item .tag{position:absolute;top:6px;right:6px;background:#ffe066;color:#6b4a00;border-radius:10px;padding:2px 6px;font-size:11px;font-weight:900}
+.item .tag.lock{background:#2d1b69;color:#fff}
+.item .tag.own{background:#4ade80;color:#fff}
+.buybar{position:fixed;left:10px;right:10px;bottom:10px;z-index:30;background:#2d1b69;color:#fff;border-radius:20px;padding:10px 12px;display:none;align-items:center;gap:8px;box-shadow:0 8px 24px #0005}
+.buybar.on{display:flex}
+.buybar .t{flex:1;font-weight:800;font-size:14px;line-height:1.25}
+/* Tienda */
+.row{display:flex;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px solid #f0eafc}
+.row:last-child{border-bottom:0}
+.row .e{font-size:32px;width:44px;text-align:center}
+.row .t{flex:1;font-weight:800;font-size:14px}
+.row .t small{display:block;color:var(--muted);font-weight:700;font-size:12px}
+.row .btn{padding:9px 12px;font-size:13.5px}
+/* Modal y aviso */
+#modal{position:fixed;inset:0;z-index:50;background:#1a0f3d99;display:none;align-items:center;justify-content:center;padding:16px}
+#modal.on{display:flex}
+#modal .box{background:#fff;border-radius:24px;padding:16px;width:100%;max-width:420px;max-height:90vh;overflow:auto}
+#modal h3{margin:2px 0 10px;color:#6a3de8;font-size:19px}
+#modal input{width:100%;font:inherit;font-size:17px;font-weight:800;padding:11px 12px;border:2px solid #d9ccff;border-radius:14px;color:var(--ink);margin:6px 0 12px;-webkit-user-select:text;user-select:text}
+.species{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.species button{border:0;background:#f6f0ff;border-radius:16px;padding:6px 4px;font-weight:800;font-size:12.5px;color:var(--ink)}
+.species button.on{background:#ffe0ef;outline:3px solid #ff5fa2}
+.species svg{width:100%;height:auto;display:block}
+.two{display:flex;gap:8px}
+.two .btn{flex:1}
+#toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);z-index:60;background:#2d1b69;color:#fff;font-weight:800;padding:10px 16px;border-radius:16px;box-shadow:0 6px 18px #0004;display:none;max-width:90%;text-align:center}
+#toast.on{display:block;animation:pop .4s}
+.burst{position:fixed;z-index:70;pointer-events:none;font-size:26px;animation:fly 1.3s ease-out forwards}
+@keyframes fly{0%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(260deg)}}
+/* Modo pequeño (pantalla principal de la app) */
+#mini{display:none}
+body.mini{background:transparent;min-height:0;overflow:hidden}
+body.mini #app{display:none}
+body.mini #mini{display:flex;align-items:center;gap:10px;margin:2px;padding:8px 12px 8px 6px;height:calc(100vh - 4px);border-radius:22px;background:linear-gradient(120deg,#ffffff 0%,#f3ebff 55%,#ffe3f1 100%);box-shadow:0 3px 10px #7c4dff33}
+#mini .mpet{width:118px;height:118px;flex:none}
+#mini .mpet svg{width:100%;height:100%}
+#mini .mtxt{flex:1;font-weight:800;font-size:14px;line-height:1.3}
+#mini .mtxt b{color:#6a3de8;font-size:16px}
+#mini .msay{display:block;background:#fff;border-radius:14px;padding:6px 9px;margin:4px 0;box-shadow:0 2px 6px #0001}
+#mini .mgo{flex:none;width:46px;height:46px;border-radius:50%;background:linear-gradient(180deg,#4ade80,#16a34a);color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 0 #0002}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="coins" id="coinsBox">🪙 <b id="coins">0</b></div>
+    <div class="lvl">⭐ Nivel <b id="lvl">1</b><div class="xpbar"><i id="xp"></i></div></div>
+    <button class="icon" id="snd" title="Voz">🔊</button>
+  </header>
+  <nav>
+    <button data-t="pet" class="on"><b>🐾</b>Mascota</button>
+    <button data-t="quiz"><b>❓</b>Preguntas</button>
+    <button data-t="av"><b>👗</b>Avatar</button>
+    <button data-t="shop"><b>🛍️</b>Tienda</button>
+  </nav>
+
+  <section id="t-pet" class="on">
+    <div class="scene" id="scene">
+      <div class="moon">🌙</div>
+      <div class="bgsvg" id="sceneBg"></div>
+      <div class="av" id="sceneAv"></div>
+      <div class="poops" id="poops"></div>
+      <div class="pet" id="scenePet"></div>
+      <div class="bubble" id="bubble">¡Hola!</div>
+    </div>
+    <div class="petname"><span id="petName">Mascota</span><button id="editPet">✏️ Cambiar</button></div>
+    <div class="stats" id="stats"></div>
+    <div class="actions" id="actions"></div>
+    <button class="btn pink big" style="margin-top:12px" id="goQuiz">❓ ¡Hazme preguntas y gana monedas!</button>
+  </section>
+
+  <section id="t-quiz">
+    <div class="chips" id="qcats"></div>
+    <div class="qtop">
+      <div class="qpet" id="qpet"></div>
+      <div class="qbubble" id="qtext"></div>
+    </div>
+    <div class="opts" id="qopts"></div>
+    <div class="qfoot"><div class="info" id="qinfo"></div><button class="btn green" id="qnext">Siguiente ▶</button></div>
+  </section>
+
+  <section id="t-av">
+    <div class="avbig" id="avbig"></div>
+    <div class="chips" id="avcats" style="margin-top:8px"></div>
+    <div class="grid" id="avgrid"></div>
+  </section>
+
+  <section id="t-shop">
+    <h2>🍎 Comida y cuidados</h2>
+    <div class="card" id="foodList"></div>
+    <h2>🎀 Cosas para tu mascota</h2>
+    <div class="grid" id="paccGrid"></div>
+    <h2>👗 Ropa y accesorios</h2>
+    <div class="card" style="font-weight:700">La ropa, los ojos, la boca, el pelo, los accesorios y los fondos se compran en la pestaña <b>Avatar</b>: toca algo para probártelo y luego «Comprar».
+      <button class="btn big" style="margin-top:10px" onclick="tab('av')">👗 Ir al Avatar</button></div>
+  </section>
+</div>
+
+<div id="mini">
+  <div class="mpet" id="mpet"></div>
+  <div class="mtxt"><b id="mname"></b><span class="msay" id="msay"></span><span id="mcoins"></span></div>
+  <div class="mgo">▶</div>
+</div>
+
+<div class="buybar" id="buybar"><div class="t" id="buyText"></div><button class="btn green" id="buyBtn">Comprar</button><button class="btn gray" id="buyCancel">✕</button></div>
+<div id="modal"><div class="box" id="modalBox"></div></div>
+<div id="toast"></div>
+
+<script>
+"use strict";
+var B = window.MundoApp || null;
+var MINI = false;
+try { MINI = B && B.isMini ? B.isMini() : location.hash.indexOf('mini') >= 0; } catch (e) {}
+
+/* ======================= utilidades ======================= */
+function $(id){ return document.getElementById(id); }
+function rnd(n){ return Math.floor(Math.random() * n); }
+function pick(a){ return a[rnd(a.length)]; }
+function shuffle(a){ a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = rnd(i + 1), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function clamp(v){ return Math.max(0, Math.min(100, v)); }
+function shade(hex, p){
+  var n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+  function f(c){ return Math.max(0, Math.min(255, Math.round(p < 0 ? c * (1 + p / 100) : c + (255 - c) * p / 100))); }
+  return '#' + ((1 << 24) | (f(r) << 16) | (f(g) << 8) | f(b)).toString(16).slice(1);
+}
+function star(cx, cy, R, r, fill, extra){
+  var pts = [];
+  for (var i = 0; i < 10; i++) {
+    var a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r : R;
+    pts.push((cx + rr * Math.cos(a)).toFixed(1) + ',' + (cy + rr * Math.sin(a)).toFixed(1));
+  }
+  return '<polygon points="' + pts.join(' ') + '" fill="' + fill + '" ' + (extra || '') + '/>';
+}
+function heart(cx, cy, s){
+  return 'M' + cx + ',' + (cy + s * .9) + ' C' + (cx - s * 1.6) + ',' + (cy - s * .2) + ' ' + (cx - s * .8) + ',' + (cy - s * 1.3) + ' ' + cx + ',' + (cy - s * .5) +
+    ' C' + (cx + s * .8) + ',' + (cy - s * 1.3) + ' ' + (cx + s * 1.6) + ',' + (cy - s * .2) + ' ' + cx + ',' + (cy + s * .9) + ' Z';
+}
+var MIRROR = 'transform="translate(200,0) scale(-1,1)"';
+function today(){ var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+
+/* ======================= catálogo ======================= */
+var SKIN = {s1:'#FFE4D3', s2:'#F9CBAA', s3:'#E8B08A', s4:'#C98E66', s5:'#9C6644', s6:'#6B4430'};
+var HCOL = {castano:'#7a4a2a', negro:'#2b201c', rubio:'#f2c45a', pelirrojo:'#d0582c', rosa:'#ff8fc7', azul:'#5aa9ff', morado:'#9b6bff', menta:'#5fdcb0', plata:'#d6dbe6', arcoiris:'rainbow'};
+var ECOL = {cafe:'#7a4a24', azul:'#3b82f6', verde:'#22a35a', miel:'#c98a2b', gris:'#7f93ad', violeta:'#8b5cf6', turquesa:'#14b8c4', rubi:'#e0245e'};
+
+var CATS = [
+  {id:'skin',  n:'Piel',       e:'🎨', crop:'42 34 116 116'},
+  {id:'hair',  n:'Pelo',       e:'💇', crop:'8 0 184 184'},
+  {id:'hcol',  n:'Color pelo', e:'🌈', crop:'30 14 140 140'},
+  {id:'eyes',  n:'Ojos',       e:'👀', crop:'56 66 88 70'},
+  {id:'ecol',  n:'Color ojos', e:'🔵', crop:'56 66 88 70'},
+  {id:'brows', n:'Cejas',      e:'〰️', crop:'56 58 88 70'},
+  {id:'mouth', n:'Boca',       e:'👄', crop:'74 102 52 44'},
+  {id:'top',   n:'Arriba',     e:'👕', crop:'30 132 140 140'},
+  {id:'bottom',n:'Abajo',      e:'👖', crop:'40 205 120 125'},
+  {id:'shoes', n:'Zapatos',    e:'👟', crop:'62 282 76 56'},
+  {id:'head',  n:'Cabeza',     e:'👑', crop:'18 -22 164 164'},
+  {id:'face',  n:'Cara',       e:'🕶️', crop:'40 62 120 80'},
+  {id:'neck',  n:'Cuello',     e:'📿', crop:'56 126 88 88'},
+  {id:'hand',  n:'En la mano', e:'🪄', crop:'92 92 96 176'},
+  {id:'back',  n:'Espalda',    e:'🦋', crop:'0 96 200 236'},
+  {id:'bg',    n:'Fondo',      e:'🏞️', crop:'0 -20 200 360'}
+];
+/* [id, nombre, precio] */
+var ITEMS = {
+  skin:[['s1','Muy clara',0],['s2','Clara',0],['s3','Dorada',0],['s4','Morena',0],['s5','Oscura',0],['s6','Muy oscura',0]],
+  hair:[['largo','Largo',0],['corto','Corto',0],['flequillo','Media melena',0],['coletas','Coletas',30],['cola','Cola de caballo',35],['mono','Moño',30],['rizos','Rizos',40],['pinchos','Pinchos',40],['trenzas','Trenzas',50],['ondas','Ondas de princesa',60]],
+  hcol:[['castano','Castaño',0],['negro','Negro',0],['rubio','Rubio',0],['pelirrojo','Pelirrojo',20],['rosa','Rosa',40],['azul','Azul',40],['morado','Morado',40],['menta','Menta',40],['plata','Plateado',50],['arcoiris','Arcoíris',90]],
+  eyes:[['grandes','Grandes',0],['redondos','Redondos',0],['alegres','Alegres',0],['gato','De gatita',30],['dormilones','Dormilones',30],['guino','Guiño',40],['brillo','Con brillo',40],['estrellas','Estrellas',60],['corazon','Corazones',60]],
+  ecol:[['cafe','Café',0],['azul','Azul',0],['verde','Verde',0],['miel','Miel',20],['gris','Gris',20],['violeta','Violeta',40],['turquesa','Turquesa',40],['rubi','Rubí',50]],
+  brows:[['suaves','Suaves',0],['gruesas','Gruesas',0],['arqueadas','Arqueadas',15],['finas','Finas',15],['enfado','Enfadadas',15]],
+  mouth:[['sonrisa','Sonrisa',0],['abierta','Feliz',0],['timida','Tímida',0],['gatito','Gatito :3',25],['lengua','Lengua fuera',25],['sorpresa','¡Oh!',20],['dientes','Sonrisa grande',30],['risa','Carcajada',30],['beso','Besito',35]],
+  top:[['cam_rosa','Camiseta rosa',0],['cam_azul','Camiseta azul',0],['cam_amarilla','Camiseta sol',20],['estrella','Top estrella',50],['rayas','Jersey de rayas',40],['sudadera','Sudadera',60],['jersey','Jersey corazón',60],['chaqueta','Chaqueta vaquera',80],['heroe','Traje de héroe',120],['lunares','Vestido de lunares',100],['princesa','Vestido de princesa',150]],
+  bottom:[['vaqueros','Vaqueros',0],['shorts','Pantalón corto',0],['falda','Falda',30],['chandal','Chándal',40],['escocesa','Falda escocesa',50],['leggings','Mallas de estrellas',50],['tutu','Tutú',60]],
+  shoes:[['deportivas','Deportivas',0],['sandalias','Sandalias',30],['botas','Botas',40],['lluvia','Botas de agua',40],['bailarinas','Bailarinas',50],['patines','Patines',90]],
+  head:[['none','Nada',0],['lazo','Lazo',30],['gorra','Gorra',40],['gorro','Gorro de lana',40],['flores','Corona de flores',50],['gato','Orejas de gato',60],['conejo','Orejas de conejo',60],['auriculares','Auriculares',70],['bruja','Sombrero de bruja',80],['tiara','Tiara',100],['corona','Corona',150]],
+  face:[['none','Nada',0],['pecas','Pecas',20],['estrellitas','Estrellitas',30],['redondas','Gafas redondas',40],['sol','Gafas de sol',50],['corazon','Gafas corazón',60],['antifaz','Antifaz',70]],
+  neck:[['none','Nada',0],['pajarita','Pajarita',30],['bufanda','Bufanda',40],['colgante','Colgante',50],['medalla','Medalla',60],['perlas','Collar de perlas',80]],
+  hand:[['none','Nada',0],['flor','Flor',20],['helado','Helado',25],['globo','Globo',30],['bolso','Bolso',60],['microfono','Micrófono',60],['osito','Osito',70],['varita','Varita mágica',80]],
+  back:[['none','Nada',0],['mochila','Mochila',50],['capa','Capa',80],['hada','Alas de hada',120],['mariposa','Alas de mariposa',130],['angel','Alas de ángel',140]],
+  bg:[['habitacion','Mi habitación',0],['parque','Parque',40],['playa','Playa',50],['nieve','Nieve',60],['arcoiris','Arcoíris',80],['mar','Fondo del mar',80],['espacio','Espacio',100],['castillo','Castillo',120]]
+};
+var FOOD = [
+  {id:'manzana', e:'🍎', n:'Manzana', p:3, hunger:15, happy:2},
+  {id:'leche', e:'🥛', n:'Leche', p:4, hunger:10, happy:3, energy:8},
+  {id:'galleta', e:'🍪', n:'Galleta', p:5, hunger:12, happy:8},
+  {id:'bocadillo', e:'🥪', n:'Bocadillo', p:8, hunger:30, happy:4},
+  {id:'pizza', e:'🍕', n:'Pizza', p:12, hunger:40, happy:10},
+  {id:'tarta', e:'🍰', n:'Tarta', p:20, hunger:30, happy:25},
+  {id:'medicina', e:'💊', n:'Medicina', p:15, med:true}
+];
+var PACC = [['none','Nada',0],['lazo','Lazo',30],['pajarita','Pajarita',30],['gafas','Gafas',40],['fiesta','Gorro de fiesta',40],['corona','Corona',80]];
+var SPECIES = {
+  gato:   {n:'Gatito',     name:'Michi',  c:'#ffb26b', b:'#ffe7cc'},
+  perro:  {n:'Perrito',    name:'Toby',   c:'#d6a77a', b:'#f6e6d0'},
+  conejo: {n:'Conejito',   name:'Copito', c:'#f3eeff', b:'#ffffff'},
+  dragon: {n:'Dragoncito', name:'Draqui', c:'#72d99a', b:'#fff2b3'},
+  pollito:{n:'Pollito',    name:'Pío',    c:'#ffe066', b:'#fff6c2'},
+  panda:  {n:'Panda',      name:'Panchi', c:'#ffffff', b:'#f4f4f4'}
+};
+
+/* ======================= estado ======================= */
+var DEF_EQ = {skin:'s2', hair:'largo', hcol:'castano', eyes:'grandes', ecol:'cafe', brows:'suaves', mouth:'sonrisa', top:'cam_rosa', bottom:'vaqueros', shoes:'deportivas', head:'none', face:'none', neck:'none', hand:'none', back:'none', bg:'habitacion'};
+var S;
+function freshState(){
+  return {v:1, coins:20, xp:0, owned:{}, eq:JSON.parse(JSON.stringify(DEF_EQ)), pet:null, food:{manzana:3, galleta:1},
+    stats:{answered:0, correct:0, streak:0, best:0}, recent:[], lastDaily:'', sound:true, qcat:'todas'};
+}
+function load(){
+  var raw = '';
+  try { raw = B && B.load ? B.load() : (localStorage.getItem('mundo') || ''); } catch (e) {}
+  var st = freshState();
+  if (raw) {
+    try {
+      var o = JSON.parse(raw);
+      for (var k in o) st[k] = o[k];
+      st.eq = Object.assign({}, DEF_EQ, o.eq || {});
+      st.stats = Object.assign(freshState().stats, o.stats || {});
+      st.owned = o.owned || {}; st.food = o.food || {}; st.recent = o.recent || [];
+    } catch (e) {}
+  }
+  S = st;
+}
+function save(){
+  var j = JSON.stringify(S);
+  try { if (B && B.save) B.save(j); else localStorage.setItem('mundo', j); } catch (e) {}
+}
+function owns(cat, id){
+  var list = cat === 'pacc' ? PACC : ITEMS[cat];
+  for (var i = 0; i < list.length; i++) if (list[i][0] === id && list[i][2] === 0) return true;
+  return !!S.owned[cat + ':' + id];
+}
+function level(){ return Math.floor(S.xp / 100) + 1; }
+
+/* ======================= dibujo del avatar ======================= */
+var BG = {
+  habitacion: function(){
+    var s = '<rect x="0" y="-20" width="200" height="360" fill="#fde6f1"/>';
+    for (var x = 6; x < 200; x += 22) s += '<rect x="' + x + '" y="-20" width="8" height="310" fill="#fbd6e8"/>';
+    s += '<rect x="128" y="34" width="58" height="66" rx="8" fill="#bfe6ff" stroke="#fff" stroke-width="6"/><path d="M157,34 V100 M128,67 H186" stroke="#fff" stroke-width="4"/><circle cx="172" cy="50" r="7" fill="#fff6a8"/>';
+    s += '<rect x="14" y="54" width="42" height="34" rx="4" fill="#fff3b0" stroke="#e6a04c" stroke-width="4"/><path d="' + heart(35, 72, 8) + '" fill="#ff7eb6"/>';
+    s += '<rect x="0" y="290" width="200" height="50" fill="#e8c39e"/><path d="M0,310 H200 M40,290 V310 M110,290 V310 M70,310 V340 M150,310 V340" stroke="#d8ad84" stroke-width="2"/>';
+    return s + '<ellipse cx="100" cy="328" rx="84" ry="12" fill="#c8a4ff" opacity=".85"/>';
+  },
+  parque: function(){
+    var s = '<rect x="0" y="-20" width="200" height="360" fill="#bfe8ff"/><circle cx="170" cy="14" r="18" fill="#ffd93d"/>';
+    s += '<g fill="#fff"><circle cx="34" cy="30" r="12"/><circle cx="50" cy="24" r="15"/><circle cx="66" cy="31" r="11"/><circle cx="120" cy="60" r="9"/><circle cx="133" cy="55" r="12"/><circle cx="146" cy="61" r="8"/></g>';
+    s += '<ellipse cx="40" cy="300" rx="120" ry="60" fill="#a6e3a1"/><ellipse cx="180" cy="300" rx="100" ry="50" fill="#95d98f"/><rect x="0" y="288" width="200" height="52" fill="#7ed37e"/>';
+    s += '<rect x="12" y="196" width="12" height="96" rx="3" fill="#9a6a3c"/><circle cx="18" cy="180" r="28" fill="#4caf50"/><circle cx="36" cy="200" r="18" fill="#43a047"/><circle cx="4" cy="204" r="16" fill="#43a047"/>';
+    var f = [[40,318,'#ff7eb6'],[150,324,'#ffd93d'],[176,312,'#fff'],[24,330,'#c38bff']];
+    for (var i = 0; i < f.length; i++) s += '<circle cx="' + f[i][0] + '" cy="' + f[i][1] + '" r="4" fill="' + f[i][2] + '"/><circle cx="' + f[i][0] + '" cy="' + f[i][1] + '" r="1.6" fill="#f59f00"/>';
+    return s;
+  },
+  playa: function(){
+    var s = '<rect x="0" y="-20" width="200" height="360" fill="#aee3ff"/><circle cx="34" cy="26" r="20" fill="#ffd93d"/>';
+    s += '<rect x="0" y="238" width="200" height="60" fill="#4fc3f7"/><path d="M0,252 Q12,246 24,252 T48,252 T72,252 T96,252 T120,252 T144,252 T168,252 T192,252 T216,252" stroke="#fff" stroke-width="3" fill="none" opacity=".8"/>';
+    s += '<path d="M0,290 Q100,276 200,290 V340 H0 Z" fill="#f6dc95"/>';
+    s += '<path d="M168,320 L176,206" stroke="#8b5a2b" stroke-width="4"/><path d="M140,214 Q176,170 212,214 Z" fill="#ff5f7e"/><path d="M164,212 Q176,176 188,212 Z" fill="#fff"/>';
+    return s + star(30, 324, 8, 3.5, '#ff9f43');
+  },
+  nieve: function(){
+    var s = '<rect x="0" y="-20" width="200" height="360" fill="#dbeeff"/>';
+    var fl = [[20,10],[60,40],[150,20],[180,70],[110,90],[30,120],[170,150],[80,170],[140,200],[14,220],[190,240]];
+    for (var i = 0; i < fl.length; i++) s += '<circle cx="' + fl[i][0] + '" cy="' + fl[i][1] + '" r="3" fill="#fff"/>';
+    s += '<path d="M160,290 L178,230 L196,290 Z M164,262 L178,214 L192,262 Z" fill="#2f9e6e"/><path d="M172,232 L178,214 L184,232 Q178,228 172,232Z" fill="#fff"/>';
+    s += '<path d="M0,286 Q100,266 200,286 V340 H0 Z" fill="#ffffff"/><circle cx="26" cy="268" r="16" fill="#fff" stroke="#dbe6f5"/><circle cx="26" cy="242" r="11" fill="#fff" stroke="#dbe6f5"/><path d="M26,243 L36,246 L26,248Z" fill="#ff9f43"/><circle cx="23" cy="238" r="1.5" fill="#333"/><circle cx="30" cy="238" r="1.5" fill="#333"/>';
+    return s;
+  },
+  arcoiris: function(){
+    var s = '<rect x="0" y="-20" width="200" height="360" fill="#cdefff"/>';
+    var c = ['#ff6b6b','#ffa94d','#ffe066','#69db7c','#4dabf7','#9775fa'];
+    for (var i = 0; i < c.length; i++) s += '<circle cx="100" cy="300" r="' + (160 - i * 12) + '" fill="none" stroke="' + c[i] + '" stroke-width="12"/>';
+    s += '<g fill="#fff"><circle cx="10" cy="290" r="22"/><circle cx="36" cy="296" r="18"/><circle cx="190" cy="290" r="22"/><circle cx="164" cy="296" r="18"/></g>';
+    return s + '<rect x="0" y="296" width="200" height="44" fill="#8ce99a"/>';
+  },
+  mar: function(){
+    var s = '<defs><linearGradient id="bg-mar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fd3f7"/><stop offset="1" stop-color="#1e6fb8"/></linearGradient></defs><rect x="0" y="-20" width="200" height="360" fill="url(#bg-mar)"/>';
+    var bb = [[30,40,6],[40,20,4],[170,90,7],[160,60,4],[100,30,3],[20,160,5]];
+    for (var i = 0; i < bb.length; i++) s += '<circle cx="' + bb[i][0] + '" cy="' + bb[i][1] + '" r="' + bb[i][2] + '" fill="none" stroke="#fff" stroke-width="1.5" opacity=".8"/>';
+    s += '<path d="M20,304 Q8,270 22,240 Q34,210 20,180" stroke="#2fb36b" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M180,304 Q192,272 178,246" stroke="#40c070" stroke-width="7" fill="none" stroke-linecap="round"/>';
+    return s + '<path d="M0,300 Q100,286 200,300 V340 H0Z" fill="#f2d38a"/>' + star(160, 322, 9, 4, '#ff7e5f');
+  },
+  espacio: function(){
+    var s = '<rect x="0" y="-20" width="200" height="360" fill="#1d1147"/>';
+    var st = [[12,8],[40,40],[80,12],[120,60],[180,20],[150,110],[20,130],[60,190],[190,170],[110,150],[30,250],[170,240],[90,90]];
+    for (var i = 0; i < st.length; i++) s += '<circle cx="' + st[i][0] + '" cy="' + st[i][1] + '" r="' + (1 + i % 3 * .7) + '" fill="#fff"/>';
+    s += star(60, 70, 6, 2.5, '#ffe066') + '<circle cx="160" cy="54" r="20" fill="#ff9ecf"/><ellipse cx="160" cy="54" rx="34" ry="8" fill="none" stroke="#ffe066" stroke-width="3" transform="rotate(-18 160 54)"/>';
+    return s + '<path d="M0,294 Q100,280 200,294 V340 H0Z" fill="#8f86b8"/><ellipse cx="40" cy="314" rx="12" ry="4" fill="#7a70a6"/><ellipse cx="160" cy="324" rx="9" ry="3" fill="#7a70a6"/>';
+  },
+  castillo: function(){
+    var s = '<defs><linearGradient id="bg-cas" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e3d0ff"/><stop offset="1" stop-color="#ffd6ec"/></linearGradient></defs><rect x="0" y="-20" width="200" height="360" fill="url(#bg-cas)"/>';
+    s += '<g fill="#fff4fb" stroke="#f3c3e0" stroke-width="2"><rect x="30" y="150" width="140" height="140"/><rect x="14" y="110" width="34" height="180"/><rect x="152" y="110" width="34" height="180"/><rect x="82" y="80" width="36" height="210"/></g>';
+    s += '<g fill="#ff8fc7"><path d="M10,112 L31,62 L52,112Z"/><path d="M148,112 L169,62 L190,112Z"/><path d="M78,82 L100,24 L122,82Z"/></g>';
+    s += '<path d="M86,290 V250 Q100,232 114,250 V290Z" fill="#c38bff"/><rect x="24" y="140" width="12" height="18" rx="6" fill="#c38bff"/><rect x="162" y="140" width="12" height="18" rx="6" fill="#c38bff"/>';
+    s += star(40, 30, 6, 2.5, '#fff') + star(170, 20, 5, 2, '#fff');
+    return s + '<rect x="0" y="290" width="200" height="50" fill="#b9e8a8"/>';
+  }
+};
+
+function hairParts(id, hf, hd, hl){
+  var headBack = '<ellipse cx="100" cy="84" rx="58" ry="52" fill="' + hf + '"/>';
+  var hlite = '<path d="M70,46 Q100,34 130,46" stroke="' + hl + '" stroke-width="5" fill="none" stroke-linecap="round" opacity=".65"/>';
+  var centerPart = '<path d="M44,100 C38,12 162,12 156,100 C150,78 132,64 104,64 L100,56 L96,64 C68,64 50,78 44,100 Z" fill="' + hf + '"/>';
+  var sideLocks = '<path d="M44,96 C40,122 44,150 52,170 L61,166 C53,142 53,118 53,100 Z" fill="' + hf + '"/><path d="M156,96 C160,122 156,150 148,170 L139,166 C147,142 147,118 147,100 Z" fill="' + hf + '"/>';
+  switch (id) {
+    case 'corto': return {b:headBack, f:'<path d="M44,100 C38,46 70,28 100,30 C132,28 162,46 156,100 C154,84 148,72 138,64 C124,72 106,70 94,62 C82,72 64,72 54,80 C48,86 45,92 44,100 Z" fill="' + hf + '"/>' + hlite};
+    case 'flequillo': return {
+      b:'<path d="M40,92 C36,32 164,32 160,92 L162,150 Q150,160 136,150 L134,118 L66,118 L64,150 Q50,160 38,150 Z" fill="' + hf + '"/>',
+      f:'<path d="M44,100 C40,10 160,10 156,100 L150,100 C149,86 146,76 140,72 Q100,82 60,72 C54,76 51,86 50,100 Z" fill="' + hf + '"/><path d="M80,76 L78,66 M100,79 L100,66 M120,76 L122,66" stroke="' + hd + '" stroke-width="2" stroke-linecap="round"/>' + hlite};
+    case 'coletas': return {
+      b:headBack + '<ellipse cx="34" cy="132" rx="17" ry="36" transform="rotate(15 34 132)" fill="' + hf + '"/><ellipse cx="166" cy="132" rx="17" ry="36" transform="rotate(-15 166 132)" fill="' + hf + '"/>',
+      f:centerPart + '<circle cx="46" cy="98" r="6" fill="#ff5fa2"/><circle cx="154" cy="98" r="6" fill="#ff5fa2"/>' + hlite};
+    case 'cola': return {
+      b:headBack + '<path d="M136,48 C188,50 190,140 166,198 C162,170 166,120 138,80 Z" fill="' + hf + '"/>',
+      f:'<path d="M44,100 C40,12 160,12 156,100 C152,82 140,66 120,62 C100,70 78,74 56,82 C50,88 46,94 44,100Z" fill="' + hf + '"/><circle cx="140" cy="54" r="6" fill="#4dabf7"/>' + hlite};
+    case 'mono': return {
+      b:'<circle cx="100" cy="30" r="22" fill="' + hf + '"/>' + headBack,
+      f:'<path d="M44,100 C40,12 160,12 156,100 C150,80 136,62 100,60 C64,62 50,80 44,100 Z" fill="' + hf + '"/><rect x="84" y="40" width="32" height="7" rx="3.5" fill="#ff5fa2"/>' + hlite};
+    case 'rizos':
+      var b = '<circle cx="100" cy="82" r="64" fill="' + hf + '"/>';
+      for (var a = 0; a < 360; a += 30) {
+        var r = a * Math.PI / 180;
+        b += '<circle cx="' + (100 + 64 * Math.cos(r)).toFixed(1) + '" cy="' + (82 + 58 * Math.sin(r)).toFixed(1) + '" r="17" fill="' + hf + '"/>';
+      }
+      var f = '<path d="M46,96 C42,12 158,12 154,96 C150,80 140,68 128,64 L72,64 C60,68 50,80 46,96Z" fill="' + hf + '"/>';
+      var cx = [56, 72, 88, 104, 120, 136, 148], cy = [70, 62, 58, 57, 58, 62, 70];
+      for (var i = 0; i < cx.length; i++) f += '<circle cx="' + cx[i] + '" cy="' + cy[i] + '" r="11" fill="' + hf + '"/><path d="M' + (cx[i] - 5) + ',' + (cy[i] - 2) + ' q5,-6 10,0" stroke="' + hd + '" stroke-width="1.6" fill="none"/>';
+      return {b:b, f:f};
+    case 'pinchos': return {b:headBack, f:'<path d="M46,98 L38,58 L58,64 L54,36 L76,48 L84,20 L99,42 L113,18 L121,44 L142,30 L141,58 L162,56 L154,98 C150,80 140,70 130,68 C110,74 90,74 70,68 C60,72 50,82 46,98 Z" fill="' + hf + '" stroke="' + hd + '" stroke-width="1.5" stroke-linejoin="round"/>'};
+    case 'trenzas':
+      var t = headBack;
+      [46, 154].forEach(function(x0){
+        for (var k = 0; k < 6; k++) t += '<ellipse cx="' + x0 + '" cy="' + (128 + k * 19) + '" rx="' + (11 - k * .6) + '" ry="12" fill="' + (k % 2 ? hd : hf) + '"/>';
+        t += '<circle cx="' + x0 + '" cy="' + 240 + '" r="5" fill="#ff5fa2"/>';
+      });
+      return {b:t, f:centerPart + hlite};
+    case 'ondas': return {
+      b:'<path d="M38,90 C32,26 168,26 162,90 C170,120 160,140 170,165 C178,190 160,210 168,234 Q140,246 130,226 L132,140 L68,140 L70,226 Q60,246 32,234 C40,210 22,190 30,165 C40,140 30,120 38,90 Z" fill="' + hf + '"/>',
+      f:'<path d="M44,104 C38,8 162,8 156,104 C152,82 134,62 104,62 C108,74 100,86 86,90 C70,92 56,96 44,104 Z" fill="' + hf + '"/>' +
+        '<path d="M44,96 C38,118 50,134 44,152 C40,164 50,172 56,174 L60,168 C54,160 52,150 56,140 C60,126 52,112 53,100 Z" fill="' + hf + '"/><path d="M156,96 C162,118 150,134 156,152 C160,164 150,172 144,174 L140,168 C146,160 148,150 144,140 C140,126 148,112 147,100 Z" fill="' + hf + '"/>' + hlite};
+    default: /* largo */ return {
+      b:'<path d="M40,90 C34,28 166,28 160,90 L168,206 Q158,220 140,212 L134,140 L66,140 L60,212 Q42,220 32,206 Z" fill="' + hf + '"/>',
+      f:'<path d="M44,104 C36,8 164,8 156,104 C153,86 146,72 134,64 C116,76 92,80 68,74 C56,82 48,92 44,104 Z" fill="' + hf + '"/>' + sideLocks + hlite};
+  }
+}
+
+function eyesSVG(id, ec, sk){
+  var dark = '#2b1b2b', s = '';
+  function iris(x, y){ return '<ellipse cx="' + x + '" cy="' + (y + 2) + '" rx="10" ry="12" fill="url(#ir)"/>'; }
+  function big(x, y, side, opt){
+    opt = opt || {};
+    var e = '<ellipse cx="' + x + '" cy="' + y + '" rx="13" ry="15.5" fill="#fff" stroke="#3a2a2a" stroke-opacity=".18"/>';
+    if (opt.heart) e += '<path d="' + heart(x, y + 2, 7.5) + '" fill="#ff4d8d"/>';
+    else {
+      e += opt.br ? '<ellipse cx="' + x + '" cy="' + (y + 2) + '" rx="11" ry="13" fill="url(#ir)"/>' : iris(x, y);
+      e += opt.star ? star(x, y + 2, 7, 3, '#fff7c2') : '<ellipse cx="' + x + '" cy="' + (y + 3) + '" rx="5" ry="6.5" fill="#1a1020"/>';
+    }
+    e += '<circle cx="' + (x - 4) + '" cy="' + (y - 3) + '" r="' + (opt.br ? 4.8 : 4) + '" fill="#fff"/><circle cx="' + (x + 4) + '" cy="' + (y + 7) + '" r="2" fill="#fff" opacity=".9"/>';
+    if (opt.br) e += star(x + 5, y - 5, 3.2, 1.2, '#fff');
+    e += '<path d="M' + (x - 14) + ',' + (y - 4) + ' Q' + x + ',' + (y - 21) + ' ' + (x + 14) + ',' + (y - 4) + '" stroke="' + dark + '" stroke-width="3.5" fill="none" stroke-linecap="round"/>';
+    e += '<path d="M' + (x + 13 * side) + ',' + (y - 6) + ' L' + (x + 19 * side) + ',' + (y - 11) + '" stroke="' + dark + '" stroke-width="3" stroke-linecap="round"/>';
+    return e;
+  }
+  function closed(x, y){ return '<path d="M' + (x - 12) + ',' + (y + 3) + ' Q' + x + ',' + (y - 10) + ' ' + (x + 12) + ',' + (y + 3) + '" stroke="' + dark + '" stroke-width="4" fill="none" stroke-linecap="round"/>'; }
+  var L = [78, 98, -1], R = [122, 98, 1];
+  [L, R].forEach(function(p){
+    var x = p[0], y = p[1], side = p[2];
+    switch (id) {
+      case 'redondos':
+        s += '<circle cx="' + x + '" cy="' + y + '" r="11.5" fill="#fff" stroke="#3a2a2a" stroke-opacity=".18"/><circle cx="' + x + '" cy="' + (y + 1) + '" r="8.5" fill="url(#ir)"/><circle cx="' + x + '" cy="' + (y + 1) + '" r="4.5" fill="#1a1020"/><circle cx="' + (x - 3) + '" cy="' + (y - 3) + '" r="3" fill="#fff"/>';
+        s += '<path d="M' + (x - 12) + ',' + (y - 5) + ' Q' + x + ',' + (y - 16) + ' ' + (x + 12) + ',' + (y - 5) + '" stroke="' + dark + '" stroke-width="2.6" fill="none" stroke-linecap="round"/>';
+        break;
+      case 'alegres': s += closed(x, y); break;
+      case 'guino': s += side < 0 ? big(x, y, side) : closed(x, y); break;
+      case 'gato':
+        var inner = x - 13 * side, outer = x + 14 * side;
+        var shape = 'M' + inner + ',' + (y + 3) + ' Q' + x + ',' + (y - 14) + ' ' + outer + ',' + (y - 5) + ' Q' + x + ',' + (y + 14) + ' ' + inner + ',' + (y + 3) + ' Z';
+        s += '<clipPath id="cg' + side + '"><path d="' + shape + '"/></clipPath><path d="' + shape + '" fill="#fff"/>';
+        s += '<g clip-path="url(#cg' + side + ')"><ellipse cx="' + x + '" cy="' + y + '" rx="9" ry="11" fill="url(#ir)"/><ellipse cx="' + x + '" cy="' + y + '" rx="2.6" ry="8" fill="#1a1020"/><circle cx="' + (x - 3) + '" cy="' + (y - 4) + '" r="2.6" fill="#fff"/></g>';
+        s += '<path d="' + shape + '" fill="none" stroke="' + dark + '" stroke-width="2.6"/><path d="M' + outer + ',' + (y - 5) + ' L' + (outer + 6 * side) + ',' + (y - 10) + '" stroke="' + dark + '" stroke-width="2.6" stroke-linecap="round"/>';
+        break;
+      case 'dormilones':
+        s += big(x, y, side) + '<path d="M' + (x - 16) + ',' + y + ' Q' + x + ',' + (y - 3) + ' ' + (x + 16) + ',' + y + ' L' + (x + 16) + ',' + (y - 22) + ' L' + (x - 16) + ',' + (y - 22) + ' Z" fill="' + sk + '"/>';
+        s += '<path d="M' + (x - 14) + ',' + y + ' Q' + x + ',' + (y - 3) + ' ' + (x + 14) + ',' + y + '" stroke="' + dark + '" stroke-width="3.2" fill="none" stroke-linecap="round"/>';
+        break;
+      case 'brillo': s += big(x, y, side, {br:true}); break;
+      case 'estrellas': s += big(x, y, side, {star:true}); break;
+      case 'corazon': s += big(x, y, side, {heart:true}); break;
+      default: s += big(x, y, side);
+    }
+  });
+  return '<g class="blinky">' + s + '</g>';
+}
+
+function browsSVG(id, c){
+  var s = '';
+  [[78, -1], [122, 1]].forEach(function(p){
+    var x = p[0], side = p[1], y = 74, inner = x - 10 * side, outer = x + 10 * side;
+    switch (id) {
+      case 'gruesas': s += '<path d="M' + (x - 10) + ',' + (y + 2) + ' Q' + x + ',' + (y - 4) + ' ' + (x + 10) + ',' + (y + 2) + '" stroke="' + c + '" stroke-width="5.5" fill="none" stroke-linecap="round"/>'; break;
+      case 'arqueadas': s += '<path d="M' + (x - 11) + ',' + (y + 3) + ' Q' + x + ',' + (y - 9) + ' ' + (x + 11) + ',' + (y + 3) + '" stroke="' + c + '" stroke-width="3" fill="none" stroke-linecap="round"/>'; break;
+      case 'finas': s += '<path d="M' + (x - 12) + ',' + (y + 2) + ' Q' + x + ',' + (y - 6) + ' ' + (x + 12) + ',' + (y + 1) + '" stroke="' + c + '" stroke-width="1.8" fill="none" stroke-linecap="round"/>'; break;
+      case 'enfado': s += '<path d="M' + outer + ',' + (y - 2) + ' L' + inner + ',' + (y + 4) + '" stroke="' + c + '" stroke-width="4.5" stroke-linecap="round"/>'; break;
+      default: s += '<path d="M' + (x - 10) + ',' + (y + 2) + ' Q' + x + ',' + (y - 4) + ' ' + (x + 10) + ',' + (y + 2) + '" stroke="' + c + '" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    }
+  });
+  return s;
+}
+
+function mouthSVG(id){
+  var ln = '#9a3b3b', inside = '#7a2630', tongue = '#ff7b93';
+  switch (id) {
+    case 'abierta': return '<path d="M88,119 Q100,138 112,119 Z" fill="' + inside + '"/><path d="M93,128 Q100,123 107,128 Q100,135 93,128Z" fill="' + tongue + '"/>';
+    case 'timida': return '<path d="M94,123 Q100,128 106,123" stroke="' + ln + '" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    case 'gatito': return '<path d="M88,121 Q94,129 100,121 Q106,129 112,121" stroke="' + ln + '" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    case 'lengua': return '<path d="M95,125 Q100,138 105,125Z" fill="' + tongue + '"/><path d="M88,121 Q100,131 112,121" stroke="' + ln + '" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    case 'sorpresa': return '<ellipse cx="100" cy="125" rx="5.5" ry="7" fill="' + inside + '"/>';
+    case 'dientes': return '<path d="M86,119 Q100,137 114,119 Z" fill="#fff" stroke="' + ln + '" stroke-width="2.4" stroke-linejoin="round"/><path d="M88,123 Q100,127 112,123" stroke="#e6d6d6" stroke-width="1.5" fill="none"/>';
+    case 'risa': return '<path d="M86,118 L114,118 Q114,138 100,138 Q86,138 86,118 Z" fill="' + inside + '"/><path d="M88,118 L112,118 L111,123 L89,123 Z" fill="#fff"/><path d="M92,133 Q100,126 108,133 Q100,138 92,133Z" fill="' + tongue + '"/>';
+    case 'beso': return '<path d="M95,121 Q100,116 105,121 Q101,124 105,127 Q100,131 95,127 Q99,124 95,121Z" fill="#ff5f8f"/><path d="' + heart(118, 114, 4) + '" fill="#ff5f8f" opacity=".85"/>';
+    default: return '<path d="M89,121 Q100,132 111,121" stroke="' + ln + '" stroke-width="3" fill="none" stroke-linecap="round"/>';
+  }
+}
+
+var BODY = 'M70,158 Q100,146 130,158 L127,230 Q100,237 73,230 Z';
+function sleeves(c, long, w){ return '<path d="M77,160 L' + (long ? '61,218' : '65,188') + ' M123,160 L' + (long ? '139,218' : '135,188') + '" stroke="' + c + '" stroke-width="' + (w || 18) + '" stroke-linecap="round"/>'; }
+function neckV(sk){ return '<path d="M89,151 Q100,165 111,151 Z" fill="' + sk + '"/>'; }
+function topSVG(id, sk, D){
+  switch (id) {
+    case 'cam_azul': return sleeves('#5aa9ff') + '<path d="' + BODY + '" fill="#5aa9ff"/>' + neckV(sk);
+    case 'cam_amarilla': return sleeves('#ffd84d') + '<path d="' + BODY + '" fill="#ffd84d"/>' + neckV(sk) + '<circle cx="100" cy="192" r="12" fill="#ff9f43"/><circle cx="96" cy="189" r="1.6" fill="#7a3d00"/><circle cx="104" cy="189" r="1.6" fill="#7a3d00"/><path d="M95,195 Q100,199 105,195" stroke="#7a3d00" stroke-width="1.6" fill="none"/>';
+    case 'estrella': return sleeves('#9b6bff') + '<path d="' + BODY + '" fill="#9b6bff"/>' + neckV(sk) + star(100, 192, 15, 6.5, '#fff', 'stroke="#ffe066" stroke-width="2"');
+    case 'rayas':
+      D.push('<pattern id="pt-rayas" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" fill="#fff"/><rect width="10" height="5" fill="#ff6b8b"/></pattern>');
+      return sleeves('url(#pt-rayas)', true, 17) + '<path d="' + BODY + '" fill="url(#pt-rayas)"/>' + neckV(sk);
+    case 'sudadera':
+      return '<path d="M74,156 Q100,178 126,156 Q122,140 100,140 Q78,140 74,156Z" fill="#8b6ee8"/>' + sleeves('#a78bfa', true, 18) +
+        '<path d="M68,158 Q100,148 132,158 L130,238 Q100,244 70,238 Z" fill="#a78bfa"/><path d="M82,206 L118,206 L122,228 L78,228Z" fill="#8b6ee8"/>' +
+        '<path d="M94,162 L92,186 M106,162 L108,186" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>';
+    case 'jersey':
+      return sleeves('#ff8a8a', true, 18) + '<path d="' + BODY + '" fill="#ff8a8a"/>' + neckV(sk) + '<path d="' + heart(100, 192, 11) + '" fill="#fff"/><path d="M74,224 Q100,231 126,224" stroke="#e85d5d" stroke-width="6" fill="none"/>';
+    case 'chaqueta':
+      return sleeves('#4a78c2', true, 18) + '<path d="' + BODY + '" fill="#fff"/>' + neckV(sk) +
+        '<path d="M68,158 Q84,150 92,152 L95,236 L72,232 Z" fill="#4a78c2"/><path d="M132,158 Q116,150 108,152 L105,236 L128,232 Z" fill="#4a78c2"/>' +
+        '<path d="M86,152 L80,172 L92,166Z M114,152 L120,172 L108,166Z" fill="#355f9f"/><circle cx="90" cy="196" r="2.2" fill="#ffd34d"/><circle cx="110" cy="196" r="2.2" fill="#ffd34d"/>' +
+        '<path d="M76,198 L88,198 M112,198 L124,198" stroke="#355f9f" stroke-width="2"/>';
+    case 'heroe':
+      return sleeves('#2f6bff', true, 18) + '<path d="' + BODY + '" fill="#2f6bff"/>' + neckV(sk) + '<rect x="73" y="218" width="54" height="9" fill="#ffcc00"/><circle cx="100" cy="186" r="15" fill="#ff3b5c"/>' + star(100, 186, 11, 4.5, '#ffe066');
+    case 'lunares':
+      D.push('<pattern id="pt-lun" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="#4dabf7"/><circle cx="4" cy="4" r="2.6" fill="#fff"/><circle cx="11" cy="11" r="2.6" fill="#fff"/></pattern>');
+      return sleeves('#4dabf7') + '<path d="M72,158 Q100,148 128,158 L123,222 L77,222 Z" fill="url(#pt-lun)"/><path d="M78,218 L122,218 L146,280 Q100,292 54,280 Z" fill="url(#pt-lun)"/>' + neckV(sk) + '<rect x="76" y="216" width="48" height="7" rx="3" fill="#fff"/>';
+    case 'princesa':
+      D.push('<linearGradient id="g-pr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc2e2"/><stop offset="1" stop-color="#ff7eb6"/></linearGradient>');
+      var sc = '';
+      for (var x = 48; x < 156; x += 18) sc += '<circle cx="' + (x + 8) + '" cy="' + (300 - Math.abs(100 - x - 8) * .06) + '" r="9" fill="#ff9ccc"/>';
+      return '<circle cx="74" cy="162" r="13" fill="#ffb3d9"/><circle cx="126" cy="162" r="13" fill="#ffb3d9"/>' + sc +
+        '<path d="M78,218 L122,218 L158,298 Q100,312 42,298 Z" fill="url(#g-pr)"/><path d="M100,222 L82,300 M100,222 L118,300" stroke="#ffd6eb" stroke-width="2" opacity=".8"/>' +
+        '<path d="M72,158 Q100,148 128,158 L122,222 L78,222 Z" fill="#ff8fc7"/>' + neckV(sk) +
+        '<path d="M88,222 L100,214 L112,222 L100,230Z" fill="#fff"/>' + star(70, 270, 3.5, 1.4, '#fff') + star(128, 262, 3.5, 1.4, '#fff') + star(100, 288, 3.5, 1.4, '#fff');
+    default: return sleeves('#ff8fc7') + '<path d="' + BODY + '" fill="#ff8fc7"/>' + neckV(sk) + '<path d="' + heart(110, 182, 4) + '" fill="#fff"/>';
+  }
+}
+function isDress(id){ return id === 'princesa' || id === 'lunares'; }
+
+function bottomSVG(id, D){
+  var pants = 'M76,224 L124,224 L125,250 L118,314 L103,314 L100,256 L97,314 L82,314 L75,250 Z';
+  switch (id) {
+    case 'shorts': return '<path d="M76,224 L124,224 L127,262 L103,264 L100,248 L97,264 L73,262 Z" fill="#ff9f43"/><path d="M100,226 V248" stroke="#e07b1e" stroke-width="2"/>';
+    case 'falda': return '<path d="M77,222 L123,222 L138,272 Q100,282 62,272 Z" fill="#c38bff"/><path d="M90,226 L84,276 M100,226 V279 M110,226 L116,276" stroke="#a76cf0" stroke-width="2"/>';
+    case 'chandal': return '<path d="' + pants + '" fill="#6b7280"/><path d="M77,232 L83,312 M123,232 L117,312" stroke="#fff" stroke-width="3"/>';
+    case 'escocesa':
+      D.push('<pattern id="pt-esc" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="16" height="16" fill="#e03131"/><rect x="0" y="6" width="16" height="4" fill="#1c1c3a" opacity=".55"/><rect x="6" y="0" width="4" height="16" fill="#1c1c3a" opacity=".55"/><rect x="0" y="12" width="16" height="1" fill="#ffe066"/></pattern>');
+      return '<path d="M77,222 L123,222 L136,268 Q100,276 64,268 Z" fill="url(#pt-esc)"/>';
+    case 'leggings':
+      var st = '';
+      [[86,250],[112,262],[90,290],[110,300],[84,306]].forEach(function(p){ st += star(p[0], p[1], 3.5, 1.5, '#ffe066'); });
+      return '<path d="M77,224 L123,224 L120,316 L104,316 L100,258 L96,316 L80,316 Z" fill="#4c2a85"/>' + st;
+    case 'tutu':
+      return '<ellipse cx="100" cy="246" rx="44" ry="16" fill="#ffc2e2" opacity=".9"/><ellipse cx="100" cy="240" rx="38" ry="14" fill="#ffaad4" opacity=".95"/><ellipse cx="100" cy="232" rx="30" ry="10" fill="#ff8fc7"/>' + star(84, 244, 3, 1.2, '#fff') + star(118, 246, 3, 1.2, '#fff');
+    default: return '<path d="' + pants + '" fill="#4a6fb5"/><path d="M100,226 V254" stroke="#3b5c9c" stroke-width="2"/><path d="M82,308 L97,308 M103,308 L118,308" stroke="#7d9ad6" stroke-width="3"/>';
+  }
+}
+
+function shoesSVG(id, sk){
+  var s = '';
+  [87, 113].forEach(function(x){
+    switch (id) {
+      case 'botas': s += '<rect x="' + (x - 8) + '" y="292" width="16" height="28" rx="4" fill="#8b5a2b"/><ellipse cx="' + x + '" cy="322" rx="12" ry="7" fill="#6e4520"/>'; break;
+      case 'lluvia': s += '<rect x="' + (x - 8.5) + '" y="286" width="17" height="34" rx="5" fill="#ffd43b"/><rect x="' + (x - 8.5) + '" y="286" width="17" height="6" rx="3" fill="#f59f00"/><ellipse cx="' + x + '" cy="322" rx="12.5" ry="7" fill="#f59f00"/>'; break;
+      case 'bailarinas': s += '<ellipse cx="' + x + '" cy="322" rx="12" ry="7" fill="#ff8fc7"/><path d="M' + (x - 5) + ',316 L' + x + ',319 L' + (x - 5) + ',322Z M' + (x + 5) + ',316 L' + x + ',319 L' + (x + 5) + ',322Z" fill="#fff"/>'; break;
+      case 'sandalias': s += '<ellipse cx="' + x + '" cy="321" rx="11" ry="6" fill="' + sk + '"/><ellipse cx="' + x + '" cy="326" rx="12" ry="4" fill="#c4874b"/><path d="M' + (x - 9) + ',318 L' + (x + 9) + ',318" stroke="#c4874b" stroke-width="3" stroke-linecap="round"/>'; break;
+      case 'patines': s += '<rect x="' + (x - 8) + '" y="298" width="16" height="22" rx="4" fill="#fff" stroke="#d8d0f0"/><ellipse cx="' + x + '" cy="321" rx="12" ry="5" fill="#fff" stroke="#d8d0f0"/><rect x="' + (x - 11) + '" y="324" width="22" height="3" fill="#9aa"/><circle cx="' + (x - 7) + '" cy="331" r="3.6" fill="#ff5fa2"/><circle cx="' + x + '" cy="331" r="3.6" fill="#4dabf7"/><circle cx="' + (x + 7) + '" cy="331" r="3.6" fill="#ffd43b"/>'; break;
+      default: s += '<ellipse cx="' + x + '" cy="322" rx="13" ry="7.5" fill="#fff" stroke="#d6cfee"/><path d="M' + (x - 12) + ',324 Q' + x + ',331 ' + (x + 12) + ',324" stroke="#ff5fa2" stroke-width="3" fill="none"/><circle cx="' + x + '" cy="318" r="1.5" fill="#7c4dff"/>';
+    }
+  });
+  return s;
+}
+
+function backSVG(id){
+  switch (id) {
+    case 'capa': return '<path d="M72,154 L128,154 L152,304 Q100,318 48,304 Z" fill="#e63950"/><path d="M80,156 L120,156 L138,296 Q100,306 62,296Z" fill="#b5172f" opacity=".35"/>';
+    case 'hada': return '<g opacity=".85" stroke-width="2"><ellipse cx="58" cy="168" rx="30" ry="46" transform="rotate(-30 58 168)" fill="#bdf3ff" stroke="#7fd8ef"/><ellipse cx="142" cy="168" rx="30" ry="46" transform="rotate(30 142 168)" fill="#bdf3ff" stroke="#7fd8ef"/><ellipse cx="68" cy="228" rx="18" ry="28" transform="rotate(25 68 228)" fill="#ffd1f0" stroke="#f59ad5"/><ellipse cx="132" cy="228" rx="18" ry="28" transform="rotate(-25 132 228)" fill="#ffd1f0" stroke="#f59ad5"/></g>' + star(40, 140, 4, 1.6, '#fff') + star(162, 150, 4, 1.6, '#fff');
+    case 'angel':
+      var w = '<path d="M88,172 C52,118 18,128 12,150 C26,150 30,160 20,170 C36,168 40,178 28,190 C46,188 50,198 40,210 C60,204 78,198 90,190 Z" fill="#fff" stroke="#d9e2f0" stroke-width="2"/>';
+      return w + '<g ' + MIRROR + '>' + w + '</g>';
+    case 'mariposa':
+      var m = '<path d="M90,180 C40,116 6,146 28,190 C8,224 52,252 92,200 Z" fill="#ff8fc7" stroke="#d94f99" stroke-width="2"/><circle cx="48" cy="168" r="8" fill="#ffe066"/><circle cx="52" cy="214" r="6" fill="#9b6bff"/>';
+      return m + '<g ' + MIRROR + '>' + m + '</g>';
+    case 'mochila': return '<rect x="60" y="160" width="80" height="78" rx="16" fill="#ff9f43"/>';
+    default: return '';
+  }
+}
+
+function handSVG(id){
+  switch (id) {
+    case 'varita': return '<path d="M143,234 L160,182" stroke="#6b4423" stroke-width="4" stroke-linecap="round"/>' + star(162, 176, 11, 5, '#ffd34d', 'stroke="#f2a900" stroke-width="1.5"') + star(178, 160, 3, 1.2, '#fff6a8') + star(150, 160, 2.5, 1, '#fff6a8');
+    case 'globo': return '<path d="M141,232 Q156,200 163,140" stroke="#888" stroke-width="1.5" fill="none"/><ellipse cx="164" cy="116" rx="18" ry="22" fill="#ff5f7e"/><path d="M160,137 L168,137 L164,142Z" fill="#ff5f7e"/><ellipse cx="158" cy="108" rx="5" ry="8" fill="#fff" opacity=".5"/>';
+    case 'helado': return '<path d="M133,214 L149,214 L141,246 Z" fill="#e7a95b"/><path d="M136,220 L146,232 M146,220 L137,232" stroke="#c98a3b" stroke-width="1.3"/><circle cx="141" cy="206" r="10" fill="#ff9ccc"/><circle cx="141" cy="194" r="8" fill="#8ce99a"/><circle cx="143" cy="185" r="3.5" fill="#e03131"/>';
+    case 'bolso': return '<path d="M136,232 Q148,224 156,240" stroke="#c2185b" stroke-width="3" fill="none"/><rect x="134" y="238" width="32" height="25" rx="7" fill="#ff7eb6"/><circle cx="150" cy="246" r="3" fill="#ffd34d"/>';
+    case 'osito': return '<g fill="#b07a4f"><circle cx="148" cy="232" r="5"/><circle cx="166" cy="232" r="5"/><circle cx="157" cy="241" r="11"/><ellipse cx="157" cy="260" rx="11" ry="13"/></g><ellipse cx="157" cy="245" rx="5" ry="3.5" fill="#e6c3a0"/><circle cx="153" cy="239" r="1.5" fill="#2b1b1b"/><circle cx="161" cy="239" r="1.5" fill="#2b1b1b"/><path d="' + heart(157, 260, 4) + '" fill="#ff7eb6"/>';
+    case 'microfono': return '<rect x="137" y="214" width="8" height="30" rx="3" fill="#333"/><circle cx="141" cy="207" r="9" fill="#c0c4cc"/><path d="M134,204 H148 M134,209 H148 M138,199 V215 M144,199 V215" stroke="#9aa0aa" stroke-width="1"/>';
+    case 'flor': return '<path d="M141,232 Q146,210 150,192" stroke="#3aa655" stroke-width="3" fill="none"/><ellipse cx="139" cy="212" rx="6" ry="3" fill="#3aa655" transform="rotate(-30 139 212)"/><g fill="#ff7eb6"><circle cx="150" cy="180" r="5"/><circle cx="157" cy="185" r="5"/><circle cx="155" cy="193" r="5"/><circle cx="145" cy="193" r="5"/><circle cx="143" cy="185" r="5"/></g><circle cx="150" cy="187" r="4" fill="#ffd34d"/>';
+    default: return '';
+  }
+}
+function neckSVG(id){
+  switch (id) {
+    case 'perlas': var p = ''; for (var i = 0; i <= 8; i++) { var t = i / 8, x = 84 + 32 * t, y = 152 + 26 * t * (1 - t); p += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="2.8" fill="#fff" stroke="#e3e3ef"/>'; } return p;
+    case 'bufanda': return '<path d="M76,146 Q100,164 124,146 L126,160 Q100,176 74,160 Z" fill="#e03131"/><rect x="106" y="160" width="14" height="34" rx="4" fill="#c92a2a"/><path d="M108,190 V196 M113,190 V196 M118,190 V196" stroke="#fff" stroke-width="1.5"/>';
+    case 'pajarita': return '<path d="M100,158 L86,150 L86,166 Z M100,158 L114,150 L114,166 Z" fill="#7c4dff"/><circle cx="100" cy="158" r="4" fill="#5b2fd6"/>';
+    case 'colgante': return '<path d="M86,152 Q100,172 114,152" stroke="#f2c14e" stroke-width="1.5" fill="none"/><path d="' + heart(100, 170, 6) + '" fill="#ff4d8d" stroke="#f2c14e" stroke-width="1.5"/>';
+    case 'medalla': return '<path d="M88,150 L100,178 L112,150" stroke="#4dabf7" stroke-width="6" fill="none"/><circle cx="100" cy="184" r="10" fill="#ffd34d" stroke="#e0a800" stroke-width="2"/>' + star(100, 184, 5, 2.2, '#fff');
+    default: return '';
+  }
+}
+function headItemSVG(id){
+  switch (id) {
+    case 'gorra': return '<path d="M50,72 C48,24 152,24 150,72 Z" fill="#ff4d6d"/><path d="M40,74 Q100,60 160,74 Q164,84 152,84 Q100,74 48,84 Q36,84 40,74Z" fill="#d61f45"/><circle cx="100" cy="28" r="5" fill="#d61f45"/>' + star(100, 52, 8, 3.5, '#fff');
+    case 'corona': return '<path d="M68,48 L64,14 L84,30 L100,6 L116,30 L136,14 L132,48 Z" fill="#ffd34d" stroke="#e0a800" stroke-width="2" stroke-linejoin="round"/><rect x="67" y="42" width="66" height="8" rx="3" fill="#f2b705"/><circle cx="100" cy="34" r="5" fill="#ff3b5c"/><circle cx="80" cy="38" r="3.5" fill="#4dabf7"/><circle cx="120" cy="38" r="3.5" fill="#51cf66"/>';
+    case 'lazo': return '<path d="M134,46 L110,30 L112,62 Z" fill="#ff4f9a"/><path d="M134,46 L158,30 L156,62 Z" fill="#ff4f9a"/><circle cx="134" cy="46" r="6.5" fill="#d81b72"/>';
+    case 'gato': return '<path d="M50,66 Q100,30 150,66" stroke="#2b2b3a" stroke-width="5" fill="none"/><path d="M56,54 L62,16 L86,40Z" fill="#2b2b3a"/><path d="M144,54 L138,16 L114,40Z" fill="#2b2b3a"/><path d="M63,46 L66,26 L78,40Z" fill="#ff8fab"/><path d="M137,46 L134,26 L122,40Z" fill="#ff8fab"/>';
+    case 'conejo': return '<ellipse cx="80" cy="8" rx="10" ry="30" transform="rotate(-10 80 8)" fill="#fff" stroke="#e6e0f2" stroke-width="2"/><ellipse cx="80" cy="10" rx="4.5" ry="21" transform="rotate(-10 80 10)" fill="#ffc2d6"/><ellipse cx="120" cy="8" rx="10" ry="30" transform="rotate(10 120 8)" fill="#fff" stroke="#e6e0f2" stroke-width="2"/><ellipse cx="120" cy="10" rx="4.5" ry="21" transform="rotate(10 120 10)" fill="#ffc2d6"/><path d="M50,64 Q100,28 150,64" stroke="#fff" stroke-width="6" fill="none"/>';
+    case 'bruja': return '<path d="M64,48 Q84,-26 136,-14 Q112,-2 136,48 Z" fill="#5b2a86"/><ellipse cx="100" cy="48" rx="66" ry="11" fill="#4a1f70"/><rect x="66" y="36" width="68" height="8" fill="#ffb020"/>' + star(108, 20, 7, 3, '#ffe066');
+    case 'flores':
+      var s = '', cols = ['#ff7eb6', '#ffd43b', '#c38bff', '#ff8a8a', '#74c0fc'];
+      for (var i = 0; i < 7; i++) {
+        var a = Math.PI * (1.08 + i * .14), x = 100 + 56 * Math.cos(a), y = 88 + 54 * Math.sin(a), c = cols[i % cols.length];
+        for (var k = 0; k < 5; k++) { var b = k * Math.PI * 2 / 5; s += '<circle cx="' + (x + 4.5 * Math.cos(b)).toFixed(1) + '" cy="' + (y + 4.5 * Math.sin(b)).toFixed(1) + '" r="4" fill="' + c + '"/>'; }
+        s += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="2.8" fill="#fff6a8"/>';
+      }
+      return s;
+    case 'auriculares': return '<path d="M46,96 C40,18 160,18 154,96" stroke="#8b5cf6" stroke-width="7" fill="none"/><rect x="34" y="82" width="17" height="30" rx="8" fill="#ff5fa2"/><rect x="149" y="82" width="17" height="30" rx="8" fill="#ff5fa2"/>';
+    case 'gorro': return '<path d="M46,76 C44,20 156,20 154,76 Z" fill="#4dabf7"/><path d="M70,32 V70 M86,26 V70 M100,24 V70 M114,26 V70 M130,32 V70" stroke="#339af0" stroke-width="2"/><rect x="42" y="64" width="116" height="16" rx="8" fill="#1c7ed6"/><circle cx="100" cy="20" r="11" fill="#fff"/>';
+    case 'tiara': return '<path d="M64,58 Q100,32 136,58 L132,62 Q100,40 68,62 Z" fill="#d6deea" stroke="#9aa9c2" stroke-width="1"/><path d="M100,24 L107,44 L93,44Z" fill="#eef3ff" stroke="#9aa9c2"/><path d="M80,36 L84,48 L76,49Z M120,36 L124,49 L116,48Z" fill="#eef3ff" stroke="#9aa9c2"/><circle cx="100" cy="40" r="4" fill="#ff4d8d"/>';
+    default: return '';
+  }
+}
+function faceUnderSVG(id){
+  switch (id) {
+    case 'pecas': var s = ''; [[64,112],[70,116],[62,118],[69,121],[58,114]].forEach(function(p){ s += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="1.6" fill="#b86b4b" opacity=".75"/><circle cx="' + (200 - p[0]) + '" cy="' + p[1] + '" r="1.6" fill="#b86b4b" opacity=".75"/>'; }); return s;
+    case 'estrellitas': return star(64, 116, 5, 2, '#ffcc33') + star(136, 116, 5, 2, '#ffcc33') + star(56, 108, 2.6, 1, '#ffcc33') + star(144, 108, 2.6, 1, '#ffcc33');
+    case 'antifaz': return '<path d="M46,92 Q60,78 100,88 Q140,78 154,92 Q152,114 124,114 Q108,112 100,104 Q92,112 76,114 Q48,114 46,92Z" fill="#7c3aed"/>';
+    default: return '';
+  }
+}
+function faceOverSVG(id){
+  switch (id) {
+    case 'redondas': return '<g fill="#ffffff22" stroke="#3a2a52" stroke-width="3"><circle cx="78" cy="98" r="17"/><circle cx="122" cy="98" r="17"/></g><path d="M95,96 Q100,92 105,96 M61,96 L48,92 M139,96 L152,92" stroke="#3a2a52" stroke-width="3" fill="none"/>';
+    case 'sol': return '<rect x="57" y="86" width="40" height="25" rx="10" fill="#1f1f2e"/><rect x="103" y="86" width="40" height="25" rx="10" fill="#1f1f2e"/><path d="M97,93 H103 M57,92 L46,90 M143,92 L154,90" stroke="#1f1f2e" stroke-width="3"/><path d="M64,92 L72,92 M110,92 L118,92" stroke="#fff" stroke-width="2.4" opacity=".6"/>';
+    case 'corazon': return '<path d="' + heart(78, 99, 13) + '" fill="#ff4d8d" fill-opacity=".8" stroke="#c2185b" stroke-width="2.5"/><path d="' + heart(122, 99, 13) + '" fill="#ff4d8d" fill-opacity=".8" stroke="#c2185b" stroke-width="2.5"/><path d="M96,94 Q100,90 104,94" stroke="#c2185b" stroke-width="2.5" fill="none"/>';
+    default: return '';
+  }
+}
+
+/** Dibuja el avatar completo. o.vb = recorte, o.bg=false sin fondo, o.anim = parpadeo y respiración. */
+function avatarSVG(eq, o){
+  o = o || {};
+  var D = [];
+  var sk = SKIN[eq.skin] || SKIN.s2, skd = shade(sk, -14);
+  var hc = HCOL[eq.hcol] || HCOL.castano, rb = hc === 'rainbow';
+  var hf = rb ? 'url(#hr-rb)' : hc, hd = rb ? '#7c4dff' : shade(hc, -24), hl = rb ? '#ffffff' : shade(hc, 35);
+  if (rb) D.push('<linearGradient id="hr-rb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff6b6b"/><stop offset=".25" stop-color="#ffd93d"/><stop offset=".5" stop-color="#6bcb77"/><stop offset=".75" stop-color="#4d96ff"/><stop offset="1" stop-color="#b16cff"/></linearGradient>');
+  var ec = ECOL[eq.ecol] || ECOL.cafe;
+  D.push('<linearGradient id="ir" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + shade(ec, -35) + '"/><stop offset="1" stop-color="' + shade(ec, 30) + '"/></linearGradient>');
+  var brow = rb ? '#6b3e26' : shade(hc === '#d6dbe6' ? '#8a8fa0' : hc, -30);
+  var hair = hairParts(eq.hair, hf, hd, hl);
+  var s = '';
+  if (o.bg !== false) s += (BG[eq.bg] || BG.habitacion)();
+  s += '<g' + (o.anim ? ' class="breathe"' : '') + '>';
+  s += backSVG(eq.back);
+  s += hair.b;
+  s += '<path d="M90,226 V314 M110,226 V314" stroke="' + sk + '" stroke-width="15" stroke-linecap="round"/>';
+  s += shoesSVG(eq.shoes, sk);
+  if (!isDress(eq.top)) s += bottomSVG(eq.bottom, D);
+  s += '<rect x="92" y="132" width="16" height="24" fill="' + skd + '"/>';
+  s += '<path d="M74,156 Q100,148 126,156 L122,226 L78,226 Z" fill="' + sk + '"/>';
+  s += '<path d="M76,160 L60,226 M124,160 L140,226" stroke="' + sk + '" stroke-width="13" stroke-linecap="round"/>';
+  s += topSVG(eq.top, sk, D);
+  if (eq.back === 'mochila') s += '<path d="M79,158 L83,214 M121,158 L117,214" stroke="#e07b1e" stroke-width="6" stroke-linecap="round"/>';
+  s += handSVG(eq.hand);
+  s += '<circle cx="59" cy="230" r="8.5" fill="' + sk + '"/><circle cx="141" cy="230" r="8.5" fill="' + sk + '"/>';
+  s += neckSVG(eq.neck);
+  s += '<ellipse cx="47" cy="98" rx="8" ry="11" fill="' + sk + '"/><ellipse cx="153" cy="98" rx="8" ry="11" fill="' + sk + '"/>';
+  s += '<ellipse cx="100" cy="90" rx="54" ry="52" fill="' + sk + '"/>';
+  s += '<path d="M97,110 Q100,113 103,110" stroke="' + skd + '" stroke-width="2" fill="none" stroke-linecap="round"/>';
+  s += '<ellipse cx="66" cy="116" rx="9" ry="5" fill="#ff7b9c" opacity=".38"/><ellipse cx="134" cy="116" rx="9" ry="5" fill="#ff7b9c" opacity=".38"/>';
+  s += faceUnderSVG(eq.face);
+  s += eyesSVG(eq.eyes, ec, sk);
+  s += browsSVG(eq.brows, brow);
+  s += mouthSVG(eq.mouth);
+  s += hair.f;
+  s += headItemSVG(eq.head);
+  s += faceOverSVG(eq.face);
+  s += '</g>';
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + (o.vb || '0 -20 200 360') + '"' + (o.par ? ' preserveAspectRatio="' + o.par + '"' : '') + '><defs>' + D.join('') + '</defs>' + s + '</svg>';
+}
+function bgOnlySVG(id, par){
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -20 200 360" preserveAspectRatio="' + (par || 'xMidYMax slice') + '" width="100%" height="100%">' + (BG[id] || BG.habitacion)() + '</svg>';
+}
+
+/* ======================= dibujo de la mascota ======================= */
+function petSVG(p, mood, acc){
+  var sp = SPECIES[p.sp] || SPECIES.gato, c = sp.c, b = sp.b, dk = shade(c, -14), dark = '#2a1a2e';
+  var panda = p.sp === 'panda', blk = '#2b2b33';
+  var s = '', behind = '', front = '';
+  switch (p.sp) {
+    case 'gato':
+      behind += '<path d="M96,96 Q120,92 112,64" stroke="' + c + '" stroke-width="9" fill="none" stroke-linecap="round"/><path d="M30,52 L34,16 L56,38Z" fill="' + c + '"/><path d="M90,52 L86,16 L64,38Z" fill="' + c + '"/><path d="M35,44 L37,26 L48,38Z" fill="#ff9fb8"/><path d="M85,44 L83,26 L72,38Z" fill="#ff9fb8"/>';
+      front += '<path d="M28,44 Q40,40 48,46 M92,44 Q80,40 72,46" stroke="' + dk + '" stroke-width="3" fill="none" stroke-linecap="round"/>';
+      break;
+    case 'perro':
+      behind += '<path d="M98,92 Q114,84 110,72" stroke="' + c + '" stroke-width="8" fill="none" stroke-linecap="round"/>';
+      front += '<ellipse cx="26" cy="58" rx="11" ry="21" transform="rotate(25 26 58)" fill="#8a6040"/><ellipse cx="94" cy="58" rx="11" ry="21" transform="rotate(-25 94 58)" fill="#8a6040"/><ellipse cx="78" cy="54" rx="9" ry="7" fill="#f6e6d0" opacity=".9"/>';
+      break;
+    case 'conejo':
+      behind += '<circle cx="98" cy="98" r="9" fill="#fff"/><ellipse cx="46" cy="16" rx="9" ry="25" transform="rotate(-8 46 16)" fill="' + c + '" stroke="#e2dcf2" stroke-width="1.5"/><ellipse cx="74" cy="16" rx="9" ry="25" transform="rotate(8 74 16)" fill="' + c + '" stroke="#e2dcf2" stroke-width="1.5"/><ellipse cx="46" cy="18" rx="4" ry="17" transform="rotate(-8 46 18)" fill="#ffc2d6"/><ellipse cx="74" cy="18" rx="4" ry="17" transform="rotate(8 74 18)" fill="#ffc2d6"/>';
+      break;
+    case 'dragon':
+      behind += '<path d="M26,60 L2,36 L8,62 L-2,72 L22,80Z" fill="' + shade(c, -18) + '"/><path d="M94,60 L118,36 L112,62 L122,72 L98,80Z" fill="' + shade(c, -18) + '"/><path d="M92,98 Q118,104 114,80" stroke="' + c + '" stroke-width="9" fill="none" stroke-linecap="round"/><path d="M110,82 L122,72 L118,88Z" fill="#ffd56b"/>';
+      behind += '<path d="M42,40 L44,20 L54,36Z M78,40 L76,20 L66,36Z" fill="#ffd56b"/>';
+      front += '<path d="M48,82 H72 M50,90 H70" stroke="#f2d27a" stroke-width="2"/>';
+      break;
+    case 'pollito':
+      front += '<path d="M54,38 Q50,22 58,30 Q60,18 64,30 Q70,22 66,38Z" fill="' + shade(c, -12) + '"/>';
+      break;
+    case 'panda':
+      behind += '<circle cx="30" cy="42" r="12" fill="' + blk + '"/><circle cx="90" cy="42" r="12" fill="' + blk + '"/>';
+      break;
+  }
+  var armsUp = mood === 'celebra';
+  var limb = panda ? blk : dk;
+  s += behind;
+  s += '<ellipse cx="44" cy="104" rx="11" ry="6" fill="' + (p.sp === 'pollito' ? '#ff9f1c' : limb) + '"/><ellipse cx="76" cy="104" rx="11" ry="6" fill="' + (p.sp === 'pollito' ? '#ff9f1c' : limb) + '"/>';
+  s += armsUp ? '<ellipse cx="20" cy="56" rx="7" ry="11" transform="rotate(30 20 56)" fill="' + limb + '"/><ellipse cx="100" cy="56" rx="7" ry="11" transform="rotate(-30 100 56)" fill="' + limb + '"/>'
+              : '<ellipse cx="22" cy="80" rx="7" ry="11" fill="' + limb + '"/><ellipse cx="98" cy="80" rx="7" ry="11" fill="' + limb + '"/>';
+  s += '<ellipse cx="60" cy="70" rx="40" ry="36" fill="' + c + '" stroke="' + dk + '" stroke-width="1.5"/>';
+  s += '<ellipse cx="60" cy="86" rx="22" ry="16" fill="' + b + '"/>';
+  if (mood === 'sucio') s += '<g fill="#8a5a33" opacity=".55"><circle cx="34" cy="84" r="5"/><circle cx="84" cy="92" r="4"/><circle cx="62" cy="46" r="3.5"/><circle cx="76" cy="58" r="2.5"/></g>';
+  s += front;
+  if (panda) s += '<ellipse cx="46" cy="67" rx="10" ry="12" transform="rotate(25 46 67)" fill="' + blk + '"/><ellipse cx="74" cy="67" rx="10" ry="12" transform="rotate(-25 74 67)" fill="' + blk + '"/>';
+  /* ojos */
+  var e = '';
+  function eyeO(x, y){ return (panda ? '<circle cx="' + x + '" cy="' + y + '" r="6.8" fill="#fff"/>' : '') + '<ellipse cx="' + x + '" cy="' + y + '" rx="6" ry="7.5" fill="' + dark + '"/><circle cx="' + (x - 2) + '" cy="' + (y - 3) + '" r="2.5" fill="#fff"/><circle cx="' + (x + 2) + '" cy="' + (y + 3) + '" r="1.2" fill="#fff"/>'; }
+  var ec = panda ? '#fff' : dark;
+  [47, 73].forEach(function(x){
+    var y = 66;
+    switch (mood) {
+      case 'dormido': e += '<path d="M' + (x - 6) + ',' + y + ' Q' + x + ',' + (y + 5) + ' ' + (x + 6) + ',' + y + '" stroke="' + ec + '" stroke-width="2.6" fill="none" stroke-linecap="round"/>'; break;
+      case 'comer': e += '<path d="M' + (x - 6) + ',' + (y + 2) + ' Q' + x + ',' + (y - 5) + ' ' + (x + 6) + ',' + (y + 2) + '" stroke="' + ec + '" stroke-width="2.6" fill="none" stroke-linecap="round"/>'; break;
+      case 'cansado': e += '<path d="M' + (x - 6) + ',' + y + ' Q' + x + ',' + (y + 7) + ' ' + (x + 6) + ',' + y + ' Z" fill="' + dark + '"/><path d="M' + (x - 7) + ',' + y + ' H' + (x + 7) + '" stroke="' + ec + '" stroke-width="2.2" stroke-linecap="round"/>'; break;
+      case 'enfermo': e += '<path d="M' + (x - 4.5) + ',' + (y - 4.5) + ' L' + (x + 4.5) + ',' + (y + 4.5) + ' M' + (x + 4.5) + ',' + (y - 4.5) + ' L' + (x - 4.5) + ',' + (y + 4.5) + '" stroke="' + ec + '" stroke-width="2.6" stroke-linecap="round"/>'; break;
+      case 'celebra': e += star(x, y, 8, 3.6, '#ffcc00', 'stroke="#e0a800" stroke-width="1"'); break;
+      case 'pensar': e += eyeO(x, y - 2); break;
+      default: e += eyeO(x, y);
+    }
+  });
+  s += '<g' + (mood === 'dormido' || mood === 'comer' ? '' : ' class="blinky"') + '>' + e + '</g>';
+  if (mood === 'triste') s += '<path d="M39,56 L53,52 M81,56 L67,52" stroke="' + dark + '" stroke-width="2.4" stroke-linecap="round"/><path d="M41,74 Q37,81 41,84 Q45,81 41,74Z" fill="#6ec6ff"/>';
+  s += '<ellipse cx="36" cy="79" rx="6" ry="3.5" fill="#ff8fab" opacity=".55"/><ellipse cx="84" cy="79" rx="6" ry="3.5" fill="#ff8fab" opacity=".55"/>';
+  /* boca */
+  var my = 0;
+  if (p.sp === 'gato') { s += '<path d="M57,75 L63,75 L60,78Z" fill="#ff8fab"/>'; my = 3; }
+  if (p.sp === 'perro' || panda) { s += '<ellipse cx="60" cy="76" rx="4" ry="3" fill="' + dark + '"/>'; my = 3; }
+  var open = mood === 'celebra' || mood === 'comer';
+  if (p.sp === 'pollito') {
+    s += open || mood === 'hambre' ? '<path d="M53,76 L67,76 L60,71Z" fill="#ff9f1c"/><path d="M54,80 L66,80 L60,89Z" fill="#f08c00"/>' : '<path d="M53,77 L67,77 L60,86Z" fill="#ff9f1c"/>';
+  } else {
+    var y0 = 80 + my;
+    if (open) s += '<path class="' + (mood === 'comer' ? 'chomp' : '') + '" d="M52,' + (y0 - 1) + ' Q60,' + (y0 + 13) + ' 68,' + (y0 - 1) + ' Z" fill="#7a2630"/>';
+    else if (mood === 'triste' || mood === 'enfermo' || mood === 'cansado') s += '<path d="M54,' + (y0 + 4) + ' Q60,' + (y0 - 1) + ' 66,' + (y0 + 4) + '" stroke="' + dark + '" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
+    else if (mood === 'hambre') s += '<ellipse cx="60" cy="' + (y0 + 2) + '" rx="3.5" ry="4.5" fill="#7a2630"/><path d="M66,' + (y0 + 3) + ' Q64,' + (y0 + 9) + ' 67,' + (y0 + 10) + ' Q70,' + (y0 + 9) + ' 66,' + (y0 + 3) + 'Z" fill="#8fd3ff"/>';
+    else if (mood === 'dormido') s += '<ellipse cx="60" cy="' + (y0 + 1) + '" rx="2.5" ry="2" fill="#7a2630"/>';
+    else if (mood === 'pensar') s += '<path d="M56,' + (y0 + 2) + ' Q60,' + y0 + ' 64,' + (y0 + 2) + '" stroke="' + dark + '" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
+    else s += '<path d="M54,' + y0 + ' Q60,' + (y0 + 6) + ' 66,' + y0 + '" stroke="' + dark + '" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
+  }
+  if (mood === 'enfermo') s += '<ellipse cx="60" cy="70" rx="40" ry="36" fill="#9be15d" opacity=".22"/><path d="M90,40 Q86,48 90,50 Q94,48 90,40Z" fill="#8fd3ff"/>';
+  /* accesorio */
+  switch (acc) {
+    case 'lazo': s += '<path d="M84,38 L70,28 L72,48Z M84,38 L98,28 L96,48Z" fill="#ff4f9a"/><circle cx="84" cy="38" r="4.5" fill="#d81b72"/>'; break;
+    case 'pajarita': s += '<path d="M60,100 L50,94 L50,106Z M60,100 L70,94 L70,106Z" fill="#7c4dff"/><circle cx="60" cy="100" r="3" fill="#5b2fd6"/>'; break;
+    case 'gafas': s += '<g fill="#ffffff33" stroke="#333" stroke-width="2.2"><circle cx="47" cy="66" r="10"/><circle cx="73" cy="66" r="10"/></g><path d="M57,65 H63" stroke="#333" stroke-width="2.2"/>'; break;
+    case 'fiesta': s += '<path d="M48,38 L60,2 L72,38Z" fill="#4dabf7"/><path d="M52,28 L68,28 M56,16 L64,16" stroke="#ffe066" stroke-width="3"/><circle cx="60" cy="2" r="5" fill="#ff5fa2"/>'; break;
+    case 'corona': s += '<path d="M44,40 L42,16 L52,26 L60,10 L68,26 L78,16 L76,40Z" fill="#ffd34d" stroke="#e0a800" stroke-width="1.5" stroke-linejoin="round"/><circle cx="60" cy="30" r="3" fill="#ff3b5c"/>'; break;
+  }
+  if (mood === 'dormido') s += '<text x="92" y="30" font-size="16" font-weight="900" fill="#7c4dff">Z</text><text x="104" y="16" font-size="11" font-weight="900" fill="#7c4dff">z</text>';
+  if (mood === 'pensar') s += '<text x="96" y="26" font-size="22" font-weight="900" fill="#ff5fa2">?</text>';
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-6 -6 132 122">' + s + '</svg>';
+}
+
+/* ======================= mascota: necesidades ======================= */
+function updatePet(){
+  var p = S.pet; if (!p) return;
+  var now = Date.now(), h = Math.min(48, Math.max(0, (now - (p.last || now)) / 3600000));
+  p.last = now;
+  if (h <= 0) return;
+  if (p.sleeping) {
+    p.energy = clamp(p.energy + 18 * h); p.hunger = clamp(p.hunger - 3 * h); p.happy = clamp(p.happy - 1 * h); p.clean = clamp(p.clean - 1 * h);
+    if (p.energy >= 100) p.sleeping = false;
+  } else {
+    p.hunger = clamp(p.hunger - 6 * h); p.happy = clamp(p.happy - (p.sick ? 7 : 4) * h); p.energy = clamp(p.energy - 3 * h);
+    p.clean = clamp(p.clean - (3 + 2 * (p.poops || 0)) * h);
+    p.pooAcc = (p.pooAcc || 0) + h;
+    while (p.pooAcc >= 3) { p.pooAcc -= 3; if ((p.poops || 0) < 3) p.poops = (p.poops || 0) + 1; }
+  }
+  if (p.hunger <= 5 || p.clean <= 5) p.sick = true;
+}
+function petMood(){
+  var p = S.pet; if (!p) return 'normal';
+  if (p.sleeping) return 'dormido';
+  if (p.sick) return 'enfermo';
+  if (p.hunger < 30) return 'hambre';
+  if (p.clean < 30 || (p.poops || 0) >= 2) return 'sucio';
+  if (p.energy < 20) return 'cansado';
+  if (p.happy < 30) return 'triste';
+  return 'normal';
+}
+var PHRASES = {
+  normal: ['¡Hola! ¿Jugamos a preguntas? ¡Así ganas monedas! 🪙', '¡Qué bien me lo paso contigo! 💜', '¿Te pruebas ropa nueva? ¡Mira en Avatar! 👗', '¡Me encanta tu look de hoy! ✨', 'Si aciertas 5 seguidas te doy un premio extra 🎁', '¿Sabes mucho? ¡Demuéstramelo! 🤓'],
+  hambre: ['¡Tengo hambre! ¿Me das algo de comer? 🍎', 'Mi tripita hace ruido… 🍪'],
+  sucio: ['Uy, estoy un poco sucio… ¿me bañas? 🛁', '¡Qué peste! ¿Limpias un poquito? 🧹'],
+  cansado: ['Tengo mucho sueño… ¿me acuestas? 💤'],
+  triste: ['Estoy un poco triste… ¿jugamos? 🥺', '¿Me haces caso un ratito? 💔'],
+  enfermo: ['No me encuentro bien… necesito una medicina 💊 (en la Tienda)'],
+  dormido: ['Zzz… zzz… 😴']
+};
+function moodPhrase(){ return pick(PHRASES[petMood()] || PHRASES.normal); }
+
+/* ======================= voz y avisos ======================= */
+function plain(t){ return String(t).replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}]/gu, '').replace(/\s+/g, ' ').trim(); }
+function speak(t){
+  if (!S.sound || MINI) return;
+  var txt = plain(t); if (!txt) return;
+  try {
+    if (B && B.speak) B.speak(txt);
+    else if (window.speechSynthesis) { speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(txt); u.lang = 'es-ES'; u.pitch = 1.5; speechSynthesis.speak(u); }
+  } catch (e) {}
+}
+function vibrate(ms){ try { if (B && B.vibrate) B.vibrate(ms); else if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
+var toastT;
+function toast(m){ var t = $('toast'); t.textContent = m; t.className = ''; void t.offsetWidth; t.className = 'on'; clearTimeout(toastT); toastT = setTimeout(function(){ t.className = ''; }, 2600); }
+function burst(emojis, x, y){
+  for (var i = 0; i < 14; i++) {
+    var d = document.createElement('div'); d.className = 'burst'; d.textContent = pick(emojis);
+    d.style.left = (x || innerWidth / 2) + 'px'; d.style.top = (y || innerHeight / 2) + 'px';
+    d.style.setProperty('--dx', (Math.random() * 260 - 130) + 'px'); d.style.setProperty('--dy', (Math.random() * -260 + 40) + 'px');
+    document.body.appendChild(d); setTimeout(function(n){ return function(){ n.remove(); }; }(d), 1400);
+  }
+}
+function fx(host, txt, left, bottom){
+  var d = document.createElement('div'); d.className = 'fx'; d.textContent = txt;
+  d.style.left = left; d.style.bottom = bottom; host.appendChild(d);
+  setTimeout(function(){ d.remove(); }, 1500);
+}
+
+/* ======================= monedas y nivel ======================= */
+function addCoins(n){
+  S.coins += n; save(); renderHeader();
+  var c = $('coinsBox'); c.className = 'coins'; void c.offsetWidth; c.className = 'coins pop';
+}
+function addXp(n){
+  var before = level(); S.xp += n;
+  if (level() > before) {
+    S.coins += 25;
+    setTimeout(function(){ toast('⭐ ¡Has subido al nivel ' + level() + '! +25 🪙'); burst(['⭐', '🎉', '✨', '🪙']); speak('¡Bien! ¡Hemos subido al nivel ' + level() + '!'); }, 900);
+  }
+  save(); renderHeader();
+}
+function renderHeader(){
+  $('coins').textContent = S.coins; $('lvl').textContent = level();
+  $('xp').style.width = (S.xp % 100) + '%';
+  $('snd').textContent = S.sound ? '🔊' : '🔇';
+}
+
+/* ======================= pestaña Mascota ======================= */
+var tempMood = null, tempMoodT;
+function setTempMood(m, ms){ tempMood = m; clearTimeout(tempMoodT); tempMoodT = setTimeout(function(){ tempMood = null; renderPetViews(); }, ms || 1800); renderPetViews(); }
+function curMood(){ return tempMood || petMood(); }
+function say(t, noVoice){ $('bubble').textContent = t; if (!noVoice) speak(t); }
+function anim(cls){
+  var el = $('scenePet'); el.classList.remove('jump', 'wiggle'); void el.offsetWidth; el.classList.add(cls);
+  setTimeout(function(){ el.classList.remove(cls); }, 1600);
+}
+function renderPetViews(){
+  if (!S.pet) return;
+  var m = curMood();
+  $('scenePet').innerHTML = petSVG(S.pet, m, S.pet.acc);
+  $('scenePet').classList.toggle('sleep', m === 'dormido');
+  $('qpet').innerHTML = petSVG(S.pet, quizMood || (S.pet.sleeping ? 'dormido' : 'pensar'), S.pet.acc);
+}
+function renderPet(){
+  if (!S.pet) return;
+  var p = S.pet;
+  $('sceneBg').innerHTML = bgOnlySVG(S.eq.bg);
+  $('sceneAv').innerHTML = avatarSVG(S.eq, {bg:false, anim:true, vb:'20 -20 160 360'});
+  $('scene').classList.toggle('night', !!p.sleeping);
+  $('poops').textContent = new Array((p.poops || 0) + 1).join('💩');
+  $('petName').textContent = p.name + (p.sick ? ' 🤒' : '');
+  renderPetViews();
+  var bars = [['🍗 Comida', p.hunger, '#ff9f43'], ['💜 Felicidad', p.happy, '#ff5fa2'], ['⚡ Energía', p.energy, '#4dabf7'], ['🫧 Limpieza', p.clean, '#2dd4bf']];
+  $('stats').innerHTML = bars.map(function(b){
+    var v = Math.round(b[1]), col = v < 30 ? '#ff6b6b' : b[2];
+    return '<div class="stat">' + b[0] + ' <span style="float:right">' + v + '%</span><div class="bar"><i style="width:' + v + '%;background:' + col + '"></i></div></div>';
+  }).join('');
+  var a = [];
+  a.push(['🍎 Comer', 'orange', 'feed']);
+  a.push(['🎾 Jugar', 'pink', 'play']);
+  a.push(['🛁 Bañar', 'teal', 'bath']);
+  a.push([p.sleeping ? '☀️ Despertar' : '💤 Dormir', 'blue', 'sleep']);
+  a.push(['🧹 Limpiar', p.poops ? 'green' : 'gray', 'clean']);
+  a.push(['💊 Curar', p.sick ? 'red' : 'gray', 'cure']);
+  $('actions').innerHTML = a.map(function(x){ return '<button class="btn ' + x[1] + '" data-a="' + x[2] + '">' + x[0] + '</button>'; }).join('');
+}
+function action(a){
+  var p = S.pet, host = $('scene');
+  if (p.sleeping && a !== 'sleep') { say('Zzz… Primero despiértame ☀️'); return; }
+  switch (a) {
+    case 'feed': openFood(); return;
+    case 'play':
+      if (p.energy < 15) { say('Estoy muy cansado para jugar… ¿me acuestas? 💤'); return; }
+      p.happy = clamp(p.happy + 15); p.energy = clamp(p.energy - 10); p.hunger = clamp(p.hunger - 4);
+      anim('jump'); fx(host, pick(['🎾', '⚽', '🪀', '🎈']), '62%', '150px');
+      setTempMood('celebra'); say(pick(['¡Yupiii! ¡Otra vez! 🎾', '¡Qué divertido! 😄', '¡Me encanta jugar contigo! 💜']));
+      break;
+    case 'bath':
+      p.clean = 100; p.happy = clamp(p.happy + 5);
+      anim('wiggle'); fx(host, '💦', '70%', '140px'); fx(host, '✨', '82%', '90px');
+      setTempMood('comer'); say(pick(['¡Splash! Ahora huelo genial ✨', '¡Qué limpito estoy! 🛁']));
+      break;
+    case 'sleep':
+      p.sleeping = !p.sleeping;
+      say(p.sleeping ? 'Buenas noches… 😴' : '¡Buenos días! ☀️ ¿Jugamos?');
+      break;
+    case 'clean':
+      if (!p.poops) { say('¡Todo está limpio! ✨'); return; }
+      p.poops = 0; p.clean = clamp(p.clean + 10); fx(host, '✨', '50%', '20px');
+      say('¡Gracias por limpiar! 🧹');
+      break;
+    case 'cure':
+      if (!p.sick) { say('¡Estoy sano como una manzana! 🍎'); return; }
+      if (!S.food.medicina) { say('Necesito una medicina 💊. La tienes en la Tienda.'); return; }
+      S.food.medicina--; p.sick = false; p.happy = clamp(p.happy + 5);
+      p.hunger = Math.max(p.hunger, 20); p.clean = Math.max(p.clean, 20);
+      setTempMood('celebra'); say('¡Ya me encuentro mucho mejor! Gracias 💜');
+      break;
+  }
+  save(); renderPet();
+}
+function openFood(){
+  var have = FOOD.filter(function(f){ return !f.med && S.food[f.id] > 0; });
+  var h = '<h3>¿Qué le das de comer?</h3>';
+  if (!have.length) h += '<p style="font-weight:700">No tienes comida. ¡Cómprala en la Tienda con tus monedas! 🪙</p><div class="two"><button class="btn orange" onclick="closeModal();tab(\'shop\')">🛍️ Ir a la Tienda</button><button class="btn gray" onclick="closeModal()">Cerrar</button></div>';
+  else {
+    h += have.map(function(f){ return '<div class="row"><div class="e">' + f.e + '</div><div class="t">' + f.n + '<small>Tienes ' + S.food[f.id] + '</small></div><button class="btn orange" onclick="eat(\'' + f.id + '\')">Dar</button></div>'; }).join('');
+    h += '<button class="btn gray big" style="margin-top:10px" onclick="closeModal()">Cerrar</button>';
+  }
+  showModal(h);
+}
+function eat(id){
+  var f = FOOD.filter(function(x){ return x.id === id; })[0], p = S.pet;
+  if (!f || !S.food[id]) return;
+  closeModal();
+  if (p.hunger >= 98) { say('¡Estoy llenísimo! No puedo más 😅'); return; }
+  S.food[id]--; p.hunger = clamp(p.hunger + f.hunger); p.happy = clamp(p.happy + (f.happy || 0)); if (f.energy) p.energy = clamp(p.energy + f.energy);
+  fx($('scene'), f.e, '66%', '120px');
+  setTempMood('comer', 1600); say(pick(['¡Ñam, ñam! ¡Qué rico! 😋', '¡Mmm, delicioso! Gracias 💜', '¡Me encanta! 😋']));
+  save(); renderPet();
+}
+
+/* ======================= preguntas ======================= */
+var QCATS = [['todas', '🌟 Todas'], ['animales', '🐾 Animales'], ['geo', '🌍 Geografía'], ['ciencia', '🔬 Ciencia'], ['historia', '🏛️ Historia y arte'], ['cultura', '💡 Cultura general'], ['cuentos', '📖 Cuentos'], ['deporte', '⚽ Deportes'], ['mates', '➕ Mates']];
+/* [categoría, pregunta, correcta, incorrecta, incorrecta, incorrecta] */
+var Q = [
+ ['animales','¿Cuál es el animal terrestre más grande?','El elefante africano','La jirafa','El rinoceronte','El hipopótamo'],
+ ['animales','¿Cuántas patas tiene una araña?','8','6','10','12'],
+ ['animales','¿Cuántas patas tiene un insecto?','6','8','4','10'],
+ ['animales','¿Cuál es el animal terrestre más rápido?','El guepardo','El león','El caballo','La gacela'],
+ ['animales','¿Cómo se llama la cría del caballo?','Potro','Ternero','Cordero','Cachorro'],
+ ['animales','¿Qué mamífero puede volar de verdad?','El murciélago','El topo','El erizo','La nutria'],
+ ['animales','¿Cuál es el animal más grande del mundo?','La ballena azul','El tiburón ballena','El elefante','El calamar gigante'],
+ ['animales','¿Dónde viven los pingüinos emperador?','En la Antártida','En el Ártico','En Groenlandia','En Islandia'],
+ ['animales','¿Qué come principalmente el panda gigante?','Bambú','Pescado','Fruta','Insectos'],
+ ['animales','¿Cuántos corazones tiene un pulpo?','3','1','2','4'],
+ ['animales','¿Qué animal es famoso por cambiar de color?','El camaleón','La iguana','La tortuga','El cocodrilo'],
+ ['animales','¿Cómo se llama la casa de las abejas?','Colmena','Hormiguero','Nido','Madriguera'],
+ ['animales','¿Cuál de estas aves no puede volar?','El avestruz','La gaviota','El águila','La golondrina'],
+ ['animales','¿Cuál de estos animales es un anfibio?','La rana','El lagarto','La serpiente','La tortuga'],
+ ['animales','¿A qué animal se le llama «el rey de la selva»?','Al león','Al tigre','Al gorila','Al elefante'],
+ ['animales','¿Cuántas jorobas tiene un dromedario?','1','2','3','Ninguna'],
+ ['animales','¿Qué mamífero pone huevos?','El ornitorrinco','El delfín','El murciélago','El canguro'],
+ ['animales','¿Dónde lleva el canguro a su cría?','En una bolsa en la tripa','En la espalda','En la boca','En un nido'],
+ ['animales','¿Cuál es el ave más grande del mundo?','El avestruz','El cóndor','El águila real','El pelícano'],
+ ['animales','¿Cómo se llama un grupo de lobos?','Manada','Bandada','Banco','Enjambre'],
+ ['animales','Los delfines son…','Mamíferos','Peces','Anfibios','Reptiles'],
+ ['animales','¿Qué animal hace «muuu»?','La vaca','La oveja','El cerdo','La cabra'],
+ ['animales','¿En qué se convierte un renacuajo?','En rana','En pez','En lagartija','En mariposa'],
+ ['animales','¿De qué color es la sangre de un pulpo?','Azul','Roja','Verde','Amarilla'],
+ ['geo','¿Cuál es la capital de Francia?','París','Lyon','Marsella','Niza'],
+ ['geo','¿Cuál es la capital de Italia?','Roma','Milán','Venecia','Nápoles'],
+ ['geo','¿Cuál es la capital de Portugal?','Lisboa','Oporto','Coímbra','Faro'],
+ ['geo','¿Cuál es la capital de Japón?','Tokio','Osaka','Kioto','Pekín'],
+ ['geo','¿Cuál es la capital de Alemania?','Berlín','Múnich','Hamburgo','Fráncfort'],
+ ['geo','¿Cuál es la capital del Reino Unido?','Londres','Mánchester','Edimburgo','Liverpool'],
+ ['geo','¿Cuál es la capital de Argentina?','Buenos Aires','Córdoba','Rosario','Mendoza'],
+ ['geo','¿Cuál es la capital de España?','Madrid','Barcelona','Sevilla','Valencia'],
+ ['geo','¿Qué río pasa por Sevilla?','El Guadalquivir','El Ebro','El Tajo','El Duero'],
+ ['geo','¿Qué río pasa por Zaragoza?','El Ebro','El Guadiana','El Miño','El Júcar'],
+ ['geo','¿Cuál es el océano más grande?','El Pacífico','El Atlántico','El Índico','El Ártico'],
+ ['geo','¿En qué continente está Egipto?','África','Asia','Europa','Oceanía'],
+ ['geo','¿Cuál es la montaña más alta del mundo?','El Everest','El K2','El Kilimanjaro','El Mont Blanc'],
+ ['geo','¿Cuál es el país más grande del mundo?','Rusia','China','Canadá','Estados Unidos'],
+ ['geo','¿Cuál es el desierto cálido más grande del mundo?','El Sahara','El Gobi','El Atacama','El Kalahari'],
+ ['geo','¿Qué islas españolas están en el océano Atlántico?','Las Canarias','Las Baleares','Las Azores','Madeira'],
+ ['geo','¿Cuál es la capital de Andalucía?','Sevilla','Málaga','Granada','Córdoba'],
+ ['geo','¿En qué país están las pirámides de Guiza?','Egipto','México','Perú','Grecia'],
+ ['geo','¿Qué país tiene forma de bota?','Italia','Grecia','Chile','Portugal'],
+ ['geo','¿Qué río es el más caudaloso del mundo?','El Amazonas','El Nilo','El Misisipi','El Yangtsé'],
+ ['geo','¿En qué ciudad está la Sagrada Familia?','Barcelona','Madrid','Valencia','Bilbao'],
+ ['geo','¿En qué ciudad está la Alhambra?','Granada','Córdoba','Sevilla','Toledo'],
+ ['geo','¿En qué ciudad está la Torre Eiffel?','París','Londres','Roma','Bruselas'],
+ ['geo','¿Qué mar baña Barcelona?','El Mediterráneo','El Cantábrico','El Caribe','El Báltico'],
+ ['geo','¿Cuál es la capital de México?','Ciudad de México','Guadalajara','Monterrey','Cancún'],
+ ['ciencia','¿Qué planeta es conocido como el planeta rojo?','Marte','Venus','Júpiter','Saturno'],
+ ['ciencia','¿Cuál es el planeta más grande del sistema solar?','Júpiter','Saturno','Neptuno','La Tierra'],
+ ['ciencia','¿Qué planeta está más cerca del Sol?','Mercurio','Venus','Marte','La Tierra'],
+ ['ciencia','¿Cuántos planetas tiene el sistema solar?','8','9','7','10'],
+ ['ciencia','¿Qué planeta tiene los anillos más famosos?','Saturno','Marte','Mercurio','Venus'],
+ ['ciencia','¿Qué gas necesitamos respirar para vivir?','Oxígeno','Helio','Hidrógeno','Dióxido de carbono'],
+ ['ciencia','¿Qué gas sueltan las plantas al hacer la fotosíntesis?','Oxígeno','Dióxido de carbono','Helio','Metano'],
+ ['ciencia','¿A cuántos grados hierve el agua a nivel del mar?','100 °C','90 °C','80 °C','120 °C'],
+ ['ciencia','¿A cuántos grados se congela el agua?','0 °C','10 °C','-10 °C','4 °C'],
+ ['ciencia','¿Cuántos huesos tiene una persona adulta?','206','150','300','106'],
+ ['ciencia','¿Qué órgano bombea la sangre por el cuerpo?','El corazón','El pulmón','El hígado','El riñón'],
+ ['ciencia','¿Cuál es el órgano más grande del cuerpo humano?','La piel','El hígado','El cerebro','El intestino'],
+ ['ciencia','¿Cuál es la fórmula del agua?','H₂O','CO₂','O₂','NaCl'],
+ ['ciencia','¿Cuál es la estrella más cercana a la Tierra?','El Sol','Sirio','La estrella Polar','Alfa Centauri'],
+ ['ciencia','¿Cuántos dientes tiene un adulto con las muelas del juicio?','32','28','20','36'],
+ ['ciencia','¿Qué color sale al mezclar azul y amarillo?','Verde','Morado','Naranja','Marrón'],
+ ['ciencia','¿Qué color sale al mezclar rojo y amarillo?','Naranja','Verde','Rosa','Morado'],
+ ['ciencia','¿Qué color sale al mezclar rojo y azul?','Morado','Verde','Naranja','Amarillo'],
+ ['ciencia','¿Qué parte de la planta absorbe el agua del suelo?','La raíz','Las hojas','La flor','El fruto'],
+ ['ciencia','¿Cuántos colores tiene el arcoíris?','7','5','6','8'],
+ ['ciencia','¿Qué fuerza hace que las cosas caigan al suelo?','La gravedad','El magnetismo','La fricción','El viento'],
+ ['ciencia','¿Quién propuso la teoría de la relatividad?','Albert Einstein','Isaac Newton','Galileo Galilei','Marie Curie'],
+ ['ciencia','¿Qué metal es líquido a temperatura ambiente?','El mercurio','El hierro','La plata','El aluminio'],
+ ['ciencia','¿Cuántas patas tiene una estrella de mar normalmente?','5 brazos','4 brazos','6 brazos','8 brazos'],
+ ['ciencia','¿Qué satélite natural tiene la Tierra?','La Luna','Fobos','Titán','Europa'],
+ ['historia','¿En qué año llegó Colón a América?','1492','1592','1392','1500'],
+ ['historia','¿Quién pintó la Gioconda (Mona Lisa)?','Leonardo da Vinci','Pablo Picasso','Vincent van Gogh','Francisco de Goya'],
+ ['historia','¿Quién pintó el Guernica?','Pablo Picasso','Salvador Dalí','Joan Miró','Diego Velázquez'],
+ ['historia','¿Quién pintó Las Meninas?','Diego Velázquez','Francisco de Goya','El Greco','Murillo'],
+ ['historia','¿Quién escribió Don Quijote de la Mancha?','Miguel de Cervantes','Lope de Vega','Francisco de Quevedo','Calderón de la Barca'],
+ ['historia','¿Quién fue la primera persona en pisar la Luna?','Neil Armstrong','Buzz Aldrin','Yuri Gagarin','Michael Collins'],
+ ['historia','¿En qué año llegó el ser humano a la Luna?','1969','1959','1979','1989'],
+ ['historia','¿Qué civilización construyó las pirámides de Guiza?','Los egipcios','Los romanos','Los mayas','Los griegos'],
+ ['historia','¿Cómo se llamaba el famoso barco que se hundió en 1912?','Titanic','Victoria','Santa María','Queen Mary'],
+ ['historia','¿Quién formuló la ley de la gravitación universal?','Isaac Newton','Albert Einstein','Galileo Galilei','Charles Darwin'],
+ ['historia','¿Quién explicó la evolución por selección natural?','Charles Darwin','Isaac Newton','Louis Pasteur','Gregor Mendel'],
+ ['historia','¿Qué idioma hablaban los antiguos romanos?','Latín','Griego','Italiano','Español'],
+ ['historia','¿Cuántos años tiene un siglo?','100','10','1000','50'],
+ ['historia','¿En qué ciudad fueron los Juegos Olímpicos de 1992?','Barcelona','Madrid','Sevilla','Atlanta'],
+ ['historia','¿Qué muro cayó en 1989?','El muro de Berlín','La Gran Muralla','El muro de Adriano','El Muro de las Lamentaciones'],
+ ['historia','¿Quién descubrió la penicilina?','Alexander Fleming','Louis Pasteur','Marie Curie','Santiago Ramón y Cajal'],
+ ['historia','¿Qué científica ganó dos premios Nobel?','Marie Curie','Rosalind Franklin','Ada Lovelace','Jane Goodall'],
+ ['historia','¿Qué científico español ganó el Nobel por estudiar las neuronas?','Santiago Ramón y Cajal','Severo Ochoa','Isaac Peral','Miguel Servet'],
+ ['cultura','¿Cuántos días tiene un año bisiesto?','366','365','364','367'],
+ ['cultura','¿Cuántos minutos tiene una hora?','60','100','30','90'],
+ ['cultura','¿Cuántas horas tiene un día?','24','12','20','48'],
+ ['cultura','¿Cuántos meses del año tienen 28 días?','Todos','Uno','Dos','Ninguno'],
+ ['cultura','¿Qué instrumento tiene teclas blancas y negras?','El piano','La guitarra','El violín','La flauta'],
+ ['cultura','¿Cuántas cuerdas tiene una guitarra española?','6','4','5','8'],
+ ['cultura','¿Qué fruta es amarilla y alargada?','El plátano','La pera','El kiwi','La ciruela'],
+ ['cultura','¿De qué está hecho principalmente el guacamole?','De aguacate','De tomate','De pepino','De guisantes'],
+ ['cultura','¿Qué plato de arroz es típico de Valencia?','La paella','El gazpacho','La fabada','El cocido'],
+ ['cultura','¿Qué sopa fría es típica de Andalucía?','El gazpacho','La fabada','El pisto','El caldo gallego'],
+ ['cultura','¿Qué se celebra el 25 de diciembre?','La Navidad','El Año Nuevo','Los Reyes','San Juan'],
+ ['cultura','¿Qué día se celebra el Día de Reyes en España?','El 6 de enero','El 1 de enero','El 25 de diciembre','El 31 de diciembre'],
+ ['cultura','¿Cuántos lados tiene un hexágono?','6','5','7','8'],
+ ['cultura','¿Cuántos lados tiene un triángulo?','3','4','5','6'],
+ ['cultura','¿Qué red social es famosa por sus fotos, historias y reels?','Instagram','LinkedIn','Wikipedia','Gmail'],
+ ['cultura','¿Cuántas cartas tiene una baraja francesa sin comodines?','52','40','48','54'],
+ ['cultura','¿Qué idioma tiene más hablantes nativos en el mundo?','El chino mandarín','El inglés','El español','El hindi'],
+ ['cultura','¿Cuántas estrellas tiene la bandera de la Unión Europea?','12','15','27','10'],
+ ['cultura','¿De qué colores es la bandera de España?','Rojo y amarillo','Rojo y blanco','Azul y amarillo','Verde y rojo'],
+ ['cultura','¿En qué mes empieza la primavera en España?','En marzo','En abril','En febrero','En mayo'],
+ ['cultura','¿Cuántos segundos tiene un minuto?','60','100','30','120'],
+ ['cultura','¿Qué pesa más, un kilo de hierro o un kilo de paja?','Pesan lo mismo','El hierro','La paja','Depende del día'],
+ ['cultura','¿Cuántas semanas tiene un año?','52','48','50','56'],
+ ['cultura','¿Cuántos días tiene una semana?','7','5','6','8'],
+ ['cultura','¿Qué se usa para ver las estrellas de lejos?','Un telescopio','Un microscopio','Un periscopio','Un termómetro'],
+ ['cuentos','¿De qué color es la caperuza de Caperucita?','Roja','Azul','Verde','Amarilla'],
+ ['cuentos','¿Cuántos enanitos acompañan a Blancanieves?','7','5','6','9'],
+ ['cuentos','¿Qué fruta envenenada muerde Blancanieves?','Una manzana','Una pera','Una fresa','Una naranja'],
+ ['cuentos','¿Qué zapato pierde Cenicienta en el baile?','Un zapato de cristal','Una bota','Una zapatilla de deporte','Una sandalia'],
+ ['cuentos','¿En qué se convierte la calabaza de Cenicienta?','En una carroza','En un caballo','En un castillo','En un vestido'],
+ ['cuentos','¿A qué hora se rompe el hechizo de Cenicienta?','A las doce de la noche','A las diez','A la una','Al amanecer'],
+ ['cuentos','¿A quién le crece la nariz cuando miente?','A Pinocho','A Peter Pan','A Pulgarcito','Al Gato con Botas'],
+ ['cuentos','¿Quién sopla y derriba las casas de los tres cerditos?','El lobo','El oso','El zorro','El león'],
+ ['cuentos','¿De qué material era la casa del cerdito más listo?','De ladrillo','De paja','De madera','De cartón'],
+ ['cuentos','¿Quién es el niño que no quería crecer?','Peter Pan','Pinocho','Hansel','Aladino'],
+ ['cuentos','¿Qué lanza Rapunzel desde la torre?','Su larga trenza','Una cuerda','Una escalera','Una sábana'],
+ ['cuentos','¿En qué se convierte el patito feo al crecer?','En un cisne','En un pato','En una gallina','En un ganso'],
+ ['cuentos','¿Cuántos osos viven en la casa que visita Ricitos de Oro?','3','2','4','7'],
+ ['cuentos','¿Qué lleva puesto el famoso gato del cuento «El Gato con…»?','Botas','Gafas','Sombrero de copa','Bufanda'],
+ ['cuentos','¿Qué frase abre la cueva en «Alí Babá y los cuarenta ladrones»?','¡Ábrete, sésamo!','¡Abracadabra!','¡Ábrete, puerta!','¡Bibidi bobidi bu!'],
+ ['deporte','¿Cuántos jugadores de un equipo de fútbol hay en el campo?','11','10','9','12'],
+ ['deporte','¿Cada cuántos años se celebran los Juegos Olímpicos de verano?','4','2','3','5'],
+ ['deporte','¿Cuántos puntos vale un triple en baloncesto?','3','2','4','1'],
+ ['deporte','¿Cuántos jugadores por equipo hay en una pista de baloncesto?','5','6','7','4'],
+ ['deporte','¿Cuántos aros tiene la bandera olímpica?','5','4','6','7'],
+ ['deporte','¿En qué deporte se hace un «home run»?','Béisbol','Rugby','Golf','Tenis'],
+ ['deporte','¿Qué deporte juega Rafa Nadal?','Tenis','Golf','Pádel','Fútbol'],
+ ['deporte','¿Cuánto dura un partido de fútbol sin prórroga?','90 minutos','60 minutos','80 minutos','120 minutos'],
+ ['deporte','¿En qué deporte se usa un volante con plumas?','Bádminton','Tenis','Squash','Ping-pong'],
+ ['deporte','¿En qué deporte se puede marcar un «ace»?','Tenis','Fútbol','Natación','Ciclismo']
+];
+function mathQ(){
+  var t = rnd(4), a, b, ans, txt;
+  if (t === 0) { a = 5 + rnd(56); b = 5 + rnd(56); ans = a + b; txt = '¿Cuánto es ' + a + ' + ' + b + '?'; }
+  else if (t === 1) { a = 20 + rnd(80); b = 1 + rnd(a); ans = a - b; txt = '¿Cuánto es ' + a + ' − ' + b + '?'; }
+  else if (t === 2) { a = 2 + rnd(9); b = 2 + rnd(9); ans = a * b; txt = '¿Cuánto es ' + a + ' × ' + b + '?'; }
+  else { b = 2 + rnd(9); ans = 2 + rnd(9); a = b * ans; txt = '¿Cuánto es ' + a + ' ÷ ' + b + '?'; }
+  var w = {}, opts = [];
+  while (opts.length < 3) {
+    var d = ans + (rnd(2) ? 1 : -1) * (1 + rnd(t === 2 ? 10 : 6));
+    if (d >= 0 && d !== ans && !w[d]) { w[d] = 1; opts.push(String(d)); }
+  }
+  return {cat:'mates', q:txt, ok:String(ans), opts:shuffle([String(ans)].concat(opts))};
+}
+var curQ = null, answered = false, quizMood = null;
+function nextQuestion(){
+  answered = false; quizMood = null;
+  if (S.pet && S.pet.sleeping) {
+    $('qtext').innerHTML = 'Zzz… 😴 Estoy dormido. Despiértame en la pestaña Mascota para jugar.';
+    $('qopts').innerHTML = '<button class="btn blue big" onclick="wakeAndPlay()">☀️ Despertar y jugar</button>';
+    renderPetViews(); return;
+  }
+  var cat = S.qcat || 'todas', q;
+  if (cat === 'mates' || (cat === 'todas' && rnd(7) === 0)) q = mathQ();
+  else {
+    var pool = [];
+    for (var i = 0; i < Q.length; i++) if ((cat === 'todas' || Q[i][0] === cat) && S.recent.indexOf(i) < 0) pool.push(i);
+    if (!pool.length) {
+      S.recent = S.recent.filter(function(i){ return cat !== 'todas' && Q[i][0] !== cat; });
+      for (var j = 0; j < Q.length; j++) if (cat === 'todas' || Q[j][0] === cat) pool.push(j);
+    }
+    var k = pick(pool); S.recent.push(k); if (S.recent.length > 80) S.recent.shift();
+    var r = Q[k];
+    q = {cat:r[0], q:r[1], ok:r[2], opts:shuffle(r.slice(2, 6))};
+  }
+  curQ = q;
+  var catName = QCATS.filter(function(c){ return c[0] === q.cat; })[0];
+  $('qtext').innerHTML = '<small>' + (catName ? catName[1] : '') + ' · ' + (S.pet ? S.pet.name : '') + ' pregunta:</small>' + q.q;
+  $('qopts').innerHTML = q.opts.map(function(o, i){ return '<button class="opt" data-o="' + i + '"><span>' + 'ABCD'[i] + '</span>' + o + '</button>'; }).join('');
+  $('qnext').style.visibility = 'hidden';
+  renderQInfo(); renderPetViews(); save();
+  speak(q.q);
+}
+function wakeAndPlay(){ S.pet.sleeping = false; save(); renderPet(); nextQuestion(); }
+function answer(i){
+  if (answered || !curQ) return;
+  answered = true;
+  var btns = $('qopts').querySelectorAll('.opt'), chosen = curQ.opts[i], good = chosen === curQ.ok;
+  for (var k = 0; k < btns.length; k++) if (curQ.opts[k] === curQ.ok) btns[k].classList.add('ok');
+  S.stats.answered++;
+  if (S.pet) { S.pet.happy = clamp(S.pet.happy + (good ? 3 : 1)); S.pet.energy = clamp(S.pet.energy - .5); }
+  if (good) {
+    S.stats.correct++; S.stats.streak++; S.stats.best = Math.max(S.stats.best, S.stats.streak);
+    var bonus = S.stats.streak % 5 === 0 ? 15 : 0, earn = 10 + bonus;
+    quizMood = 'celebra';
+    var msg = pick(['¡Muy bien!', '¡Correcto!', '¡Genial!', '¡Eres un crack!', '¡Lo sabías!']) + ' +' + earn + ' 🪙' + (bonus ? ' (¡racha de ' + S.stats.streak + '!)' : '');
+    $('qtext').innerHTML = '<small>✅ ' + curQ.q + '</small>' + msg;
+    speak(msg.replace('+', 'más ').replace('🪙', 'monedas'));
+    var r = btns[i].getBoundingClientRect(); burst(bonus ? ['🪙', '⭐', '🎉'] : ['🪙', '✨'], r.left + r.width / 2, r.top);
+    vibrate(40);
+    addCoins(earn); addXp(10);
+  } else {
+    btns[i].classList.add('bad'); S.stats.streak = 0; quizMood = 'triste';
+    var m2 = '¡Casi! La respuesta era: ' + curQ.ok + '. ¡La próxima seguro que sí! (+1 🪙)';
+    $('qtext').innerHTML = '<small>❌ ' + curQ.q + '</small>' + m2;
+    speak('¡Casi! La respuesta era: ' + curQ.ok);
+    vibrate(120);
+    addCoins(1); addXp(3);
+  }
+  renderPetViews(); renderQInfo(); save();
+  $('qnext').style.visibility = 'visible';
+}
+function renderQInfo(){
+  var st = S.stats;
+  $('qinfo').innerHTML = '✅ ' + st.correct + ' aciertos · 🔥 racha ' + st.streak + ' · 🏆 mejor ' + st.best;
+}
+function renderQCats(){
+  $('qcats').innerHTML = QCATS.map(function(c){ return '<button class="chip' + (S.qcat === c[0] ? ' on' : '') + '" data-c="' + c[0] + '">' + c[1] + '</button>'; }).join('');
+}
+
+/* ======================= avatar y tienda ======================= */
+var avCat = 'hair', trying = null;
+function renderAvCats(){
+  $('avcats').innerHTML = CATS.map(function(c){ return '<button class="chip' + (avCat === c.id ? ' on' : '') + '" data-c="' + c.id + '">' + c.e + ' ' + c.n + '</button>'; }).join('');
+}
+function previewEq(){ var e = Object.assign({}, S.eq); if (trying) e[trying.cat] = trying.id; return e; }
+function renderAvBig(){
+  var e = previewEq();
+  $('avbig').innerHTML = '<div class="full">' + bgOnlySVG(e.bg, 'xMidYMid slice') + '</div><div style="position:relative;height:100%">' + avatarSVG(e, {bg:false, anim:true, vb:'10 -20 180 360'}) + '</div>';
+}
+function renderAvGrid(){
+  var cat = CATS.filter(function(c){ return c.id === avCat; })[0];
+  var cur = previewEq();
+  $('avgrid').innerHTML = ITEMS[avCat].map(function(it){
+    var e = Object.assign({}, S.eq); e[avCat] = it[0];
+    if (avCat === 'bottom' && isDress(e.top)) e.top = 'cam_rosa';
+    var own = owns(avCat, it[0]), on = S.eq[avCat] === it[0], tr = trying && trying.cat === avCat && trying.id === it[0];
+    var th = avCat === 'bg' ? bgOnlySVG(it[0], 'xMidYMid slice') : (it[0] === 'none' ? '<div style="font-size:30px">🚫</div>' : avatarSVG(e, {vb:cat.crop, bg:false}));
+    var tag = on ? '<span class="tag own">✓</span>' : (own ? '' : '<span class="tag' + (S.coins < it[2] ? ' lock' : '') + '">🪙 ' + it[2] + '</span>');
+    return '<button class="item' + (on ? ' on' : '') + (tr ? ' try' : '') + '" data-i="' + it[0] + '"><div class="th">' + th + '</div>' + it[1] + tag + '</button>';
+  }).join('');
+}
+function renderAv(){ renderAvCats(); renderAvBig(); renderAvGrid(); renderBuyBar(); }
+function tapItem(id){
+  if (owns(avCat, id)) {
+    S.eq[avCat] = id; trying = null; save();
+    if (avCat === 'top' && isDress(id)) toast('👗 Con vestido no se ve la parte de abajo');
+  } else {
+    trying = {cat:avCat, id:id};
+  }
+  renderAv(); renderPet();
+}
+function itemInfo(cat, id){ var l = cat === 'pacc' ? PACC : ITEMS[cat]; for (var i = 0; i < l.length; i++) if (l[i][0] === id) return l[i]; return null; }
+function renderBuyBar(){
+  var bar = $('buybar');
+  if (!trying || !$('t-av').classList.contains('on')) { bar.classList.remove('on'); return; }
+  var it = itemInfo(trying.cat, trying.id);
+  if (S.coins >= it[2]) {
+    $('buyText').innerHTML = 'Probando: <b>' + it[1] + '</b><br>🪙 ' + it[2] + ' monedas';
+    $('buyBtn').textContent = 'Comprar'; $('buyBtn').className = 'btn green'; $('buyBtn').dataset.m = 'buy';
+  } else {
+    $('buyText').innerHTML = '<b>' + it[1] + '</b> cuesta 🪙 ' + it[2] + '.<br>Te faltan ' + (it[2] - S.coins) + '. ¡Responde preguntas!';
+    $('buyBtn').textContent = '❓ Jugar'; $('buyBtn').className = 'btn pink'; $('buyBtn').dataset.m = 'quiz';
+  }
+  bar.classList.add('on');
+}
+function buyTrying(){
+  var it = itemInfo(trying.cat, trying.id);
+  if (S.coins < it[2]) return;
+  S.coins -= it[2]; S.owned[trying.cat + ':' + trying.id] = true; S.eq[trying.cat] = trying.id;
+  var cat = trying.cat; trying = null; save(); renderHeader(); renderAv(); renderPet();
+  burst(['✨', '💖', '⭐']); toast('¡Comprado: ' + it[1] + '! 🎉');
+  if (S.pet) speak(pick(['¡Te queda genial!', '¡Qué guapo te ves!', '¡Me encanta!']));
+  if (cat === 'top' && isDress(S.eq.top)) toast('👗 Con vestido no se ve la parte de abajo');
+}
+function renderShop(){
+  $('foodList').innerHTML = FOOD.map(function(f){
+    return '<div class="row"><div class="e">' + f.e + '</div><div class="t">' + f.n + '<small>' + (f.med ? 'Cura a tu mascota si se pone malita' : 'Comida +' + f.hunger + (f.happy ? ' · Felicidad +' + f.happy : '') + (f.energy ? ' · Energía +' + f.energy : '')) + ' · tienes ' + (S.food[f.id] || 0) + '</small></div><button class="btn ' + (S.coins >= f.p ? 'orange' : 'gray') + '" data-f="' + f.id + '">🪙 ' + f.p + '</button></div>';
+  }).join('');
+  if (!S.pet) { $('paccGrid').innerHTML = ''; return; }
+  $('paccGrid').innerHTML = PACC.map(function(a){
+    var own = owns('pacc', a[0]), on = (S.pet.acc || 'none') === a[0];
+    var th = a[0] === 'none' ? '<div style="font-size:30px">🚫</div>' : petSVG(S.pet, 'normal', a[0]);
+    var tag = on ? '<span class="tag own">✓</span>' : (own ? '' : '<span class="tag' + (S.coins < a[2] ? ' lock' : '') + '">🪙 ' + a[2] + '</span>');
+    return '<button class="item' + (on ? ' on' : '') + '" data-p="' + a[0] + '"><div class="th">' + th + '</div>' + a[1] + tag + '</button>';
+  }).join('');
+}
+function buyFood(id){
+  var f = FOOD.filter(function(x){ return x.id === id; })[0];
+  if (S.coins < f.p) { toast('Te faltan ' + (f.p - S.coins) + ' 🪙. ¡Responde preguntas!'); return; }
+  S.coins -= f.p; S.food[id] = (S.food[id] || 0) + 1; save(); renderHeader(); renderShop();
+  toast(f.e + ' ¡Comprado! Tienes ' + S.food[id]);
+}
+function tapPacc(id){
+  var a = itemInfo('pacc', id);
+  if (!owns('pacc', id)) {
+    if (S.coins < a[2]) { toast('Te faltan ' + (a[2] - S.coins) + ' 🪙. ¡Responde preguntas!'); return; }
+    S.coins -= a[2]; S.owned['pacc:' + id] = true; toast('¡Comprado: ' + a[1] + '! 🎉'); burst(['✨', '💖']);
+  }
+  S.pet.acc = id; save(); renderHeader(); renderShop(); renderPet();
+}
+
+/* ======================= adopción ======================= */
+var chooseSp = 'gato';
+function openAdopt(first){
+  chooseSp = S.pet ? S.pet.sp : 'gato';
+  var nm = S.pet ? S.pet.name : SPECIES[chooseSp].name;
+  var h = '<h3>' + (first ? '🥚 ¡Elige tu mascota!' : '✏️ Tu mascota') + '</h3>' +
+    (first ? '<p style="margin:0 0 10px;font-weight:700">Vivirá contigo, te hará las preguntas y tendrás que cuidarla: darle de comer, bañarla, jugar y acostarla.</p>' : '') +
+    '<div class="species" id="spGrid"></div><b>Nombre:</b><input id="petNameIn" maxlength="16" value="' + nm.replace(/"/g, '') + '">' +
+    '<div class="two"><button class="btn green" onclick="adopt(' + (first ? 'true' : 'false') + ')">' + (first ? '💜 ¡Adoptar!' : '💾 Guardar') + '</button>' + (first ? '' : '<button class="btn gray" onclick="closeModal()">Cancelar</button>') + '</div>';
+  showModal(h); renderSp();
+}
+function renderSp(){
+  var g = $('spGrid'); if (!g) return;
+  g.innerHTML = Object.keys(SPECIES).map(function(k){ return '<button class="' + (k === chooseSp ? 'on' : '') + '" data-s="' + k + '">' + petSVG({sp:k}, 'normal', 'none') + SPECIES[k].n + '</button>'; }).join('');
+}
+function adopt(first){
+  var name = ($('petNameIn').value || '').trim() || SPECIES[chooseSp].name;
+  if (first || !S.pet) S.pet = {sp:chooseSp, name:name, hunger:80, happy:85, energy:80, clean:90, sleeping:false, poops:0, pooAcc:0, sick:false, last:Date.now(), acc:'none'};
+  else { S.pet.sp = chooseSp; S.pet.name = name; }
+  save(); closeModal(); renderAll();
+  say(first ? '¡Hola! Soy ' + name + '. ¡Hazme caso y juguemos a preguntas para ganar monedas! 🪙' : '¡Me encanta mi nombre! 💜');
+}
+
+/* ======================= modal y pestañas ======================= */
+function showModal(h){ $('modalBox').innerHTML = h; $('modal').classList.add('on'); }
+function closeModal(){ $('modal').classList.remove('on'); }
+var curTab = 'pet';
+function tab(t){
+  curTab = t;
+  var bs = document.querySelectorAll('nav button');
+  for (var i = 0; i < bs.length; i++) bs[i].classList.toggle('on', bs[i].dataset.t === t);
+  ['pet', 'quiz', 'av', 'shop'].forEach(function(x){ $('t-' + x).classList.toggle('on', x === t); });
+  if (t !== 'av') trying = null;
+  window.scrollTo(0, 0);
+  if (t === 'pet') { renderPet(); say(moodPhrase()); }
+  if (t === 'quiz') { renderQCats(); if (!curQ || answered) nextQuestion(); else renderPetViews(); }
+  if (t === 'av') renderAv();
+  if (t === 'shop') renderShop();
+  renderBuyBar();
+}
+function renderAll(){ renderHeader(); renderPet(); if (curTab === 'av') renderAv(); if (curTab === 'shop') renderShop(); }
+
+/* ======================= modo pequeño ======================= */
+function renderMini(){
+  if (!S.pet) {
+    $('mpet').innerHTML = '<div style="font-size:70px;text-align:center;line-height:118px">🥚</div>';
+    $('mname').textContent = '¡Tu mascota te espera!';
+    $('msay').textContent = 'Toca aquí para adoptarla, crear tu avatar y ganar monedas con preguntas.';
+    $('mcoins').textContent = '';
+    return;
+  }
+  updatePet();
+  var m = petMood();
+  $('mpet').innerHTML = petSVG(S.pet, m === 'normal' ? 'normal' : m, S.pet.acc);
+  $('mname').textContent = S.pet.name;
+  $('msay').textContent = m === 'normal' ? pick(['¿Jugamos a preguntas? ¡Gana monedas! 🪙', '¡Hola! Te echaba de menos 💜', '¿Me pruebas ropa nueva? 👗']) : moodPhrase();
+  $('mcoins').textContent = '🪙 ' + S.coins + ' · ⭐ Nivel ' + level();
+  save();
+}
+function openFull(){ if (B && B.openMundo) B.openMundo(); else { location.hash = ''; location.reload(); } }
+window.refresh = function(){ load(); if (MINI) renderMini(); else { updatePet(); renderAll(); } };
+
+/* ======================= arranque ======================= */
+function bind(){
+  document.querySelector('nav').addEventListener('click', function(e){ var b = e.target.closest('button'); if (b) tab(b.dataset.t); });
+  $('actions').addEventListener('click', function(e){ var b = e.target.closest('button'); if (b) action(b.dataset.a); });
+  $('scenePet').addEventListener('click', function(){
+    if (!S.pet) return;
+    if (S.pet.sleeping) { say('Zzz… 😴'); return; }
+    S.pet.happy = clamp(S.pet.happy + 1); save(); anim('jump'); setTempMood('celebra', 1200);
+    say(pick(['¡Jiji, cosquillas! 😆', '¡Hola, hola! 👋', moodPhrase(), '¡Te quiero mucho! 💜']));
+  });
+  $('goQuiz').onclick = function(){ tab('quiz'); };
+  $('editPet').onclick = function(){ openAdopt(false); };
+  $('snd').onclick = function(){ S.sound = !S.sound; save(); renderHeader(); if (!S.sound && B && B.stopSpeak) B.stopSpeak(); toast(S.sound ? '🔊 Voz activada' : '🔇 Voz desactivada'); };
+  $('qopts').addEventListener('click', function(e){ var b = e.target.closest('.opt'); if (b) answer(+b.dataset.o); });
+  $('qnext').onclick = nextQuestion;
+  $('qcats').addEventListener('click', function(e){ var b = e.target.closest('.chip'); if (!b) return; S.qcat = b.dataset.c; save(); renderQCats(); nextQuestion(); });
+  $('avcats').addEventListener('click', function(e){ var b = e.target.closest('.chip'); if (!b) return; avCat = b.dataset.c; trying = null; renderAv(); });
+  $('avgrid').addEventListener('click', function(e){ var b = e.target.closest('.item'); if (b) tapItem(b.dataset.i); });
+  $('buyBtn').onclick = function(){ if (this.dataset.m === 'buy') buyTrying(); else tab('quiz'); };
+  $('buyCancel').onclick = function(){ trying = null; renderAv(); };
+  $('foodList').addEventListener('click', function(e){ var b = e.target.closest('button'); if (b) buyFood(b.dataset.f); });
+  $('paccGrid').addEventListener('click', function(e){ var b = e.target.closest('.item'); if (b) tapPacc(b.dataset.p); });
+  $('modalBox').addEventListener('click', function(e){ var b = e.target.closest('#spGrid button'); if (!b) return; var old = SPECIES[chooseSp].name, inp = $('petNameIn'); chooseSp = b.dataset.s; if (inp && (!inp.value.trim() || inp.value.trim() === old)) inp.value = SPECIES[chooseSp].name; renderSp(); });
+  $('mini').addEventListener('click', openFull);
+  setInterval(function(){ if (!MINI && S.pet) { updatePet(); save(); if (curTab === 'pet' && !tempMood) renderPet(); } }, 30000);
+}
+load();
+if (MINI) { document.body.classList.add('mini'); $('mini').addEventListener('click', openFull); renderMini(); }
+else {
+  bind();
+  updatePet();
+  renderAll();
+  if (!S.pet) openAdopt(true);
+  else say(moodPhrase());
+  if (S.lastDaily !== today()) {
+    var first = !S.lastDaily;
+    S.lastDaily = today(); save();
+    setTimeout(function(){ addCoins(30); toast(first ? '🎁 ¡Regalo de bienvenida! +30 🪙' : '🎁 ¡Regalo del día! +30 🪙'); burst(['🪙', '🎁', '✨']); }, 700);
+  }
+}
+</script>
+</body>
+</html>
