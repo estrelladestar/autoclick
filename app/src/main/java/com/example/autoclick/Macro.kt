@@ -321,6 +321,8 @@ object Macro {
         private var listPhase = 0
         /** Veces que se ha vuelto a intentar abrir la lista de cuentas desde el paso de pulsar la cuenta. */
         private var reopens = 0
+        /** Veces que se ha esperado un poco más a que se abra la lista de cuentas. */
+        private var listWaits = 0
         /** Último paso apuntado en el informe (para no repetirlo en cada reintento). */
         private var tracedAt = -1
         /** Cambia en cada llamada a step(): las respuestas que llegan tarde de un intento anterior se ignoran. */
@@ -358,6 +360,7 @@ object Macro {
             feedPhase = 0
             waitEnd = 0L
             listPhase = 0
+            listWaits = 0
             openedAt = -1
             i++
             later(maxOf(ms, 400L))
@@ -454,6 +457,7 @@ object Macro {
                 "enlace" -> openLink(c)
                 "imagen" -> tapImage(c)
                 "tocarcuenta" -> {
+                    showProgress("leyendo la lista de cuentas")
                     // En la vuelta 1 se comenta con la primera cuenta de «cuentas» y se pasa a la segunda, etc.
                     if (c.arg == NEXT_ACCOUNT && accounts.isEmpty()) {
                         autoAccount(c)
@@ -558,16 +562,24 @@ object Macro {
                         return
                     }
                     trace("  mantengo pulsada tu foto de perfil en ${p.first.toInt()},${p.second.toInt()}")
+                    showProgress("abriendo la lista de cuentas")
                     s.longPressAt(p.first, p.second)
                     listPhase = 1
+                    listWaits = 0
                     later(2800L)
                 }
                 1, 4 -> {
+                    showProgress("esperando la lista de cuentas")
                     checkListOpen { open ->
                         if (myTry != stepGen || id != token || !running) return@checkListOpen
                         if (open) {
                             trace("  la lista de cuentas está abierta")
                             advance(maxOf(c.extra(), 600L))
+                        } else if (listWaits < 3) {
+                            // En algunos móviles la lista tarda en salir: se espera un poco más antes de probar otra cosa
+                            listWaits++
+                            trace("  la lista aún no ha salido: espero un poco más ($listWaits/3)")
+                            later(1800L)
                         } else if (listPhase == 1) {
                             trace("  la lista no se abrió manteniendo pulsado: pruebo por tu perfil")
                             listPhase = 2
@@ -576,6 +588,7 @@ object Macro {
                             tries++
                             trace("  tampoco se abrió por el perfil: vuelvo a empezar (intento $tries)")
                             listPhase = 0
+                            listWaits = 0
                             openInstagramHome()
                             later(4500L)
                         } else {
@@ -595,8 +608,10 @@ object Macro {
                         return
                     }
                     trace("  toco tu foto de perfil para ir a tu perfil")
+                    showProgress("probando por tu perfil")
                     s.tapAt(p.first, p.second)
                     listPhase = 3
+                    listWaits = 0
                     later(3000L)
                 }
                 3 -> {
@@ -606,6 +621,7 @@ object Macro {
                         trace("  toco tu nombre de arriba en ${t.first.toInt()},${t.second.toInt()}")
                         s.tapAt(t.first, t.second)
                         listPhase = 4
+                        listWaits = 0
                         later(2500L)
                         return
                     }
@@ -624,6 +640,7 @@ object Macro {
                             trace("  no encuentro tu nombre de arriba")
                         }
                         listPhase = 4
+                        listWaits = 0
                         later(2500L)
                     }
                 }
