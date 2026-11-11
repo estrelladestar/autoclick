@@ -320,7 +320,7 @@ var ITEMS = {
   shoes:[['deportivas','Deportivas',0],['sandalias','Sandalias',30],['botas','Botas',40],['lluvia','Botas de agua',40],['bailarinas','Bailarinas',50],['patines','Patines',90]],
   head:[['none','Nada',0],['lazo','Lazo',30],['gorra','Gorra',40],['gorro','Gorro de lana',40],['flores','Corona de flores',50],['gato','Orejas de gato',60],['conejo','Orejas de conejo',60],['auriculares','Auriculares',70],['bruja','Sombrero de bruja',80],['tiara','Tiara',100],['corona','Corona',150],['oso','Orejas de oso',-1],['explorador','Sombrero de explorador',-1],['astronauta','Casco de astronauta',-1],['birrete','Birrete de sabio',-1]],
   face:[['none','Nada',0],['pecas','Pecas',20],['estrellitas','Estrellitas',30],['redondas','Gafas redondas',40],['sol','Gafas de sol',50],['corazon','Gafas corazón',60],['antifaz','Antifaz',70],['sabio','Gafas de sabio',-1]],
-  neck:[['none','Nada',0],['pajarita','Pajarita',30],['bufanda','Bufanda',40],['colgante','Colgante',50],['medalla','Medalla',60],['perlas','Collar de perlas',80],['abc','Medalla ABC',-1]],
+  neck:[['none','Nada',0],['pajarita','Pajarita',30],['bufanda','Bufanda',40],['colgante','Colgante',50],['medalla','Medalla',60],['perlas','Collar de perlas',80]],
   hand:[['none','Nada',0],['flor','Flor',20],['helado','Helado',25],['globo','Globo',30],['bolso','Bolso',60],['microfono','Micrófono',60],['osito','Osito',70],['varita','Varita mágica',80],['libro','Libro de cuentos',-1],['balon','Balón',-1],['calculadora','Calculadora',-1]],
   back:[['none','Nada',0],['mochila','Mochila',50],['capa','Capa',80],['hada','Alas de hada',120],['mariposa','Alas de mariposa',130],['angel','Alas de ángel',140],['capadorada','Capa dorada',-1]],
   bg:[['habitacion','Mi habitación',0],['parque','Parque',40],['playa','Playa',50],['nieve','Nieve',60],['arcoiris','Arcoíris',80],['mar','Fondo del mar',80],['espacio','Espacio',100],['castillo','Castillo',120]]
@@ -684,7 +684,6 @@ function neckSVG(id){
     case 'bufanda': return '<path d="M76,146 Q100,164 124,146 L126,160 Q100,176 74,160 Z" fill="#e03131"/><rect x="106" y="160" width="14" height="34" rx="4" fill="#c92a2a"/><path d="M108,190 V196 M113,190 V196 M118,190 V196" stroke="#fff" stroke-width="1.5"/>';
     case 'pajarita': return '<path d="M100,158 L86,150 L86,166 Z M100,158 L114,150 L114,166 Z" fill="#7c4dff"/><circle cx="100" cy="158" r="4" fill="#5b2fd6"/>';
     case 'colgante': return '<path d="M86,152 Q100,172 114,152" stroke="#f2c14e" stroke-width="1.5" fill="none"/><path d="' + heart(100, 170, 6) + '" fill="#ff4d8d" stroke="#f2c14e" stroke-width="1.5"/>';
-    case 'abc': return '<path d="M88,150 L100,176 L112,150" stroke="#ff5fa2" stroke-width="6" fill="none"/><circle cx="100" cy="184" r="12" fill="#4dabf7" stroke="#fff" stroke-width="2"/><text x="100" y="187.5" font-size="8.5" font-weight="900" fill="#fff" text-anchor="middle" font-family="sans-serif">ABC</text>';
     case 'medalla': return '<path d="M88,150 L100,178 L112,150" stroke="#4dabf7" stroke-width="6" fill="none"/><circle cx="100" cy="184" r="10" fill="#ffd34d" stroke="#e0a800" stroke-width="2"/>' + star(100, 184, 5, 2.2, '#fff');
     default: return '';
   }
@@ -1049,7 +1048,7 @@ function eat(id){
 }
 
 /* ======================= preguntas ======================= */
-var QCATS = [['todas', '🌟 Todas'], ['repaso', '📝 Repaso'], ['mias', '✏️ Mis preguntas'], ['ingles', '🔤 Inglés'], ['animales', '🐾 Animales'], ['geo', '🌍 Geografía'], ['ciencia', '🔬 Ciencia'], ['historia', '🏛️ Historia y arte'], ['cultura', '💡 Cultura general'], ['cuentos', '📖 Cuentos'], ['deporte', '⚽ Deportes'], ['mates', '➕ Mates']];
+var QCATS = [['todas', '🌟 Todas'], ['repaso', '📝 Repaso'], ['mias', '✏️ Mis preguntas'], ['animales', '🐾 Animales'], ['geo', '🌍 Geografía'], ['ciencia', '🔬 Ciencia'], ['historia', '🏛️ Historia y arte'], ['cultura', '💡 Cultura general'], ['cuentos', '📖 Cuentos'], ['deporte', '⚽ Deportes'], ['mates', '➕ Mates']];
 /* [categoría, pregunta, correcta, incorrecta, incorrecta, incorrecta] */
 var Q = [
  ['animales','¿Cuál es el animal terrestre más grande?','El elefante africano','La jirafa','El rinoceronte','El hipopótamo'],
@@ -1284,18 +1283,6 @@ var FACTS = {
  '¿Cuántos aros tiene la bandera olímpica?':'Los cinco aros representan la unión de los continentes.',
  '¿En qué deporte se usa un volante con plumas?':'En un remate, el volante de bádminton puede pasar de los 400 km/h.'
 };
-/* Inglés: [español, inglés, dibujo] */
-function dot(c){ return '<span style="display:inline-block;width:44px;height:44px;border-radius:50%;background:' + c + ';vertical-align:middle"></span>'; }
-var EN = [
- ['perro','dog','🐶'],['gato','cat','🐱'],['pájaro','bird','🐦'],['pez','fish','🐟'],['caballo','horse','🐴'],['vaca','cow','🐮'],['cerdo','pig','🐷'],['conejo','rabbit','🐰'],
- ['ratón','mouse','🐭'],['oso','bear','🐻'],['león','lion','🦁'],['mono','monkey','🐵'],['manzana','apple','🍎'],['plátano','banana','🍌'],['naranja','orange','🍊'],['fresa','strawberry','🍓'],
- ['uvas','grapes','🍇'],['pan','bread','🍞'],['leche','milk','🥛'],['queso','cheese','🧀'],['huevo','egg','🥚'],['casa','house','🏠'],['coche','car','🚗'],['libro','book','📖'],
- ['sol','sun','☀️'],['luna','moon','🌙'],['estrella','star','⭐'],['árbol','tree','🌳'],['flor','flower','🌸'],['rojo','red',dot('#e03131')],['azul','blue',dot('#1c7ed6')],['verde','green',dot('#2f9e44')],
- ['amarillo','yellow',dot('#fcc419')],['rosa','pink',dot('#f783ac')],['negro','black',dot('#212529')],['blanco','white',dot('#fff;border:2px solid #ccc')],['zapatos','shoes','👟'],['camiseta','T-shirt','👕'],['vestido','dress','👗'],['pelota','ball','⚽'],
- ['corazón','heart','❤️'],['mano','hand','✋'],['hola','hello','👋'],['escuela','school','🏫'],['lluvia','rain','🌧️'],['nieve','snow','❄️'],['feliz','happy','😊'],['triste','sad','😢'],
- ['uno','one','<b style="font-size:40px">1</b>'],['dos','two','<b style="font-size:40px">2</b>'],['tres','three','<b style="font-size:40px">3</b>'],['cinco','five','<b style="font-size:40px">5</b>'],['diez','ten','<b style="font-size:40px">10</b>'],
- ['avión','plane','✈️'],['barco','boat','⛵'],['pastel','cake','🍰'],['helado','ice cream','🍦'],['mariposa','butterfly','🦋'],['pato','duck','🦆'],['rana','frog','🐸']
-];
 var STK = {
   animales:{e:'🦁', n:'Animales', prize:['head','oso']},
   geo:{e:'🌍', n:'Geografía', prize:['head','explorador']},
@@ -1304,8 +1291,7 @@ var STK = {
   cultura:{e:'💡', n:'Cultura general', prize:['face','sabio']},
   cuentos:{e:'📖', n:'Cuentos', prize:['hand','libro']},
   deporte:{e:'⚽', n:'Deportes', prize:['hand','balon']},
-  mates:{e:'🧮', n:'Mates', prize:['hand','calculadora']},
-  ingles:{e:'🔤', n:'Inglés', prize:['neck','abc']}
+  mates:{e:'🧮', n:'Mates', prize:['hand','calculadora']}
 };
 var STK_GOAL = 10;
 var MEDALS = [
@@ -1326,16 +1312,9 @@ function prizeHow(cat, id){
 /* ---------- preguntas ---------- */
 var curQ = null, answered = false, quizMood = null, lastKey = '';
 function staticQ(i){ var r = Q[i]; return r ? {key:'q' + i, cat:r[0], q:r[1], ok:r[2], opts:shuffle(r.slice(2, 6)), fact:FACTS[r[1]]} : null; }
-function enQ(i, t){
-  var w = EN[i]; if (!w) return null;
-  var others = shuffle(EN.filter(function(x){ return x !== w; })).slice(0, 3);
-  if (t === 0) return {key:'e' + i + '_0', cat:'ingles', q:'¿Cómo se dice «' + w[0] + '» en inglés?', big:w[2], ok:w[1], opts:shuffle([w[1]].concat(others.map(function(x){ return x[1]; }))), sayAfter:w[1]};
-  return {key:'e' + i + '_1', cat:'ingles', q:'¿Qué significa «' + w[1] + '»?', ok:w[0], opts:shuffle([w[0]].concat(others.map(function(x){ return x[0]; }))), sayEn:w[1], bigAfter:w[2]};
-}
 function customQ(c){ return c ? {key:'c' + c.id, cat:'mias', q:c.q, ok:c.ok, opts:shuffle([c.ok].concat(c.w))} : null; }
 function keyQ(k){
   if (k[0] === 'q') return staticQ(+k.slice(1));
-  if (k[0] === 'e') { var p = k.slice(1).split('_'); return enQ(+p[0], +p[1]); }
   if (k[0] === 'c') return customQ(S.custom.filter(function(c){ return 'c' + c.id === k; })[0]);
   return null;
 }
@@ -1354,7 +1333,6 @@ function pickQ(cat){
     if (ws.length) { var w = keyQ(pick(ws)); w.review = true; return w; }
   }
   if (cat === 'mates' || (cat === 'todas' && rnd(8) === 0)) return mathQ();
-  if (cat === 'ingles' || (cat === 'todas' && rnd(7) === 0)) return enQ(rnd(EN.length), rnd(2));
   var pool = [];
   for (var i = 0; i < Q.length; i++) if ((cat === 'todas' || Q[i][0] === cat) && S.recent.indexOf(i) < 0) pool.push(i);
   if (!pool.length) {
