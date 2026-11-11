@@ -16,11 +16,35 @@ header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:8px;
 .lvl{flex:1;font-weight:800;font-size:14px}
 .xpbar{height:7px;background:#ffffff40;border-radius:6px;margin-top:3px;overflow:hidden}
 .xpbar i{display:block;height:100%;background:#ffe066;border-radius:6px;transition:width .5s}
-.icon{border:0;background:#ffffff33;color:#fff;border-radius:50%;width:38px;height:38px;font-size:18px}
-nav{position:sticky;top:58px;z-index:19;display:flex;gap:6px;padding:8px 10px;background:#efe6ffee;backdrop-filter:blur(6px)}
-nav button{flex:1;border:0;border-radius:14px;padding:8px 2px;font-weight:800;background:#fff;color:var(--ink);font-size:12.5px;box-shadow:0 2px 0 #0001;line-height:1.2}
+.icon{border:0;background:#ffffff33;color:#fff;border-radius:50%;width:34px;height:34px;font-size:16px;padding:0;flex:none}
+.icon.off{opacity:.45;text-decoration:line-through}
+nav{position:sticky;top:54px;z-index:19;display:flex;gap:6px;padding:8px 10px;background:#efe6ffee;backdrop-filter:blur(6px)}
+nav button{flex:1;border:0;border-radius:14px;padding:7px 1px;font-weight:800;background:#fff;color:var(--ink);font-size:11.5px;box-shadow:0 2px 0 #0001;line-height:1.2}
 nav button b{display:block;font-size:20px}
 nav button.on{background:linear-gradient(180deg,#8b5cf6,#6a3de8);color:#fff}
+.chal{display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,#fff3c4,#ffe0ef);border-radius:18px;padding:10px 12px;margin:4px 0 8px;font-weight:800;font-size:14px;box-shadow:0 3px 10px #ffb02033}
+.chal .t{flex:1}
+.chal .btn{padding:9px 12px;font-size:13.5px}
+.fact{display:block;margin-top:8px;padding:8px 10px;background:#fff7d6;border-radius:12px;font-size:14px;font-weight:700;color:#6b4a00}
+.bige{display:block;font-size:44px;line-height:1.1;margin:4px 0}
+.stk{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.stk div{background:#fff;border-radius:18px;padding:8px 4px;text-align:center;font-weight:800;font-size:12px;box-shadow:0 3px 0 #7c4dff22}
+.stk .e{font-size:40px;display:block;line-height:1.2}
+.stk .lock .e{filter:grayscale(1);opacity:.3}
+.stk .bar,.prog .bar{height:7px;background:#ece6fb;border-radius:6px;overflow:hidden;margin:4px 6px 0}
+.stk .bar i,.prog .bar i{display:block;height:100%;background:#ff5fa2;border-radius:6px}
+.stk small{display:block;color:var(--muted);font-weight:700;font-size:11px;margin-top:2px}
+.medal{display:flex;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px solid #f0eafc;font-weight:800;font-size:14px}
+.medal:last-child{border-bottom:0}
+.medal .e{font-size:30px;width:40px;text-align:center}
+.medal.lock .e{filter:grayscale(1);opacity:.35}
+.medal small{display:block;color:var(--muted);font-weight:700;font-size:12px}
+.prog{font-weight:800;font-size:13px;margin:6px 0}
+.prog .bar{margin:3px 0 0;height:10px}
+.prog .bar i{background:#4ade80}
+.mq{background:#f6f0ff;border-radius:12px;padding:8px 10px;margin:6px 0;font-weight:700;font-size:13.5px;display:flex;gap:8px;align-items:center}
+.mq div{flex:1}
+.mq button{border:0;background:#ff6b6b;color:#fff;border-radius:10px;width:30px;height:30px;font-weight:900}
 section{display:none;padding:6px 12px 40px}
 section.on{display:block}
 h2{font-size:17px;margin:16px 2px 8px;color:#6a3de8}
@@ -94,7 +118,7 @@ h2{font-size:17px;margin:16px 2px 8px;color:#6a3de8}
 .qfoot{display:flex;gap:10px;align-items:center;margin-top:12px}
 .qfoot .info{flex:1;font-weight:800;font-size:13px;color:var(--muted)}
 /* Avatar */
-.avbig{position:sticky;top:122px;z-index:5;height:290px;border-radius:24px;overflow:hidden;box-shadow:0 6px 18px #7c4dff33;background:#fff;display:flex;justify-content:center}
+.avbig{position:sticky;top:116px;z-index:5;height:290px;border-radius:24px;overflow:hidden;box-shadow:0 6px 18px #7c4dff33;background:#fff;display:flex;justify-content:center}
 .avbig svg{height:100%;width:auto}
 .avbig .full{position:absolute;inset:0;width:100%;height:100%}
 .avbig .full svg{width:100%;height:100%;display:block}
@@ -151,13 +175,14 @@ body.mini #mini{display:flex;align-items:center;gap:10px;margin:2px;padding:8px 
   <header>
     <div class="coins" id="coinsBox">🪙 <b id="coins">0</b></div>
     <div class="lvl">⭐ Nivel <b id="lvl">1</b><div class="xpbar"><i id="xp"></i></div></div>
-    <button class="icon" id="snd" title="Voz">🔊</button>
+    <button class="icon" id="mus" title="Música">🎵</button><button class="icon" id="sfx" title="Sonidos">🔔</button><button class="icon" id="snd" title="Voz">🗣️</button>
   </header>
   <nav>
     <button data-t="pet" class="on"><b>🐾</b>Mascota</button>
     <button data-t="quiz"><b>❓</b>Preguntas</button>
     <button data-t="av"><b>👗</b>Avatar</button>
     <button data-t="shop"><b>🛍️</b>Tienda</button>
+    <button data-t="logros"><b>🏅</b>Logros</button>
   </nav>
 
   <section id="t-pet" class="on">
@@ -176,6 +201,7 @@ body.mini #mini{display:flex;align-items:center;gap:10px;margin:2px;padding:8px 
   </section>
 
   <section id="t-quiz">
+    <div class="chal" id="qchal"></div>
     <div class="chips" id="qcats"></div>
     <div class="qtop">
       <div class="qpet" id="qpet"></div>
@@ -183,6 +209,19 @@ body.mini #mini{display:flex;align-items:center;gap:10px;margin:2px;padding:8px 
     </div>
     <div class="opts" id="qopts"></div>
     <div class="qfoot"><div class="info" id="qinfo"></div><button class="btn green" id="qnext">Siguiente ▶</button></div>
+    <button class="btn blue big" style="margin-top:14px" id="myQ">✏️ Crear mis propias preguntas</button>
+  </section>
+
+  <section id="t-logros">
+    <h2>🎯 Reto del día</h2>
+    <div class="chal" id="lchal"></div>
+    <h2>⭐ Álbum de pegatinas</h2>
+    <div class="card" style="font-weight:700;font-size:13.5px">Acierta 10 preguntas de un tema y ganas su pegatina y una prenda que <b>no se puede comprar</b>: solo se gana sabiendo.</div>
+    <div class="stk" id="stickers"></div>
+    <h2>🏅 Medallas</h2>
+    <div class="card" id="medals"></div>
+    <h2>📊 Lo que vas aprendiendo</h2>
+    <div class="card" id="progress"></div>
   </section>
 
   <section id="t-av">
@@ -279,11 +318,11 @@ var ITEMS = {
   top:[['cam_rosa','Camiseta rosa',0],['cam_azul','Camiseta azul',0],['cam_amarilla','Camiseta sol',20],['estrella','Top estrella',50],['rayas','Jersey de rayas',40],['sudadera','Sudadera',60],['jersey','Jersey corazón',60],['chaqueta','Chaqueta vaquera',80],['heroe','Traje de héroe',120],['lunares','Vestido de lunares',100],['princesa','Vestido de princesa',150]],
   bottom:[['vaqueros','Vaqueros',0],['shorts','Pantalón corto',0],['falda','Falda',30],['chandal','Chándal',40],['escocesa','Falda escocesa',50],['leggings','Mallas de estrellas',50],['tutu','Tutú',60]],
   shoes:[['deportivas','Deportivas',0],['sandalias','Sandalias',30],['botas','Botas',40],['lluvia','Botas de agua',40],['bailarinas','Bailarinas',50],['patines','Patines',90]],
-  head:[['none','Nada',0],['lazo','Lazo',30],['gorra','Gorra',40],['gorro','Gorro de lana',40],['flores','Corona de flores',50],['gato','Orejas de gato',60],['conejo','Orejas de conejo',60],['auriculares','Auriculares',70],['bruja','Sombrero de bruja',80],['tiara','Tiara',100],['corona','Corona',150]],
-  face:[['none','Nada',0],['pecas','Pecas',20],['estrellitas','Estrellitas',30],['redondas','Gafas redondas',40],['sol','Gafas de sol',50],['corazon','Gafas corazón',60],['antifaz','Antifaz',70]],
-  neck:[['none','Nada',0],['pajarita','Pajarita',30],['bufanda','Bufanda',40],['colgante','Colgante',50],['medalla','Medalla',60],['perlas','Collar de perlas',80]],
-  hand:[['none','Nada',0],['flor','Flor',20],['helado','Helado',25],['globo','Globo',30],['bolso','Bolso',60],['microfono','Micrófono',60],['osito','Osito',70],['varita','Varita mágica',80]],
-  back:[['none','Nada',0],['mochila','Mochila',50],['capa','Capa',80],['hada','Alas de hada',120],['mariposa','Alas de mariposa',130],['angel','Alas de ángel',140]],
+  head:[['none','Nada',0],['lazo','Lazo',30],['gorra','Gorra',40],['gorro','Gorro de lana',40],['flores','Corona de flores',50],['gato','Orejas de gato',60],['conejo','Orejas de conejo',60],['auriculares','Auriculares',70],['bruja','Sombrero de bruja',80],['tiara','Tiara',100],['corona','Corona',150],['oso','Orejas de oso',-1],['explorador','Sombrero de explorador',-1],['astronauta','Casco de astronauta',-1],['birrete','Birrete de sabio',-1]],
+  face:[['none','Nada',0],['pecas','Pecas',20],['estrellitas','Estrellitas',30],['redondas','Gafas redondas',40],['sol','Gafas de sol',50],['corazon','Gafas corazón',60],['antifaz','Antifaz',70],['sabio','Gafas de sabio',-1]],
+  neck:[['none','Nada',0],['pajarita','Pajarita',30],['bufanda','Bufanda',40],['colgante','Colgante',50],['medalla','Medalla',60],['perlas','Collar de perlas',80],['abc','Medalla ABC',-1]],
+  hand:[['none','Nada',0],['flor','Flor',20],['helado','Helado',25],['globo','Globo',30],['bolso','Bolso',60],['microfono','Micrófono',60],['osito','Osito',70],['varita','Varita mágica',80],['libro','Libro de cuentos',-1],['balon','Balón',-1],['calculadora','Calculadora',-1]],
+  back:[['none','Nada',0],['mochila','Mochila',50],['capa','Capa',80],['hada','Alas de hada',120],['mariposa','Alas de mariposa',130],['angel','Alas de ángel',140],['capadorada','Capa dorada',-1]],
   bg:[['habitacion','Mi habitación',0],['parque','Parque',40],['playa','Playa',50],['nieve','Nieve',60],['arcoiris','Arcoíris',80],['mar','Fondo del mar',80],['espacio','Espacio',100],['castillo','Castillo',120]]
 };
 var FOOD = [
@@ -310,7 +349,8 @@ var DEF_EQ = {skin:'s2', hair:'largo', hcol:'castano', eyes:'grandes', ecol:'caf
 var S;
 function freshState(){
   return {v:1, coins:20, xp:0, owned:{}, eq:JSON.parse(JSON.stringify(DEF_EQ)), pet:null, food:{manzana:3, galleta:1},
-    stats:{answered:0, correct:0, streak:0, best:0}, recent:[], lastDaily:'', sound:true, qcat:'todas'};
+    stats:{answered:0, correct:0, streak:0, best:0}, recent:[], lastDaily:'', sound:true, music:true, sfx:true, qcat:'todas',
+    wrong:[], custom:[], catOk:{}, catAns:{}, stickers:{}, medals:{}, ch:{}, chStreak:0, chLast:'', reviewsCleared:0};
 }
 function load(){
   var raw = '';
@@ -334,6 +374,7 @@ function save(){
 function owns(cat, id){
   var list = cat === 'pacc' ? PACC : ITEMS[cat];
   for (var i = 0; i < list.length; i++) if (list[i][0] === id && list[i][2] === 0) return true;
+  if (cat === 'head' && id === 'none') return true;
   return !!S.owned[cat + ':' + id];
 }
 function level(){ return Math.floor(S.xp / 100) + 1; }
@@ -612,6 +653,7 @@ function backSVG(id){
     case 'mariposa':
       var m = '<path d="M90,180 C40,116 6,146 28,190 C8,224 52,252 92,200 Z" fill="#ff8fc7" stroke="#d94f99" stroke-width="2"/><circle cx="48" cy="168" r="8" fill="#ffe066"/><circle cx="52" cy="214" r="6" fill="#9b6bff"/>';
       return m + '<g ' + MIRROR + '>' + m + '</g>';
+    case 'capadorada': return '<path d="M72,154 L128,154 L152,304 Q100,318 48,304 Z" fill="#f2c14e"/><path d="M80,156 L120,156 L138,296 Q100,306 62,296Z" fill="#d99a00" opacity=".35"/>' + star(70, 270, 4, 1.6, '#fff') + star(132, 280, 4, 1.6, '#fff');
     case 'mochila': return '<rect x="60" y="160" width="80" height="78" rx="16" fill="#ff9f43"/>';
     default: return '';
   }
@@ -625,6 +667,13 @@ function handSVG(id){
     case 'bolso': return '<path d="M136,232 Q148,224 156,240" stroke="#c2185b" stroke-width="3" fill="none"/><rect x="134" y="238" width="32" height="25" rx="7" fill="#ff7eb6"/><circle cx="150" cy="246" r="3" fill="#ffd34d"/>';
     case 'osito': return '<g fill="#b07a4f"><circle cx="148" cy="232" r="5"/><circle cx="166" cy="232" r="5"/><circle cx="157" cy="241" r="11"/><ellipse cx="157" cy="260" rx="11" ry="13"/></g><ellipse cx="157" cy="245" rx="5" ry="3.5" fill="#e6c3a0"/><circle cx="153" cy="239" r="1.5" fill="#2b1b1b"/><circle cx="161" cy="239" r="1.5" fill="#2b1b1b"/><path d="' + heart(157, 260, 4) + '" fill="#ff7eb6"/>';
     case 'microfono': return '<rect x="137" y="214" width="8" height="30" rx="3" fill="#333"/><circle cx="141" cy="207" r="9" fill="#c0c4cc"/><path d="M134,204 H148 M134,209 H148 M138,199 V215 M144,199 V215" stroke="#9aa0aa" stroke-width="1"/>';
+    case 'libro': return '<path d="M124,198 L141,204 L158,198 L158,226 L141,232 L124,226Z" fill="#fff" stroke="#c38bff" stroke-width="2"/><path d="M141,204 V232" stroke="#c38bff" stroke-width="2"/><path d="M128,208 L137,211 M128,214 L137,217 M145,211 L154,208 M145,217 L154,214" stroke="#bbb" stroke-width="1.5"/>' + star(149, 222, 3, 1.2, '#ffd34d');
+    case 'balon':
+      var pg = []; for (var i = 0; i < 5; i++) { var a = -Math.PI / 2 + i * Math.PI * 2 / 5; pg.push((153 + 5 * Math.cos(a)).toFixed(1) + ',' + (244 + 5 * Math.sin(a)).toFixed(1)); }
+      return '<circle cx="153" cy="244" r="13" fill="#fff" stroke="#333" stroke-width="1.5"/><polygon points="' + pg.join(' ') + '" fill="#333"/><path d="M153,239 L153,231 M158,242 L165,239 M156,248 L161,255 M150,248 L145,255 M148,242 L141,239" stroke="#333" stroke-width="1.3"/>';
+    case 'calculadora':
+      var cb = ''; for (var r = 0; r < 3; r++) for (var c = 0; c < 3; c++) cb += '<rect x="' + (135 + c * 6) + '" y="' + (214 + r * 6) + '" width="4" height="4" rx="1" fill="' + (c === 2 ? '#ff9f43' : '#fff') + '"/>';
+      return '<rect x="132" y="200" width="22" height="34" rx="3" fill="#6c7a89"/><rect x="135" y="203" width="16" height="8" rx="1" fill="#c9f2c7"/>' + cb;
     case 'flor': return '<path d="M141,232 Q146,210 150,192" stroke="#3aa655" stroke-width="3" fill="none"/><ellipse cx="139" cy="212" rx="6" ry="3" fill="#3aa655" transform="rotate(-30 139 212)"/><g fill="#ff7eb6"><circle cx="150" cy="180" r="5"/><circle cx="157" cy="185" r="5"/><circle cx="155" cy="193" r="5"/><circle cx="145" cy="193" r="5"/><circle cx="143" cy="185" r="5"/></g><circle cx="150" cy="187" r="4" fill="#ffd34d"/>';
     default: return '';
   }
@@ -635,6 +684,7 @@ function neckSVG(id){
     case 'bufanda': return '<path d="M76,146 Q100,164 124,146 L126,160 Q100,176 74,160 Z" fill="#e03131"/><rect x="106" y="160" width="14" height="34" rx="4" fill="#c92a2a"/><path d="M108,190 V196 M113,190 V196 M118,190 V196" stroke="#fff" stroke-width="1.5"/>';
     case 'pajarita': return '<path d="M100,158 L86,150 L86,166 Z M100,158 L114,150 L114,166 Z" fill="#7c4dff"/><circle cx="100" cy="158" r="4" fill="#5b2fd6"/>';
     case 'colgante': return '<path d="M86,152 Q100,172 114,152" stroke="#f2c14e" stroke-width="1.5" fill="none"/><path d="' + heart(100, 170, 6) + '" fill="#ff4d8d" stroke="#f2c14e" stroke-width="1.5"/>';
+    case 'abc': return '<path d="M88,150 L100,176 L112,150" stroke="#ff5fa2" stroke-width="6" fill="none"/><circle cx="100" cy="184" r="12" fill="#4dabf7" stroke="#fff" stroke-width="2"/><text x="100" y="187.5" font-size="8.5" font-weight="900" fill="#fff" text-anchor="middle" font-family="sans-serif">ABC</text>';
     case 'medalla': return '<path d="M88,150 L100,178 L112,150" stroke="#4dabf7" stroke-width="6" fill="none"/><circle cx="100" cy="184" r="10" fill="#ffd34d" stroke="#e0a800" stroke-width="2"/>' + star(100, 184, 5, 2.2, '#fff');
     default: return '';
   }
@@ -657,6 +707,10 @@ function headItemSVG(id){
       return s;
     case 'auriculares': return '<path d="M46,96 C40,18 160,18 154,96" stroke="#8b5cf6" stroke-width="7" fill="none"/><rect x="34" y="82" width="17" height="30" rx="8" fill="#ff5fa2"/><rect x="149" y="82" width="17" height="30" rx="8" fill="#ff5fa2"/>';
     case 'gorro': return '<path d="M46,76 C44,20 156,20 154,76 Z" fill="#4dabf7"/><path d="M70,32 V70 M86,26 V70 M100,24 V70 M114,26 V70 M130,32 V70" stroke="#339af0" stroke-width="2"/><rect x="42" y="64" width="116" height="16" rx="8" fill="#1c7ed6"/><circle cx="100" cy="20" r="11" fill="#fff"/>';
+    case 'oso': return '<path d="M50,66 Q100,30 150,66" stroke="#8a5a33" stroke-width="5" fill="none"/><circle cx="60" cy="40" r="15" fill="#8a5a33"/><circle cx="140" cy="40" r="15" fill="#8a5a33"/><circle cx="60" cy="40" r="7" fill="#e6b98c"/><circle cx="140" cy="40" r="7" fill="#e6b98c"/>';
+    case 'explorador': return '<ellipse cx="100" cy="52" rx="72" ry="12" fill="#d9b77a"/><path d="M62,52 C60,12 140,12 138,52Z" fill="#e8c991"/><rect x="62" y="40" width="76" height="9" fill="#8b5a2b"/>';
+    case 'astronauta': return '<ellipse cx="100" cy="150" rx="40" ry="9" fill="#cfd6e3"/><circle cx="100" cy="90" r="70" fill="#bfe9ff" fill-opacity=".22" stroke="#eef2f8" stroke-width="6"/><path d="M58,46 Q76,30 98,26" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" opacity=".85"/>' + star(150, 38, 4, 1.6, '#fff');
+    case 'birrete': return '<path d="M68,40 L68,60 Q100,70 132,60 L132,40 Z" fill="#2b2b3a"/><path d="M100,14 L164,34 L100,54 L36,34Z" fill="#3a3a4f"/><path d="M100,34 L150,44 L150,66" stroke="#ffd34d" stroke-width="2.5" fill="none"/><circle cx="100" cy="34" r="3" fill="#ffd34d"/><circle cx="150" cy="68" r="4" fill="#ffd34d"/>';
     case 'tiara': return '<path d="M64,58 Q100,32 136,58 L132,62 Q100,40 68,62 Z" fill="#d6deea" stroke="#9aa9c2" stroke-width="1"/><path d="M100,24 L107,44 L93,44Z" fill="#eef3ff" stroke="#9aa9c2"/><path d="M80,36 L84,48 L76,49Z M120,36 L124,49 L116,48Z" fill="#eef3ff" stroke="#9aa9c2"/><circle cx="100" cy="40" r="4" fill="#ff4d8d"/>';
     default: return '';
   }
@@ -673,6 +727,7 @@ function faceOverSVG(id){
   switch (id) {
     case 'redondas': return '<g fill="#ffffff22" stroke="#3a2a52" stroke-width="3"><circle cx="78" cy="98" r="17"/><circle cx="122" cy="98" r="17"/></g><path d="M95,96 Q100,92 105,96 M61,96 L48,92 M139,96 L152,92" stroke="#3a2a52" stroke-width="3" fill="none"/>';
     case 'sol': return '<rect x="57" y="86" width="40" height="25" rx="10" fill="#1f1f2e"/><rect x="103" y="86" width="40" height="25" rx="10" fill="#1f1f2e"/><path d="M97,93 H103 M57,92 L46,90 M143,92 L154,90" stroke="#1f1f2e" stroke-width="3"/><path d="M64,92 L72,92 M110,92 L118,92" stroke="#fff" stroke-width="2.4" opacity=".6"/>';
+    case 'sabio': return '<g fill="#ffffff22" stroke="#222" stroke-width="4"><rect x="60" y="84" width="34" height="27" rx="4"/><rect x="106" y="84" width="34" height="27" rx="4"/></g><path d="M94,94 H106 M60,92 L47,90 M140,92 L153,90" stroke="#222" stroke-width="3.5"/>';
     case 'corazon': return '<path d="' + heart(78, 99, 13) + '" fill="#ff4d8d" fill-opacity=".8" stroke="#c2185b" stroke-width="2.5"/><path d="' + heart(122, 99, 13) + '" fill="#ff4d8d" fill-opacity=".8" stroke="#c2185b" stroke-width="2.5"/><path d="M96,94 Q100,90 104,94" stroke="#c2185b" stroke-width="2.5" fill="none"/>';
     default: return '';
   }
@@ -849,16 +904,17 @@ var PHRASES = {
   enfermo: ['No me encuentro bien… necesito una medicina 💊 (en la Tienda)'],
   dormido: ['Zzz… zzz… 😴']
 };
-function moodPhrase(){ return pick(PHRASES[petMood()] || PHRASES.normal); }
+function moodPhrase(){ var m = petMood(); if (m === 'normal' && rnd(3) === 0) { var k = Object.keys(FACTS); return '💡 ¿Sabías que…? ' + FACTS[pick(k)]; } return pick(PHRASES[m] || PHRASES.normal); }
 
 /* ======================= voz y avisos ======================= */
 function plain(t){ return String(t).replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}]/gu, '').replace(/\s+/g, ' ').trim(); }
-function speak(t){
+function speak(t, lang){
   if (!S.sound || MINI) return;
   var txt = plain(t); if (!txt) return;
   try {
-    if (B && B.speak) B.speak(txt);
-    else if (window.speechSynthesis) { speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(txt); u.lang = 'es-ES'; u.pitch = 1.5; speechSynthesis.speak(u); }
+    if (B && B.speakLang) B.speakLang(txt, lang || 'es');
+    else if (B && B.speak) B.speak(txt);
+    else if (window.speechSynthesis) { speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(txt); u.lang = lang === 'en' ? 'en-GB' : 'es-ES'; u.pitch = 1.5; speechSynthesis.speak(u); }
   } catch (e) {}
 }
 function vibrate(ms){ try { if (B && B.vibrate) B.vibrate(ms); else if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
@@ -880,21 +936,21 @@ function fx(host, txt, left, bottom){
 
 /* ======================= monedas y nivel ======================= */
 function addCoins(n){
-  S.coins += n; save(); renderHeader();
+  S.coins += n; save(); renderHeader(); sfx('coin');
   var c = $('coinsBox'); c.className = 'coins'; void c.offsetWidth; c.className = 'coins pop';
 }
 function addXp(n){
   var before = level(); S.xp += n;
   if (level() > before) {
     S.coins += 25;
-    setTimeout(function(){ toast('⭐ ¡Has subido al nivel ' + level() + '! +25 🪙'); burst(['⭐', '🎉', '✨', '🪙']); speak('¡Bien! ¡Hemos subido al nivel ' + level() + '!'); }, 900);
+    setTimeout(function(){ sfx('level'); toast('⭐ ¡Has subido al nivel ' + level() + '! +25 🪙'); burst(['⭐', '🎉', '✨', '🪙']); speak('¡Bien! ¡Hemos subido al nivel ' + level() + '!'); }, 900);
   }
   save(); renderHeader();
 }
 function renderHeader(){
   $('coins').textContent = S.coins; $('lvl').textContent = level();
   $('xp').style.width = (S.xp % 100) + '%';
-  $('snd').textContent = S.sound ? '🔊' : '🔇';
+  $('snd').classList.toggle('off', !S.sound); $('mus').classList.toggle('off', !S.music); $('sfx').classList.toggle('off', !S.sfx);
 }
 
 /* ======================= pestaña Mascota ======================= */
@@ -944,27 +1000,27 @@ function action(a){
     case 'play':
       if (p.energy < 15) { say('Estoy muy cansado para jugar… ¿me acuestas? 💤'); return; }
       p.happy = clamp(p.happy + 15); p.energy = clamp(p.energy - 10); p.hunger = clamp(p.hunger - 4);
-      anim('jump'); fx(host, pick(['🎾', '⚽', '🪀', '🎈']), '62%', '150px');
+      sfx('jump'); anim('jump'); fx(host, pick(['🎾', '⚽', '🪀', '🎈']), '62%', '150px');
       setTempMood('celebra'); say(pick(['¡Yupiii! ¡Otra vez! 🎾', '¡Qué divertido! 😄', '¡Me encanta jugar contigo! 💜']));
       break;
     case 'bath':
       p.clean = 100; p.happy = clamp(p.happy + 5);
-      anim('wiggle'); fx(host, '💦', '70%', '140px'); fx(host, '✨', '82%', '90px');
+      sfx('bath'); anim('wiggle'); fx(host, '💦', '70%', '140px'); fx(host, '✨', '82%', '90px');
       setTempMood('comer'); say(pick(['¡Splash! Ahora huelo genial ✨', '¡Qué limpito estoy! 🛁']));
       break;
     case 'sleep':
-      p.sleeping = !p.sleeping;
+      p.sleeping = !p.sleeping; sfx(p.sleeping ? 'sleep' : 'wake'); musicUpdate();
       say(p.sleeping ? 'Buenas noches… 😴' : '¡Buenos días! ☀️ ¿Jugamos?');
       break;
     case 'clean':
       if (!p.poops) { say('¡Todo está limpio! ✨'); return; }
-      p.poops = 0; p.clean = clamp(p.clean + 10); fx(host, '✨', '50%', '20px');
+      p.poops = 0; p.clean = clamp(p.clean + 10); sfx('sweep'); fx(host, '✨', '50%', '20px');
       say('¡Gracias por limpiar! 🧹');
       break;
     case 'cure':
       if (!p.sick) { say('¡Estoy sano como una manzana! 🍎'); return; }
       if (!S.food.medicina) { say('Necesito una medicina 💊. La tienes en la Tienda.'); return; }
-      S.food.medicina--; p.sick = false; p.happy = clamp(p.happy + 5);
+      S.food.medicina--; p.sick = false; sfx('ok'); p.happy = clamp(p.happy + 5);
       p.hunger = Math.max(p.hunger, 20); p.clean = Math.max(p.clean, 20);
       setTempMood('celebra'); say('¡Ya me encuentro mucho mejor! Gracias 💜');
       break;
@@ -987,13 +1043,13 @@ function eat(id){
   closeModal();
   if (p.hunger >= 98) { say('¡Estoy llenísimo! No puedo más 😅'); return; }
   S.food[id]--; p.hunger = clamp(p.hunger + f.hunger); p.happy = clamp(p.happy + (f.happy || 0)); if (f.energy) p.energy = clamp(p.energy + f.energy);
-  fx($('scene'), f.e, '66%', '120px');
+  fx($('scene'), f.e, '66%', '120px'); sfx('eat');
   setTempMood('comer', 1600); say(pick(['¡Ñam, ñam! ¡Qué rico! 😋', '¡Mmm, delicioso! Gracias 💜', '¡Me encanta! 😋']));
   save(); renderPet();
 }
 
 /* ======================= preguntas ======================= */
-var QCATS = [['todas', '🌟 Todas'], ['animales', '🐾 Animales'], ['geo', '🌍 Geografía'], ['ciencia', '🔬 Ciencia'], ['historia', '🏛️ Historia y arte'], ['cultura', '💡 Cultura general'], ['cuentos', '📖 Cuentos'], ['deporte', '⚽ Deportes'], ['mates', '➕ Mates']];
+var QCATS = [['todas', '🌟 Todas'], ['repaso', '📝 Repaso'], ['mias', '✏️ Mis preguntas'], ['ingles', '🔤 Inglés'], ['animales', '🐾 Animales'], ['geo', '🌍 Geografía'], ['ciencia', '🔬 Ciencia'], ['historia', '🏛️ Historia y arte'], ['cultura', '💡 Cultura general'], ['cuentos', '📖 Cuentos'], ['deporte', '⚽ Deportes'], ['mates', '➕ Mates']];
 /* [categoría, pregunta, correcta, incorrecta, incorrecta, incorrecta] */
 var Q = [
  ['animales','¿Cuál es el animal terrestre más grande?','El elefante africano','La jirafa','El rinoceronte','El hipopótamo'],
@@ -1152,62 +1208,230 @@ function mathQ(){
   }
   return {cat:'mates', q:txt, ok:String(ans), opts:shuffle([String(ans)].concat(opts))};
 }
-var curQ = null, answered = false, quizMood = null;
+var FACTS = {
+ '¿Cuál es el animal terrestre más grande?':'Un elefante africano puede pesar más de 6 toneladas.',
+ '¿Cuántas patas tiene una araña?':'Las arañas no son insectos: son arácnidos, como los escorpiones.',
+ '¿Cuántas patas tiene un insecto?':'Todos los insectos tienen el cuerpo en tres partes: cabeza, tórax y abdomen.',
+ '¿Cuál es el animal terrestre más rápido?':'El guepardo puede pasar de los 100 km/h en carreras cortas.',
+ '¿Cómo se llama la cría del caballo?':'La cría de la vaca es el ternero y la de la oveja, el cordero.',
+ '¿Qué mamífero puede volar de verdad?':'Muchos murciélagos se orientan en la oscuridad con ecos: es la ecolocalización.',
+ '¿Cuál es el animal más grande del mundo?':'La ballena azul es más grande que cualquier dinosaurio conocido.',
+ '¿Dónde viven los pingüinos emperador?':'Los papás pingüino emperador dan calor al huevo sobre sus patas durante el invierno.',
+ '¿Qué come principalmente el panda gigante?':'Un panda puede pasar más de 10 horas al día comiendo bambú.',
+ '¿Cuántos corazones tiene un pulpo?':'Dos corazones mandan sangre a las branquias y el tercero al resto del cuerpo.',
+ '¿Qué animal es famoso por cambiar de color?':'Los camaleones también cambian de color según su humor y la temperatura.',
+ '¿Cómo se llama la casa de las abejas?':'Las abejas hacen un baile para contar a las demás dónde hay flores.',
+ '¿Cuál de estas aves no puede volar?':'El avestruz no vuela, pero corre muchísimo: unos 70 km/h.',
+ '¿Cuál de estos animales es un anfibio?':'Anfibio significa «doble vida»: de pequeños viven en el agua y de mayores en tierra.',
+ '¿A qué animal se le llama «el rey de la selva»?':'¡Curioso! Los leones no viven en la selva, sino en la sabana.',
+ '¿Cuántas jorobas tiene un dromedario?':'El camello bactriano tiene dos jorobas; el dromedario, solo una.',
+ '¿Qué mamífero pone huevos?':'El ornitorrinco tiene pico de pato, pone huevos… ¡y es un mamífero!',
+ '¿Dónde lleva el canguro a su cría?':'Al nacer, la cría de canguro es pequeñísima, como una judía.',
+ '¿Cuál es el ave más grande del mundo?':'Los huevos de avestruz son los más grandes de todas las aves.',
+ 'Los delfines son…':'Los delfines respiran aire por un agujero de la cabeza llamado espiráculo.',
+ '¿En qué se convierte un renacuajo?':'Los renacuajos respiran por branquias, como los peces.',
+ '¿De qué color es la sangre de un pulpo?':'Es azul porque lleva cobre en vez de hierro.',
+ '¿Cuál es la capital de Francia?':'A París la llaman «la Ciudad de la Luz».',
+ '¿Cuál es la capital de Italia?':'Dentro de Roma hay un país entero: el Vaticano.',
+ '¿Cuál es la capital de Japón?':'Tokio es una de las ciudades con más habitantes del mundo.',
+ '¿Qué río pasa por Sevilla?':'Guadalquivir viene del árabe y significa «el río grande».',
+ '¿Cuál es el océano más grande?':'El Pacífico es más grande que toda la tierra firme del planeta junta.',
+ '¿Cuál es la montaña más alta del mundo?':'El Everest mide unos 8.849 metros.',
+ '¿Cuál es el país más grande del mundo?':'Rusia es tan grande que tiene 11 husos horarios.',
+ '¿Cuál es el desierto cálido más grande del mundo?':'El desierto más grande de todos es la Antártida: un desierto es un sitio donde casi no llueve.',
+ '¿Qué islas españolas están en el océano Atlántico?':'En Tenerife está el Teide, la montaña más alta de España.',
+ '¿Qué país tiene forma de bota?':'¡La punta de la bota parece dar una patada a la isla de Sicilia!',
+ '¿En qué ciudad está la Sagrada Familia?':'La diseñó Antoni Gaudí y se empezó a construir en 1882.',
+ '¿En qué ciudad está la Alhambra?':'La Alhambra fue el palacio de los reyes nazaríes.',
+ '¿En qué ciudad está la Torre Eiffel?':'Se construyó para la Exposición Universal de 1889.',
+ '¿Qué planeta es conocido como el planeta rojo?':'Marte es rojo por el óxido de hierro de su suelo, como si estuviera oxidado.',
+ '¿Cuál es el planeta más grande del sistema solar?':'Dentro de Júpiter cabrían más de mil Tierras.',
+ '¿Qué planeta está más cerca del Sol?':'Mercurio es además el planeta más pequeño del sistema solar.',
+ '¿Cuántos planetas tiene el sistema solar?':'Plutón dejó de ser planeta en 2006: ahora es un planeta enano.',
+ '¿Qué planeta tiene los anillos más famosos?':'Los anillos de Saturno están hechos de trozos de hielo y roca.',
+ '¿Qué gas sueltan las plantas al hacer la fotosíntesis?':'Las plantas usan la luz del Sol para fabricar su propio alimento.',
+ '¿Cuántos huesos tiene una persona adulta?':'Los bebés nacen con unos 300 huesos que se van uniendo al crecer.',
+ '¿Qué órgano bombea la sangre por el cuerpo?':'El corazón late unas 100.000 veces al día.',
+ '¿Cuál es el órgano más grande del cuerpo humano?':'La piel se renueva sin parar: cada día soltamos células muertas.',
+ '¿Cuál es la fórmula del agua?':'H₂O quiere decir dos átomos de hidrógeno y uno de oxígeno.',
+ '¿Cuál es la estrella más cercana a la Tierra?':'La luz del Sol tarda unos 8 minutos en llegar hasta nosotros.',
+ '¿Cuántos colores tiene el arcoíris?':'Son rojo, naranja, amarillo, verde, azul, añil y violeta.',
+ '¿Qué fuerza hace que las cosas caigan al suelo?':'En la Luna la gravedad es unas 6 veces menor: ¡saltarías muchísimo!',
+ '¿Quién propuso la teoría de la relatividad?':'Su fórmula más famosa es E = mc².',
+ '¿Qué metal es líquido a temperatura ambiente?':'Antes el mercurio se usaba dentro de los termómetros.',
+ '¿Qué satélite natural tiene la Tierra?':'La Luna siempre nos enseña la misma cara.',
+ '¿En qué año llegó Colón a América?':'Colón viajó con tres barcos: la Pinta, la Niña y la Santa María.',
+ '¿Quién pintó la Gioconda (Mona Lisa)?':'La Gioconda está en el Museo del Louvre, en París.',
+ '¿Quién pintó el Guernica?':'El Guernica está en el Museo Reina Sofía, en Madrid.',
+ '¿Quién pintó Las Meninas?':'Velázquez se pintó a sí mismo dentro del cuadro, ¡búscalo!',
+ '¿Quién escribió Don Quijote de la Mancha?':'Don Quijote va siempre con su escudero, Sancho Panza.',
+ '¿Cómo se llamaba el famoso barco que se hundió en 1912?':'El Titanic se hundió en su primer viaje tras chocar con un iceberg.',
+ '¿Quién descubrió la penicilina?':'Fleming la descubrió por casualidad en 1928 gracias a un moho.',
+ '¿Qué científica ganó dos premios Nobel?':'Marie Curie ganó el Nobel de Física y el de Química.',
+ '¿Qué científico español ganó el Nobel por estudiar las neuronas?':'Ramón y Cajal ganó el Nobel de Medicina en 1906.',
+ '¿Cuántos días tiene un año bisiesto?':'En los años bisiestos febrero tiene 29 días.',
+ '¿Cuántos meses del año tienen 28 días?':'Todos los meses tienen al menos 28 días… ¡era una pregunta trampa!',
+ '¿Qué instrumento tiene teclas blancas y negras?':'Un piano normal tiene 88 teclas.',
+ '¿Cuántos lados tiene un hexágono?':'Las celdas de las colmenas de las abejas tienen forma de hexágono.',
+ '¿Cuántas estrellas tiene la bandera de la Unión Europea?':'Son siempre 12 estrellas aunque haya más países: el 12 simboliza la unión.',
+ '¿Qué pesa más, un kilo de hierro o un kilo de paja?':'Pesan lo mismo, aunque la paja ocupa mucho más sitio.',
+ '¿Cuántos enanitos acompañan a Blancanieves?':'El cuento de Blancanieves lo recogieron los hermanos Grimm.',
+ '¿A quién le crece la nariz cuando miente?':'Pinocho lo escribió Carlo Collodi, un escritor italiano.',
+ '¿Quién es el niño que no quería crecer?':'Peter Pan vive en el País de Nunca Jamás.',
+ '¿En qué se convierte el patito feo al crecer?':'El patito feo lo escribió Hans Christian Andersen.',
+ '¿Cuántos jugadores de un equipo de fútbol hay en el campo?':'De los once, solo el portero puede tocar el balón con las manos (dentro de su área).',
+ '¿Cada cuántos años se celebran los Juegos Olímpicos de verano?':'Los primeros Juegos Olímpicos modernos fueron en Atenas en 1896.',
+ '¿Cuántos aros tiene la bandera olímpica?':'Los cinco aros representan la unión de los continentes.',
+ '¿En qué deporte se usa un volante con plumas?':'En un remate, el volante de bádminton puede pasar de los 400 km/h.'
+};
+/* Inglés: [español, inglés, dibujo] */
+function dot(c){ return '<span style="display:inline-block;width:44px;height:44px;border-radius:50%;background:' + c + ';vertical-align:middle"></span>'; }
+var EN = [
+ ['perro','dog','🐶'],['gato','cat','🐱'],['pájaro','bird','🐦'],['pez','fish','🐟'],['caballo','horse','🐴'],['vaca','cow','🐮'],['cerdo','pig','🐷'],['conejo','rabbit','🐰'],
+ ['ratón','mouse','🐭'],['oso','bear','🐻'],['león','lion','🦁'],['mono','monkey','🐵'],['manzana','apple','🍎'],['plátano','banana','🍌'],['naranja','orange','🍊'],['fresa','strawberry','🍓'],
+ ['uvas','grapes','🍇'],['pan','bread','🍞'],['leche','milk','🥛'],['queso','cheese','🧀'],['huevo','egg','🥚'],['casa','house','🏠'],['coche','car','🚗'],['libro','book','📖'],
+ ['sol','sun','☀️'],['luna','moon','🌙'],['estrella','star','⭐'],['árbol','tree','🌳'],['flor','flower','🌸'],['rojo','red',dot('#e03131')],['azul','blue',dot('#1c7ed6')],['verde','green',dot('#2f9e44')],
+ ['amarillo','yellow',dot('#fcc419')],['rosa','pink',dot('#f783ac')],['negro','black',dot('#212529')],['blanco','white',dot('#fff;border:2px solid #ccc')],['zapatos','shoes','👟'],['camiseta','T-shirt','👕'],['vestido','dress','👗'],['pelota','ball','⚽'],
+ ['corazón','heart','❤️'],['mano','hand','✋'],['hola','hello','👋'],['escuela','school','🏫'],['lluvia','rain','🌧️'],['nieve','snow','❄️'],['feliz','happy','😊'],['triste','sad','😢'],
+ ['uno','one','<b style="font-size:40px">1</b>'],['dos','two','<b style="font-size:40px">2</b>'],['tres','three','<b style="font-size:40px">3</b>'],['cinco','five','<b style="font-size:40px">5</b>'],['diez','ten','<b style="font-size:40px">10</b>'],
+ ['avión','plane','✈️'],['barco','boat','⛵'],['pastel','cake','🍰'],['helado','ice cream','🍦'],['mariposa','butterfly','🦋'],['pato','duck','🦆'],['rana','frog','🐸']
+];
+var STK = {
+  animales:{e:'🦁', n:'Animales', prize:['head','oso']},
+  geo:{e:'🌍', n:'Geografía', prize:['head','explorador']},
+  ciencia:{e:'🚀', n:'Ciencia', prize:['head','astronauta']},
+  historia:{e:'🏛️', n:'Historia y arte', prize:['head','birrete']},
+  cultura:{e:'💡', n:'Cultura general', prize:['face','sabio']},
+  cuentos:{e:'📖', n:'Cuentos', prize:['hand','libro']},
+  deporte:{e:'⚽', n:'Deportes', prize:['hand','balon']},
+  mates:{e:'🧮', n:'Mates', prize:['hand','calculadora']},
+  ingles:{e:'🔤', n:'Inglés', prize:['neck','abc']}
+};
+var STK_GOAL = 10;
+var MEDALS = [
+  {id:'racha10', e:'🔥', n:'Racha de fuego', d:'Acierta 10 preguntas seguidas', ok:function(){ return S.stats.best >= 10; }},
+  {id:'cien', e:'💯', n:'Cien aciertos', d:'Acierta 100 preguntas en total', ok:function(){ return S.stats.correct >= 100; }},
+  {id:'reto3', e:'🎯', n:'Constante', d:'Haz el reto del día 3 días seguidos', ok:function(){ return S.chStreak >= 3; }},
+  {id:'reto7', e:'📅', n:'Una semana entera', d:'Haz el reto del día 7 días seguidos', ok:function(){ return S.chStreak >= 7; }},
+  {id:'repaso10', e:'📝', n:'Aprendo de mis fallos', d:'Acierta 10 preguntas que antes fallaste. Premio: Capa dorada', ok:function(){ return S.reviewsCleared >= 10; }, prize:['back','capadorada']},
+  {id:'autor', e:'✏️', n:'Creador de preguntas', d:'Crea 5 preguntas tuyas', ok:function(){ return S.custom.length >= 5; }},
+  {id:'album', e:'👑', n:'Álbum completo', d:'Consigue todas las pegatinas', ok:function(){ return Object.keys(STK).every(function(k){ return S.stickers[k]; }); }}
+];
+function prizeHow(cat, id){
+  for (var k in STK) if (STK[k].prize[0] === cat && STK[k].prize[1] === id) return 'se gana con la pegatina de ' + STK[k].e + ' ' + STK[k].n + ' (acierta ' + STK_GOAL + ').';
+  for (var i = 0; i < MEDALS.length; i++) if (MEDALS[i].prize && MEDALS[i].prize[0] === cat && MEDALS[i].prize[1] === id) return 'se gana con la medalla «' + MEDALS[i].n + '».';
+  return 'es un premio especial.';
+}
+
+/* ---------- preguntas ---------- */
+var curQ = null, answered = false, quizMood = null, lastKey = '';
+function staticQ(i){ var r = Q[i]; return r ? {key:'q' + i, cat:r[0], q:r[1], ok:r[2], opts:shuffle(r.slice(2, 6)), fact:FACTS[r[1]]} : null; }
+function enQ(i, t){
+  var w = EN[i]; if (!w) return null;
+  var others = shuffle(EN.filter(function(x){ return x !== w; })).slice(0, 3);
+  if (t === 0) return {key:'e' + i + '_0', cat:'ingles', q:'¿Cómo se dice «' + w[0] + '» en inglés?', big:w[2], ok:w[1], opts:shuffle([w[1]].concat(others.map(function(x){ return x[1]; }))), sayAfter:w[1]};
+  return {key:'e' + i + '_1', cat:'ingles', q:'¿Qué significa «' + w[1] + '»?', ok:w[0], opts:shuffle([w[0]].concat(others.map(function(x){ return x[0]; }))), sayEn:w[1], bigAfter:w[2]};
+}
+function customQ(c){ return c ? {key:'c' + c.id, cat:'mias', q:c.q, ok:c.ok, opts:shuffle([c.ok].concat(c.w))} : null; }
+function keyQ(k){
+  if (k[0] === 'q') return staticQ(+k.slice(1));
+  if (k[0] === 'e') { var p = k.slice(1).split('_'); return enQ(+p[0], +p[1]); }
+  if (k[0] === 'c') return customQ(S.custom.filter(function(c){ return 'c' + c.id === k; })[0]);
+  return null;
+}
+function cleanWrong(){ S.wrong = S.wrong.filter(function(k){ return !!keyQ(k); }); }
+function chActive(){ return !!(S.ch && S.ch.d === today() && S.ch.started && !S.ch.done); }
+function pickQ(cat){
+  if (chActive()) cat = 'todas';
+  if (cat === 'repaso') { cleanWrong(); if (!S.wrong.length) return null; var rq = keyQ(pick(S.wrong)); rq.review = true; return rq; }
+  if (cat === 'mias') {
+    if (!S.custom.length) return null;
+    var pool0 = S.custom.length > 1 ? S.custom.filter(function(c){ return 'c' + c.id !== lastKey; }) : S.custom;
+    return customQ(pick(pool0));
+  }
+  if (S.wrong.length && rnd(5) === 0) {
+    var ws = S.wrong.filter(function(k){ var x = keyQ(k); return x && k !== lastKey && (cat === 'todas' || x.cat === cat); });
+    if (ws.length) { var w = keyQ(pick(ws)); w.review = true; return w; }
+  }
+  if (cat === 'mates' || (cat === 'todas' && rnd(8) === 0)) return mathQ();
+  if (cat === 'ingles' || (cat === 'todas' && rnd(7) === 0)) return enQ(rnd(EN.length), rnd(2));
+  var pool = [];
+  for (var i = 0; i < Q.length; i++) if ((cat === 'todas' || Q[i][0] === cat) && S.recent.indexOf(i) < 0) pool.push(i);
+  if (!pool.length) {
+    S.recent = S.recent.filter(function(i){ return cat !== 'todas' && Q[i][0] !== cat; });
+    for (var j = 0; j < Q.length; j++) if (cat === 'todas' || Q[j][0] === cat) pool.push(j);
+  }
+  var k = pick(pool); S.recent.push(k); if (S.recent.length > 80) S.recent.shift();
+  return staticQ(k);
+}
 function nextQuestion(){
   answered = false; quizMood = null;
+  renderChal();
   if (S.pet && S.pet.sleeping) {
-    $('qtext').innerHTML = 'Zzz… 😴 Estoy dormido. Despiértame en la pestaña Mascota para jugar.';
+    $('qtext').innerHTML = 'Zzz… 😴 Estoy dormido. Despiértame para jugar.';
     $('qopts').innerHTML = '<button class="btn blue big" onclick="wakeAndPlay()">☀️ Despertar y jugar</button>';
-    renderPetViews(); return;
+    $('qnext').style.visibility = 'hidden'; renderPetViews(); return;
   }
-  var cat = S.qcat || 'todas', q;
-  if (cat === 'mates' || (cat === 'todas' && rnd(7) === 0)) q = mathQ();
-  else {
-    var pool = [];
-    for (var i = 0; i < Q.length; i++) if ((cat === 'todas' || Q[i][0] === cat) && S.recent.indexOf(i) < 0) pool.push(i);
-    if (!pool.length) {
-      S.recent = S.recent.filter(function(i){ return cat !== 'todas' && Q[i][0] !== cat; });
-      for (var j = 0; j < Q.length; j++) if (cat === 'todas' || Q[j][0] === cat) pool.push(j);
-    }
-    var k = pick(pool); S.recent.push(k); if (S.recent.length > 80) S.recent.shift();
-    var r = Q[k];
-    q = {cat:r[0], q:r[1], ok:r[2], opts:shuffle(r.slice(2, 6))};
+  var cat = S.qcat || 'todas', q = pickQ(cat);
+  if (!q) {
+    curQ = null;
+    $('qtext').innerHTML = cat === 'repaso' ? '¡No tienes fallos que repasar! 🎉 Cuando falles una pregunta, volverá a salir aquí hasta que la aciertes.' : 'Aún no has creado preguntas. ¡Inventa las tuyas (por ejemplo, del examen del cole) y yo te las haré! ✏️';
+    $('qopts').innerHTML = cat === 'mias' ? '<button class="btn blue big" onclick="openMyQ()">✏️ Crear mis preguntas</button>' : '<button class="btn pink big" onclick="setCat(\'todas\')">🌟 Jugar con todas</button>';
+    $('qnext').style.visibility = 'hidden'; renderPetViews(); return;
   }
-  curQ = q;
+  curQ = q; lastKey = q.key || '';
   var catName = QCATS.filter(function(c){ return c[0] === q.cat; })[0];
-  $('qtext').innerHTML = '<small>' + (catName ? catName[1] : '') + ' · ' + (S.pet ? S.pet.name : '') + ' pregunta:</small>' + q.q;
+  var tagx = q.review ? '📝 Repaso · ' : (chActive() ? '🎯 Reto ' + (S.ch.n + 1) + '/5 · ' : '');
+  $('qtext').innerHTML = '<small>' + tagx + (catName ? catName[1] : '') + ' · ' + (S.pet ? S.pet.name : '') + ' pregunta:</small>' + (q.big ? '<span class="bige">' + q.big + '</span>' : '') + q.q;
   $('qopts').innerHTML = q.opts.map(function(o, i){ return '<button class="opt" data-o="' + i + '"><span>' + 'ABCD'[i] + '</span>' + o + '</button>'; }).join('');
   $('qnext').style.visibility = 'hidden';
   renderQInfo(); renderPetViews(); save();
-  speak(q.q);
+  if (q.sayEn) { speak('¿Qué significa'); setTimeout(function(){ speak(q.sayEn, 'en'); }, 1100); }
+  else speak(q.q);
 }
-function wakeAndPlay(){ S.pet.sleeping = false; save(); renderPet(); nextQuestion(); }
+function setCat(c){ S.qcat = c; save(); renderQCats(); nextQuestion(); }
+function wakeAndPlay(){ S.pet.sleeping = false; save(); renderPet(); musicUpdate(); nextQuestion(); }
 function answer(i){
   if (answered || !curQ) return;
   answered = true;
-  var btns = $('qopts').querySelectorAll('.opt'), chosen = curQ.opts[i], good = chosen === curQ.ok;
-  for (var k = 0; k < btns.length; k++) if (curQ.opts[k] === curQ.ok) btns[k].classList.add('ok');
+  var q = curQ, btns = $('qopts').querySelectorAll('.opt'), good = q.opts[i] === q.ok;
+  for (var k = 0; k < btns.length; k++) if (q.opts[k] === q.ok) btns[k].classList.add('ok');
   S.stats.answered++;
+  S.catAns[q.cat] = (S.catAns[q.cat] || 0) + 1;
   if (S.pet) { S.pet.happy = clamp(S.pet.happy + (good ? 3 : 1)); S.pet.energy = clamp(S.pet.energy - .5); }
+  var inWrong = q.key ? S.wrong.indexOf(q.key) : -1;
+  var extra = q.bigAfter ? '<span class="bige">' + q.bigAfter + '</span>' : '';
+  var fact = q.fact ? '<span class="fact">💡 ¿Sabías que…? ' + q.fact + '</span>' : '';
+  var voice;
   if (good) {
     S.stats.correct++; S.stats.streak++; S.stats.best = Math.max(S.stats.best, S.stats.streak);
+    S.catOk[q.cat] = (S.catOk[q.cat] || 0) + 1;
+    if (inWrong >= 0) { S.wrong.splice(inWrong, 1); S.reviewsCleared++; }
     var bonus = S.stats.streak % 5 === 0 ? 15 : 0, earn = 10 + bonus;
     quizMood = 'celebra';
-    var msg = pick(['¡Muy bien!', '¡Correcto!', '¡Genial!', '¡Eres un crack!', '¡Lo sabías!']) + ' +' + earn + ' 🪙' + (bonus ? ' (¡racha de ' + S.stats.streak + '!)' : '');
-    $('qtext').innerHTML = '<small>✅ ' + curQ.q + '</small>' + msg;
-    speak(msg.replace('+', 'más ').replace('🪙', 'monedas'));
+    var praise = q.review && inWrong >= 0 ? '¡Esta antes la fallaste y ahora la sabes! 💪' : pick(['¡Muy bien!', '¡Correcto!', '¡Genial!', '¡Eres un crack!', '¡Lo sabías!']);
+    var msg = praise + ' +' + earn + ' 🪙' + (bonus ? ' (¡racha de ' + S.stats.streak + '!)' : '');
+    $('qtext').innerHTML = '<small>✅ ' + q.q + '</small>' + extra + msg + fact;
+    voice = praise;
+    sfx('ok');
     var r = btns[i].getBoundingClientRect(); burst(bonus ? ['🪙', '⭐', '🎉'] : ['🪙', '✨'], r.left + r.width / 2, r.top);
     vibrate(40);
     addCoins(earn); addXp(10);
   } else {
     btns[i].classList.add('bad'); S.stats.streak = 0; quizMood = 'triste';
-    var m2 = '¡Casi! La respuesta era: ' + curQ.ok + '. ¡La próxima seguro que sí! (+1 🪙)';
-    $('qtext').innerHTML = '<small>❌ ' + curQ.q + '</small>' + m2;
-    speak('¡Casi! La respuesta era: ' + curQ.ok);
-    vibrate(120);
+    if (q.key && inWrong < 0) { S.wrong.push(q.key); if (S.wrong.length > 60) S.wrong.shift(); }
+    var m2 = '¡Casi! La respuesta era: <b>' + q.ok + '</b>.' + (q.key ? ' Te la volveré a preguntar más adelante 📝' : '') + ' (+1 🪙)';
+    $('qtext').innerHTML = '<small>❌ ' + q.q + '</small>' + extra + m2 + fact;
+    voice = '¡Casi! La respuesta era: ' + q.ok;
+    sfx('bad'); vibrate(120);
     addCoins(1); addXp(3);
   }
-  renderPetViews(); renderQInfo(); save();
+  if (q.fact) voice += '. ¿Sabías que ' + q.fact.charAt(0).toLowerCase() + q.fact.slice(1);
+  speak(voice);
+  if (q.sayAfter) setTimeout(function(){ speak(q.sayAfter, 'en'); }, 1500);
+  if (chActive()) { S.ch.n++; if (good) S.ch.ok++; if (S.ch.n >= 5) setTimeout(finishChallenge, 900); }
+  checkStickers(); checkMedals();
+  renderPetViews(); renderQInfo(); renderQCats(); renderChal(); save();
   $('qnext').style.visibility = 'visible';
 }
 function renderQInfo(){
@@ -1215,8 +1439,183 @@ function renderQInfo(){
   $('qinfo').innerHTML = '✅ ' + st.correct + ' aciertos · 🔥 racha ' + st.streak + ' · 🏆 mejor ' + st.best;
 }
 function renderQCats(){
-  $('qcats').innerHTML = QCATS.map(function(c){ return '<button class="chip' + (S.qcat === c[0] ? ' on' : '') + '" data-c="' + c[0] + '">' + c[1] + '</button>'; }).join('');
+  cleanWrong();
+  $('qcats').innerHTML = QCATS.map(function(c){
+    var lbl = c[1] + (c[0] === 'repaso' ? ' (' + S.wrong.length + ')' : '') + (c[0] === 'mias' ? ' (' + S.custom.length + ')' : '');
+    return '<button class="chip' + (S.qcat === c[0] ? ' on' : '') + '" data-c="' + c[0] + '">' + lbl + '</button>';
+  }).join('');
 }
+
+/* ---------- reto del día ---------- */
+function chText(){
+  var c = S.ch || {};
+  if (c.d === today() && c.done) return {t:'🎯 Reto de hoy hecho: ' + c.ok + '/5 aciertos. 🔥 ' + S.chStreak + ' día(s) seguidos. ¡Vuelve mañana!', b:''};
+  if (chActive()) return {t:'🎯 Reto del día: pregunta ' + (Math.min(c.n, 4) + 1) + ' de 5 · ' + c.ok + ' aciertos', b:''};
+  return {t:'🎯 Reto del día: 5 preguntas de todo. Premio: 20 🪙 + 10 por acierto. 🔥 ' + S.chStreak + ' día(s) seguidos', b:'<button class="btn orange">¡Empezar!</button>'};
+}
+function renderChal(){
+  var c = chText(), h = '<div class="t">' + c.t + '</div>' + c.b;
+  $('qchal').innerHTML = h; $('lchal').innerHTML = h;
+}
+function startChallenge(){
+  if (S.ch && S.ch.d === today() && S.ch.done) return;
+  if (!chActive()) { S.ch = {d:today(), n:0, ok:0, done:false, started:true}; save(); sfx('level'); toast('🎯 ¡Empieza el reto del día!'); }
+  nextQuestion();
+}
+function finishChallenge(){
+  var c = S.ch; if (!c || c.done) return;
+  c.done = true;
+  var yest = new Date(); yest.setDate(yest.getDate() - 1);
+  var y = yest.getFullYear() + '-' + (yest.getMonth() + 1) + '-' + yest.getDate();
+  S.chStreak = S.chLast === y ? S.chStreak + 1 : 1; S.chLast = today();
+  var prize = 20 + 10 * c.ok;
+  save(); sfx('fanfare'); burst(['🎯', '🪙', '🎉', '⭐']);
+  showModal('<h3>🎯 ¡Reto del día terminado!</h3><p style="font-weight:800;font-size:17px">Has acertado ' + c.ok + ' de 5.<br>Premio: +' + prize + ' 🪙<br>🔥 Llevas ' + S.chStreak + ' día(s) seguidos.</p><button class="btn green big" onclick="closeModal()">¡Genial!</button>');
+  speak('¡Reto terminado! Has acertado ' + c.ok + ' de 5.');
+  addCoins(prize); checkMedals(); renderChal();
+}
+
+/* ---------- pegatinas y medallas ---------- */
+function checkStickers(){
+  for (var k in STK) {
+    if (!S.stickers[k] && (S.catOk[k] || 0) >= STK_GOAL) {
+      S.stickers[k] = true;
+      var p = STK[k].prize; S.owned[p[0] + ':' + p[1]] = true; save();
+      celebratePrize('⭐ ¡Pegatina de ' + STK[k].n + '!', STK[k].e, p);
+      return;
+    }
+  }
+}
+function checkMedals(){
+  for (var i = 0; i < MEDALS.length; i++) {
+    var m = MEDALS[i];
+    if (!S.medals[m.id] && m.ok()) {
+      S.medals[m.id] = true;
+      if (m.prize) { S.owned[m.prize[0] + ':' + m.prize[1]] = true; save(); celebratePrize('🏅 ¡Medalla: ' + m.n + '!', m.e, m.prize); }
+      else { save(); sfx('fanfare'); burst([m.e, '🏅', '✨']); toast('🏅 ¡Medalla conseguida: ' + m.n + '! +50 🪙'); addCoins(50); }
+      return;
+    }
+  }
+}
+function celebratePrize(title, emoji, p){
+  var it = itemInfo(p[0], p[1]);
+  setTimeout(function(){
+    sfx('fanfare'); burst([emoji, '⭐', '🎉', '✨']);
+    var e = Object.assign({}, S.eq); e[p[0]] = p[1];
+    showModal('<h3>' + title + '</h3><div style="text-align:center;font-size:60px">' + emoji + '</div><p style="font-weight:800">Has ganado: <b>' + it[1] + '</b>. ¡No se puede comprar, solo se gana sabiendo!</p>' +
+      '<div style="height:200px;display:flex;justify-content:center;background:#f6f0ff;border-radius:18px;margin-bottom:12px">' + avatarSVG(e, {bg:false, vb:'0 -20 200 360'}) + '</div>' +
+      '<div class="two"><button class="btn pink" onclick="wearPrize(\'' + p[0] + '\',\'' + p[1] + '\')">👗 ¡Ponérmelo!</button><button class="btn gray" onclick="closeModal()">Luego</button></div>');
+    speak(title.replace(/[⭐🏅]/g, '') + ' Has ganado ' + it[1]);
+  }, 1000);
+}
+function wearPrize(cat, id){ S.eq[cat] = id; save(); closeModal(); renderPet(); if (curTab === 'av') renderAv(); toast('¡Te queda genial! ✨'); }
+function renderLogros(){
+  renderChal();
+  $('stickers').innerHTML = Object.keys(STK).map(function(k){
+    var s0 = STK[k], n = Math.min(STK_GOAL, S.catOk[k] || 0), got = S.stickers[k], it = itemInfo(s0.prize[0], s0.prize[1]);
+    return '<div class="' + (got ? '' : 'lock') + '"><span class="e">' + s0.e + '</span>' + s0.n + (got ? '<small>✅ ' + it[1] + '</small>' : '<div class="bar"><i style="width:' + (n * 100 / STK_GOAL) + '%"></i></div><small>' + n + '/' + STK_GOAL + ' · 🎁 ' + it[1] + '</small>') + '</div>';
+  }).join('');
+  $('medals').innerHTML = MEDALS.map(function(m){
+    var got = S.medals[m.id];
+    return '<div class="medal' + (got ? '' : ' lock') + '"><span class="e">' + m.e + '</span><div>' + m.n + (got ? ' ✅' : '') + '<small>' + m.d + '</small></div></div>';
+  }).join('');
+  var rows = QCATS.filter(function(c){ return STK[c[0]]; }).map(function(c){
+    var a = S.catAns[c[0]] || 0, o = S.catOk[c[0]] || 0, pct = a ? Math.min(100, Math.round(o * 100 / a)) : 0;
+    return '<div class="prog">' + c[1] + ' <span style="float:right">' + (a ? o + '/' + a + ' (' + pct + '%)' : 'sin jugar') + '</span><div class="bar"><i style="width:' + pct + '%"></i></div></div>';
+  });
+  cleanWrong();
+  $('progress').innerHTML = rows.join('') + '<p style="font-weight:800;margin:10px 0 0">📝 Preguntas por repasar: ' + S.wrong.length + (S.wrong.length ? ' <button class="btn pink" style="padding:7px 10px;font-size:13px" onclick="tab(\'quiz\');setCat(\'repaso\')">Repasar</button>' : '') + '</p>';
+}
+
+/* ---------- mis preguntas ---------- */
+function esc(t){ return String(t).replace(/[&<>"]/g, function(c){ return {'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;'}[c]; }); }
+function openMyQ(){
+  var list = S.custom.map(function(c){ return '<div class="mq"><div><b>' + esc(c.q) + '</b><br>✅ ' + esc(c.ok) + ' · ❌ ' + c.w.map(esc).join(', ') + '</div><button onclick="delMyQ(' + c.id + ')">✕</button></div>'; }).join('');
+  showModal('<h3>✏️ Mis preguntas</h3><p style="margin:0 0 6px;font-weight:700;font-size:13.5px">Escribe una pregunta, la respuesta buena y al menos una mala. La mascota te las hará en «✏️ Mis preguntas».</p>' +
+    '<input id="mq1" placeholder="Pregunta (ej.: ¿Capital de Grecia?)" maxlength="140">' +
+    '<input id="mq2" placeholder="✅ Respuesta correcta" maxlength="60">' +
+    '<input id="mq3" placeholder="❌ Respuesta incorrecta" maxlength="60">' +
+    '<input id="mq4" placeholder="❌ Otra incorrecta (opcional)" maxlength="60">' +
+    '<input id="mq5" placeholder="❌ Otra incorrecta (opcional)" maxlength="60">' +
+    '<div class="two"><button class="btn green" onclick="addMyQ()">➕ Añadir</button><button class="btn gray" onclick="closeModal();renderQCats()">Cerrar</button></div>' +
+    (list ? '<h3 style="margin-top:14px">Tus preguntas (' + S.custom.length + ')</h3>' + list + '<button class="btn pink big" style="margin-top:8px" onclick="closeModal();tab(\'quiz\');setCat(\'mias\')">❓ ¡Jugar con mis preguntas!</button>' : ''));
+}
+function addMyQ(){
+  var v = [1, 2, 3, 4, 5].map(function(n){ return ($('mq' + n).value || '').trim(); });
+  if (!v[0] || !v[1]) { toast('Escribe la pregunta y la respuesta correcta'); return; }
+  var w = v.slice(2).filter(function(x, i, a){ return x && x !== v[1] && a.indexOf(x) === i; });
+  if (!w.length) { toast('Pon al menos una respuesta incorrecta'); return; }
+  S.custom.push({id:Date.now(), q:v[0], ok:v[1], w:w}); save(); sfx('buy');
+  toast('✅ ¡Pregunta guardada!'); checkMedals(); openMyQ();
+}
+function delMyQ(id){ S.custom = S.custom.filter(function(c){ return c.id !== id; }); cleanWrong(); save(); openMyQ(); }
+
+/* ---------- sonidos y música (se generan en el móvil, sin archivos) ---------- */
+var AC = null, MASTER = null, MUSIC_G = null, musicTimer = null, musicStep = 0, musicNext = 0, paused = false;
+function ac(){
+  if (MINI) return null;
+  if (!AC) {
+    try {
+      AC = new (window.AudioContext || window.webkitAudioContext)();
+      MASTER = AC.createGain(); MASTER.gain.value = .55; MASTER.connect(AC.destination);
+      MUSIC_G = AC.createGain(); MUSIC_G.gain.value = .07; MUSIC_G.connect(AC.destination);
+    } catch (e) { AC = null; }
+  }
+  return AC;
+}
+function audioUnlock(){ var a = ac(); if (a && a.state === 'suspended' && !paused) a.resume(); if (S && S.music && !musicTimer) musicUpdate(); }
+function tone(f, t0, dur, type, vol, f2, out){
+  var a = ac(); if (!a) return;
+  var t = a.currentTime + t0, o = a.createOscillator(), g = a.createGain();
+  o.type = type || 'sine'; o.frequency.setValueAtTime(f, t);
+  if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol || .2, t + .012); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  o.connect(g); g.connect(out || MASTER); o.start(t); o.stop(t + dur + .03);
+}
+var SFX = {
+  tap: function(){ tone(700, 0, .05, 'triangle', .08); },
+  coin: function(){ tone(988, 0, .07, 'square', .07); tone(1319, .07, .2, 'square', .07); },
+  ok: function(){ [523, 659, 784, 1047].forEach(function(f, i){ tone(f, i * .08, .18, 'triangle', .22); }); },
+  bad: function(){ tone(330, 0, .18, 'sawtooth', .07, 230); tone(240, .18, .3, 'sawtooth', .07, 150); },
+  buy: function(){ [784, 988, 1175, 1568].forEach(function(f, i){ tone(f, i * .06, .14, 'sine', .2); }); tone(2093, .26, .3, 'sine', .12); },
+  level: function(){ [523, 659, 784, 659, 784, 1047].forEach(function(f, i){ tone(f, i * .1, .2, 'square', .08); }); },
+  fanfare: function(){ [392, 523, 659, 784, 659, 784, 1047, 1047].forEach(function(f, i){ tone(f, i * .12, i === 7 ? .6 : .16, 'triangle', .25); }); },
+  eat: function(){ for (var i = 0; i < 3; i++) { tone(220, i * .16, .08, 'square', .09, 160); tone(330, i * .16 + .06, .06, 'square', .06); } },
+  jump: function(){ tone(300, 0, .22, 'sine', .25, 950); },
+  bath: function(){ for (var i = 0; i < 8; i++) tone(600 + rnd(900), i * .07, .09, 'sine', .14, 1400 + rnd(600)); },
+  sleep: function(){ [784, 659, 523, 392].forEach(function(f, i){ tone(f, i * .22, .4, 'sine', .16); }); },
+  wake: function(){ [392, 523, 659, 784].forEach(function(f, i){ tone(f, i * .1, .2, 'triangle', .18); }); },
+  sweep: function(){ tone(1800, 0, .25, 'sawtooth', .03, 500); tone(1600, .2, .25, 'sawtooth', .03, 400); },
+  squeak: function(){ tone(900, 0, .1, 'sine', .2, 1500); tone(1200, .1, .12, 'sine', .15, 1700); }
+};
+function sfx(n){ if (!S || !S.sfx || MINI || paused) return; audioUnlock(); try { SFX[n](); } catch (e) {} }
+/* melodía alegre (corcheas) y bajo */
+var MEL = [523,659,784,659, 698,880,784,0, 659,784,1047,784, 880,784,659,0, 587,698,880,698, 784,659,523,0, 587,659,698,587, 523,0,0,0];
+var BASS = [131,175,131,110,147,131,98,131];
+var LULLABY = [784,0,659,0, 698,0,587,0, 659,0,523,0, 587,0,0,0];
+function musicTick(){
+  var a = AC; if (!a) return;
+  var sleeping = S.pet && S.pet.sleeping, step = sleeping ? .42 : .22;
+  while (musicNext < a.currentTime + .35) {
+    var t0 = musicNext - a.currentTime;
+    if (sleeping) { var n = LULLABY[musicStep % LULLABY.length]; if (n) tone(n / 2, t0, .7, 'sine', .5, 0, MUSIC_G); }
+    else {
+      var m = MEL[musicStep % MEL.length]; if (m) tone(m, t0, .2, 'triangle', .55, 0, MUSIC_G);
+      if (musicStep % 4 === 0) tone(BASS[Math.floor(musicStep / 4) % BASS.length], t0, .8, 'sine', .9, 0, MUSIC_G);
+    }
+    musicStep++; musicNext += step;
+  }
+}
+function musicUpdate(){
+  var want = S && S.music && !MINI && !paused;
+  if (want) {
+    var a = ac(); if (!a) return;
+    if (a.state === 'suspended') a.resume();
+    if (!musicTimer) { musicNext = a.currentTime + .1; musicTimer = setInterval(musicTick, 100); }
+  } else if (musicTimer) { clearInterval(musicTimer); musicTimer = null; }
+}
+window.pauseAll = function(){ paused = true; musicUpdate(); if (AC) try { AC.suspend(); } catch (e) {} };
+window.resumeAll = function(){ paused = false; if (AC) try { AC.resume(); } catch (e) {} musicUpdate(); };
 
 /* ======================= avatar y tienda ======================= */
 var avCat = 'hair', trying = null;
@@ -1236,7 +1635,7 @@ function renderAvGrid(){
     if (avCat === 'bottom' && isDress(e.top)) e.top = 'cam_rosa';
     var own = owns(avCat, it[0]), on = S.eq[avCat] === it[0], tr = trying && trying.cat === avCat && trying.id === it[0];
     var th = avCat === 'bg' ? bgOnlySVG(it[0], 'xMidYMid slice') : (it[0] === 'none' ? '<div style="font-size:30px">🚫</div>' : avatarSVG(e, {vb:cat.crop, bg:false}));
-    var tag = on ? '<span class="tag own">✓</span>' : (own ? '' : '<span class="tag' + (S.coins < it[2] ? ' lock' : '') + '">🪙 ' + it[2] + '</span>');
+    var tag = on ? '<span class="tag own">✓</span>' : (own ? '' : (it[2] < 0 ? '<span class="tag lock">🏅</span>' : '<span class="tag' + (S.coins < it[2] ? ' lock' : '') + '">🪙 ' + it[2] + '</span>'));
     return '<button class="item' + (on ? ' on' : '') + (tr ? ' try' : '') + '" data-i="' + it[0] + '"><div class="th">' + th + '</div>' + it[1] + tag + '</button>';
   }).join('');
 }
@@ -1255,7 +1654,10 @@ function renderBuyBar(){
   var bar = $('buybar');
   if (!trying || !$('t-av').classList.contains('on')) { bar.classList.remove('on'); return; }
   var it = itemInfo(trying.cat, trying.id);
-  if (S.coins >= it[2]) {
+  if (it[2] < 0) {
+    $('buyText').innerHTML = '🏅 <b>' + it[1] + '</b> no se compra:<br>' + prizeHow(trying.cat, trying.id);
+    $('buyBtn').textContent = '❓ Jugar'; $('buyBtn').className = 'btn pink'; $('buyBtn').dataset.m = 'quiz';
+  } else if (S.coins >= it[2]) {
     $('buyText').innerHTML = 'Probando: <b>' + it[1] + '</b><br>🪙 ' + it[2] + ' monedas';
     $('buyBtn').textContent = 'Comprar'; $('buyBtn').className = 'btn green'; $('buyBtn').dataset.m = 'buy';
   } else {
@@ -1266,10 +1668,10 @@ function renderBuyBar(){
 }
 function buyTrying(){
   var it = itemInfo(trying.cat, trying.id);
-  if (S.coins < it[2]) return;
+  if (it[2] < 0 || S.coins < it[2]) return;
   S.coins -= it[2]; S.owned[trying.cat + ':' + trying.id] = true; S.eq[trying.cat] = trying.id;
   var cat = trying.cat; trying = null; save(); renderHeader(); renderAv(); renderPet();
-  burst(['✨', '💖', '⭐']); toast('¡Comprado: ' + it[1] + '! 🎉');
+  sfx('buy'); burst(['✨', '💖', '⭐']); toast('¡Comprado: ' + it[1] + '! 🎉');
   if (S.pet) speak(pick(['¡Te queda genial!', '¡Qué guapo te ves!', '¡Me encanta!']));
   if (cat === 'top' && isDress(S.eq.top)) toast('👗 Con vestido no se ve la parte de abajo');
 }
@@ -1288,14 +1690,14 @@ function renderShop(){
 function buyFood(id){
   var f = FOOD.filter(function(x){ return x.id === id; })[0];
   if (S.coins < f.p) { toast('Te faltan ' + (f.p - S.coins) + ' 🪙. ¡Responde preguntas!'); return; }
-  S.coins -= f.p; S.food[id] = (S.food[id] || 0) + 1; save(); renderHeader(); renderShop();
+  S.coins -= f.p; S.food[id] = (S.food[id] || 0) + 1; sfx('buy'); save(); renderHeader(); renderShop();
   toast(f.e + ' ¡Comprado! Tienes ' + S.food[id]);
 }
 function tapPacc(id){
   var a = itemInfo('pacc', id);
   if (!owns('pacc', id)) {
     if (S.coins < a[2]) { toast('Te faltan ' + (a[2] - S.coins) + ' 🪙. ¡Responde preguntas!'); return; }
-    S.coins -= a[2]; S.owned['pacc:' + id] = true; toast('¡Comprado: ' + a[1] + '! 🎉'); burst(['✨', '💖']);
+    S.coins -= a[2]; S.owned['pacc:' + id] = true; toast('¡Comprado: ' + a[1] + '! 🎉'); burst(['✨', '💖']); sfx('buy');
   }
   S.pet.acc = id; save(); renderHeader(); renderShop(); renderPet();
 }
@@ -1319,7 +1721,7 @@ function adopt(first){
   var name = ($('petNameIn').value || '').trim() || SPECIES[chooseSp].name;
   if (first || !S.pet) S.pet = {sp:chooseSp, name:name, hunger:80, happy:85, energy:80, clean:90, sleeping:false, poops:0, pooAcc:0, sick:false, last:Date.now(), acc:'none'};
   else { S.pet.sp = chooseSp; S.pet.name = name; }
-  save(); closeModal(); renderAll();
+  save(); closeModal(); renderAll(); sfx('level');
   say(first ? '¡Hola! Soy ' + name + '. ¡Hazme caso y juguemos a preguntas para ganar monedas! 🪙' : '¡Me encanta mi nombre! 💜');
 }
 
@@ -1331,11 +1733,12 @@ function tab(t){
   curTab = t;
   var bs = document.querySelectorAll('nav button');
   for (var i = 0; i < bs.length; i++) bs[i].classList.toggle('on', bs[i].dataset.t === t);
-  ['pet', 'quiz', 'av', 'shop'].forEach(function(x){ $('t-' + x).classList.toggle('on', x === t); });
+  ['pet', 'quiz', 'av', 'shop', 'logros'].forEach(function(x){ $('t-' + x).classList.toggle('on', x === t); });
   if (t !== 'av') trying = null;
   window.scrollTo(0, 0);
   if (t === 'pet') { renderPet(); say(moodPhrase()); }
-  if (t === 'quiz') { renderQCats(); if (!curQ || answered) nextQuestion(); else renderPetViews(); }
+  if (t === 'quiz') { renderQCats(); renderChal(); if (!curQ || answered) nextQuestion(); else renderPetViews(); }
+  if (t === 'logros') renderLogros();
   if (t === 'av') renderAv();
   if (t === 'shop') renderShop();
   renderBuyBar();
@@ -1369,12 +1772,19 @@ function bind(){
   $('scenePet').addEventListener('click', function(){
     if (!S.pet) return;
     if (S.pet.sleeping) { say('Zzz… 😴'); return; }
-    S.pet.happy = clamp(S.pet.happy + 1); save(); anim('jump'); setTempMood('celebra', 1200);
+    S.pet.happy = clamp(S.pet.happy + 1); save(); sfx('squeak'); anim('jump'); setTempMood('celebra', 1200);
     say(pick(['¡Jiji, cosquillas! 😆', '¡Hola, hola! 👋', moodPhrase(), '¡Te quiero mucho! 💜']));
   });
   $('goQuiz').onclick = function(){ tab('quiz'); };
   $('editPet').onclick = function(){ openAdopt(false); };
-  $('snd').onclick = function(){ S.sound = !S.sound; save(); renderHeader(); if (!S.sound && B && B.stopSpeak) B.stopSpeak(); toast(S.sound ? '🔊 Voz activada' : '🔇 Voz desactivada'); };
+  $('snd').onclick = function(){ S.sound = !S.sound; save(); renderHeader(); if (!S.sound && B && B.stopSpeak) B.stopSpeak(); toast(S.sound ? '🗣️ Voz de la mascota activada' : '🗣️ Voz de la mascota quitada'); };
+  $('mus').onclick = function(){ S.music = !S.music; save(); renderHeader(); musicUpdate(); toast(S.music ? '🎵 Música activada' : '🎵 Música quitada'); };
+  $('sfx').onclick = function(){ S.sfx = !S.sfx; save(); renderHeader(); sfx('coin'); toast(S.sfx ? '🔔 Sonidos activados' : '🔔 Sonidos quitados'); };
+  document.addEventListener('click', function(e){ audioUnlock(); if (e.target.closest('button,.item,.chip,.opt')) sfx('tap'); }, true);
+  $('myQ').onclick = openMyQ;
+  $('qchal').addEventListener('click', function(e){ if (e.target.closest('button')) startChallenge(); });
+  $('lchal').addEventListener('click', function(e){ if (e.target.closest('button')) { tab('quiz'); startChallenge(); } });
+  document.addEventListener('visibilitychange', function(){ if (document.hidden) pauseAll(); else resumeAll(); });
   $('qopts').addEventListener('click', function(e){ var b = e.target.closest('.opt'); if (b) answer(+b.dataset.o); });
   $('qnext').onclick = nextQuestion;
   $('qcats').addEventListener('click', function(e){ var b = e.target.closest('.chip'); if (!b) return; S.qcat = b.dataset.c; save(); renderQCats(); nextQuestion(); });
@@ -1396,6 +1806,7 @@ else {
   renderAll();
   if (!S.pet) openAdopt(true);
   else say(moodPhrase());
+  musicUpdate();
   if (S.lastDaily !== today()) {
     var first = !S.lastDaily;
     S.lastDaily = today(); save();

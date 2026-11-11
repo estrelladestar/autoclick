@@ -21,10 +21,11 @@ import java.util.Locale
  */
 object Mundo {
     @SuppressLint("SetJavaScriptEnabled", "JavascriptInterface")
-    fun webView(activity: Activity, mini: Boolean, say: (String) -> Unit, hush: () -> Unit): WebView {
+    fun webView(activity: Activity, mini: Boolean, say: (String, String) -> Unit, hush: () -> Unit): WebView {
         val web = WebView(activity)
         web.settings.javaScriptEnabled = true
         web.settings.domStorageEnabled = true
+        web.settings.mediaPlaybackRequiresUserGesture = false  // música y sonidos sin tocar antes
         web.setBackgroundColor(Color.TRANSPARENT)
         web.isVerticalScrollBarEnabled = !mini
         web.addJavascriptInterface(Bridge(activity, mini, say, hush), "MundoApp")
@@ -36,7 +37,7 @@ object Mundo {
     class Bridge(
         private val activity: Activity,
         private val mini: Boolean,
-        private val say: (String) -> Unit,
+        private val say: (String, String) -> Unit,
         private val hush: () -> Unit
     ) {
         private val main = Handler(Looper.getMainLooper())
@@ -45,7 +46,8 @@ object Mundo {
         @JavascriptInterface fun isMini(): Boolean = mini
         @JavascriptInterface fun load(): String = prefs.getString("state", "") ?: ""
         @JavascriptInterface fun save(json: String) { prefs.edit().putString("state", json).apply() }
-        @JavascriptInterface fun speak(text: String) { main.post { say(text) } }
+        @JavascriptInterface fun speak(text: String) { main.post { say(text, "es") } }
+        @JavascriptInterface fun speakLang(text: String, lang: String) { main.post { say(text, lang) } }
         @JavascriptInterface fun stopSpeak() { main.post { hush() } }
 
         @JavascriptInterface
@@ -75,26 +77,48 @@ class MundoActivity : Activity() {
         tts = TextToSpeech(this) { status ->
             if (status == TextToSpeech.SUCCESS) {
                 tts?.let { t ->
-                    val r = t.setLanguage(Locale("es", "ES"))
-                    if (r == TextToSpeech.LANG_MISSING_DATA || r == TextToSpeech.LANG_NOT_SUPPORTED) t.setLanguage(Locale("es"))
+                    setLang(t, "es")
                     t.setPitch(1.6f)   // voz aguda de mascota
                     t.setSpeechRate(1.05f)
                     ttsReady = true
                 }
             }
         }
-        web = Mundo.webView(this, false, { text -> speak(text) }, { tts?.stop() })
+        web = Mundo.webView(this, false, { text, lang -> speak(text, lang) }, { tts?.stop() })
         setContentView(web)
     }
 
-    private fun speak(text: String) {
+    private var curLang = ""
+
+    private fun setLang(t: TextToSpeech, lang: String) {
+        if (lang == curLang) return
+        curLang = lang
+        if (lang == "en") {
+            val r = t.setLanguage(Locale.UK)
+            if (r == TextToSpeech.LANG_MISSING_DATA || r == TextToSpeech.LANG_NOT_SUPPORTED) t.setLanguage(Locale.US)
+        } else {
+            val r = t.setLanguage(Locale("es", "ES"))
+            if (r == TextToSpeech.LANG_MISSING_DATA || r == TextToSpeech.LANG_NOT_SUPPORTED) t.setLanguage(Locale("es"))
+        }
+    }
+
+    private fun speak(text: String, lang: String) {
         if (!ttsReady) return
-        tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "mascota")
+        val t = tts ?: return
+        setLang(t, lang)
+        // Las palabras en inglés van a la cola para no cortar lo que esté diciendo en español.
+        t.speak(text, if (lang == "en") TextToSpeech.QUEUE_ADD else TextToSpeech.QUEUE_FLUSH, null, "mascota")
     }
 
     override fun onPause() {
         super.onPause()
         tts?.stop()
+        web.evaluateJavascript("window.pauseAll&&pauseAll()", null)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        web.evaluateJavascript("window.resumeAll&&resumeAll()", null)
     }
 
     override fun onDestroy() {

@@ -71,7 +71,7 @@ class MainActivity : Activity() {
 
         // Tu mascota saluda aquí; al tocarla se abre «Mi mundo» (avatar, mascota, preguntas y tienda).
         val dens = resources.displayMetrics.density
-        miniPet = Mundo.webView(this, true, {}, {}).also {
+        miniPet = Mundo.webView(this, true, { _, _ -> }, {}).also {
             root.addView(it, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (140 * dens).toInt()).apply {
                 topMargin = (10 * dens).toInt()
             })
