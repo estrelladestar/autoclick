@@ -139,7 +139,7 @@ object Macro {
                     }
                     cmds.add(Cmd("hora", arg.replace('.', ':'), 0L, 0L))
                 }
-                "esperar", "tocar", "escribir", "campo", "enlace", "imagen", "mantener", "mirar", "inicio" -> cmds.add(Cmd(op, arg, extra, extraMax))
+                "esperar", "tocar", "escribir", "campo", "enlace", "imagen", "mantener", "mirar", "inicio", "historias" -> cmds.add(Cmd(op, arg, extra, extraMax))
                 "atras", "atrás" -> cmds.add(Cmd("atras", arg, extra, extraMax))
                 "clic", "click", "pulsar" -> cmds.add(Cmd("tocar", arg, extra, extraMax))
                 "cuenta" -> {
@@ -324,6 +324,9 @@ object Macro {
         private var reopens = 0
         /** Veces que se ha esperado un poco más a que se abra la lista de cuentas. */
         private var listWaits = 0
+        /** Para «historias»: en qué parte va y cuántas quedan por ver. */
+        private var storyPhase = 0
+        private var storiesLeft = 0
         /** Cuenta que se acaba de tocar en la lista y dónde (para comprobar que de verdad se cambió). */
         private var pendingSwitch: Triple<String, Float, Float>? = null
         private var switchChecks = 0
@@ -367,6 +370,8 @@ object Macro {
             listWaits = 0
             pendingSwitch = null
             switchChecks = 0
+            storyPhase = 0
+            storiesLeft = 0
             openedAt = -1
             i++
             later(maxOf(ms, 400L))
@@ -478,6 +483,7 @@ object Macro {
                 }
                 "mirar" -> look(c)
                 "inicio" -> feed(c)
+                "historias" -> stories(c)
                 "irperfil" -> {
                     // Ir a la pantalla principal de Instagram (con la barra de abajo y tu icono de perfil).
                     // Primero cierra el teclado; luego abre Instagram desde cero en su pantalla principal,
@@ -731,6 +737,7 @@ object Macro {
                 c.label.isNotEmpty() -> c.label + " " + c.arg + " min"
                 c.op == "tocarcuenta" || c.op == "irperfil" || c.op == "perfil" || c.op == "dobleperfil" || c.op == "abrirlista" -> "cambiando cuenta"
                 c.op == "inicio" -> "paseo por inicio"
+                c.op == "historias" -> "viendo historias"
                 else -> (c.op + " " + c.arg).trim().take(14)
             }
             var t = "■ ${i + 1}/${cmds.size} $what"
@@ -1376,6 +1383,164 @@ object Macro {
             val i = s.packageManager.getLaunchIntentForPackage(INSTAGRAM) ?: return
             i.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK)
             try { s.startActivity(i) } catch (e: Exception) {}
+        }
+
+        /**
+         * «historias 3»: va a la pantalla principal de Instagram, abre la primera historia de arriba,
+         * la mira unos segundos y pasa a la siguiente hasta ver 3; luego cierra las historias y sigue.
+         * «historias azar» = solo la mitad de las veces. Después en el guion conviene poner «enlace».
+         */
+        private fun stories(c: Cmd) {
+            val a = c.arg.trim().lowercase()
+            when (storyPhase) {
+                0 -> {
+                    if (a.contains("azar") && Math.random() < 0.5) {
+                        advance(c.extra())
+                        return
+                    }
+                    // Ir a la pantalla principal (con la barra de abajo)
+                    if (profileIcon() != null) {
+                        homeIcon()?.let { s.tapAt(it.first, it.second) }
+                        trace("  en Inicio: busco las historias de arriba")
+                        storyPhase = 1
+                        tries = 0
+                        later(2500L)
+                        return
+                    }
+                    if (tries >= 4) {
+                        trace("  no consigo ir a Inicio: me salto las historias")
+                        advance(c.extra())
+                        return
+                    }
+                    tries++
+                    if (tries == 1) {
+                        s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
+                        later(1000L)
+                    } else {
+                        openInstagramHome()
+                        later(4500L)
+                    }
+                }
+                1 -> {
+                    // Abrir la primera historia que no sea la tuya
+                    val p = firstStory()
+                    if (p != null) {
+                        trace("  abro la primera historia en ${p.first.toInt()},${p.second.toInt()}")
+                        s.fingerTap(p.first, p.second)
+                        storyPhase = 2
+                        later(2500L)
+                        return
+                    }
+                    val g = stepGen
+                    s.readScreen { lines ->
+                        if (g != stepGen || id != token || !running) return@readScreen
+                        val (w, h) = s.screenSize()
+                        val yours = lines?.firstOrNull { it.first.lowercase().contains("tu historia") || it.first.lowercase().contains("your story") }
+                        if (yours != null) {
+                            // La siguiente burbuja a la derecha de «Tu historia», a la altura de las fotos
+                            val x = yours.second.exactCenterX() + w * 0.273f
+                            val y = yours.second.top - h * 0.068f
+                            trace("  abro la primera historia (al lado de «Tu historia») en ${x.toInt()},${y.toInt()}")
+                            s.fingerTap(x, y)
+                            storyPhase = 2
+                            later(2500L)
+                        } else {
+                            trace("  no veo las historias de arriba: me las salto")
+                            advance(c.extra())
+                        }
+                    }
+                }
+                2 -> {
+                    if (inStoryViewer()) {
+                        storiesLeft = (a.filter { it.isDigit() }.toIntOrNull() ?: 3).coerceIn(1, 20)
+                        trace("  viendo historias ($storiesLeft)")
+                        storyPhase = 3
+                        later(3000L + (Math.random() * 3000).toLong())
+                    } else if (tries < 2) {
+                        tries++
+                        trace("  la historia no se ha abierto: lo intento otra vez")
+                        storyPhase = 1
+                        later(1000L)
+                    } else {
+                        trace("  no consigo abrir las historias: me las salto")
+                        advance(c.extra())
+                    }
+                }
+                3 -> {
+                    storiesLeft--
+                    if (storiesLeft <= 0 || !inStoryViewer()) {
+                        storyPhase = 4
+                        tries = 0
+                        later(300L)
+                        return
+                    }
+                    // Pasar a la siguiente historia (toque en la parte derecha)
+                    val (w, h) = s.screenSize()
+                    trace("  paso a la siguiente historia")
+                    s.fingerTap(w * 0.86f, h * 0.45f)
+                    later(3000L + (Math.random() * 3000).toLong())
+                }
+                else -> {
+                    // Cerrar las historias
+                    if (inStoryViewer() && tries < 3) {
+                        tries++
+                        trace("  cierro las historias")
+                        s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
+                        later(1500L)
+                        return
+                    }
+                    advance(c.extra())
+                }
+            }
+        }
+
+        /** Centro de la primera historia de arriba que no es la tuya, o null. */
+        private fun firstStory(): Pair<Float, Float>? {
+            for (root in windowRoots()) {
+                if (root.packageName?.toString() != INSTAGRAM) continue
+                var tray: AccessibilityNodeInfo? = null
+                fun walk(n: AccessibilityNodeInfo?) {
+                    if (n == null || tray != null) return
+                    if (n.viewIdResourceName?.endsWith(":id/reels_tray_container") == true && n.isVisibleToUser) {
+                        tray = n
+                        return
+                    }
+                    for (k in 0 until n.childCount) walk(n.getChild(k))
+                }
+                walk(root)
+                val t = tray ?: continue
+                val items = (0 until t.childCount).mapNotNull { t.getChild(it) }
+                    .filter { it.isVisibleToUser }
+                    .map { val r = Rect(); it.getBoundsInScreen(r); r }
+                    .filter { it.width() > 0 }
+                    .sortedBy { it.left }
+                // La primera es «Tu historia»; la segunda es la primera de los demás
+                val r = items.getOrNull(1) ?: continue
+                return Pair(r.exactCenterX(), r.top + r.height() * 0.40f)
+            }
+            return null
+        }
+
+        /** ¿Están abiertas las historias? (pantalla de historias de Instagram) */
+        private fun inStoryViewer(): Boolean {
+            for (root in windowRoots()) {
+                if (root.packageName?.toString() != INSTAGRAM) continue
+                var found = false
+                fun walk(n: AccessibilityNodeInfo?, depth: Int) {
+                    if (n == null || found || depth > 40) return
+                    val vid = n.viewIdResourceName ?: ""
+                    val t = ((n.text ?: n.contentDescription)?.toString() ?: "").lowercase()
+                    if (vid.contains("reel_viewer") || t.startsWith("enviar mensaje") || t.startsWith("send message") ||
+                        t.startsWith("responder a ")) {
+                        found = true
+                        return
+                    }
+                    for (k in 0 until n.childCount) walk(n.getChild(k), depth + 1)
+                }
+                walk(root, 0)
+                if (found) return true
+            }
+            return false
         }
 
         /** Centro del icono «Inicio» (la casita de abajo a la izquierda de Instagram), o null. */
