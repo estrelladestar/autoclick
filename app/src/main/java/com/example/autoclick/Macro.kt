@@ -812,6 +812,10 @@ object Macro {
         }
 
         private fun tapImage(c: Cmd) {
+            if (android.os.Build.VERSION.SDK_INT < 30 && ScreenCaptureService.instance == null) {
+                finish("Falta el permiso de captura de pantalla. Abre Star App y pulsa ▶ Iniciar: te lo pedirá.")
+                return
+            }
             val n = c.arg.trim().toIntOrNull() ?: 1
             val myTry = stepGen
             s.locateSavedImage(n) { pos, missing ->

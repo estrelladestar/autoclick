@@ -451,6 +451,26 @@ repetir 8"""
     @Suppress("DEPRECATION")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == captureCode) {
+            val pending = pendingScript
+            pendingScript = null
+            if (resultCode == RESULT_OK && data != null) {
+                startForegroundService(Intent(this, ScreenCaptureService::class.java).putExtra("code", resultCode).putExtra("data", data))
+                toast("Captura de pantalla permitida")
+                val s = ClickService.instance
+                if (pending != null && s != null) {
+                    // Un momento para que la captura arranque y empieza el guion
+                    android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                        Macro.start(s, pending, pendingList)
+                        moveTaskToBack(true)
+                    }, 1200L)
+                }
+            } else {
+                toast("Sin el permiso de captura el guion no puede funcionar")
+            }
+            refreshStatus()
+            return
+        }
         if (requestCode == voiceCode && resultCode == RESULT_OK) {
             val said = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull() ?: return
             val old = askBox.text.toString().trim()
@@ -567,8 +587,14 @@ repetir 8"""
             .setMessage("Star App abrirá Instagram y cambiará a otra cuenta, sin comentar nada.\n\n" +
                 "Cuando termine (o si se para), vuelve aquí y pulsa «🐞 Informe» para ver qué ha pasado.")
             .setPositiveButton("Probar") { _, _ ->
-                Macro.start(s, test, emptyList())
-                moveTaskToBack(true)
+                if (!captureReady()) {
+                    pendingScript = test
+                    pendingList = emptyList()
+                    askCapture()
+                } else {
+                    Macro.start(s, test, emptyList())
+                    moveTaskToBack(true)
+                }
             }
             .setNegativeButton("Cancelar", null)
             .show()
@@ -657,6 +683,11 @@ repetir 8"""
         sb.append(if (blockers.isEmpty()) "✅ TODO LISTO PARA INICIAR ($steps pasos)" else "⚠ FALTA ALGO ANTES DE INICIAR")
         sb.append("\n").append(if (svc) "✅" else "❌").append(" Servicio de accesibilidad: ")
             .append(if (svc) "activo" else if (onInSettings) "activado en Ajustes pero sin arrancar" else "desactivado")
+        if (android.os.Build.VERSION.SDK_INT < 30) {
+            val cap = ScreenCaptureService.instance != null
+            sb.append("\n").append(if (cap) "✅" else "❌").append(" Captura de pantalla: ")
+                .append(if (cap) "permitida" else "falta (al pulsar Iniciar te la pedirá)")
+        }
         sb.append("\n").append(mark(links > 0 || marked)).append(" Enlaces: ")
             .append(if (marked) "uno marcado en el Etiquetador, " else "").append(links).append(" guardado(s)")
         sb.append("\n").append(mark(images > 0)).append(" Imágenes: ").append(images)
@@ -668,8 +699,37 @@ repetir 8"""
 
     private fun startScript(s: ClickService, list: List<String>) {
         saveAll()
+        if (!captureReady()) {
+            // En Android 10 o anterior el permiso de captura se pierde al actualizar la app o reiniciar el móvil
+            pendingScript = script.text.toString()
+            pendingList = list
+            askCapture()
+            return
+        }
         Macro.start(s, script.text.toString(), list)
         moveTaskToBack(true)
+    }
+
+    /** ¿Puede la app ver la pantalla? (desde Android 11 no hace falta permiso aparte) */
+    private fun captureReady(): Boolean =
+        android.os.Build.VERSION.SDK_INT >= 30 || ScreenCaptureService.instance != null
+
+    private var pendingScript: String? = null
+    private var pendingList: List<String> = emptyList()
+    private val captureCode = 77
+
+    private fun askCapture() {
+        AlertDialog.Builder(this)
+            .setTitle("Falta el permiso de captura de pantalla")
+            .setMessage("Sin él la app no puede ver la pantalla ni encontrar tus imágenes.\n\n" +
+                "En tu móvil se pierde al instalar una versión nueva o al reiniciar.\n\n" +
+                "Pulsa «Dar permiso» y luego «Empezar ahora»; el guion empezará solo.")
+            .setPositiveButton("Dar permiso") { _, _ ->
+                val mgr = getSystemService(android.content.Context.MEDIA_PROJECTION_SERVICE) as android.media.projection.MediaProjectionManager
+                try { startActivityForResult(mgr.createScreenCaptureIntent(), captureCode) } catch (e: Exception) { toast("No se pudo pedir el permiso") }
+            }
+            .setNegativeButton("Cancelar") { _, _ -> pendingScript = null }
+            .show()
     }
 
     /** Cosas que faltan para que el guion funcione (vacío si todo está listo). */
