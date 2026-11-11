@@ -405,7 +405,48 @@ object Macro {
         private fun retry(what: String) {
             trace("  reintento ${tries + 1}/$MAX_TRIES: no encuentro $what")
             tries++
-            if (tries > MAX_TRIES) finish("No encontré $what. Guion detenido.") else later(800L)
+            if (tries > MAX_TRIES) recover(what) else later(800L)
+        }
+
+        /** Fallos seguidos sin avanzar (se pone a 0 al escribir un comentario o al cambiar de cuenta). */
+        private var recoveries = 0
+
+        /**
+         * En vez de parar cuando no encuentra algo: vuelve a la pantalla principal de Instagram y lo intenta de nuevo.
+         * Si estaba cambiando de cuenta, repite el cambio de cuenta; si no, empieza la vuelta desde el principio.
+         * Con muchos fallos seguidos espera más entre intento e intento (hasta 5 minutos), pero no se para.
+         */
+        private fun recover(what: String) {
+            recoveries++
+            val switchOps = setOf("irperfil", "abrirlista", "tocarcuenta", "perfil", "dobleperfil")
+            val inSwitch = cmds.getOrNull(i)?.op in switchOps
+            trace("⟲ NO ENCUENTRO $what: vuelvo a Instagram y lo intento de nuevo (vez $recoveries)")
+            toast(s, if (inSwitch) "No encuentro $what: vuelvo a Instagram y repito el cambio de cuenta"
+                     else "No encuentro $what: vuelvo a Instagram y empiezo la vuelta de nuevo")
+            tries = 0
+            swipes = null
+            feedPhase = 0
+            waitEnd = 0L
+            listPhase = 0
+            listWaits = 0
+            pendingSwitch = null
+            switchChecks = 0
+            storyPhase = 0
+            storiesLeft = 0
+            openedAt = -1
+            reopens = 0
+            scrolls = 0
+            if (inSwitch) {
+                // Al principio del bloque de cambio de cuenta
+                while (i > 0 && cmds[i - 1].op in switchOps) i--
+            } else {
+                i = 0
+            }
+            tracedAt = -1
+            openInstagramHome()
+            val pause = if (recoveries <= 3) 5000L else minOf(recoveries * 60_000L, 300_000L)
+            if (recoveries > 3) trace("  muchos fallos seguidos: espero ${pause / 1000} s antes de seguir")
+            later(pause)
         }
 
         fun step() {
@@ -561,7 +602,7 @@ object Macro {
                             later(4500L)
                             return
                         }
-                        finish("No veo tu foto de perfil abajo a la derecha de Instagram. Guion detenido.")
+                        recover("tu foto de perfil abajo a la derecha de Instagram")
                         return
                     }
                     s.longPressAt(p.first, p.second)
@@ -599,7 +640,7 @@ object Macro {
                             later(4500L)
                         } else {
                             trace("  " + describeBottom())
-                            finish("No veo la barra de abajo de Instagram (tu foto de perfil). Guion detenido.")
+                            recover("la barra de abajo de Instagram")
                         }
                         return
                     }
@@ -634,7 +675,7 @@ object Macro {
                             openInstagramHome()
                             later(4500L)
                         } else {
-                            finish("No consigo abrir la lista de cuentas de Instagram. Guion detenido.")
+                            recover("la lista de cuentas")
                         }
                     }
                 }
@@ -646,7 +687,7 @@ object Macro {
                         openInstagramHome()
                         listPhase = 0
                         tries++
-                        if (tries > 3) finish("No veo la barra de abajo de Instagram. Guion detenido.") else later(4500L)
+                        if (tries > 3) recover("la barra de abajo de Instagram") else later(4500L)
                         return
                     }
                     trace("  toco tu foto de perfil para ir a tu perfil")
@@ -956,6 +997,7 @@ object Macro {
 
         private fun countComment(text: String) {
             skipsInARow = 0
+            recoveries = 0
             val who = current
             if (who == null) pending++ else addCount(s, who)
             // Menciones de este comentario (@nombre)
@@ -1004,6 +1046,7 @@ object Macro {
 
         /** Ya estamos en la cuenta [name]. */
         private fun switchedTo(name: String) {
+            recoveries = 0
             trace("  CAMBIO A LA CUENTA $name")
             current = name
             used = 0
@@ -1021,7 +1064,7 @@ object Macro {
                 tracedAt = -1
                 later(500L)
             } else {
-                finish("No encontré la lista de cuentas de Instagram. Guion detenido.")
+                recover("la lista de cuentas")
             }
         }
 
@@ -1077,7 +1120,7 @@ object Macro {
                 target = list.map { it.first }.firstOrNull { it !in visited }
             }
             if (target == null) {
-                finish("Solo veo una cuenta en Instagram. Añade otra cuenta en Instagram o pon la línea «cuentas».")
+                recover("otra cuenta en la lista de cuentas")
                 return
             }
             scrolls = 0
@@ -1122,7 +1165,7 @@ object Macro {
                 target = names.firstOrNull { !seen(it.first) }
             }
             if (target == null) {
-                finish("Solo veo una cuenta en Instagram. Añade otra cuenta en Instagram o pon la línea «cuentas».")
+                recover("otra cuenta en la lista de cuentas")
                 return true
             }
             scrolls = 0
