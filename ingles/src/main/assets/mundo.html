@@ -191,7 +191,7 @@ body.mini #mini{display:flex;align-items:center;gap:10px;margin:2px;padding:8px 
 .lbtns{display:flex;gap:6px;margin-top:10px}.lbtns button{flex:1;border:0;border-radius:12px;padding:9px;font-weight:800;font-size:13px}
 .gsel{display:flex;gap:10px;margin:2px 0 10px}.gsel button{flex:1;border:3px solid #fff;background:#fff;border-radius:16px;padding:10px;font-weight:900;font-size:17px;color:var(--ink);box-shadow:0 3px 0 #7c4dff22}.gsel button.on{border-color:#7c4dff;background:#efe6ff}
 .extras{display:flex;gap:8px;margin:0 0 10px}.extras button{flex:1;border:0;border-radius:18px;padding:10px 4px;font-weight:900;font-size:13px;color:#fff;box-shadow:0 3px 0 #0002;line-height:1.2}.extras button b{display:block;font-size:26px}
-.extras .x1{background:linear-gradient(180deg,#5cc8ff,#2563eb)}.extras .x2{background:linear-gradient(180deg,#ffbe4d,#f57c00)}.extras .x3{background:linear-gradient(180deg,#ff7fb5,#e0307a)}
+.extras .x1{background:linear-gradient(180deg,#5cc8ff,#2563eb)}.extras .x2{background:linear-gradient(180deg,#ffbe4d,#f57c00)}.extras .x3{background:linear-gradient(180deg,#ff7fb5,#e0307a)}.extras .x4{background:linear-gradient(180deg,#5fe0a0,#16a34a)}
 .pbar{height:9px;background:#ece6fb;border-radius:6px;overflow:hidden;margin:6px 0 10px}.pbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7c4dff,#ff5fa2);transition:width .4s}
 .din{width:100%;font-size:26px;font-weight:800;text-align:center;padding:12px;border-radius:16px;border:3px solid #c9b8ff;color:var(--ink);background:#fff;margin:6px 0}
 .pin{width:100%;font-size:15px;padding:9px;border-radius:12px;border:2px solid #e2d8ff;margin:4px 0;font-family:inherit;color:var(--ink)}
@@ -231,7 +231,7 @@ textarea.pin{min-height:150px;font-size:16px;line-height:1.5}
   </section>
 
   <section id="t-quiz">
-    <div class="extras" id="extras"><button class="x1" data-x="dict"><b>✍️</b>Spelling</button><button class="x2" data-x="exam"><b>📝</b>Test</button><button class="x3" data-x="poema"><b>📖</b>My story</button></div>
+    <div class="extras" id="extras"><button class="x1" data-x="dict"><b>✍️</b>Spelling</button><button class="x2" data-x="exam"><b>📝</b>Test</button><button class="x3" data-x="poema"><b>📖</b>My story</button><button class="x4" data-x="speak"><b>🎤</b>Speak</button></div>
     <div class="chal" id="qchal"></div>
     <div class="chips" id="qcats"></div>
     <div class="qtop">
@@ -399,6 +399,17 @@ textarea.pin{min-height:150px;font-size:16px;line-height:1.5}
     <div class="row2"><button class="btn blue" id="dsay">🔊 Say it again</button><button class="btn green" id="dcheck">✅ Check</button></div>
     <div id="dres" style="margin-top:10px"></div>
     <button class="btn pink big" id="dnext" style="display:none;margin-top:6px">Next ▶</button>
+  </section>
+
+  <section id="t-speak">
+    <div id="spback"></div>
+    <h2>🎤 Speak: say it in English</h2>
+    <div class="card" style="font-size:13px;font-weight:700">Listen 🔊, then tap the microphone and say the word or sentence. Your pet listens and tells you if it's right! <small style="display:block;color:var(--muted)">(Escucha, pulsa el micrófono y dilo en inglés.)</small></div>
+    <div class="pbar"><i id="spbar"></i></div>
+    <div class="qtop"><div class="qpet" id="sppet"></div><div class="qbubble" id="sptext"></div></div>
+    <button class="btn pink big" id="spmic">🎤 Tap and speak</button>
+    <div id="spres" style="margin-top:10px"></div>
+    <button class="btn green big" id="spnext" style="display:none;margin-top:6px">Next ▶</button>
   </section>
 
   <section id="t-exam">
@@ -2177,7 +2188,7 @@ function tab(t){
   curTab = t;
   var bs = document.querySelectorAll('nav button');
   for (var i = 0; i < bs.length; i++) bs[i].classList.toggle('on', bs[i].dataset.t === t);
-  ['pet', 'quiz', 'apr', 'av', 'shop', 'logros', 'dict', 'exam', 'poema'].forEach(function(x){ $('t-' + x).classList.toggle('on', x === t); });
+  ['pet', 'quiz', 'apr', 'av', 'shop', 'logros', 'dict', 'exam', 'poema', 'speak'].forEach(function(x){ $('t-' + x).classList.toggle('on', x === t); });
   if (t !== 'av') trying = null;
   window.scrollTo(0, 0);
   if (t === 'pet') { renderPet(); say(moodPhrase()); }
@@ -2270,6 +2281,105 @@ function nextDict(){
   $('din').disabled = true; $('dcheck').style.display = 'none'; $('dres').innerHTML = '<button class="btn pink big" onclick="startDict()">🔁 Another spelling</button>';
   $('dnext').style.display = 'none';
   speak('You got ' + D.ok + ' out of ' + D.list.length);
+  save();
+}
+
+/* ---------- pronunciación (Speak): el niño dice la palabra o frase y el móvil le escucha ---------- */
+var SPK_SENT = [['I did the washing up.','Yo fregué los platos.','🍽️'],['Dad took the rubbish out.','Papá sacó la basura.','🗑️'],['I set the table.','Yo puse la mesa.','🍴'],['She fed the rabbit.','Ella dio de comer al conejo.','🐰'],
+  ['Did you tidy your room?','¿Ordenaste tu habitación?','🧸'],['Yes, I did.','Sí, lo hice.','👍'],['No, I didn\'t.','No, no lo hice.','👎'],['I\'m sorry, I forgot.','Lo siento, se me olvidó.','🙏'],
+  ['Don\'t worry. I can do it now.','No te preocupes. Puedo hacerlo ahora.','😊'],['Did you do your homework?','¿Hiciste tus deberes?','📚'],['I came home at six o\'clock.','Llegué a casa a las seis.','🏠'],
+  ['I sent a text.','Envié un mensaje.','📱'],['I read a book.','Leí un libro.','📖'],['I had a rest.','Descansé.','😴'],['Flexi is a home helper.','Flexi es un ayudante de casa.','🤖'],
+  ['What a nice surprise!','¡Qué sorpresa tan bonita!','🎉'],['Once upon a time…','Érase una vez…','📜'],['Lovely weather today!','¡Qué buen tiempo hace hoy!','☀️'],['I hung the washing out.','Tendí la ropa.','👕'],['We made a list.','Hicimos una lista.','📝']];
+var SP = null, spBusy = false;
+function spNorm(t){
+  return String(t).toLowerCase().replace(/[’`]/g, "'").replace(/\bi'm\b/g, 'i am').replace(/n't\b/g, ' not').replace(/\bcan not\b/g, 'cannot').replace(/\bit's\b/g, 'it is').replace(/\bthat's\b/g, 'that is').replace(/\bo'clock\b/g, 'oclock').replace(/\b6\b/g, 'six')
+    .replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+function spScore(target, heardList){
+  var a = spNorm(target), best = 0, bestTxt = heardList[0] || '';
+  heardList.forEach(function(h){ var b = spNorm(h); if (!b) return; var sc = 1 - lev(a, b) / Math.max(a.length, b.length); if (b.indexOf(a) >= 0) sc = Math.max(sc, .95); if (sc > best) { best = sc; bestTxt = h; } });
+  return {sc:best, txt:bestTxt};
+}
+function canListen(){ try { if (B && B.canListen) return B.canListen(); } catch (e) {} return !!(window.SpeechRecognition || window.webkitSpeechRecognition); }
+function startSpeak(){
+  if (!S.spseen) S.spseen = {};
+  var words = (window.VOC_ES || []).map(function(v){ return [v[0], v[1], v[2]]; });
+  var pool = shuffle(words).sort(function(a, b){ return (S.spseen[a[0]] || 0) - (S.spseen[b[0]] || 0); }).slice(0, 5)
+    .concat(shuffle(SPK_SENT).sort(function(a, b){ return (S.spseen[a[0]] || 0) - (S.spseen[b[0]] || 0); }).slice(0, 3));
+  SP = {list:shuffle(pool), i:0, ok:0, coins:0, tries:0, done:false};
+  tab('speak'); showSpeak();
+}
+function showSpeak(){
+  var it = SP.list[SP.i];
+  SP.done = false; SP.tries = 0;
+  $('spback').innerHTML = backBtn();
+  $('sppet').innerHTML = petMiniSVG('pensar');
+  $('sptext').innerHTML = '<small>🎤 Speak · ' + (SP.i + 1) + ' of ' + SP.list.length + '</small>Listen and say it in English:<span class="bige">' + it[2] + '</span><span class="qen" data-spsay="1" style="font-size:22px">' + esc(it[0]) + ' 🔊</span><br><small style="display:inline;color:var(--muted)">(' + esc(it[1]) + ')</small>';
+  $('spres').innerHTML = canListen() ? '' : '<div class="card" style="font-weight:700">🎤 Este móvil o navegador no puede escucharte. En la app de Android funciona si el móvil tiene el «Reconocimiento de voz de Google». Puedes practicar igual: escucha, repite en voz alta y pulsa «Next».</div>';
+  $('spbar').style.width = (SP.i * 100 / SP.list.length) + '%';
+  $('spmic').style.display = ''; $('spmic').textContent = '🎤 Tap and speak'; $('spmic').className = 'btn pink big';
+  $('spnext').style.display = canListen() ? 'none' : ''; $('spnext').textContent = SP.i + 1 < SP.list.length ? 'Next ▶' : 'Finish 🏆';
+  setTimeout(function(){ speak(it[0], 'en'); }, 300);
+}
+var webRec = null;
+function spListen(){
+  if (!SP || SP.done || spBusy) { if (spBusy) { try { if (B && B.stopListen) B.stopListen(); else if (webRec) webRec.stop(); } catch (e) {} } return; }
+  try { if (B && B.stopSpeak) B.stopSpeak(); else if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {}
+  spBusy = true;
+  $('spmic').textContent = '👂 Listening… (tap to stop)'; $('spmic').className = 'btn red big';
+  $('spres').innerHTML = '<div class="card" style="font-weight:800;color:#dc2626">🔴 Say it now!</div>';
+  window.pauseAll && pauseAll();
+  if (B && B.listen) { B.listen('en-GB'); return; }
+  var R = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!R) { spBusy = false; return; }
+  webRec = new R(); webRec.lang = 'en-GB'; webRec.maxAlternatives = 5; webRec.interimResults = false;
+  webRec.onresult = function(e){ var l = []; for (var i = 0; i < e.results[0].length; i++) l.push(e.results[0][i].transcript); onHeard({text:l}); };
+  webRec.onerror = function(e){ onHeard({error:e.error || 'x'}); };
+  webRec.onend = function(){ if (spBusy) onHeard({error:'7'}); };
+  try { webRec.start(); } catch (e) { onHeard({error:'x'}); }
+}
+window.onHeard = function(r){
+  if (!r || r.ready) return;
+  if (!spBusy) return;
+  spBusy = false; window.resumeAll && resumeAll();
+  $('spmic').textContent = '🎤 Try again'; $('spmic').className = 'btn pink big';
+  if (!SP || SP.done) return;
+  var it = SP.list[SP.i];
+  if (r.error) {
+    var e = String(r.error), m = e === 'permission' || e === 'not-allowed' ? '🎤 I need permission to use the microphone. (Necesito permiso para usar el micrófono.)' : e === 'noservice' ? '🎤 This phone can\'t listen. (Este móvil no tiene reconocimiento de voz.)' : e === '2' || e === 'network' ? '🌐 I need the internet to listen. (Necesito internet para escucharte.)' : '🙉 I didn\'t hear you. Tap the microphone and speak a bit louder. (No te he oído, habla un poco más alto.)';
+    $('spres').innerHTML = '<div class="card" style="font-weight:700">' + m + '</div>'; $('spnext').style.display = ''; return;
+  }
+  var res = spScore(it[0], r.text || []), pct = Math.round(res.sc * 100), msg, voice;
+  SP.tries++;
+  if (res.sc >= .8) {
+    SP.done = true; SP.ok++; var earn = SP.tries === 1 ? 6 : 3; SP.coins += earn; addCoins(earn); addXp(5);
+    S.spseen[it[0]] = (S.spseen[it[0]] || 0) + 1; S.catAns.spk = (S.catAns.spk || 0) + 1; S.catOk.spk = (S.catOk.spk || 0) + 1;
+    msg = '✅ ' + pick(['Perfect!', 'Excellent!', 'Great pronunciation!', 'Well done!']) + ' +' + earn + ' 🪙'; voice = msg.replace(/[✅🪙+0-9]/g, ''); sfx('ok'); vibrate(40);
+    $('sppet').innerHTML = petMiniSVG('celebra');
+    $('spmic').style.display = 'none';
+  } else if (res.sc >= .55) {
+    msg = '🟡 Almost! Listen again and repeat. (¡Casi! Escucha otra vez y repite.)'; voice = 'Almost! Listen: '; sfx('bad');
+  } else {
+    msg = '🔁 Not quite. Listen and try again. (No del todo. Escucha y prueba otra vez.)'; voice = 'Listen again: '; sfx('bad');
+  }
+  if (SP.tries >= 3 && !SP.done) { SP.done = true; S.spseen[it[0]] = (S.spseen[it[0]] || 0) + 1; S.catAns.spk = (S.catAns.spk || 0) + 1; $('spmic').style.display = 'none'; msg += '<br>Let\'s go to the next one! (¡Vamos a la siguiente!)'; }
+  $('spres').innerHTML = '<div class="card" style="font-weight:700">' + msg + '<span class="fact">👂 I heard: «' + esc(res.txt || '…') + '» · ' + pct + '%</span></div>';
+  speak(voice, 'en'); if (res.sc < .8) speak(it[0], 'en', true);
+  $('spnext').style.display = SP.done ? '' : 'none';
+  checkStickers(); checkMedals(); save();
+};
+function nextSpeak(){
+  if (spBusy) return;
+  if (!SP.done && canListen()) { S.spseen[SP.list[SP.i][0]] = (S.spseen[SP.list[SP.i][0]] || 0) + 1; }
+  SP.i++;
+  if (SP.i < SP.list.length) { showSpeak(); return; }
+  var bonus = SP.ok === SP.list.length ? 20 : 0; if (bonus) addCoins(bonus);
+  $('spbar').style.width = '100%';
+  $('sppet').innerHTML = petMiniSVG(SP.ok >= 5 ? 'celebra' : 'normal');
+  $('sptext').innerHTML = '<small>🎤 Speak finished</small>You said <b>' + SP.ok + ' out of ' + SP.list.length + '</b> correctly. You won ' + (SP.coins + bonus) + ' 🪙' + (bonus ? ' (+20 for a perfect score!)' : '');
+  $('spres').innerHTML = '<button class="btn pink big" onclick="startSpeak()">🔁 Speak again</button>';
+  $('spmic').style.display = 'none'; $('spnext').style.display = 'none';
+  speak('You said ' + SP.ok + ' out of ' + SP.list.length + ' correctly!');
   save();
 }
 
@@ -2417,7 +2527,9 @@ function toggleRec(){
 }
 
 function bindExtras(){
-  $('extras').addEventListener('click', function(e){ var b = e.target.closest('button'); if (!b) return; var x = b.dataset.x; if (x === 'dict') startDict(); if (x === 'exam') startExam(); if (x === 'poema') openPoema(); });
+  $('extras').addEventListener('click', function(e){ var b = e.target.closest('button'); if (!b) return; var x = b.dataset.x; if (x === 'dict') startDict(); if (x === 'exam') startExam(); if (x === 'poema') openPoema(); if (x === 'speak') startSpeak(); });
+  $('spmic').onclick = spListen; $('spnext').onclick = nextSpeak;
+  $('sptext').addEventListener('click', function(e){ if (e.target.closest('[data-spsay]') && SP) sayTap(SP.list[SP.i][0]); });
   $('dcheck').onclick = checkDict; $('dnext').onclick = nextDict; $('dsay').onclick = function(){ sayWord(false); };
   $('din').addEventListener('keydown', function(e){ if (e.key === 'Enter') { if (D && !D.done) checkDict(); else if (D && D.i < D.list.length) nextDict(); } });
   $('eopts').addEventListener('click', function(e){ var b = e.target.closest('.opt'); if (b && E && E.i < E.qs.length && !b.disabled) { var bs = $('eopts').querySelectorAll('.opt'); for (var i = 0; i < bs.length; i++) bs[i].disabled = true; answerExam(+b.dataset.o); } });

@@ -11,7 +11,12 @@ import android.os.Handler
 import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.content.Intent
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
 import android.speech.tts.TextToSpeech
+import org.json.JSONArray
 import android.webkit.JavascriptInterface
 import android.webkit.PermissionRequest
 import android.webkit.WebChromeClient
@@ -26,6 +31,10 @@ object Mundo {
     /** Petición de micrófono pendiente mientras el sistema pregunta el permiso (ensayo del poema). */
     var pendingMic: PermissionRequest? = null
     const val MIC_CODE = 77
+    const val LISTEN_CODE = 78
+    /** Pronunciación: la actividad escucha al niño (reconocimiento de voz del móvil). */
+    var onListen: ((String) -> Unit)? = null
+    var onStopListen: (() -> Unit)? = null
 
     @SuppressLint("SetJavaScriptEnabled", "JavascriptInterface")
     fun webView(activity: Activity, mini: Boolean, say: (String, String) -> Unit, hush: () -> Unit): WebView {
@@ -74,6 +83,9 @@ object Mundo {
         @JavascriptInterface fun speak(text: String) { main.post { say(text, "es") } }
         @JavascriptInterface fun speakLang(text: String, lang: String) { main.post { say(text, lang) } }
         @JavascriptInterface fun stopSpeak() { main.post { hush() } }
+        @JavascriptInterface fun canListen(): Boolean = SpeechRecognizer.isRecognitionAvailable(activity)
+        @JavascriptInterface fun listen(lang: String) { main.post { Mundo.onListen?.invoke(lang) } }
+        @JavascriptInterface fun stopListen() { main.post { Mundo.onStopListen?.invoke() } }
 
         @JavascriptInterface
         fun vibrate(ms: Int) {
@@ -107,6 +119,8 @@ class MainActivity : Activity() {
         }
         web = Mundo.webView(this, false, { text, lang -> speak(text, lang) }, { tts?.stop() })
         setContentView(web)
+        Mundo.onListen = { lang -> startListening(lang) }
+        Mundo.onStopListen = { recognizer?.stopListening() }
     }
 
     private var curLang = ""
@@ -132,8 +146,51 @@ class MainActivity : Activity() {
         t.speak(text, if (queue) TextToSpeech.QUEUE_ADD else TextToSpeech.QUEUE_FLUSH, null, "mascota")
     }
 
+    /* ---------- pronunciación: escuchar al niño ---------- */
+    private var recognizer: SpeechRecognizer? = null
+    private var pendingLang = "en-GB"
+
+    private fun heard(json: String) { web.evaluateJavascript("window.onHeard&&onHeard($json)", null) }
+
+    private fun startListening(lang: String) {
+        pendingLang = lang
+        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), Mundo.LISTEN_CODE); return
+        }
+        if (!SpeechRecognizer.isRecognitionAvailable(this)) { heard("{\"error\":\"noservice\"}"); return }
+        tts?.stop()
+        recognizer?.destroy()
+        val r = SpeechRecognizer.createSpeechRecognizer(this)
+        recognizer = r
+        r.setRecognitionListener(object : RecognitionListener {
+            override fun onReadyForSpeech(params: Bundle?) { heard("{\"ready\":true}") }
+            override fun onBeginningOfSpeech() {}
+            override fun onRmsChanged(rmsdB: Float) {}
+            override fun onBufferReceived(buffer: ByteArray?) {}
+            override fun onEndOfSpeech() {}
+            override fun onError(error: Int) { heard("{\"error\":\"" + error + "\"}") }
+            override fun onResults(results: Bundle?) {
+                val list = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION) ?: arrayListOf()
+                heard("{\"text\":" + JSONArray(list).toString() + "}")
+            }
+            override fun onPartialResults(partialResults: Bundle?) {}
+            override fun onEvent(eventType: Int, params: Bundle?) {}
+        })
+        val i = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+        i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+        i.putExtra(RecognizerIntent.EXTRA_LANGUAGE, pendingLang)
+        i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, pendingLang)
+        i.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5)
+        r.startListening(i)
+    }
+
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == Mundo.LISTEN_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) startListening(pendingLang)
+            else heard("{\"error\":\"permission\"}")
+            return
+        }
         if (requestCode != Mundo.MIC_CODE) return
         val req = Mundo.pendingMic ?: return
         Mundo.pendingMic = null
@@ -156,6 +213,7 @@ class MainActivity : Activity() {
     }
 
     override fun onDestroy() {
+        recognizer?.destroy()
         tts?.shutdown()
         web.destroy()
         super.onDestroy()
