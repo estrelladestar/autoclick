@@ -42,7 +42,7 @@ jobs:
           name: Gatidoku-apk
           path: gatidoku/build/outputs/apk/debug/*.apk
       - run: cp lengua/src/main/assets/mundo.html MiMundo_Lengua_Tema3.html && cp facil/src/main/assets/mundo.html MiMundo_Facil_Tema3.html && cp ingles/src/main/assets/mundo.html MiMundo_Ingles_Unit2.html  # versiones HTML para descargar
-      - run: mkdir -p web && cp lengua/src/main/assets/mundo.html web/index.html && touch web/.nojekyll  # página web del juego
+      - run: mkdir -p web/ingles && cp lengua/src/main/assets/mundo.html web/index.html && cp ingles/src/main/assets/mundo.html web/ingles/index.html && touch web/.nojekyll  # páginas web de los juegos (/ = Lengua, /ingles/ = Inglés)
       - uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
