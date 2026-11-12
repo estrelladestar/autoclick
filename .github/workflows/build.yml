@@ -33,6 +33,10 @@ jobs:
         with:
           name: MiMundoFacil-apk
           path: facil/build/outputs/apk/debug/*.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Gatidoku-apk
+          path: gatidoku/build/outputs/apk/debug/*.apk
       - run: cp lengua/src/main/assets/mundo.html MiMundo_Lengua_Tema3.html && cp facil/src/main/assets/mundo.html MiMundo_Facil_Tema3.html  # versiones HTML para descargar
       - run: mkdir -p web && cp lengua/src/main/assets/mundo.html web/index.html && touch web/.nojekyll  # página web del juego
       - uses: peaceiris/actions-gh-pages@v4
@@ -46,17 +50,19 @@ jobs:
           tag_name: ultima-version
           name: AutoClick Imagen (última versión)
           body: |
-            Cuatro apps distintas, se actualizan con cada compilación:
+            Cinco apps distintas, se actualizan con cada compilación:
             - app-debug.apk → Star App (autoclick)
             - MiMundo-debug.apk → Mi Mundo (juego: avatar, mascota y preguntas)
             - MiMundoLengua-debug.apk → Mi Mundo Lengua (el mismo juego con el Tema 3 de Lengua)
             - MiMundo_Lengua_Tema3.html → Mi Mundo Lengua para abrir en el navegador
             - MiMundoFacil-debug.apk → Mi Mundo Fácil (Tema 3 de Lengua adaptado para leer mejor: dislexia)
             - MiMundo_Facil_Tema3.html → Mi Mundo Fácil para abrir en el navegador
+            - Gatidoku-debug.apk → Gatidoku (puzles de lógica con gatos)
           files: |
             app/build/outputs/apk/debug/*.apk
             juego/build/outputs/apk/debug/*.apk
             lengua/build/outputs/apk/debug/*.apk
             facil/build/outputs/apk/debug/*.apk
+            gatidoku/build/outputs/apk/debug/*.apk
             MiMundo_Lengua_Tema3.html
             MiMundo_Facil_Tema3.html

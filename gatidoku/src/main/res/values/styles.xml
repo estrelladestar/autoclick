@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="GatiTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">#5B4BDB</item>
+        <item name="android:colorAccent">#FFB703</item>
+        <item name="android:statusBarColor">#E9EEF7</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">#DCE4F2</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:windowBackground">@drawable/gati_bg</item>
+    </style>
+</resources>
