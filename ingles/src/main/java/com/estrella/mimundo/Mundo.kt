@@ -126,9 +126,10 @@ class MainActivity : Activity() {
     private fun speak(text: String, lang: String) {
         if (!ttsReady) return
         val t = tts ?: return
-        setLang(t, lang)
-        // Las palabras en inglés van a la cola para no cortar lo que esté diciendo en español.
-        t.speak(text, if (lang == "en") TextToSpeech.QUEUE_ADD else TextToSpeech.QUEUE_FLUSH, null, "mascota")
+        // «en+» / «es+» = a la cola (no corta lo que está diciendo); «en» / «es» = corta y habla ya.
+        val queue = lang.endsWith("+")
+        setLang(t, lang.removeSuffix("+"))
+        t.speak(text, if (queue) TextToSpeech.QUEUE_ADD else TextToSpeech.QUEUE_FLUSH, null, "mascota")
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {

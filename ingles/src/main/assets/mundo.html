@@ -36,6 +36,9 @@ nav button.on{background:linear-gradient(180deg,#8b5cf6,#6a3de8);color:#fff}
 .tres{display:none;margin-top:8px;padding:9px 11px;background:#eefbf0;border-radius:12px;font-size:14px;color:#1b5e2c}
 .tres.on{display:block}
 #aprCards td, #aprCards li, #aprCards i, #aprCards p{cursor:pointer}
+.btr{border:0;background:#ece6ff;border-radius:10px;padding:2px 6px;font-size:13px;margin-left:2px;vertical-align:middle}
+.bes{display:none;margin-top:5px;font-size:12.5px;color:#1b6b30;font-weight:700}
+.bubble.tr .bes{display:block}
 .fact{display:block;margin-top:8px;padding:8px 10px;background:#fff7d6;border-radius:12px;font-size:14px;font-weight:700;color:#6b4a00}
 .bige{display:block;font-size:44px;line-height:1.1;margin:4px 0}
 .stk{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
@@ -200,16 +203,16 @@ textarea.pin{min-height:150px;font-size:16px;line-height:1.5}
 <div id="app">
   <header>
     <div class="coins" id="coinsBox">🪙 <b id="coins">0</b></div>
-    <div class="lvl">⭐ Nivel <b id="lvl">1</b><div class="xpbar"><i id="xp"></i></div></div>
-    <button class="icon" id="mus" title="Música">🎵</button><button class="icon" id="sfx" title="Sonidos">🔔</button><button class="icon" id="snd" title="Voz">🗣️</button>
+    <div class="lvl">⭐ Level <b id="lvl">1</b><div class="xpbar"><i id="xp"></i></div></div>
+    <button class="icon" id="mus" title="Music">🎵</button><button class="icon" id="sfx" title="Sounds">🔔</button><button class="icon" id="snd" title="Voice">🗣️</button>
   </header>
   <nav>
-    <button data-t="pet" class="on"><b>🐾</b>Mascota</button>
-    <button data-t="quiz"><b>❓</b>Preguntas</button>
-    <button data-t="apr"><b>📖</b>Aprende</button>
+    <button data-t="pet" class="on"><b>🐾</b>Pet</button>
+    <button data-t="quiz"><b>❓</b>Quiz</button>
+    <button data-t="apr"><b>📖</b>Learn</button>
     <button data-t="av"><b>👗</b>Avatar</button>
-    <button data-t="shop"><b>🛍️</b>Tienda</button>
-    <button data-t="logros"><b>🏅</b>Logros</button>
+    <button data-t="shop"><b>🛍️</b>Shop</button>
+    <button data-t="logros"><b>🏅</b>Prizes</button>
   </nav>
 
   <section id="t-pet" class="on">
@@ -219,16 +222,16 @@ textarea.pin{min-height:150px;font-size:16px;line-height:1.5}
       <div class="av" id="sceneAv"></div>
       <div class="poops" id="poops"></div>
       <div class="pet" id="scenePet"></div>
-      <div class="bubble" id="bubble">¡Hola!</div>
+      <div class="bubble" id="bubble">Hello!</div>
     </div>
-    <div class="petname"><span id="petName">Mascota</span><button id="editPet">✏️ Cambiar</button></div>
+    <div class="petname"><span id="petName">Pet</span><button id="editPet">✏️ Change</button></div>
     <div class="stats" id="stats"></div>
     <div class="actions" id="actions"></div>
-    <button class="btn pink big" style="margin-top:12px" id="goQuiz">❓ ¡Hazme preguntas y gana monedas!</button>
+    <button class="btn pink big" style="margin-top:12px" id="goQuiz">❓ Ask me questions and win coins!</button>
   </section>
 
   <section id="t-quiz">
-    <div class="extras" id="extras"><button class="x1" data-x="dict"><b>✍️</b>Spelling</button><button class="x2" data-x="exam"><b>📝</b>Examen</button><button class="x3" data-x="poema"><b>📖</b>Mi historia</button></div>
+    <div class="extras" id="extras"><button class="x1" data-x="dict"><b>✍️</b>Spelling</button><button class="x2" data-x="exam"><b>📝</b>Test</button><button class="x3" data-x="poema"><b>📖</b>My story</button></div>
     <div class="chal" id="qchal"></div>
     <div class="chips" id="qcats"></div>
     <div class="qtop">
@@ -236,15 +239,15 @@ textarea.pin{min-height:150px;font-size:16px;line-height:1.5}
       <div class="qbubble" id="qtext"></div>
     </div>
     <div class="opts" id="qopts"></div>
-    <div class="qfoot"><div class="info" id="qinfo"></div><button class="btn green" id="qnext">Siguiente ▶</button></div>
-    <button class="btn blue big" style="margin-top:14px" id="myQ">✏️ Crear mis propias preguntas</button>
+    <div class="qfoot"><div class="info" id="qinfo"></div><button class="btn green" id="qnext">Next ▶</button></div>
+    <button class="btn blue big" style="margin-top:14px" id="myQ">✏️ Make my own questions</button>
   </section>
 
   <section id="t-apr">
-    <h2>📍 ¿Por dónde vas en la Unit 2 «Helping at home»?</h2>
-    <div class="card" style="font-weight:700;font-size:13.5px">Marca <b>✅ Dado</b> en cada parte que ya hayas visto en clase. Con «🌟 Todo lo dado», tu mascota solo te preguntará de esas partes.</div>
+    <h2>📍 Unit 2 «Helping at home»: where are you?</h2>
+    <div class="card" style="font-weight:700;font-size:13.5px">Tick <b>✅ Done</b> for each part you did in class. With «🌟 Everything», your pet only asks about those parts. <small style="display:block;color:var(--muted)">(Marca lo que ya has dado en clase.)</small></div>
     <div id="aprParts"></div>
-    <button class="btn blue big" id="verTodo" style="margin:6px 0 10px">📖 Ver todas las explicaciones</button>
+    <button class="btn blue big" id="verTodo" style="margin:6px 0 10px">📖 See all the lessons</button>
     <div id="aprCards">
 <div class="card lcard c3">
 <h2>📖 Picture dictionary (pág. 20)</h2>
@@ -389,19 +392,19 @@ textarea.pin{min-height:150px;font-size:16px;line-height:1.5}
 
   <section id="t-dict">
     <div id="dback"></div>
-    <h2>✍️ Spelling: escucha y escribe en inglés</h2>
+    <h2>✍️ Spelling: listen and write</h2>
     <div class="pbar"><i id="dbar"></i></div>
     <div class="qtop"><div class="qpet" id="dpet"></div><div class="qbubble" id="dtext"></div></div>
     <input class="din" id="din" type="text" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="Write here">
-    <div class="row2"><button class="btn blue" id="dsay">🔊 Repetir palabra</button><button class="btn green" id="dcheck">✅ Comprobar</button></div>
+    <div class="row2"><button class="btn blue" id="dsay">🔊 Say it again</button><button class="btn green" id="dcheck">✅ Check</button></div>
     <div id="dres" style="margin-top:10px"></div>
-    <button class="btn pink big" id="dnext" style="display:none;margin-top:6px">Siguiente ▶</button>
+    <button class="btn pink big" id="dnext" style="display:none;margin-top:6px">Next ▶</button>
   </section>
 
   <section id="t-exam">
     <div id="eback"></div>
-    <h2>📝 Modo examen</h2>
-    <div class="card" style="font-size:13px;font-weight:700">10 preguntas mezcladas de lo que has dado, sin pistas. Al final te doy la nota (8 🪙 por acierto, +20 si sacas un 9 o más).</div>
+    <h2>📝 Test mode</h2>
+    <div class="card" style="font-size:13px;font-weight:700">10 mixed questions, no help. At the end you get your mark (8 🪙 for each correct answer, +20 if you get 9 or more).</div>
     <div class="pbar"><i id="ebar"></i></div>
     <div class="qtop"><div class="qpet" id="epet"></div><div class="qbubble" id="etext"></div></div>
     <div class="opts" id="eopts"></div>
@@ -410,58 +413,58 @@ textarea.pin{min-height:150px;font-size:16px;line-height:1.5}
 
   <section id="t-poema">
     <div id="pback"></div>
-    <h2>✍️ Taller de historias (Writing)</h2>
-    <div class="card" style="font-size:13.5px;font-weight:700">Vamos a escribir tu historia en inglés, como «Ivan the inventor»: con principio, medio y final. Al guardarla (6 frases o más) ganas 30 🪙, y al grabarte leyéndola, 10 🪙 al día.</div>
-    <div class="card"><b>1️⃣ Choose your invention (elige tu invento)</b><div class="chips" id="ptemas" style="flex-wrap:wrap;margin:6px 0"></div>
+    <h2>✍️ Story workshop (Writing)</h2>
+    <div class="card" style="font-size:13.5px;font-weight:700">Let's write your story, like «Ivan the inventor»: with a beginning, a middle and an end. Save it (6 sentences or more) and win 30 🪙. Record yourself reading it and win 10 🪙 a day.</div>
+    <div class="card"><b>1️⃣ Choose your invention</b><div class="chips" id="ptemas" style="flex-wrap:wrap;margin:6px 0"></div>
       <div class="row2"><input class="pin" id="ptopic" placeholder="Your hero's name. Ex.: Lucy"><input class="pin" id="pinv" placeholder="Invention. Ex.: a flying hoover"></div></div>
-    <div class="card"><b>2️⃣ Beginning (principio)</b> <small>¿Quién es y qué inventa?</small>
+    <div class="card"><b>2️⃣ Beginning</b> <small>Who is it? What do they invent?</small>
       <div class="chips" style="flex-wrap:wrap;margin:6px 0" data-sp="pbeg"></div>
       <textarea class="pin" id="pbeg" placeholder="Once upon a time, Lucy lived with her mum and dad…"></textarea></div>
-    <div class="card"><b>3️⃣ Middle (medio)</b> <small>¿Qué pasa? ¡Algo sorprendente!</small>
+    <div class="card"><b>3️⃣ Middle</b> <small>What happens? Something surprising!</small>
       <div class="chips" style="flex-wrap:wrap;margin:6px 0" data-sp="pmid"></div>
       <textarea class="pin" id="pmid" placeholder="One day, the machine…"></textarea></div>
-    <div class="card"><b>4️⃣ End (final)</b> <small>¿Cómo termina? ¿Feliz o triste?</small>
+    <div class="card"><b>4️⃣ End</b> <small>How does it end? Happy or sad?</small>
       <div class="chips" style="flex-wrap:wrap;margin:6px 0" data-sp="pend"></div>
       <textarea class="pin" id="pend" placeholder="In the end, everybody was very happy."></textarea></div>
     <div class="card"><b>5️⃣ Title and check</b>
       <input class="pin" id="ptitle" placeholder="Title. Ex.: Lucy the inventor">
       <div id="pinfo" style="font-size:13px;margin:6px 0"></div>
-      <div class="row2"><button class="btn blue" onclick="recitePoem()">🐾 Leer en inglés</button><button class="btn green" onclick="savePoem()">💾 Guardar</button></div>
-      <button class="btn" style="width:100%;margin-top:8px;background:#ddd;color:#333" onclick="newPoem()">📄 Empezar una historia nueva</button></div>
-    <div class="card"><b>6️⃣ Read it aloud (léela en voz alta)</b>
-      <button class="btn pink big" id="precbtn" onclick="toggleRec()">🎤 Grabarme leyendo</button>
+      <div class="row2"><button class="btn blue" onclick="recitePoem()">🐾 Read it to me</button><button class="btn green" onclick="savePoem()">💾 Save</button></div>
+      <button class="btn" style="width:100%;margin-top:8px;background:#ddd;color:#333" onclick="newPoem()">📄 Start a new story</button></div>
+    <div class="card"><b>6️⃣ Read it aloud</b>
+      <button class="btn pink big" id="precbtn" onclick="toggleRec()">🎤 Record me reading</button>
       <div id="paudio" style="margin-top:8px"></div></div>
     <h2>📚 My stories</h2>
     <div id="pmine"></div>
   </section>
 
   <section id="t-logros">
-    <h2>🎯 Reto del día</h2>
+    <h2>🎯 Daily challenge</h2>
     <div class="chal" id="lchal"></div>
-    <h2>⭐ Álbum de pegatinas</h2>
-    <div class="card" style="font-weight:700;font-size:13.5px">Acierta 10 preguntas de un tema y ganas su pegatina y una prenda que <b>no se puede comprar</b>: solo se gana sabiendo.</div>
+    <h2>⭐ Sticker album</h2>
+    <div class="card" style="font-weight:700;font-size:13.5px">Get 10 questions right in a topic and win its sticker and a prize you <b>can't buy</b>: you only win it by knowing!</div>
     <div class="stk" id="stickers"></div>
-    <h2>🏅 Medallas</h2>
+    <h2>🏅 Medals</h2>
     <div class="card" id="medals"></div>
-    <h2>📊 Lo que vas aprendiendo</h2>
+    <h2>📊 What you are learning</h2>
     <div class="card" id="progress"></div>
   </section>
 
   <section id="t-av">
-    <div class="gsel" id="gsel"><button data-g="nina">👧 Niña</button><button data-g="nino">👦 Niño</button></div>
+    <div class="gsel" id="gsel"><button data-g="nina">👧 Girl</button><button data-g="nino">👦 Boy</button></div>
     <div class="avbig" id="avbig"></div>
     <div class="chips" id="avcats" style="margin-top:8px"></div>
     <div class="grid" id="avgrid"></div>
   </section>
 
   <section id="t-shop">
-    <h2>🍎 Comida y cuidados</h2>
+    <h2>🍎 Food and care</h2>
     <div class="card" id="foodList"></div>
-    <h2>🎀 Cosas para tu mascota</h2>
+    <h2>🎀 Things for your pet</h2>
     <div class="grid" id="paccGrid"></div>
-    <h2>👗 Ropa y accesorios</h2>
-    <div class="card" style="font-weight:700">La ropa, los ojos, la boca, el pelo, los accesorios y los fondos se compran en la pestaña <b>Avatar</b>: toca algo para probártelo y luego «Comprar».
-      <button class="btn big" style="margin-top:10px" onclick="tab('av')">👗 Ir al Avatar</button></div>
+    <h2>👗 Clothes and accessories</h2>
+    <div class="card" style="font-weight:700">Clothes, eyes, mouth, hair, accessories and backgrounds are in the <b>Avatar</b> tab: tap something to try it on and then «Buy».
+      <button class="btn big" style="margin-top:10px" onclick="tab('av')">👗 Go to Avatar</button></div>
   </section>
 </div>
 
@@ -471,7 +474,7 @@ textarea.pin{min-height:150px;font-size:16px;line-height:1.5}
   <div class="mgo">▶</div>
 </div>
 
-<div class="buybar" id="buybar"><div class="t" id="buyText"></div><button class="btn green" id="buyBtn">Comprar</button><button class="btn gray" id="buyCancel">✕</button></div>
+<div class="buybar" id="buybar"><div class="t" id="buyText"></div><button class="btn green" id="buyBtn">Buy</button><button class="btn gray" id="buyCancel">✕</button></div>
 <div id="modal"><div class="box" id="modalBox"></div></div>
 <div id="toast"></div>
 
@@ -513,41 +516,41 @@ var HCOL = {castano:'#7a4a2a', negro:'#2b201c', rubio:'#f2c45a', pelirrojo:'#d05
 var ECOL = {cafe:'#7a4a24', azul:'#3b82f6', verde:'#22a35a', miel:'#c98a2b', gris:'#7f93ad', violeta:'#8b5cf6', turquesa:'#14b8c4', rubi:'#e0245e'};
 
 var CATS = [
-  {id:'skin',  n:'Piel',       e:'🎨', crop:'42 34 116 116'},
-  {id:'hair',  n:'Pelo',       e:'💇', crop:'8 0 184 184'},
-  {id:'hcol',  n:'Color pelo', e:'🌈', crop:'30 14 140 140'},
-  {id:'eyes',  n:'Ojos',       e:'👀', crop:'56 66 88 70'},
-  {id:'ecol',  n:'Color ojos', e:'🔵', crop:'56 66 88 70'},
-  {id:'brows', n:'Cejas',      e:'〰️', crop:'56 58 88 70'},
-  {id:'mouth', n:'Boca',       e:'👄', crop:'74 102 52 44'},
-  {id:'top',   n:'Arriba',     e:'👕', crop:'30 132 140 140'},
-  {id:'bottom',n:'Abajo',      e:'👖', crop:'40 205 120 125'},
-  {id:'shoes', n:'Zapatos',    e:'👟', crop:'62 282 76 56'},
-  {id:'head',  n:'Cabeza',     e:'👑', crop:'18 -22 164 164'},
-  {id:'face',  n:'Cara',       e:'🕶️', crop:'40 62 120 80'},
-  {id:'neck',  n:'Cuello',     e:'📿', crop:'56 126 88 88'},
-  {id:'hand',  n:'En la mano', e:'🪄', crop:'92 92 96 176'},
-  {id:'back',  n:'Espalda',    e:'🦋', crop:'0 96 200 236'},
-  {id:'bg',    n:'Fondo',      e:'🏞️', crop:'0 -20 200 360'}
+  {id:'skin',  n:'Skin',       e:'🎨', crop:'42 34 116 116'},
+  {id:'hair',  n:'Hair',       e:'💇', crop:'8 0 184 184'},
+  {id:'hcol',  n:'Hair colour', e:'🌈', crop:'30 14 140 140'},
+  {id:'eyes',  n:'Eyes',       e:'👀', crop:'56 66 88 70'},
+  {id:'ecol',  n:'Eye colour', e:'🔵', crop:'56 66 88 70'},
+  {id:'brows', n:'Eyebrows',   e:'〰️', crop:'56 58 88 70'},
+  {id:'mouth', n:'Mouth',      e:'👄', crop:'74 102 52 44'},
+  {id:'top',   n:'Tops',       e:'👕', crop:'30 132 140 140'},
+  {id:'bottom',n:'Bottoms',    e:'👖', crop:'40 205 120 125'},
+  {id:'shoes', n:'Shoes',      e:'👟', crop:'62 282 76 56'},
+  {id:'head',  n:'Head',       e:'👑', crop:'18 -22 164 164'},
+  {id:'face',  n:'Face',       e:'🕶️', crop:'40 62 120 80'},
+  {id:'neck',  n:'Neck',       e:'📿', crop:'56 126 88 88'},
+  {id:'hand',  n:'In my hand', e:'🪄', crop:'92 92 96 176'},
+  {id:'back',  n:'Back',       e:'🦋', crop:'0 96 200 236'},
+  {id:'bg',    n:'Background', e:'🏞️', crop:'0 -20 200 360'}
 ];
 /* [id, nombre, precio] */
 var ITEMS = {
-  skin:[['s1','Muy clara',0],['s2','Clara',0],['s3','Dorada',0],['s4','Morena',0],['s5','Oscura',0],['s6','Muy oscura',0]],
-  hair:[['largo','Largo',0],['corto','Corto',0],['lado','Raya al lado',0],['rapado','Rapado',0],['despeinado','Despeinado',30],['flequillo','Media melena',0],['coletas','Coletas',30],['cola','Cola de caballo',35],['mono','Moño',30],['rizos','Rizos',40],['pinchos','Pinchos',40],['trenzas','Trenzas',50],['ondas','Ondas de princesa',60]],
-  hcol:[['castano','Castaño',0],['negro','Negro',0],['rubio','Rubio',0],['pelirrojo','Pelirrojo',20],['rosa','Rosa',40],['azul','Azul',40],['morado','Morado',40],['menta','Menta',40],['plata','Plateado',50],['arcoiris','Arcoíris',90]],
-  eyes:[['grandes','Grandes',0],['redondos','Redondos',0],['alegres','Alegres',0],['gato','De gatita',30],['dormilones','Dormilones',30],['guino','Guiño',40],['brillo','Con brillo',40],['estrellas','Estrellas',60],['corazon','Corazones',60]],
-  ecol:[['cafe','Café',0],['azul','Azul',0],['verde','Verde',0],['miel','Miel',20],['gris','Gris',20],['violeta','Violeta',40],['turquesa','Turquesa',40],['rubi','Rubí',50]],
-  brows:[['suaves','Suaves',0],['gruesas','Gruesas',0],['arqueadas','Arqueadas',15],['finas','Finas',15],['enfado','Enfadadas',15]],
-  mouth:[['sonrisa','Sonrisa',0],['abierta','Feliz',0],['timida','Tímida',0],['gatito','Gatito :3',25],['lengua','Lengua fuera',25],['sorpresa','¡Oh!',20],['dientes','Sonrisa grande',30],['risa','Carcajada',30],['beso','Besito',35]],
-  top:[['cam_rosa','Camiseta rosa',0],['cam_azul','Camiseta azul',0],['cam_amarilla','Camiseta sol',20],['estrella','Top estrella',50],['rayas','Jersey de rayas',40],['sudadera','Sudadera',60],['jersey','Jersey corazón',60],['chaqueta','Chaqueta vaquera',80],['heroe','Traje de héroe',120],['lunares','Vestido de lunares',100],['princesa','Vestido de princesa',150]],
-  bottom:[['vaqueros','Vaqueros',0],['shorts','Pantalón corto',0],['falda','Falda',30],['chandal','Chándal',40],['escocesa','Falda escocesa',50],['leggings','Mallas de estrellas',50],['tutu','Tutú',60]],
-  shoes:[['deportivas','Deportivas',0],['sandalias','Sandalias',30],['botas','Botas',40],['lluvia','Botas de agua',40],['bailarinas','Bailarinas',50],['patines','Patines',90]],
-  head:[['none','Nada',0],['lazo','Lazo',30],['gorra','Gorra',40],['gorro','Gorro de lana',40],['flores','Corona de flores',50],['gato','Orejas de gato',60],['conejo','Orejas de conejo',60],['auriculares','Auriculares',70],['bruja','Sombrero de bruja',80],['tiara','Tiara',100],['corona','Corona',150],['oso','Orejas de oso',-1],['explorador','Sombrero de explorador',-1],['astronauta','Casco de astronauta',-1],['birrete','Birrete de sabio',-1]],
-  face:[['none','Nada',0],['pecas','Pecas',20],['estrellitas','Estrellitas',30],['redondas','Gafas redondas',40],['sol','Gafas de sol',50],['corazon','Gafas corazón',60],['antifaz','Antifaz',70],['sabio','Gafas de sabio',-1]],
-  neck:[['none','Nada',0],['pajarita','Pajarita',30],['bufanda','Bufanda',40],['colgante','Colgante',50],['medalla','Medalla',60],['perlas','Collar de perlas',80]],
-  hand:[['none','Nada',0],['flor','Flor',20],['helado','Helado',25],['globo','Globo',30],['bolso','Bolso',60],['microfono','Micrófono',60],['osito','Osito',70],['varita','Varita mágica',80],['libro','Libro de cuentos',-1],['balon','Balón',-1],['calculadora','Calculadora',-1]],
-  back:[['none','Nada',0],['mochila','Mochila',50],['capa','Capa',80],['hada','Alas de hada',120],['mariposa','Alas de mariposa',130],['angel','Alas de ángel',140],['capadorada','Capa dorada',-1],['cohete','Mochila cohete de inventor',-1]],
-  bg:[['habitacion','Mi habitación',0],['parque','Parque',40],['playa','Playa',50],['nieve','Nieve',60],['arcoiris','Arcoíris',80],['mar','Fondo del mar',80],['espacio','Espacio',100],['castillo','Castillo',120]]
+  skin:[['s1','Very light',0],['s2','Light',0],['s3','Golden',0],['s4','Tan',0],['s5','Dark',0],['s6','Very dark',0]],
+  hair:[['largo','Long',0],['corto','Short',0],['lado','Side parting',0],['rapado','Shaved',0],['despeinado','Messy',30],['flequillo','Bob',0],['coletas','Bunches',30],['cola','Ponytail',35],['mono','Bun',30],['rizos','Curly',40],['pinchos','Spiky',40],['trenzas','Plaits',50],['ondas','Princess waves',60]],
+  hcol:[['castano','Brown',0],['negro','Black',0],['rubio','Blond',0],['pelirrojo','Red',20],['rosa','Pink',40],['azul','Blue',40],['morado','Purple',40],['menta','Mint',40],['plata','Silver',50],['arcoiris','Rainbow',90]],
+  eyes:[['grandes','Big',0],['redondos','Round',0],['alegres','Happy',0],['gato','Cat eyes',30],['dormilones','Sleepy',30],['guino','Wink',40],['brillo','Sparkly',40],['estrellas','Stars',60],['corazon','Hearts',60]],
+  ecol:[['cafe','Brown',0],['azul','Blue',0],['verde','Green',0],['miel','Honey',20],['gris','Grey',20],['violeta','Violet',40],['turquesa','Turquoise',40],['rubi','Ruby',50]],
+  brows:[['suaves','Soft',0],['gruesas','Thick',0],['arqueadas','Arched',15],['finas','Thin',15],['enfado','Angry',15]],
+  mouth:[['sonrisa','Smile',0],['abierta','Happy',0],['timida','Shy',0],['gatito','Kitty :3',25],['lengua','Tongue out',25],['sorpresa','Oh!',20],['dientes','Big smile',30],['risa','Laughing',30],['beso','Kiss',35]],
+  top:[['cam_rosa','Pink T-shirt',0],['cam_azul','Blue T-shirt',0],['cam_amarilla','Sun T-shirt',20],['estrella','Star top',50],['rayas','Striped jumper',40],['sudadera','Hoodie',60],['jersey','Heart jumper',60],['chaqueta','Denim jacket',80],['heroe','Superhero suit',120],['lunares','Spotty dress',100],['princesa','Princess dress',150]],
+  bottom:[['vaqueros','Jeans',0],['shorts','Shorts',0],['falda','Skirt',30],['chandal','Tracksuit',40],['escocesa','Tartan skirt',50],['leggings','Star leggings',50],['tutu','Tutu',60]],
+  shoes:[['deportivas','Trainers',0],['sandalias','Sandals',30],['botas','Boots',40],['lluvia','Wellies',40],['bailarinas','Ballet shoes',50],['patines','Roller skates',90]],
+  head:[['none','Nothing',0],['lazo','Bow',30],['gorra','Cap',40],['gorro','Woolly hat',40],['flores','Flower crown',50],['gato','Cat ears',60],['conejo','Bunny ears',60],['auriculares','Headphones',70],['bruja','Witch hat',80],['tiara','Tiara',100],['corona','Crown',150],['oso','Bear ears',-1],['explorador','Explorer hat',-1],['astronauta','Astronaut helmet',-1],['birrete','Graduation cap',-1]],
+  face:[['none','Nothing',0],['pecas','Freckles',20],['estrellitas','Little stars',30],['redondas','Round glasses',40],['sol','Sunglasses',50],['corazon','Heart glasses',60],['antifaz','Mask',70],['sabio','Smart glasses',-1]],
+  neck:[['none','Nothing',0],['pajarita','Bow tie',30],['bufanda','Scarf',40],['colgante','Necklace',50],['medalla','Medal',60],['perlas','Pearl necklace',80]],
+  hand:[['none','Nothing',0],['flor','Flower',20],['helado','Ice cream',25],['globo','Balloon',30],['bolso','Handbag',60],['microfono','Microphone',60],['osito','Teddy bear',70],['varita','Magic wand',80],['libro','Storybook',-1],['balon','Ball',-1],['calculadora','Calculator',-1]],
+  back:[['none','Nothing',0],['mochila','Backpack',50],['capa','Cape',80],['hada','Fairy wings',120],['mariposa','Butterfly wings',130],['angel','Angel wings',140],['capadorada','Golden cape',-1],['cohete','Inventor rocket pack',-1]],
+  bg:[['habitacion','My bedroom',0],['parque','Park',40],['playa','Beach',50],['nieve','Snow',60],['arcoiris','Rainbow',80],['mar','Under the sea',80],['espacio','Space',100],['castillo','Castle',120]]
 };
 var FOOD = [
   {id:'manzana', e:'🍎', n:'Apple', es:'manzana', like:'apples', p:3, hunger:15, happy:2},
@@ -563,14 +566,14 @@ var FOOD = [
   {id:'tarta', e:'🎂', n:'Birthday cake', es:'tarta de cumpleaños', like:'cake', p:20, hunger:30, happy:25},
   {id:'medicina', e:'💊', n:'Medicine', es:'medicina', p:15, med:true}
 ];
-function foodName(f){ return '<span class="qen" data-food="' + f.n + '">' + f.n + ' 🔊</span> <small style="display:inline;color:var(--muted)">(' + f.es + ')</small>'; }
-var PACC = [['none','Nada',0],['lazo','Lazo',30],['pajarita','Pajarita',30],['gafas','Gafas',40],['fiesta','Gorro de fiesta',40],['corona','Corona',80]];
+function foodName(f){ return '<span class="qen" data-food="' + f.n + '">' + f.n + ' 🔊</span>'; }
+var PACC = [['none','Nothing',0],['lazo','Bow',30],['pajarita','Bow tie',30],['gafas','Glasses',40],['fiesta','Party hat',40],['corona','Crown',80]];
 var SPECIES = {
-  gato:   {n:'Gatito',     name:'Michi',  c:'#ffb26b', b:'#ffe7cc'},
-  perro:  {n:'Perrito',    name:'Toby',   c:'#d6a77a', b:'#f6e6d0'},
-  conejo: {n:'Conejito',   name:'Copito', c:'#f3eeff', b:'#ffffff'},
-  dragon: {n:'Dragoncito', name:'Draqui', c:'#72d99a', b:'#fff2b3'},
-  pollito:{n:'Pollito',    name:'Pío',    c:'#ffe066', b:'#fff6c2'},
+  gato:   {n:'Kitten',     name:'Michi',  c:'#ffb26b', b:'#ffe7cc'},
+  perro:  {n:'Puppy',    name:'Toby',   c:'#d6a77a', b:'#f6e6d0'},
+  conejo: {n:'Bunny',   name:'Copito', c:'#f3eeff', b:'#ffffff'},
+  dragon: {n:'Baby dragon', name:'Draqui', c:'#72d99a', b:'#fff2b3'},
+  pollito:{n:'Chick',    name:'Peep',      c:'#ffe066', b:'#fff6c2'},
   panda:  {n:'Panda',      name:'Panchi', c:'#ffffff', b:'#f4f4f4'}
 };
 
@@ -1131,25 +1134,32 @@ function petMood(){
   return 'normal';
 }
 var PHRASES = {
-  normal: ['¡Hola! ¿Jugamos a preguntas? ¡Así ganas monedas! 🪙', 'Let\'s play! ¿Jugamos en inglés? 🇬🇧', 'Did you help at home today? 🧹', '¡Qué bien me lo paso contigo! 💜', '¿Te pruebas ropa nueva? ¡Mira en Avatar! 👗', '¡Me encanta tu look de hoy! ✨', 'Si aciertas 5 seguidas te doy un premio extra 🎁', '¿Sabes mucho? ¡Demuéstramelo! 🤓'],
-  hambre: ['¡Tengo hambre! ¿Me das algo de comer? 🍎', 'Mi tripita hace ruido… 🍪'],
-  sucio: ['Uy, estoy un poco sucio… ¿me bañas? 🛁', '¡Qué peste! ¿Limpias un poquito? 🧹'],
-  cansado: ['Tengo mucho sueño… ¿me acuestas? 💤'],
-  triste: ['Estoy un poco triste… ¿jugamos? 🥺', '¿Me haces caso un ratito? 💔'],
-  enfermo: ['No me encuentro bien… necesito una medicina 💊 (en la Tienda)'],
-  dormido: ['Zzz… zzz… 😴']
+  normal: [['Hello! Let\'s play a quiz! You can win coins! 🪙','¡Hola! ¡Juguemos a preguntas! ¡Puedes ganar monedas!'], ['Let\'s play in English! 🇬🇧','¡Juguemos en inglés!'], ['Did you help at home today? 🧹','¿Ayudaste en casa hoy?'],
+    ['I have so much fun with you! 💜','¡Me lo paso genial contigo!'], ['Do you want to try new clothes? Look in Avatar! 👗','¿Quieres probarte ropa nueva? ¡Mira en Avatar!'], ['I love your look today! ✨','¡Me encanta tu look de hoy!'],
+    ['Get 5 in a row and I\'ll give you an extra prize! 🎁','¡Acierta 5 seguidas y te doy un premio extra!'], ['Do you know a lot? Show me! 🤓','¿Sabes mucho? ¡Demuéstramelo!'], ['Did you set the table today? 🍴','¿Pusiste la mesa hoy?'], ['Did you do your homework? 📚','¿Hiciste los deberes?']],
+  hambre: [['I\'m hungry! Can I have something to eat? 🍎','¡Tengo hambre! ¿Me das algo de comer?'], ['My tummy is rumbling… 🍪','Me suena la tripa…']],
+  sucio: [['Oops, I\'m a bit dirty… Can you give me a bath? 🛁','Uy, estoy un poco sucio… ¿Me bañas?'], ['What a smell! Can you clean up a bit? 🧹','¡Qué olor! ¿Limpias un poco?']],
+  cansado: [['I\'m very sleepy… Can you put me to bed? 💤','Tengo mucho sueño… ¿Me acuestas?']],
+  triste: [['I\'m a bit sad… Shall we play? 🥺','Estoy un poco triste… ¿Jugamos?'], ['Can you play with me for a bit? 💔','¿Me haces caso un ratito?']],
+  enfermo: [['I don\'t feel well… I need some medicine 💊 (in the Shop)','No me encuentro bien… Necesito una medicina (en la Tienda)']],
+  dormido: [['Zzz… zzz… 😴','Está durmiendo']]
 };
-function moodPhrase(){ var m = petMood(); if (m === 'normal' && rnd(3) === 0) { var k = Object.keys(FACTS); return '💡 ¿Sabías que ' + FACTS[pick(k)]; } return pick(PHRASES[m] || PHRASES.normal); }
+function moodPhrase(){
+  var m = petMood();
+  if (m === 'normal' && rnd(3) === 0 && window.VOC_ES && VOC_ES.length) { var v = pick(VOC_ES); return ['💡 Word of the day: «' + v[0] + '» ' + v[2], 'Palabra del día: «' + v[0] + '» = ' + v[1]]; }
+  return pick(PHRASES[m] || PHRASES.normal);
+}
 
 /* ======================= voz y avisos ======================= */
 function plain(t){ return String(t).replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}]/gu, '').replace(/\s+/g, ' ').trim(); }
-function speak(t, lang){
+/* speak(texto, idioma, cola): por defecto en INGLÉS; 'es' para las explicaciones en español. cola=true → no corta lo anterior */
+function speak(t, lang, queue){
   if (!S.sound || MINI) return;
   var txt = plain(t); if (!txt) return;
+  lang = lang || 'en';
   try {
-    if (B && B.speakLang) B.speakLang(txt, lang || 'es');
-    else if (B && B.speak) B.speak(txt);
-    else if (window.speechSynthesis) { if (lang !== 'en') speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(txt); u.lang = lang === 'en' ? 'en-GB' : 'es-ES'; u.pitch = 1.5; speechSynthesis.speak(u); }
+    if (B && B.speakLang) B.speakLang(txt, lang + (queue ? '+' : ''));
+    else if (window.speechSynthesis) { if (!queue) speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(txt); u.lang = lang === 'en' ? 'en-GB' : 'es-ES'; u.pitch = 1.5; speechSynthesis.speak(u); }
   } catch (e) {}
 }
 function vibrate(ms){ try { if (B && B.vibrate) B.vibrate(ms); else if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
@@ -1178,7 +1188,7 @@ function addXp(n){
   var before = level(); S.xp += n;
   if (level() > before) {
     S.coins += 25;
-    setTimeout(function(){ sfx('level'); toast('⭐ ¡Has subido al nivel ' + level() + '! +25 🪙'); burst(['⭐', '🎉', '✨', '🪙']); speak('¡Bien! ¡Hemos subido al nivel ' + level() + '!'); }, 900);
+    setTimeout(function(){ sfx('level'); toast('⭐ Level up! You are now level ' + level() + '! +25 🪙'); burst(['⭐', '🎉', '✨', '🪙']); speak('Yay! We are now level ' + level() + '!'); }, 900);
   }
   save(); renderHeader();
 }
@@ -1192,7 +1202,13 @@ function renderHeader(){
 var tempMood = null, tempMoodT;
 function setTempMood(m, ms){ tempMood = m; clearTimeout(tempMoodT); tempMoodT = setTimeout(function(){ tempMood = null; renderPetViews(); }, ms || 1800); renderPetViews(); }
 function curMood(){ return tempMood || petMood(); }
-function say(t, noVoice){ $('bubble').textContent = t; if (!noVoice) speak(t); }
+/* say(['English', 'español']) → la mascota lo dice en inglés; 🌐 enseña la traducción */
+function say(t, noVoice){
+  var en = Array.isArray(t) ? t[0] : t, es = Array.isArray(t) ? t[1] : '';
+  $('bubble').classList.remove('tr');
+  $('bubble').innerHTML = esc(en) + (es ? ' <button class="btr" title="Translate">🌐</button><span class="bes">' + esc(es) + '</span>' : '');
+  if (!noVoice) speak(en, 'en');
+}
 function anim(cls){
   var el = $('scenePet'); el.classList.remove('jump', 'wiggle'); void el.offsetWidth; el.classList.add(cls);
   setTimeout(function(){ el.classList.remove(cls); }, 1600);
@@ -1213,62 +1229,62 @@ function renderPet(){
   $('poops').textContent = new Array((p.poops || 0) + 1).join('💩');
   $('petName').textContent = p.name + (p.sick ? ' 🤒' : '');
   renderPetViews();
-  var bars = [['🍗 Comida', p.hunger, '#ff9f43'], ['💜 Felicidad', p.happy, '#ff5fa2'], ['⚡ Energía', p.energy, '#4dabf7'], ['🫧 Limpieza', p.clean, '#2dd4bf']];
+  var bars = [['🍗 Food', p.hunger, '#ff9f43'], ['💜 Happiness', p.happy, '#ff5fa2'], ['⚡ Energy', p.energy, '#4dabf7'], ['🫧 Clean', p.clean, '#2dd4bf']];
   $('stats').innerHTML = bars.map(function(b){
     var v = Math.round(b[1]), col = v < 30 ? '#ff6b6b' : b[2];
     return '<div class="stat">' + b[0] + ' <span style="float:right">' + v + '%</span><div class="bar"><i style="width:' + v + '%;background:' + col + '"></i></div></div>';
   }).join('');
   var a = [];
-  a.push(['🍎 Comer', 'orange', 'feed']);
-  a.push(['🎾 Jugar', 'pink', 'play']);
-  a.push(['🛁 Bañar', 'teal', 'bath']);
-  a.push([p.sleeping ? '☀️ Despertar' : '💤 Dormir', 'blue', 'sleep']);
-  a.push(['🧹 Limpiar', p.poops ? 'green' : 'gray', 'clean']);
-  a.push(['💊 Curar', p.sick ? 'red' : 'gray', 'cure']);
+  a.push(['🍎 Eat', 'orange', 'feed']);
+  a.push(['🎾 Play', 'pink', 'play']);
+  a.push(['🛁 Bath', 'teal', 'bath']);
+  a.push([p.sleeping ? '☀️ Wake up' : '💤 Sleep', 'blue', 'sleep']);
+  a.push(['🧹 Clean up', p.poops ? 'green' : 'gray', 'clean']);
+  a.push(['💊 Medicine', p.sick ? 'red' : 'gray', 'cure']);
   $('actions').innerHTML = a.map(function(x){ return '<button class="btn ' + x[1] + '" data-a="' + x[2] + '">' + x[0] + '</button>'; }).join('');
 }
 function action(a){
   var p = S.pet, host = $('scene');
-  if (p.sleeping && a !== 'sleep') { say('Zzz… Primero despiértame ☀️'); return; }
+  if (p.sleeping && a !== 'sleep') { say(['Zzz… Wake me up first ☀️', 'Primero despiértame']); return; }
   switch (a) {
     case 'feed': openFood(); return;
     case 'play':
-      if (p.energy < 15) { say('Estoy muy cansado para jugar… ¿me acuestas? 💤'); return; }
+      if (p.energy < 15) { say(['I\'m too tired to play… Can you put me to bed? 💤', 'Estoy muy cansado para jugar… ¿Me acuestas?']); return; }
       p.happy = clamp(p.happy + 15); p.energy = clamp(p.energy - 10); p.hunger = clamp(p.hunger - 4);
       sfx('jump'); anim('jump'); fx(host, pick(['🎾', '⚽', '🪀', '🎈']), '62%', '150px');
-      setTempMood('celebra'); say(pick(['¡Yupiii! ¡Otra vez! 🎾', '¡Qué divertido! 😄', '¡Me encanta jugar contigo! 💜']));
+      setTempMood('celebra'); say(pick([['Yippee! Again! 🎾', '¡Yupi! ¡Otra vez!'], ['This is fun! 😄', '¡Qué divertido!'], ['I love playing with you! 💜', '¡Me encanta jugar contigo!']]));
       break;
     case 'bath':
       p.clean = 100; p.happy = clamp(p.happy + 5);
       sfx('bath'); anim('wiggle'); fx(host, '💦', '70%', '140px'); fx(host, '✨', '82%', '90px');
-      setTempMood('comer'); say(pick(['¡Splash! Ahora huelo genial ✨', '¡Qué limpito estoy! 🛁']));
+      setTempMood('comer'); say(pick([['Splash! Now I smell great ✨', '¡Splash! Ahora huelo genial'], ['I\'m so clean! 🛁', '¡Qué limpito estoy!']]));
       break;
     case 'sleep':
       p.sleeping = !p.sleeping; sfx(p.sleeping ? 'sleep' : 'wake'); musicUpdate();
-      say(p.sleeping ? 'Buenas noches… 😴' : '¡Buenos días! ☀️ ¿Jugamos?');
+      say(p.sleeping ? ['Good night… 😴', 'Buenas noches'] : ['Good morning! ☀️ Shall we play?', '¡Buenos días! ¿Jugamos?']);
       break;
     case 'clean':
-      if (!p.poops) { say('¡Todo está limpio! ✨'); return; }
+      if (!p.poops) { say(['Everything is clean! ✨', '¡Todo está limpio!']); return; }
       p.poops = 0; p.clean = clamp(p.clean + 10); sfx('sweep'); fx(host, '✨', '50%', '20px');
-      say('¡Gracias por limpiar! 🧹');
+      say(['Thank you for cleaning! 🧹', '¡Gracias por limpiar!']);
       break;
     case 'cure':
-      if (!p.sick) { say('¡Estoy sano como una manzana! 🍎'); return; }
-      if (!S.food.medicina) { say('Necesito una medicina 💊. La tienes en la Tienda.'); return; }
+      if (!p.sick) { say(['I\'m very healthy! 🍎', '¡Estoy sano como una manzana!']); return; }
+      if (!S.food.medicina) { say(['I need some medicine 💊. You can buy it in the Shop.', 'Necesito una medicina. La tienes en la Tienda.']); return; }
       S.food.medicina--; p.sick = false; sfx('ok'); p.happy = clamp(p.happy + 5);
       p.hunger = Math.max(p.hunger, 20); p.clean = Math.max(p.clean, 20);
-      setTempMood('celebra'); say('¡Ya me encuentro mucho mejor! Gracias 💜');
+      setTempMood('celebra'); say(['I feel much better now! Thank you 💜', '¡Ya me encuentro mucho mejor! Gracias']);
       break;
   }
   save(); renderPet();
 }
 function openFood(){
   var have = FOOD.filter(function(f){ return !f.med && S.food[f.id] > 0; });
-  var h = '<h3>What do you want to give? <small style="display:block;font-size:13px">¿Qué le das de comer?</small></h3>';
-  if (!have.length) h += '<p style="font-weight:700">No tienes comida. ¡Cómprala en la Tienda con tus monedas! 🪙</p><div class="two"><button class="btn orange" onclick="closeModal();tab(\'shop\')">🛍️ Ir a la Tienda</button><button class="btn gray" onclick="closeModal()">Cerrar</button></div>';
+  var h = '<h3>What do you want to give me? 🍽️</h3>';
+  if (!have.length) h += '<p style="font-weight:700">You haven\'t got any food. Buy some in the Shop with your coins! 🪙</p><div class="two"><button class="btn orange" onclick="closeModal();tab(\'shop\')">🛍️ Go to the Shop</button><button class="btn gray" onclick="closeModal()">Close</button></div>';
   else {
-    h += have.map(function(f){ return '<div class="row"><div class="e">' + f.e + '</div><div class="t">' + foodName(f) + '<small>You have ' + S.food[f.id] + ' (tienes ' + S.food[f.id] + ')</small></div><button class="btn orange" onclick="eat(\'' + f.id + '\')">Give</button></div>'; }).join('');
-    h += '<button class="btn gray big" style="margin-top:10px" onclick="closeModal()">Close (cerrar)</button>';
+    h += have.map(function(f){ return '<div class="row"><div class="e">' + f.e + '</div><div class="t">' + foodName(f) + '<small>You have ' + S.food[f.id] + '</small></div><button class="btn orange" onclick="eat(\'' + f.id + '\')">Give</button></div>'; }).join('');
+    h += '<button class="btn gray big" style="margin-top:10px" onclick="closeModal()">Close</button>';
   }
   showModal(h);
 }
@@ -1276,17 +1292,17 @@ function eat(id){
   var f = FOOD.filter(function(x){ return x.id === id; })[0], p = S.pet;
   if (!f || !S.food[id]) return;
   closeModal();
-  if (p.hunger >= 98) { say('¡Estoy llenísimo! No puedo más 😅'); return; }
+  if (p.hunger >= 98) { say(['I\'m so full! I can\'t eat any more 😅', '¡Estoy llenísimo! No puedo más']); return; }
   S.food[id]--; p.hunger = clamp(p.hunger + f.hunger); p.happy = clamp(p.happy + (f.happy || 0)); if (f.energy) p.energy = clamp(p.energy + f.energy);
   fx($('scene'), f.e, '66%', '120px'); sfx('eat');
   setTempMood('comer', 1600);
   var yum = pick([['Yummy! I love ' + f.like + '!', '¡Qué rico! Me encanta: ' + f.es], ['Thank you! The ' + f.n.toLowerCase() + ' is delicious!', '¡Gracias! Está delicioso'], ['Mmm! ' + f.n + '! My favourite!', '¡Mmm! ¡Mi favorito!']]);
-  say(yum[0] + ' 😋 (' + yum[1] + ')', true); speak(yum[0], 'en');
+  say([yum[0] + ' 😋', yum[1]]);
   save(); renderPet();
 }
 
 /* ======================= preguntas ======================= */
-var QCATS = [['todas', '🌟 Todo lo dado'], ['repaso', '📝 Repaso'], ['mias', '✏️ Mis preguntas'], ['voc', '🏠 Vocabulary'], ['pas', '⏪ Past simple'], ['qst', '❓ Did…?'], ['flx', '🤖 Flexi'], ['tan', '🔬 Tanya'], ['spk', '💬 Speaking'], ['wri', '✍️ Stories']];
+var QCATS = [['todas', '🌟 Everything'], ['repaso', '📝 Review'], ['mias', '✏️ My questions'], ['voc', '🏠 Vocabulary'], ['pas', '⏪ Past simple'], ['qst', '❓ Did…?'], ['flx', '🤖 Flexi'], ['tan', '🔬 Tanya'], ['spk', '💬 Speaking'], ['wri', '✍️ Stories']];
 /* ===== Inglés · Unit 2 «Helping at home»: banco de preguntas
    [parte, pregunta, opciones, índice correcta, explicación, voz]
    voz: {v:'en'} todo en inglés · {v:'oe', es:'…'} pregunta en español y opciones en inglés · {v:'w', es:'…', en:'…'} español + palabra inglesa · big: emoji grande ===== */
@@ -1642,7 +1658,7 @@ function trES(s){
   if (PRO_ES[s]) return PRO_ES[s];
   return '';
 }
-var PARTS=[['voc','🏠','Vocabulary: chores and machines','Págs. 20 y 24'],['pas','⏪','Past simple: irregular verbs','Págs. 21 y 24'],['qst','❓','Questions: Did…? Yes, I did.','Págs. 24-25'],['flx','🤖','Story: The home helper','Págs. 22-23'],['tan','🔬','Reading: Tanya\'s surprising invention','Págs. 26-27'],['spk','💬','Speaking: I\'m sorry, I forgot','Pág. 28'],['wri','✍️','Writing stories: Ivan the inventor','Pág. 29']];
+var PARTS=[['voc','🏠','Vocabulary: chores and machines','Pages 20 and 24'],['pas','⏪','Past simple: irregular verbs','Pages 21 and 24'],['qst','❓','Questions: Did…? Yes, I did.','Pages 24-25'],['flx','🤖','Story: The home helper','Pages 22-23'],['tan','🔬','Reading: Tanya\'s surprising invention','Pages 26-27'],['spk','💬','Speaking: I\'m sorry, I forgot','Page 28'],['wri','✍️','Writing stories: Ivan the inventor','Page 29']];
 
 function qhash(t){var h=0;for(var i=0;i<t.length;i++)h=(h*31+t.charCodeAt(i))|0;return (h>>>0).toString(36);}
 var Q=[], QX=[], QK=[], QIDX={}, QV=[];
@@ -1686,18 +1702,18 @@ var STK = {
 };
 var STK_GOAL = 10;
 var MEDALS = [
-  {id:'racha10', e:'🔥', n:'Racha de fuego', d:'Acierta 10 preguntas seguidas. Premio: Balón', ok:function(){ return S.stats.best >= 10; }, prize:['hand','balon']},
-  {id:'cien', e:'💯', n:'Cien aciertos', d:'Acierta 100 preguntas en total. Premio: Calculadora', ok:function(){ return S.stats.correct >= 100; }, prize:['hand','calculadora']},
-  {id:'reto3', e:'🎯', n:'Constante', d:'Haz el reto del día 3 días seguidos', ok:function(){ return S.chStreak >= 3; }},
-  {id:'reto7', e:'📅', n:'Una semana entera', d:'Haz el reto del día 7 días seguidos', ok:function(){ return S.chStreak >= 7; }},
-  {id:'repaso10', e:'📝', n:'Aprendo de mis fallos', d:'Acierta 10 preguntas que antes fallaste. Premio: Capa dorada', ok:function(){ return S.reviewsCleared >= 10; }, prize:['back','capadorada']},
-  {id:'autor', e:'✏️', n:'Creador de preguntas', d:'Crea 5 preguntas tuyas', ok:function(){ return S.custom.length >= 5; }},
-  {id:'album', e:'👑', n:'Álbum completo', d:'Consigue todas las pegatinas', ok:function(){ return Object.keys(STK).every(function(k){ return S.stickers[k]; }); }}
+  {id:'racha10', e:'🔥', n:'On fire', d:'Get 10 questions right in a row. Prize: Ball', ok:function(){ return S.stats.best >= 10; }, prize:['hand','balon']},
+  {id:'cien', e:'💯', n:'One hundred', d:'Get 100 questions right. Prize: Calculator', ok:function(){ return S.stats.correct >= 100; }, prize:['hand','calculadora']},
+  {id:'reto3', e:'🎯', n:'Keep going', d:'Do the daily challenge 3 days in a row', ok:function(){ return S.chStreak >= 3; }},
+  {id:'reto7', e:'📅', n:'A whole week', d:'Do the daily challenge 7 days in a row', ok:function(){ return S.chStreak >= 7; }},
+  {id:'repaso10', e:'📝', n:'I learn from mistakes', d:'Get 10 questions right that you got wrong before. Prize: Golden cape', ok:function(){ return S.reviewsCleared >= 10; }, prize:['back','capadorada']},
+  {id:'autor', e:'✏️', n:'Question maker', d:'Make 5 of your own questions', ok:function(){ return S.custom.length >= 5; }},
+  {id:'album', e:'👑', n:'Full album', d:'Get all the stickers', ok:function(){ return Object.keys(STK).every(function(k){ return S.stickers[k]; }); }}
 ];
 function prizeHow(cat, id){
-  for (var k in STK) if (STK[k].prize[0] === cat && STK[k].prize[1] === id) return 'se gana con la pegatina de ' + STK[k].e + ' ' + STK[k].n + ' (acierta ' + STK_GOAL + ').';
-  for (var i = 0; i < MEDALS.length; i++) if (MEDALS[i].prize && MEDALS[i].prize[0] === cat && MEDALS[i].prize[1] === id) return 'se gana con la medalla «' + MEDALS[i].n + '».';
-  return 'es un premio especial.';
+  for (var k in STK) if (STK[k].prize[0] === cat && STK[k].prize[1] === id) return 'you win it with the ' + STK[k].e + ' ' + STK[k].n + ' sticker (get ' + STK_GOAL + ' right).';
+  for (var i = 0; i < MEDALS.length; i++) if (MEDALS[i].prize && MEDALS[i].prize[0] === cat && MEDALS[i].prize[1] === id) return 'you win it with the «' + MEDALS[i].n + '» medal.';
+  return 'it\'s a special prize.';
 }
 
 /* ---------- preguntas ---------- */
@@ -1707,9 +1723,9 @@ function okIsEn(q){ return q.v === 'en' || q.v === 'oe'; }
 function speakQ(q){
   var L = q.opts.map(function(o, i){ return 'ABCD'[i] + ': ' + o; }).join('. ');
   if (q.v === 'en') speak(q.q.replace(/\s*\([^)]*\)/g, '').replace(/___/g, 'blank') + '. ' + L, 'en');
-  else if (q.v === 'oe') { speak(q.es || q.q); speak(L, 'en'); }
-  else if (q.v === 'w') { speak(q.es || ''); speak(q.en, 'en'); }
-  else speak(q.q + '. ' + L);
+  else if (q.v === 'oe') { speak(q.es || q.q, 'es'); speak(L, 'en', true); }
+  else if (q.v === 'w') { speak(q.es || '', 'es'); speak(q.en, 'en', true); }
+  else speak(q.q + '. ' + L, 'es');
 }
 function customQ(c){ return c ? {key:'c' + c.id, cat:'mias', q:c.q, ok:c.ok, opts:shuffle([c.ok].concat(c.w))} : null; }
 function keyQ(k){
@@ -1746,10 +1762,10 @@ function pickQ(cat){
 function afterTools(q){
   if (q.v !== 'en') return '';
   var tq = trES(q.q), to = trES(q.ok);
-  return '<div class="qtools"><button data-say="q">🔊 Pregunta</button><button data-sayok="1">🔊 Respuesta</button><button class="tr" data-tr="1">🌐 Traducir</button></div><div class="trbox" id="trbox">🇪🇸 ' + esc(tq || '(sin traducción)') + (to && to !== q.ok ? '<br>✅ ' + esc(q.ok) + ' → <i>' + esc(to) + '</i>' : '') + '</div>';
+  return '<div class="qtools"><button data-say="q">🔊 Question</button><button data-sayok="1">🔊 Answer</button><button class="tr" data-tr="1">🌐 Translate</button></div><div class="trbox" id="trbox">🇪🇸 ' + esc(tq || '(no translation)') + (to && to !== q.ok ? '<br>✅ ' + esc(q.ok) + ' → <i>' + esc(to) + '</i>' : '') + '</div>';
 }
 function sayTap(t){
-  if (!S.sound) { toast('🗣️ Activa la voz (botón de arriba) para oírlo'); return; }
+  if (!S.sound) { toast('🗣️ Turn the voice on (button at the top) to hear it'); return; }
   try { if (B && B.stopSpeak) B.stopSpeak(); else if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {}
   speak(t, 'en');
 }
@@ -1761,7 +1777,7 @@ function qHTML(q, exam){
   if (exam || (q.v !== 'en')) return h;
   var tq = trES(q.q), lines = q.opts.map(function(o, i){ var t = trES(o); return 'ABCD'[i] + ': ' + esc(o) + (t && t !== o ? ' → <i>' + esc(t) + '</i>' : ''); }).join('<br>');
   var gram = q.cat === 'pas' || q.cat === 'qst';  // en gramática, traducir las opciones daría la respuesta
-  return h + '<div class="qtools"><button data-say="q">🔊 Escuchar en inglés</button><button class="tr" data-tr="1">🌐 Traducir</button></div><div class="trbox" id="trbox">🇪🇸 ' + esc(tq || '(sin traducción)') + (gram ? '<br><small>Las respuestas no se traducen aquí para no darte la solución 😉</small>' : '<br><br>' + lines) + '</div>';
+  return h + '<div class="qtools"><button data-say="q">🔊 Listen</button><button class="tr" data-tr="1">🌐 Translate</button></div><div class="trbox" id="trbox">🇪🇸 ' + esc(tq || '(no translation)') + (gram ? '<br><small>The answers are not translated here, so you don\'t see the solution 😉 (las respuestas no se traducen para no darte la solución)</small>' : '<br><br>' + lines) + '</div>';
 }
 function optsHTML(q){
   var en = q.v === 'en' || q.v === 'oe';
@@ -1771,7 +1787,7 @@ function bindSayTools(textId, optsId, getQ){
   $(textId).addEventListener('click', function(e){
     var q = getQ(); if (!q) return;
     var t = e.target.closest('[data-tr]');
-    if (t) { var bx = $('trbox'); if (bx) { bx.classList.toggle('on'); t.textContent = bx.classList.contains('on') ? '🌐 Ocultar traducción' : '🌐 Traducir'; } return; }
+    if (t) { var bx = $('trbox'); if (bx) { bx.classList.toggle('on'); t.textContent = bx.classList.contains('on') ? '🌐 Hide translation' : '🌐 Translate'; } return; }
     if (e.target.closest('[data-sayok]')) { sayTap(q.ok); return; }
     if (e.target.closest('[data-say]')) sayTap(enOf(q));
   });
@@ -1785,21 +1801,21 @@ function nextQuestion(){
   answered = false; quizMood = null;
   renderChal();
   if (S.pet && S.pet.sleeping) {
-    $('qtext').innerHTML = 'Zzz… 😴 Estoy dormido. Despiértame para jugar.';
-    $('qopts').innerHTML = '<button class="btn blue big" onclick="wakeAndPlay()">☀️ Despertar y jugar</button>';
+    $('qtext').innerHTML = 'Zzz… 😴 I\'m asleep. Wake me up to play.';
+    $('qopts').innerHTML = '<button class="btn blue big" onclick="wakeAndPlay()">☀️ Wake up and play</button>';
     $('qnext').style.visibility = 'hidden'; renderPetViews(); return;
   }
   var cat = S.qcat || 'todas', q = pickQ(cat);
   if (!q) {
     curQ = null;
-    $('qtext').innerHTML = cat === 'repaso' ? '¡No tienes fallos que repasar! 🎉 Cuando falles una pregunta, volverá a salir aquí hasta que la aciertes.' : 'Aún no has creado preguntas. ¡Inventa las tuyas (por ejemplo, del examen del cole) y yo te las haré! ✏️';
-    $('qopts').innerHTML = cat === 'mias' ? '<button class="btn blue big" onclick="openMyQ()">✏️ Crear mis preguntas</button>' : '<button class="btn pink big" onclick="setCat(\'todas\')">🌟 Jugar con todas</button>';
+    $('qtext').innerHTML = cat === 'repaso' ? 'No mistakes to review! 🎉 When you get a question wrong, it comes back here until you get it right.' : 'You haven\'t made any questions yet. Make your own (for example, from your school test) and I\'ll ask you! ✏️';
+    $('qopts').innerHTML = cat === 'mias' ? '<button class="btn blue big" onclick="openMyQ()">✏️ Make my questions</button>' : '<button class="btn pink big" onclick="setCat(\'todas\')">🌟 Play with everything</button>';
     $('qnext').style.visibility = 'hidden'; renderPetViews(); return;
   }
   curQ = q; lastKey = q.key || '';
   var catName = QCATS.filter(function(c){ return c[0] === q.cat; })[0];
-  var tagx = q.review ? '📝 Repaso · ' : (chActive() ? '🎯 Reto ' + (S.ch.n + 1) + '/5 · ' : '');
-  $('qtext').innerHTML = '<small>' + tagx + (catName ? catName[1] : '') + ' · ' + (S.pet ? S.pet.name : '') + ' pregunta:</small>' + (q.big ? '<span class="bige">' + q.big + '</span>' : '') + qHTML(q);
+  var tagx = q.review ? '📝 Review · ' : (chActive() ? '🎯 Challenge ' + (S.ch.n + 1) + '/5 · ' : '');
+  $('qtext').innerHTML = '<small>' + tagx + (catName ? catName[1] : '') + ' · ' + (S.pet ? S.pet.name : '') + ' asks:</small>' + (q.big ? '<span class="bige">' + q.big + '</span>' : '') + qHTML(q);
   $('qopts').innerHTML = optsHTML(q);
   $('qnext').style.visibility = 'hidden';
   renderQInfo(); renderPetViews(); save();
@@ -1825,8 +1841,8 @@ function answer(i){
     if (inWrong >= 0) { S.wrong.splice(inWrong, 1); S.reviewsCleared++; }
     var bonus = S.stats.streak % 5 === 0 ? 15 : 0, earn = 10 + bonus;
     quizMood = 'celebra';
-    var praise = q.review && inWrong >= 0 ? '¡Esta antes la fallaste y ahora la sabes! 💪' : pick(['¡Muy bien!', '¡Correcto!', '¡Genial!', '¡Eres un crack!', '¡Lo sabías!']);
-    var msg = praise + ' +' + earn + ' 🪙' + (bonus ? ' (¡racha de ' + S.stats.streak + '!)' : '');
+    var praise = q.review && inWrong >= 0 ? 'You got it wrong before, and now you know it! 💪' : pick(['Very good!', 'Correct!', 'Great!', 'Well done!', 'You knew it!', 'Excellent!', 'Fantastic!']);
+    var msg = praise + ' +' + earn + ' 🪙' + (bonus ? ' (' + S.stats.streak + ' in a row!)' : '');
     $('qtext').innerHTML = '<small>✅ ' + q.q + '</small>' + extra + msg + fact + afterTools(q);
     voice = praise;
     sfx('ok');
@@ -1836,15 +1852,15 @@ function answer(i){
   } else {
     btns[i].classList.add('bad'); S.stats.streak = 0; quizMood = 'triste';
     if (q.key && inWrong < 0) { S.wrong.push(q.key); if (S.wrong.length > 60) S.wrong.shift(); }
-    var m2 = '¡Casi! La respuesta era: <b>' + q.ok + '</b>.' + (q.key ? ' Te la volveré a preguntar más adelante 📝' : '') + ' (+1 🪙)';
+    var m2 = 'Almost! The answer was: <b>' + q.ok + '</b>.' + (q.key ? ' I\'ll ask you again later 📝' : '') + ' (+1 🪙)';
     $('qtext').innerHTML = '<small>❌ ' + q.q + '</small>' + extra + m2 + fact + afterTools(q);
-    voice = okIsEn(q) ? '¡Casi! La respuesta era' : '¡Casi! La respuesta era: ' + q.ok;
+    voice = 'Almost! The answer was';
     sfx('bad'); vibrate(120);
     addCoins(1); addXp(3);
   }
-  if (q.fact) voice += '. ' + q.fact;
-  speak(voice);
-  if (okIsEn(q)) speak(q.ok, 'en');
+  speak(voice, 'en');
+  if (!good) speak(q.ok, okIsEn(q) ? 'en' : 'es', true);
+  if (q.fact) speak(q.fact, 'es', true);
   if (q.sayAfter) setTimeout(function(){ speak(q.sayAfter, 'en'); }, 1500);
   if (chActive()) { S.ch.n++; if (good) S.ch.ok++; if (S.ch.n >= 5) setTimeout(finishChallenge, 900); }
   checkStickers(); checkMedals();
@@ -1853,7 +1869,7 @@ function answer(i){
 }
 function renderQInfo(){
   var st = S.stats;
-  $('qinfo').innerHTML = '✅ ' + st.correct + ' aciertos · 🔥 racha ' + st.streak + ' · 🏆 mejor ' + st.best + (dadosList().length ? '' : '<br><span style="color:#c2185b">📍 Marca en «📖 Aprende» lo que has dado en clase.</span>');
+  $('qinfo').innerHTML = '✅ ' + st.correct + ' correct · 🔥 streak ' + st.streak + ' · 🏆 best ' + st.best + (dadosList().length ? '' : '<br><span style="color:#c2185b">📍 In «📖 Learn», tick what you did in class.</span>');
 }
 function renderQCats(){
   cleanWrong();
@@ -1866,9 +1882,9 @@ function renderQCats(){
 /* ---------- reto del día ---------- */
 function chText(){
   var c = S.ch || {};
-  if (c.d === today() && c.done) return {t:'🎯 Reto de hoy hecho: ' + c.ok + '/5 aciertos. 🔥 ' + S.chStreak + ' día(s) seguidos. ¡Vuelve mañana!', b:''};
-  if (chActive()) return {t:'🎯 Reto del día: pregunta ' + (Math.min(c.n, 4) + 1) + ' de 5 · ' + c.ok + ' aciertos', b:''};
-  return {t:'🎯 Reto del día: 5 preguntas de todo. Premio: 20 🪙 + 10 por acierto. 🔥 ' + S.chStreak + ' día(s) seguidos', b:'<button class="btn orange">¡Empezar!</button>'};
+  if (c.d === today() && c.done) return {t:'🎯 Today\'s challenge done: ' + c.ok + '/5 correct. 🔥 ' + S.chStreak + ' day(s) in a row. Come back tomorrow!', b:''};
+  if (chActive()) return {t:'🎯 Daily challenge: question ' + (Math.min(c.n, 4) + 1) + ' of 5 · ' + c.ok + ' correct', b:''};
+  return {t:'🎯 Daily challenge: 5 questions. Prize: 20 🪙 + 10 for each correct answer. 🔥 ' + S.chStreak + ' day(s) in a row', b:'<button class="btn orange">Start!</button>'};
 }
 function renderChal(){
   var c = chText(), h = '<div class="t">' + c.t + '</div>' + c.b;
@@ -1876,7 +1892,7 @@ function renderChal(){
 }
 function startChallenge(){
   if (S.ch && S.ch.d === today() && S.ch.done) return;
-  if (!chActive()) { S.ch = {d:today(), n:0, ok:0, done:false, started:true}; save(); sfx('level'); toast('🎯 ¡Empieza el reto del día!'); }
+  if (!chActive()) { S.ch = {d:today(), n:0, ok:0, done:false, started:true}; save(); sfx('level'); toast('🎯 The daily challenge starts now!'); }
   nextQuestion();
 }
 function finishChallenge(){
@@ -1887,8 +1903,8 @@ function finishChallenge(){
   S.chStreak = S.chLast === y ? S.chStreak + 1 : 1; S.chLast = today();
   var prize = 20 + 10 * c.ok;
   save(); sfx('fanfare'); burst(['🎯', '🪙', '🎉', '⭐']);
-  showModal('<h3>🎯 ¡Reto del día terminado!</h3><p style="font-weight:800;font-size:17px">Has acertado ' + c.ok + ' de 5.<br>Premio: +' + prize + ' 🪙<br>🔥 Llevas ' + S.chStreak + ' día(s) seguidos.</p><button class="btn green big" onclick="closeModal()">¡Genial!</button>');
-  speak('¡Reto terminado! Has acertado ' + c.ok + ' de 5.');
+  showModal('<h3>🎯 Daily challenge finished!</h3><p style="font-weight:800;font-size:17px">You got ' + c.ok + ' out of 5.<br>Prize: +' + prize + ' 🪙<br>🔥 ' + S.chStreak + ' day(s) in a row.</p><button class="btn green big" onclick="closeModal()">Great!</button>');
+  speak('Challenge finished! You got ' + c.ok + ' out of 5.');
   addCoins(prize); checkMedals(); renderChal();
 }
 
@@ -1898,7 +1914,7 @@ function checkStickers(){
     if (!S.stickers[k] && (S.catOk[k] || 0) >= STK_GOAL) {
       S.stickers[k] = true;
       var p = STK[k].prize; S.owned[p[0] + ':' + p[1]] = true; save();
-      celebratePrize('⭐ ¡Pegatina de ' + STK[k].n + '!', STK[k].e, p);
+      celebratePrize('⭐ ' + STK[k].n + ' sticker!', STK[k].e, p);
       return;
     }
   }
@@ -1908,8 +1924,8 @@ function checkMedals(){
     var m = MEDALS[i];
     if (!S.medals[m.id] && m.ok()) {
       S.medals[m.id] = true;
-      if (m.prize) { S.owned[m.prize[0] + ':' + m.prize[1]] = true; save(); celebratePrize('🏅 ¡Medalla: ' + m.n + '!', m.e, m.prize); }
-      else { save(); sfx('fanfare'); burst([m.e, '🏅', '✨']); toast('🏅 ¡Medalla conseguida: ' + m.n + '! +50 🪙'); addCoins(50); }
+      if (m.prize) { S.owned[m.prize[0] + ':' + m.prize[1]] = true; save(); celebratePrize('🏅 Medal: ' + m.n + '!', m.e, m.prize); }
+      else { save(); sfx('fanfare'); burst([m.e, '🏅', '✨']); toast('🏅 New medal: ' + m.n + '! +50 🪙'); addCoins(50); }
       return;
     }
   }
@@ -1919,13 +1935,13 @@ function celebratePrize(title, emoji, p){
   setTimeout(function(){
     sfx('fanfare'); burst([emoji, '⭐', '🎉', '✨']);
     var e = Object.assign({}, S.eq); e[p[0]] = p[1];
-    showModal('<h3>' + title + '</h3><div style="text-align:center;font-size:60px">' + emoji + '</div><p style="font-weight:800">Has ganado: <b>' + it[1] + '</b>. ¡No se puede comprar, solo se gana sabiendo!</p>' +
+    showModal('<h3>' + title + '</h3><div style="text-align:center;font-size:60px">' + emoji + '</div><p style="font-weight:800">You won: <b>' + it[1] + '</b>. You can\'t buy it, you only win it by knowing!</p>' +
       '<div style="height:200px;display:flex;justify-content:center;background:#f6f0ff;border-radius:18px;margin-bottom:12px">' + avatarSVG(e, {bg:false, vb:'0 -20 200 360'}) + '</div>' +
-      '<div class="two"><button class="btn pink" onclick="wearPrize(\'' + p[0] + '\',\'' + p[1] + '\')">👗 ¡Ponérmelo!</button><button class="btn gray" onclick="closeModal()">Luego</button></div>');
-    speak(title.replace(/[⭐🏅]/g, '') + ' Has ganado ' + it[1]);
+      '<div class="two"><button class="btn pink" onclick="wearPrize(\'' + p[0] + '\',\'' + p[1] + '\')">👗 Put it on!</button><button class="btn gray" onclick="closeModal()">Later</button></div>');
+    speak(title.replace(/[⭐🏅]/g, '') + ' You won: ' + it[1]);
   }, 1000);
 }
-function wearPrize(cat, id){ S.eq[cat] = id; save(); closeModal(); renderPet(); if (curTab === 'av') renderAv(); toast('¡Te queda genial! ✨'); }
+function wearPrize(cat, id){ S.eq[cat] = id; save(); closeModal(); renderPet(); if (curTab === 'av') renderAv(); toast('You look great! ✨'); speak('You look great!'); }
 function renderLogros(){
   renderChal();
   $('stickers').innerHTML = Object.keys(STK).map(function(k){
@@ -1938,32 +1954,32 @@ function renderLogros(){
   }).join('');
   var rows = QCATS.filter(function(c){ return STK[c[0]]; }).map(function(c){
     var a = S.catAns[c[0]] || 0, o = S.catOk[c[0]] || 0, pct = a ? Math.min(100, Math.round(o * 100 / a)) : 0;
-    return '<div class="prog">' + c[1] + ' <span style="float:right">' + (a ? o + '/' + a + ' (' + pct + '%)' : 'sin jugar') + '</span><div class="bar"><i style="width:' + pct + '%"></i></div></div>';
+    return '<div class="prog">' + c[1] + ' <span style="float:right">' + (a ? o + '/' + a + ' (' + pct + '%)' : 'not played yet') + '</span><div class="bar"><i style="width:' + pct + '%"></i></div></div>';
   });
   cleanWrong();
-  $('progress').innerHTML = rows.join('') + '<p style="font-weight:800;margin:10px 0 0">📝 Preguntas por repasar: ' + S.wrong.length + (S.wrong.length ? ' <button class="btn pink" style="padding:7px 10px;font-size:13px" onclick="tab(\'quiz\');setCat(\'repaso\')">Repasar</button>' : '') + '</p>';
+  $('progress').innerHTML = rows.join('') + '<p style="font-weight:800;margin:10px 0 0">📝 Questions to review: ' + S.wrong.length + (S.wrong.length ? ' <button class="btn pink" style="padding:7px 10px;font-size:13px" onclick="tab(\'quiz\');setCat(\'repaso\')">Review</button>' : '') + '</p>';
 }
 
 /* ---------- mis preguntas ---------- */
 function esc(t){ return String(t).replace(/[&<>"]/g, function(c){ return {'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;'}[c]; }); }
 function openMyQ(){
   var list = S.custom.map(function(c){ return '<div class="mq"><div><b>' + esc(c.q) + '</b><br>✅ ' + esc(c.ok) + ' · ❌ ' + c.w.map(esc).join(', ') + '</div><button onclick="delMyQ(' + c.id + ')">✕</button></div>'; }).join('');
-  showModal('<h3>✏️ Mis preguntas</h3><p style="margin:0 0 6px;font-weight:700;font-size:13.5px">Escribe una pregunta, la respuesta buena y al menos una mala. La mascota te las hará en «✏️ Mis preguntas».</p>' +
-    '<input id="mq1" placeholder="Pregunta (ej.: ¿Capital de Grecia?)" maxlength="140">' +
-    '<input id="mq2" placeholder="✅ Respuesta correcta" maxlength="60">' +
-    '<input id="mq3" placeholder="❌ Respuesta incorrecta" maxlength="60">' +
-    '<input id="mq4" placeholder="❌ Otra incorrecta (opcional)" maxlength="60">' +
-    '<input id="mq5" placeholder="❌ Otra incorrecta (opcional)" maxlength="60">' +
-    '<div class="two"><button class="btn green" onclick="addMyQ()">➕ Añadir</button><button class="btn gray" onclick="closeModal();renderQCats()">Cerrar</button></div>' +
-    (list ? '<h3 style="margin-top:14px">Tus preguntas (' + S.custom.length + ')</h3>' + list + '<button class="btn pink big" style="margin-top:8px" onclick="closeModal();tab(\'quiz\');setCat(\'mias\')">❓ ¡Jugar con mis preguntas!</button>' : ''));
+  showModal('<h3>✏️ My questions</h3><p style="margin:0 0 6px;font-weight:700;font-size:13.5px">Write a question, the right answer and at least one wrong answer. Your pet will ask you in «✏️ My questions».</p>' +
+    '<input id="mq1" placeholder="Question (e.g.: What is «perro» in English?)" maxlength="140">' +
+    '<input id="mq2" placeholder="✅ Right answer" maxlength="60">' +
+    '<input id="mq3" placeholder="❌ Wrong answer" maxlength="60">' +
+    '<input id="mq4" placeholder="❌ Another wrong answer (optional)" maxlength="60">' +
+    '<input id="mq5" placeholder="❌ Another wrong answer (optional)" maxlength="60">' +
+    '<div class="two"><button class="btn green" onclick="addMyQ()">➕ Add</button><button class="btn gray" onclick="closeModal();renderQCats()">Close</button></div>' +
+    (list ? '<h3 style="margin-top:14px">Your questions (' + S.custom.length + ')</h3>' + list + '<button class="btn pink big" style="margin-top:8px" onclick="closeModal();tab(\'quiz\');setCat(\'mias\')">❓ Play with my questions!</button>' : ''));
 }
 function addMyQ(){
   var v = [1, 2, 3, 4, 5].map(function(n){ return ($('mq' + n).value || '').trim(); });
-  if (!v[0] || !v[1]) { toast('Escribe la pregunta y la respuesta correcta'); return; }
+  if (!v[0] || !v[1]) { toast('Write the question and the right answer'); return; }
   var w = v.slice(2).filter(function(x, i, a){ return x && x !== v[1] && a.indexOf(x) === i; });
-  if (!w.length) { toast('Pon al menos una respuesta incorrecta'); return; }
+  if (!w.length) { toast('Write at least one wrong answer'); return; }
   S.custom.push({id:Date.now(), q:v[0], ok:v[1], w:w}); save(); sfx('buy');
-  toast('✅ ¡Pregunta guardada!'); checkMedals(); openMyQ();
+  toast('✅ Question saved!'); checkMedals(); openMyQ();
 }
 function delMyQ(id){ S.custom = S.custom.filter(function(c){ return c.id !== id; }); cleanWrong(); save(); openMyQ(); }
 
@@ -2043,7 +2059,7 @@ function setGender(g){
   var e = S.eq; e.g = g; trying = null;
   if (g === 'nino') { e.hair = 'corto'; e.brows = 'gruesas'; if (!forG('top', e.top) || e.top === 'cam_rosa') e.top = 'cam_azul'; if (!forG('bottom', e.bottom)) e.bottom = 'vaqueros'; }
   else { e.hair = 'largo'; e.brows = 'suaves'; if (e.top === 'cam_azul') e.top = 'cam_rosa'; }
-  save(); renderAv(); renderPet(); sfx('coin'); toast(g === 'nino' ? '👦 ¡Ahora tu avatar es un niño!' : '👧 ¡Ahora tu avatar es una niña!');
+  save(); renderAv(); renderPet(); sfx('coin'); toast(g === 'nino' ? '👦 Now your avatar is a boy!' : '👧 Now your avatar is a girl!');
 }
 function renderGender(){ var bs = document.querySelectorAll('#gsel button'); for (var i = 0; i < bs.length; i++) bs[i].classList.toggle('on', bs[i].dataset.g === (S.eq.g || 'nina')); }
 var avCat = 'hair', trying = null;
@@ -2071,7 +2087,7 @@ function renderAv(){ renderGender(); renderAvCats(); renderAvBig(); renderAvGrid
 function tapItem(id){
   if (owns(avCat, id)) {
     S.eq[avCat] = id; trying = null; save();
-    if (avCat === 'top' && isDress(id)) toast('👗 Con vestido no se ve la parte de abajo');
+    if (avCat === 'top' && isDress(id)) toast('👗 With a dress, you can\'t see the bottoms');
   } else {
     trying = {cat:avCat, id:id};
   }
@@ -2083,14 +2099,14 @@ function renderBuyBar(){
   if (!trying || !$('t-av').classList.contains('on')) { bar.classList.remove('on'); return; }
   var it = itemInfo(trying.cat, trying.id);
   if (it[2] < 0) {
-    $('buyText').innerHTML = '🏅 <b>' + it[1] + '</b> no se compra:<br>' + prizeHow(trying.cat, trying.id);
-    $('buyBtn').textContent = '❓ Jugar'; $('buyBtn').className = 'btn pink'; $('buyBtn').dataset.m = 'quiz';
+    $('buyText').innerHTML = '🏅 You can\'t buy <b>' + it[1] + '</b>:<br>' + prizeHow(trying.cat, trying.id);
+    $('buyBtn').textContent = '❓ Play'; $('buyBtn').className = 'btn pink'; $('buyBtn').dataset.m = 'quiz';
   } else if (S.coins >= it[2]) {
-    $('buyText').innerHTML = 'Probando: <b>' + it[1] + '</b><br>🪙 ' + it[2] + ' monedas';
-    $('buyBtn').textContent = 'Comprar'; $('buyBtn').className = 'btn green'; $('buyBtn').dataset.m = 'buy';
+    $('buyText').innerHTML = 'Trying on: <b>' + it[1] + '</b><br>🪙 ' + it[2] + ' coins';
+    $('buyBtn').textContent = 'Buy'; $('buyBtn').className = 'btn green'; $('buyBtn').dataset.m = 'buy';
   } else {
-    $('buyText').innerHTML = '<b>' + it[1] + '</b> cuesta 🪙 ' + it[2] + '.<br>Te faltan ' + (it[2] - S.coins) + '. ¡Responde preguntas!';
-    $('buyBtn').textContent = '❓ Jugar'; $('buyBtn').className = 'btn pink'; $('buyBtn').dataset.m = 'quiz';
+    $('buyText').innerHTML = '<b>' + it[1] + '</b> costs 🪙 ' + it[2] + '.<br>You need ' + (it[2] - S.coins) + ' more. Answer questions!';
+    $('buyBtn').textContent = '❓ Play'; $('buyBtn').className = 'btn pink'; $('buyBtn').dataset.m = 'quiz';
   }
   bar.classList.add('on');
 }
@@ -2099,13 +2115,13 @@ function buyTrying(){
   if (it[2] < 0 || S.coins < it[2]) return;
   S.coins -= it[2]; S.owned[trying.cat + ':' + trying.id] = true; S.eq[trying.cat] = trying.id;
   var cat = trying.cat; trying = null; save(); renderHeader(); renderAv(); renderPet();
-  sfx('buy'); burst(['✨', '💖', '⭐']); toast('¡Comprado: ' + it[1] + '! 🎉');
-  if (S.pet) speak(pick(['¡Te queda genial!', '¡Qué guapo te ves!', '¡Me encanta!']));
-  if (cat === 'top' && isDress(S.eq.top)) toast('👗 Con vestido no se ve la parte de abajo');
+  sfx('buy'); burst(['✨', '💖', '⭐']); toast('You bought: ' + it[1] + '! 🎉');
+  if (S.pet) speak(pick(['You look great!', 'Wow! I love it!', 'Very nice!']));
+  if (cat === 'top' && isDress(S.eq.top)) toast('👗 With a dress, you can\'t see the bottoms');
 }
 function renderShop(){
   $('foodList').innerHTML = FOOD.map(function(f){
-    return '<div class="row"><div class="e">' + f.e + '</div><div class="t">' + foodName(f) + '<small>' + (f.med ? 'Cura a tu mascota si se pone malita' : 'Comida +' + f.hunger + (f.happy ? ' · Felicidad +' + f.happy : '') + (f.energy ? ' · Energía +' + f.energy : '')) + ' · tienes ' + (S.food[f.id] || 0) + '</small></div><button class="btn ' + (S.coins >= f.p ? 'orange' : 'gray') + '" data-f="' + f.id + '">🪙 ' + f.p + '</button></div>';
+    return '<div class="row"><div class="e">' + f.e + '</div><div class="t">' + foodName(f) + '<small>' + (f.med ? 'Makes your pet better when it is ill' : 'Food +' + f.hunger + (f.happy ? ' · Happiness +' + f.happy : '') + (f.energy ? ' · Energy +' + f.energy : '')) + ' · you have ' + (S.food[f.id] || 0) + '</small></div><button class="btn ' + (S.coins >= f.p ? 'orange' : 'gray') + '" data-f="' + f.id + '">🪙 ' + f.p + '</button></div>';
   }).join('');
   if (!S.pet) { $('paccGrid').innerHTML = ''; return; }
   $('paccGrid').innerHTML = PACC.map(function(a){
@@ -2117,15 +2133,15 @@ function renderShop(){
 }
 function buyFood(id){
   var f = FOOD.filter(function(x){ return x.id === id; })[0];
-  if (S.coins < f.p) { toast('Te faltan ' + (f.p - S.coins) + ' 🪙. ¡Responde preguntas!'); return; }
+  if (S.coins < f.p) { toast('You need ' + (f.p - S.coins) + ' more 🪙. Answer questions!'); return; }
   S.coins -= f.p; S.food[id] = (S.food[id] || 0) + 1; sfx('buy'); save(); renderHeader(); renderShop();
-  toast(f.e + ' ' + f.n + '! ¡Comprado! Tienes ' + S.food[id]); speak(f.n, 'en');
+  toast(f.e + ' ' + f.n + '! You have ' + S.food[id]); speak(f.n, 'en');
 }
 function tapPacc(id){
   var a = itemInfo('pacc', id);
   if (!owns('pacc', id)) {
-    if (S.coins < a[2]) { toast('Te faltan ' + (a[2] - S.coins) + ' 🪙. ¡Responde preguntas!'); return; }
-    S.coins -= a[2]; S.owned['pacc:' + id] = true; toast('¡Comprado: ' + a[1] + '! 🎉'); burst(['✨', '💖']); sfx('buy');
+    if (S.coins < a[2]) { toast('You need ' + (a[2] - S.coins) + ' more 🪙. Answer questions!'); return; }
+    S.coins -= a[2]; S.owned['pacc:' + id] = true; toast('You bought: ' + a[1] + '! 🎉'); burst(['✨', '💖']); sfx('buy');
   }
   S.pet.acc = id; save(); renderHeader(); renderShop(); renderPet();
 }
@@ -2135,10 +2151,10 @@ var chooseSp = 'gato';
 function openAdopt(first){
   chooseSp = S.pet ? S.pet.sp : 'gato';
   var nm = S.pet ? S.pet.name : SPECIES[chooseSp].name;
-  var h = '<h3>' + (first ? '🥚 ¡Elige tu mascota!' : '✏️ Tu mascota') + '</h3>' +
-    (first ? '<p style="margin:0 0 10px;font-weight:700">Vivirá contigo, te hará las preguntas y tendrás que cuidarla: darle de comer, bañarla, jugar y acostarla.</p>' : '') +
-    '<div class="species" id="spGrid"></div><b>Nombre:</b><input id="petNameIn" maxlength="16" value="' + nm.replace(/"/g, '') + '">' +
-    '<div class="two"><button class="btn green" onclick="adopt(' + (first ? 'true' : 'false') + ')">' + (first ? '💜 ¡Adoptar!' : '💾 Guardar') + '</button>' + (first ? '' : '<button class="btn gray" onclick="closeModal()">Cancelar</button>') + '</div>';
+  var h = '<h3>' + (first ? '🥚 Choose your pet!' : '✏️ Your pet') + '</h3>' +
+    (first ? '<p style="margin:0 0 10px;font-weight:700">It will live with you and ask you questions. Look after it: feed it, give it a bath, play with it and put it to bed.</p>' : '') +
+    '<div class="species" id="spGrid"></div><b>Name:</b><input id="petNameIn" maxlength="16" value="' + nm.replace(/"/g, '') + '">' +
+    '<div class="two"><button class="btn green" onclick="adopt(' + (first ? 'true' : 'false') + ')">' + (first ? '💜 Adopt!' : '💾 Save') + '</button>' + (first ? '' : '<button class="btn gray" onclick="closeModal()">Cancel</button>') + '</div>';
   showModal(h); renderSp();
 }
 function renderSp(){
@@ -2150,7 +2166,7 @@ function adopt(first){
   if (first || !S.pet) S.pet = {sp:chooseSp, name:name, hunger:80, happy:85, energy:80, clean:90, sleeping:false, poops:0, pooAcc:0, sick:false, last:Date.now(), acc:'none'};
   else { S.pet.sp = chooseSp; S.pet.name = name; }
   save(); closeModal(); renderAll(); sfx('level');
-  say(first ? '¡Hola! Soy ' + name + '. ¡Hazme caso y juguemos a preguntas para ganar monedas! 🪙' : '¡Me encanta mi nombre! 💜');
+  say(first ? ['Hello! I\'m ' + name + '. Let\'s play a quiz and win coins! 🪙', '¡Hola! Soy ' + name + '. ¡Juguemos a preguntas y ganemos monedas!'] : ['I love my name! 💜', '¡Me encanta mi nombre!']);
 }
 
 /* ======================= modal y pestañas ======================= */
@@ -2179,7 +2195,7 @@ var UNACC = {'á':'a','é':'e','í':'i','ó':'o','ú':'u'};
 function stripAcc(t){ return String(t).replace(/[áéíóú]/g, function(c){ return UNACC[c]; }); }
 function hasTilde(t){ return /[áéíóú]/.test(t); }
 function petMiniSVG(mood){ return S.pet ? petSVG(S.pet, mood || 'pensar', S.pet.acc) : '<div style="font-size:60px;text-align:center">🐣</div>'; }
-function backBtn(){ return '<button class="btn" style="background:#ddd;color:#333;padding:8px 14px;font-size:13px;margin-bottom:6px" onclick="tab(\'quiz\')">⬅ Volver a preguntas</button>'; }
+function backBtn(){ return '<button class="btn" style="background:#ddd;color:#333;padding:8px 14px;font-size:13px;margin-bottom:6px" onclick="tab(\'quiz\')">⬅ Back to the quiz</button>'; }
 function wordRule(h){
   var sy = h.split('-'), w = sy.join('').toLowerCase(), n = sy.length, ti = -1;
   for (var i = 0; i < n; i++) if (hasTilde(sy[i])) ti = i;
@@ -2210,7 +2226,7 @@ function showDict(){
   var w = D.list[D.i];
   D.done = false;
   $('dpet').innerHTML = petMiniSVG('pensar');
-  $('dtext').innerHTML = '<small>✍️ Spelling · palabra ' + (D.i + 1) + ' de ' + D.list.length + '</small>Escucha la palabra en inglés y escríbela. 🔊<br><small>Pista: significa «' + (DMEAN[w] || '') + '»</small>';
+  $('dtext').innerHTML = '<small>✍️ Spelling · word ' + (D.i + 1) + ' of ' + D.list.length + '</small>Listen to the word and write it. 🔊<br><small>Hint: it means «' + (DMEAN[w] || '') + '»</small>';
   $('din').value = ''; $('din').disabled = false; $('dres').innerHTML = ''; $('dnext').style.display = 'none'; $('dcheck').style.display = '';
   $('dbar').style.width = (D.i * 100 / D.list.length) + '%';
   setTimeout(function(){ sayWord(true); }, 300);
@@ -2218,28 +2234,28 @@ function showDict(){
 }
 function sayWord(intro){
   if (!D || D.i >= D.list.length) return;
-  if (!S.sound) { toast('🗣️ Activa la voz (botón de arriba) para oír la palabra'); return; }
+  if (!S.sound) { toast('🗣️ Turn the voice on (button at the top) to hear the word'); return; }
   var w = D.list[D.i];
-  if (intro) speak('Escribe');
-  speak(w, 'en');
+  if (intro) speak('Write');
+  speak(w, 'en', intro);
 }
 function checkDict(){
   if (!D || D.done) return;
   var w = D.list[D.i], v = $('din').value.trim().toLowerCase().replace(/\s+/g, ' ');
-  if (!v) { toast('Escribe la palabra primero ✍️'); return; }
+  if (!v) { toast('Write the word first ✍️'); return; }
   D.done = true; $('din').disabled = true; S.dseen[w] = (S.dseen[w] || 0) + 1;
   S.catAns.voc = (S.catAns.voc || 0) + 1;
-  var info = '<span class="fact">📘 «' + w + '» = ' + (DMEAN[w] || '') + '. Se deletrea: ' + w.toUpperCase().split('').join(' ').replace(/   /g, ' · ') + '</span>', msg, voice;
+  var info = '<span class="fact">📘 «' + w + '» = ' + (DMEAN[w] || '') + '. Spelling: ' + w.toUpperCase().split('').join(' ').replace(/   /g, ' · ') + '</span>', msg, voice;
   if (v === w) {
     D.ok++; D.coins += 5; addCoins(5); addXp(5); S.catOk.voc = (S.catOk.voc || 0) + 1;
-    msg = '✅ Perfect! Se escribe <b>' + w + '</b>. +5 🪙'; voice = '¡Perfecto!'; sfx('ok'); quizMood = 'celebra';
+    msg = '✅ Perfect! It\'s <b>' + w + '</b>. +5 🪙'; voice = 'Perfect!'; sfx('ok'); quizMood = 'celebra';
   } else if (lev(v, w) === 1) {
-    msg = '🟡 ¡Casi! Solo te ha fallado una letra. Se escribe <b>' + w + '</b>. +1 🪙'; voice = '¡Casi! Se escribe así'; D.coins += 1; addCoins(1); sfx('bad');
+    msg = '🟡 Almost! Only one letter is wrong. It\'s <b>' + w + '</b>. +1 🪙'; voice = 'Almost! It\'s'; D.coins += 1; addCoins(1); sfx('bad');
   } else {
-    msg = '❌ Se escribe <b>' + w + '</b> (tú has escrito «' + esc(v) + '»).'; voice = 'Se escribe así'; sfx('bad');
+    msg = '❌ It\'s <b>' + w + '</b> (you wrote «' + esc(v) + '»).'; voice = 'It\'s'; sfx('bad');
   }
   $('dres').innerHTML = '<div class="card" style="font-weight:700">' + msg + info + '</div>';
-  speak(voice); speak(w, 'en');
+  speak(voice); speak(w, 'en', true);
   checkStickers(); checkMedals(); save();
   $('dcheck').style.display = 'none'; $('dnext').style.display = '';
   $('dnext').textContent = D.i + 1 < D.list.length ? 'Siguiente palabra ▶' : 'Ver resultado 🏆';
@@ -2250,10 +2266,10 @@ function nextDict(){
   var bonus = D.ok === D.list.length ? 20 : 0; if (bonus) addCoins(bonus);
   $('dbar').style.width = '100%';
   $('dpet').innerHTML = petMiniSVG(D.ok >= 7 ? 'celebra' : 'normal');
-  $('dtext').innerHTML = '<small>✍️ Spelling terminado</small>Has escrito bien <b>' + D.ok + ' de ' + D.list.length + '</b> palabras. Has ganado ' + (D.coins + bonus) + ' 🪙' + (bonus ? ' (¡+20 por hacerlo perfecto!)' : '');
-  $('din').disabled = true; $('dcheck').style.display = 'none'; $('dres').innerHTML = '<button class="btn pink big" onclick="startDict()">🔁 Otro spelling</button>';
+  $('dtext').innerHTML = '<small>✍️ Spelling finished</small>You wrote <b>' + D.ok + ' out of ' + D.list.length + '</b> words correctly. You won ' + (D.coins + bonus) + ' 🪙' + (bonus ? ' (+20 for a perfect score!)' : '');
+  $('din').disabled = true; $('dcheck').style.display = 'none'; $('dres').innerHTML = '<button class="btn pink big" onclick="startDict()">🔁 Another spelling</button>';
   $('dnext').style.display = 'none';
-  speak('Has acertado ' + D.ok + ' de ' + D.list.length);
+  speak('You got ' + D.ok + ' out of ' + D.list.length);
   save();
 }
 
@@ -2278,7 +2294,7 @@ function showExam(){
   var q = E.qs[E.i];
   $('ebar').style.width = (E.i * 100 / E.qs.length) + '%';
   $('epet').innerHTML = petMiniSVG('pensar');
-  $('etext').innerHTML = '<small>📝 Examen · pregunta ' + (E.i + 1) + ' de ' + E.qs.length + ' · sin pistas</small>' + qHTML(q, true);
+  $('etext').innerHTML = '<small>📝 Test · question ' + (E.i + 1) + ' of ' + E.qs.length + ' · no help</small>' + qHTML(q, true);
   $('eopts').innerHTML = optsHTML(q);
   $('eres').innerHTML = '';
   speakQ(q);
@@ -2299,15 +2315,15 @@ function finishExam(){
   addCoins(earn); addXp(ok * 8);
   if (!S.exams) S.exams = [];
   S.exams.push({d:today(), n:nota}); if (S.exams.length > 10) S.exams.shift();
-  var msg = nota >= 9 ? '¡Sobresaliente! 🌟' : nota >= 7 ? '¡Notable! 👏' : nota >= 5 ? '¡Aprobado! 🙂' : '¡A repasar! 💪';
+  var msg = nota >= 9 ? 'Excellent! 🌟' : nota >= 7 ? 'Very good! 👏' : nota >= 5 ? 'You passed! 🙂' : 'Let\'s review! 💪';
   $('ebar').style.width = '100%';
   $('epet').innerHTML = petMiniSVG(nota >= 5 ? 'celebra' : 'triste');
-  $('etext').innerHTML = '<small>📝 Resultado del examen</small><span class="bige">' + nota + '</span>' + msg + ' Has acertado ' + ok + ' de ' + E.qs.length + '. +' + earn + ' 🪙';
+  $('etext').innerHTML = '<small>📝 Test result</small><span class="bige">' + nota + '</span>' + msg + ' You got ' + ok + ' out of ' + E.qs.length + '. +' + earn + ' 🪙';
   $('eopts').innerHTML = '';
   var hist = S.exams.slice().reverse().map(function(x){ return x.d + ': <b>' + x.n + '</b>'; }).join(' · ');
-  $('eres').innerHTML = (fails.length ? '<h2>❌ Para repasar (ya están en 📝 Repaso)</h2>' + fails.map(function(f){ return '<div class="card" style="font-size:14px"><b>' + f[0].q + '</b><br>Tu respuesta: ' + esc(f[1]) + '<br>✅ Correcta: <b>' + f[0].ok + '</b>' + (f[0].fact ? '<span class="fact">📘 ' + f[0].fact + '</span>' : '') + '</div>'; }).join('') : '<div class="card" style="font-weight:800">¡Ningún fallo! 🎉</div>') +
-    '<div class="card" style="font-size:13px">📈 Tus últimos exámenes: ' + hist + '</div><button class="btn pink big" onclick="startExam()">🔁 Otro examen</button>';
-  speak('Tu nota es ' + String(nota).replace('.', ' coma ') + '. ' + msg);
+  $('eres').innerHTML = (fails.length ? '<h2>❌ To review (they are in 📝 Review)</h2>' + fails.map(function(f){ return '<div class="card" style="font-size:14px"><b>' + f[0].q + '</b><br>Your answer: ' + esc(f[1]) + '<br>✅ Right answer: <b>' + f[0].ok + '</b>' + (f[0].fact ? '<span class="fact">📘 ' + f[0].fact + '</span>' : '') + '</div>'; }).join('') : '<div class="card" style="font-weight:800">No mistakes! 🎉</div>') +
+    '<div class="card" style="font-size:13px">📈 Your last tests: ' + hist + '</div><button class="btn pink big" onclick="startExam()">🔁 Another test</button>';
+  speak('Your mark is ' + String(nota) + '. ' + msg);
   sfx(nota >= 5 ? 'level' : 'bad');
   checkStickers(); checkMedals(); save();
 }
@@ -2346,31 +2362,31 @@ function analysePoem(){
   var past = {}; words.forEach(function(w){ if (PAST.indexOf(w) >= 0 || (/ed$/.test(w) && w.length > 3 && w !== 'bed' && w !== 'red')) past[w] = 1; });
   var pl = Object.keys(past);
   var chk = function(ok, t){ return (ok ? '✅ ' : '⬜ ') + t; };
-  $('pinfo').innerHTML = '<b>' + ns + ' frases · ' + words.length + ' palabras</b><br>' +
+  $('pinfo').innerHTML = '<b>' + ns + ' sentences · ' + words.length + ' words</b><br>' +
     chk(!!parts[0], 'Beginning') + ' · ' + chk(!!parts[1], 'Middle') + ' · ' + chk(!!parts[2], 'End') + '<br>' +
-    (pl.length ? '⏪ Verbos en pasado: <b>' + pl.map(esc).join(', ') + '</b>' : '⏪ Recuerda: cuenta la historia en <b>pasado</b> (was, had, invented, said…)');
+    (pl.length ? '⏪ Past verbs: <b>' + pl.map(esc).join(', ') + '</b>' : '⏪ Remember: tell the story in the <b>past</b> (was, had, invented, said…)');
 }
 function savePoem(){
   var txt = storyText(), t = $('ptitle').value.trim() || (hero() + ' the inventor');
   var ns = sentences(txt).length;
-  if (ns < 2) { toast('Escribe al menos 2 frases'); return; }
+  if (ns < 2) { toast('Write at least 2 sentences'); return; }
   if (!S.poems) S.poems = [];
   var p = PT.poemId ? S.poems.filter(function(x){ return x.id === PT.poemId; })[0] : null;
   var data = {t:t, txt:txt, d:today(), b:$('pbeg').value, m:$('pmid').value, e:$('pend').value, n:$('ptopic').value, inv:$('pinv').value};
   if (p) Object.assign(p, data); else { p = Object.assign({id:Date.now()}, data); S.poems.push(p); PT.poemId = p.id; }
-  if (!p.paid && ns >= 6 && $('pbeg').value.trim() && $('pmid').value.trim() && $('pend').value.trim()) { p.paid = true; addCoins(30); addXp(20); sfx('level'); toast('💾 ¡Historia guardada! +30 🪙'); } else { sfx('coin'); toast('💾 Historia guardada'); }
+  if (!p.paid && ns >= 6 && $('pbeg').value.trim() && $('pmid').value.trim() && $('pend').value.trim()) { p.paid = true; addCoins(30); addXp(20); sfx('level'); toast('💾 Story saved! +30 🪙'); } else { sfx('coin'); toast('💾 Story saved'); }
   save(); renderMyPoems();
 }
 function recitePoem(txt){
-  txt = txt || storyText(); if (!txt) { toast('Primero escribe tu historia'); return; }
-  if (!S.sound) { toast('🗣️ Activa la voz (botón de arriba)'); return; }
+  txt = txt || storyText(); if (!txt) { toast('Write your story first'); return; }
+  if (!S.sound) { toast('🗣️ Turn the voice on (button at the top)'); return; }
   var t = $('ptitle').value.trim();
   try { if (B && B.stopSpeak) B.stopSpeak(); else if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {}
   speak((t ? t + '. ' : '') + txt.replace(/\n/g, ' '), 'en');
 }
 function renderMyPoems(){
   var ps = S.poems || [];
-  $('pmine').innerHTML = ps.length ? ps.map(function(p){ return '<div class="card" style="font-size:14px"><b>📖 ' + esc(p.t) + '</b> <small>(' + p.d + ')</small><div style="white-space:pre-line;margin:6px 0">' + esc(p.txt) + '</div><button class="btn blue" style="padding:7px 10px;font-size:12.5px" onclick="recitePoemId(' + p.id + ')">🐾 Leer</button> <button class="btn" style="padding:7px 10px;font-size:12.5px" onclick="editPoem(' + p.id + ')">✏️ Editar</button> <button class="btn red" style="padding:7px 10px;font-size:12.5px" onclick="delPoem(' + p.id + ')">🗑️</button></div>'; }).join('') : '<div class="card">Aún no has guardado ninguna historia.</div>';
+  $('pmine').innerHTML = ps.length ? ps.map(function(p){ return '<div class="card" style="font-size:14px"><b>📖 ' + esc(p.t) + '</b> <small>(' + p.d + ')</small><div style="white-space:pre-line;margin:6px 0">' + esc(p.txt) + '</div><button class="btn blue" style="padding:7px 10px;font-size:12.5px" onclick="recitePoemId(' + p.id + ')">🐾 Read</button> <button class="btn" style="padding:7px 10px;font-size:12.5px" onclick="editPoem(' + p.id + ')">✏️ Edit</button> <button class="btn red" style="padding:7px 10px;font-size:12.5px" onclick="delPoem(' + p.id + ')">🗑️</button></div>'; }).join('') : '<div class="card">You haven\'t saved any stories yet.</div>';
 }
 function findPoem(id){ return (S.poems || []).filter(function(x){ return x.id === id; })[0]; }
 function recitePoemId(id){ var p = findPoem(id); if (p) { try { if (B && B.stopSpeak) B.stopSpeak(); else if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {} speak(p.t + '. ' + p.txt.replace(/\n/g, ' '), 'en'); } }
@@ -2379,7 +2395,7 @@ function delPoem(id){ S.poems = (S.poems || []).filter(function(x){ return x.id 
 function newPoem(){ PT.poemId = null; ['ptitle', 'pbeg', 'pmid', 'pend', 'ptopic', 'pinv'].forEach(function(k){ $(k).value = ''; }); PT.tema = null; renderPoema(); }
 function toggleRec(){
   if (PT.rec && PT.rec.state === 'recording') { PT.rec.stop(); return; }
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) { toast('🎤 Este móvil no deja grabar aquí'); return; }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) { toast('🎤 This phone can\'t record here'); return; }
   navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
     try { if (B && B.stopSpeak) B.stopSpeak(); } catch (e) {}
     window.pauseAll && pauseAll();
@@ -2389,15 +2405,15 @@ function toggleRec(){
       stream.getTracks().forEach(function(t){ t.stop(); });
       if (PT.url) URL.revokeObjectURL(PT.url);
       PT.url = URL.createObjectURL(new Blob(PT.chunks, {type:PT.rec.mimeType || 'audio/webm'}));
-      $('precbtn').textContent = '🎤 Grabarme otra vez'; $('precbtn').className = 'btn pink big';
-      $('paudio').innerHTML = '<div class="card" style="font-weight:700">▶ Escucha cómo lo has recitado:<audio controls src="' + PT.url + '" style="width:100%;margin-top:8px"></audio><small>¿Se entiende bien? ¿Has pronunciado bien los verbos en pasado?</small></div>';
+      $('precbtn').textContent = '🎤 Record me again'; $('precbtn').className = 'btn pink big';
+      $('paudio').innerHTML = '<div class="card" style="font-weight:700">▶ Listen to yourself:<audio controls src="' + PT.url + '" style="width:100%;margin-top:8px"></audio><small>Is it clear? Did you say the past verbs well?</small></div>';
       window.resumeAll && resumeAll();
-      if (!S.recCoins || S.recCoins !== today()) { S.recCoins = today(); addCoins(10); toast('🎤 ¡Ensayo grabado! +10 🪙 (una vez al día)'); save(); }
+      if (!S.recCoins || S.recCoins !== today()) { S.recCoins = today(); addCoins(10); toast('🎤 Recording saved! +10 🪙 (once a day)'); save(); }
     };
     PT.rec.start();
-    $('precbtn').textContent = '⏹ Parar la grabación'; $('precbtn').className = 'btn red big';
-    $('paudio').innerHTML = '<div class="card" style="font-weight:800;color:#dc2626">🔴 Grabando… lee tu historia en inglés</div>';
-  }).catch(function(){ toast('🎤 Necesito permiso para usar el micrófono'); });
+    $('precbtn').textContent = '⏹ Stop recording'; $('precbtn').className = 'btn red big';
+    $('paudio').innerHTML = '<div class="card" style="font-weight:800;color:#dc2626">🔴 Recording… read your story</div>';
+  }).catch(function(){ toast('🎤 I need permission to use the microphone'); });
 }
 
 function bindExtras(){
@@ -2424,7 +2440,7 @@ function renderApr(){
   if (!S.dados) S.dados = {};
   $('aprParts').innerHTML = PARTS.map(function(p, i){
     var k = p[0], on = !!S.dados[k], n = Q.filter(function(q){ return q[0] === k; }).length;
-    return '<div class="prow' + (on ? ' dado' : '') + '"><span class="pe">' + p[1] + '</span><span class="pt">' + (i + 1) + '. ' + p[2] + '<small>' + p[3] + ' · ' + n + ' preguntas</small></span><span class="pb"><button class="bdado" data-d="' + k + '">' + (on ? '✅ Dado' : '⬜ Dado') + '</button><button class="bver' + (aprView === k ? ' on' : '') + '" data-v="' + k + '">📖 Estudiar</button></span></div>';
+    return '<div class="prow' + (on ? ' dado' : '') + '"><span class="pe">' + p[1] + '</span><span class="pt">' + (i + 1) + '. ' + p[2] + '<small>' + p[3] + ' · ' + n + ' questions</small></span><span class="pb"><button class="bdado" data-d="' + k + '">' + (on ? '✅ Done' : '⬜ Done') + '</button><button class="bver' + (aprView === k ? ' on' : '') + '" data-v="' + k + '">📖 Study</button></span></div>';
   }).join('');
   var cards = document.querySelectorAll('#aprCards .lcard');
   for (var i = 0; i < cards.length; i++) cards[i].style.display = (!aprView || cards[i].dataset.part === aprView) ? '' : 'none';
@@ -2435,8 +2451,8 @@ function initApr(){
     (function(c, k){
       c.dataset.part = k;
       var d = document.createElement('div'); d.className = 'lbtns';
-      d.innerHTML = '<button style="background:#ece6ff;color:#5b3fd1">🔊 Escuchar</button><button style="background:#ffe066;color:#6b4a00">❓ Preguntas de esto</button>' + (c.querySelector('.tres') ? '<button style="background:#d3f9d8;color:#1b6b30">🌐 Traducir</button>' : '');
-      if (d.children[2]) d.children[2].onclick = function(ev){ ev.stopPropagation(); var t = c.querySelector('.tres'); t.classList.toggle('on'); this.textContent = t.classList.contains('on') ? '🌐 Ocultar traducción' : '🌐 Traducir'; };
+      d.innerHTML = '<button style="background:#ece6ff;color:#5b3fd1">🔊 Listen</button><button style="background:#ffe066;color:#6b4a00">❓ Quiz me on this</button>' + (c.querySelector('.tres') ? '<button style="background:#d3f9d8;color:#1b6b30">🌐 Translate</button>' : '');
+      if (d.children[2]) d.children[2].onclick = function(ev){ ev.stopPropagation(); var t = c.querySelector('.tres'); t.classList.toggle('on'); this.textContent = t.classList.contains('on') ? '🌐 Hide translation' : '🌐 Translate'; };
       d.children[0].onclick = function(){ var cc = c.cloneNode(true); var bs = cc.querySelectorAll('button, .tres'); for (var j = 0; j < bs.length; j++) bs[j].remove(); var en = k === 'flx' || k === 'tan' || k === 'wri' || k === 'spk'; try { if (B && B.stopSpeak) B.stopSpeak(); else if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {} speak(cc.innerText, en ? 'en' : 'es'); };
       d.children[1].onclick = function(){ if (!S.dados[k]) { S.dados[k] = 1; } S.qcat = k; save(); tab('quiz'); nextQuestion(); };
       c.appendChild(d);
@@ -2444,7 +2460,7 @@ function initApr(){
   }
   $('aprParts').addEventListener('click', function(e){
     var b = e.target.closest('button'); if (!b) return;
-    if (b.dataset.d) { var k = b.dataset.d; if (S.dados[k]) delete S.dados[k]; else { S.dados[k] = 1; var p = PARTS.filter(function(x){ return x[0] === k; })[0]; toast('✅ ' + p[2] + ': ¡ya entra en las preguntas!'); } save(); renderApr(); }
+    if (b.dataset.d) { var k = b.dataset.d; if (S.dados[k]) delete S.dados[k]; else { S.dados[k] = 1; var p = PARTS.filter(function(x){ return x[0] === k; })[0]; toast('✅ ' + p[2] + ': now it\'s in the quiz!'); } save(); renderApr(); }
     if (b.dataset.v) { aprView = b.dataset.v; renderApr(); var c = document.querySelector('#aprCards .lcard[data-part="' + aprView + '"]'); if (c) c.scrollIntoView({behavior:'smooth', block:'start'}); }
   });
   $('verTodo').onclick = function(){ aprView = null; renderApr(); };
@@ -2464,8 +2480,8 @@ function initApr(){
 function renderMini(){
   if (!S.pet) {
     $('mpet').innerHTML = '<div style="font-size:70px;text-align:center;line-height:118px">🥚</div>';
-    $('mname').textContent = '¡Tu mascota te espera!';
-    $('msay').textContent = 'Toca aquí para adoptarla, crear tu avatar y ganar monedas con preguntas.';
+    $('mname').textContent = 'Your pet is waiting for you!';
+    $('msay').textContent = 'Tap here to adopt it, make your avatar and win coins with questions.';
     $('mcoins').textContent = '';
     return;
   }
@@ -2473,8 +2489,8 @@ function renderMini(){
   var m = petMood();
   $('mpet').innerHTML = petSVG(S.pet, m === 'normal' ? 'normal' : m, S.pet.acc);
   $('mname').textContent = S.pet.name;
-  $('msay').textContent = m === 'normal' ? pick(['¿Jugamos a preguntas? ¡Gana monedas! 🪙', '¡Hola! Te echaba de menos 💜', '¿Me pruebas ropa nueva? 👗']) : moodPhrase();
-  $('mcoins').textContent = '🪙 ' + S.coins + ' · ⭐ Nivel ' + level();
+  $('msay').textContent = m === 'normal' ? pick(['Shall we play a quiz? Win coins! 🪙', 'Hello! I missed you 💜', 'Try some new clothes! 👗']) : moodPhrase()[0];
+  $('mcoins').textContent = '🪙 ' + S.coins + ' · ⭐ Level ' + level();
   save();
 }
 function openFull(){ if (B && B.openMundo) B.openMundo(); else { location.hash = ''; location.reload(); } }
@@ -2486,15 +2502,16 @@ function bind(){
   $('actions').addEventListener('click', function(e){ var b = e.target.closest('button'); if (b) action(b.dataset.a); });
   $('scenePet').addEventListener('click', function(){
     if (!S.pet) return;
-    if (S.pet.sleeping) { say('Zzz… 😴'); return; }
+    if (S.pet.sleeping) { say(['Zzz… 😴', 'Está durmiendo']); return; }
     S.pet.happy = clamp(S.pet.happy + 1); save(); sfx('squeak'); anim('jump'); setTempMood('celebra', 1200);
-    say(pick(['¡Jiji, cosquillas! 😆', '¡Hola, hola! 👋', moodPhrase(), '¡Te quiero mucho! 💜']));
+    say(pick([['Hee hee! That tickles! 😆', '¡Jiji, cosquillas!'], ['Hello, hello! 👋', '¡Hola, hola!'], moodPhrase(), ['I love you! 💜', '¡Te quiero mucho!'], ['How are you today? 😊', '¿Cómo estás hoy?'], ['I\'m happy to see you! 🥰', '¡Me alegro de verte!']]));
   });
+  $('bubble').addEventListener('click', function(e){ e.stopPropagation(); if (e.target.closest('.btr')) { this.classList.toggle('tr'); return; } var t = this.childNodes[0] ? this.childNodes[0].textContent : ''; if (t) sayTap(t); });
   $('goQuiz').onclick = function(){ tab('quiz'); };
   $('editPet').onclick = function(){ openAdopt(false); };
-  $('snd').onclick = function(){ S.sound = !S.sound; save(); renderHeader(); if (!S.sound && B && B.stopSpeak) B.stopSpeak(); toast(S.sound ? '🗣️ Voz de la mascota activada' : '🗣️ Voz de la mascota quitada'); };
-  $('mus').onclick = function(){ S.music = !S.music; save(); renderHeader(); musicUpdate(); toast(S.music ? '🎵 Música activada' : '🎵 Música quitada'); };
-  $('sfx').onclick = function(){ S.sfx = !S.sfx; save(); renderHeader(); sfx('coin'); toast(S.sfx ? '🔔 Sonidos activados' : '🔔 Sonidos quitados'); };
+  $('snd').onclick = function(){ S.sound = !S.sound; save(); renderHeader(); if (!S.sound && B && B.stopSpeak) B.stopSpeak(); toast(S.sound ? '🗣️ Voice on' : '🗣️ Voice off'); };
+  $('mus').onclick = function(){ S.music = !S.music; save(); renderHeader(); musicUpdate(); toast(S.music ? '🎵 Music on' : '🎵 Music off'); };
+  $('sfx').onclick = function(){ S.sfx = !S.sfx; save(); renderHeader(); sfx('coin'); toast(S.sfx ? '🔔 Sounds on' : '🔔 Sounds off'); };
   document.addEventListener('click', function(e){ audioUnlock(); if (e.target.closest('button,.item,.chip,.opt')) sfx('tap'); }, true);
   $('myQ').onclick = openMyQ;
   $('qchal').addEventListener('click', function(e){ if (e.target.closest('button')) startChallenge(); });
@@ -2532,7 +2549,7 @@ else {
   if (S.lastDaily !== today()) {
     var first = !S.lastDaily;
     S.lastDaily = today(); save();
-    setTimeout(function(){ addCoins(30); toast(first ? '🎁 ¡Regalo de bienvenida! +30 🪙' : '🎁 ¡Regalo del día! +30 🪙'); burst(['🪙', '🎁', '✨']); }, 700);
+    setTimeout(function(){ addCoins(30); toast(first ? '🎁 Welcome present! +30 🪙' : '🎁 Today\'s present! +30 🪙'); burst(['🪙', '🎁', '✨']); }, 700);
   }
 }
 </script>
