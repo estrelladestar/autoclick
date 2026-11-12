@@ -41,6 +41,7 @@ jobs:
         with:
           name: Gatidoku-apk
           path: gatidoku/build/outputs/apk/debug/*.apk
+      - run: cp app/build/outputs/apk/debug/app-debug.apk StarApp.apk  # la misma Star App con su nombre (app-debug.apk se sigue subiendo para que el enlace de siempre funcione)
       - run: cp lengua/src/main/assets/mundo.html MiMundo_Lengua_Tema3.html && cp facil/src/main/assets/mundo.html MiMundo_Facil_Tema3.html && cp ingles/src/main/assets/mundo.html MiMundo_Ingles_Unit2.html  # versiones HTML para descargar
       - run: mkdir -p web/ingles && cp lengua/src/main/assets/mundo.html web/index.html && cp ingles/src/main/assets/mundo.html web/ingles/index.html && touch web/.nojekyll  # páginas web de los juegos (/ = Lengua, /ingles/ = Inglés)
       - uses: peaceiris/actions-gh-pages@v4
@@ -52,10 +53,11 @@ jobs:
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ultima-version
-          name: AutoClick Imagen (última versión)
+          name: Star App y juegos (última versión)
           body: |
             Seis apps distintas, se actualizan con cada compilación:
-            - app-debug.apk → Star App (autoclick)
+            - StarApp.apk → Star App
+            - app-debug.apk → la misma Star App (con el nombre de antes, para que el enlace de siempre siga funcionando)
             - MiMundo-debug.apk → Mi Mundo (juego: avatar, mascota y preguntas)
             - MiMundoLengua-debug.apk → Mi Mundo Lengua (el mismo juego con el Tema 3 de Lengua)
             - MiMundo_Lengua_Tema3.html → Mi Mundo Lengua para abrir en el navegador
@@ -65,6 +67,7 @@ jobs:
             - MiMundoIngles-debug.apk → Mi Mundo Inglés (el mismo juego con la Unit 2 de inglés «Helping at home», con voz en inglés)
             - MiMundo_Ingles_Unit2.html → Mi Mundo Inglés para abrir en el navegador
           files: |
+            StarApp.apk
             app/build/outputs/apk/debug/*.apk
             juego/build/outputs/apk/debug/*.apk
             lengua/build/outputs/apk/debug/*.apk
