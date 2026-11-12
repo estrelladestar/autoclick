@@ -292,6 +292,24 @@ class ClickService : AccessibilityService() {
      * Manda un gesto que empieza en (x, y). Si ese punto cae encima del botón flotante, primero aparta
      * el botón (si no, la app se tocaría a sí misma y pararía el guion).
      */
+    // ---------- Toques "humanos": nunca exactamente en el mismo píxel ni con la misma duración ----------
+    private val rnd = java.util.Random()
+
+    /** Máximo que se mueve un toque desde el punto pedido (unos 6 dp: siempre cae dentro del botón). */
+    private fun maxJitterPx(): Float = 6f * resources.displayMetrics.density
+
+    /** Devuelve (x, y) movido un poquito al azar (más a menudo cerca del centro, como un dedo de verdad). */
+    private fun jitter(x: Float, y: Float): Pair<Float, Float> {
+        val m = maxJitterPx()
+        val dx = (rnd.nextGaussian() * m / 2.5).toFloat().coerceIn(-m, m)
+        val dy = (rnd.nextGaussian() * m / 2.5).toFloat().coerceIn(-m, m)
+        val (w, h) = screenSize()
+        return Pair((x + dx).coerceIn(1f, w - 2f), (y + dy).coerceIn(1f, h - 2f))
+    }
+
+    /** Duración al azar entre a y b milisegundos. */
+    private fun rndMs(a: Long, b: Long): Long = a + (rnd.nextDouble() * (b - a)).toLong()
+
     private fun send(g: GestureDescription, x: Float, y: Float) {
         val v = overlayRoot
         val lp = overlayLp
@@ -316,37 +334,46 @@ class ClickService : AccessibilityService() {
     }
 
     /** Toque un poco más largo, como el de un dedo (para listas que no hacen caso a toques muy cortos). */
-    fun fingerTap(x: Float, y: Float, ms: Long = 150L) {
+    fun fingerTap(x0: Float, y0: Float, ms: Long = 150L) {
+        val (x, y) = jitter(x0, y0)
         val path = Path().apply { moveTo(x, y) }
         val g = GestureDescription.Builder()
-            .addStroke(GestureDescription.StrokeDescription(path, 0, ms)).build()
+            .addStroke(GestureDescription.StrokeDescription(path, 0, rndMs(ms * 8 / 10, ms * 13 / 10))).build()
         send(g, x, y)
     }
 
     /** Para que el guion pueda mantener pulsada una posición de la pantalla (pulsación larga). */
     /** Desliza el dedo de (x1,y1) a (x2,y2) en ms milisegundos (para mover listas como los comentarios). */
-    fun swipe(x1: Float, y1: Float, x2: Float, y2: Float, ms: Long) {
+    fun swipe(ax: Float, ay: Float, bx: Float, by: Float, ms: Long) {
+        val (x1, y1) = jitter(ax, ay)
+        val (x2, y2) = jitter(bx, by)
         val path = Path().apply { moveTo(x1, y1); lineTo(x2, y2) }
         val g = GestureDescription.Builder()
-            .addStroke(GestureDescription.StrokeDescription(path, 0, ms)).build()
+            .addStroke(GestureDescription.StrokeDescription(path, 0, rndMs(ms * 85 / 100, ms * 115 / 100).coerceAtLeast(1L))).build()
         send(g, x1, y1)
     }
 
     /** Doble toque rápido (como el doble toque en la foto de perfil de Instagram, que cambia de cuenta). */
-    fun doubleTapAt(x: Float, y: Float) {
+    fun doubleTapAt(x0: Float, y0: Float) {
+        val (x, y) = jitter(x0, y0)
+        val d = 1.5f * resources.displayMetrics.density   // el segundo toque cae casi en el mismo sitio
+        val x2 = x + ((rnd.nextFloat() * 2 - 1) * d)
+        val y2 = y + ((rnd.nextFloat() * 2 - 1) * d)
         val p1 = Path().apply { moveTo(x, y) }
-        val p2 = Path().apply { moveTo(x, y) }
+        val p2 = Path().apply { moveTo(x2, y2) }
+        val t1 = rndMs(35, 60)
         val g = GestureDescription.Builder()
-            .addStroke(GestureDescription.StrokeDescription(p1, 0, 40))
-            .addStroke(GestureDescription.StrokeDescription(p2, 140, 40))
+            .addStroke(GestureDescription.StrokeDescription(p1, 0, t1))
+            .addStroke(GestureDescription.StrokeDescription(p2, t1 + rndMs(80, 120), rndMs(35, 60)))
             .build()
         send(g, x, y)
     }
 
-    fun longPressAt(x: Float, y: Float) {
+    fun longPressAt(x0: Float, y0: Float) {
+        val (x, y) = jitter(x0, y0)
         val path = Path().apply { moveTo(x, y) }
         val g = GestureDescription.Builder()
-            .addStroke(GestureDescription.StrokeDescription(path, 0, 900)).build()
+            .addStroke(GestureDescription.StrokeDescription(path, 0, rndMs(850, 1150))).build()
         send(g, x, y)
     }
 
@@ -939,10 +966,11 @@ class ClickService : AccessibilityService() {
     }
 
     // ---------- Toque ----------
-    private fun tap(x: Float, y: Float) {
+    private fun tap(x0: Float, y0: Float) {
+        val (x, y) = jitter(x0, y0)
         val path = Path().apply { moveTo(x, y) }
         val g = GestureDescription.Builder()
-            .addStroke(GestureDescription.StrokeDescription(path, 0, 50)).build()
+            .addStroke(GestureDescription.StrokeDescription(path, 0, rndMs(45, 110))).build()
         send(g, x, y)
     }
 
