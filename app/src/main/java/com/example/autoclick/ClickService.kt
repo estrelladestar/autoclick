@@ -427,7 +427,8 @@ class ClickService : AccessibilityService() {
 
     /**
      * ¿Hay en la pantalla una línea de letras rojas (como los avisos de error de Instagram)?
-     * Busca franjas con bastantes píxeles rojos y que ocupen a lo ancho (un corazón o un punto rojo no cuentan).
+     * Busca franjas con bastantes píxeles rojos, que ocupen a lo ancho y en muchos trocitos, como las letras
+     * (un icono rojo, un corazón o un punto rojo no cuentan).
      * No mira la barra de arriba ni la de abajo.
      */
     fun hasRedText(src: Bitmap, skip: android.graphics.Rect?): Boolean {
@@ -442,25 +443,37 @@ class ClickService : AccessibilityService() {
             val count = IntArray(bands)
             val minX = IntArray(bands) { Int.MAX_VALUE }
             val maxX = IntArray(bands) { -1 }
+            // Trozos rojos separados en una misma fila: las letras dan muchos, un icono (corazón, punto) muy pocos
+            val maxRuns = IntArray(bands)
             val row = IntArray(w)
             for (y in y0 until y1) {
                 b.getPixels(row, 0, w, 0, y, w, 1)
                 val k = (y - y0) / bandH
                 val inSkip = skip != null && y >= skip.top && y <= skip.bottom
+                var runs = 0
+                var prevRed = false
                 for (x in 0 until w) {
-                    if (inSkip && x >= skip!!.left && x <= skip.right) continue
+                    if (inSkip && x >= skip!!.left && x <= skip.right) {
+                        prevRed = false
+                        continue
+                    }
                     val c = row[x]
                     val r = (c shr 16) and 0xff
                     val g = (c shr 8) and 0xff
                     val bl = c and 0xff
-                    if (r >= 170 && g <= 110 && bl <= 125 && r - g >= 100 && r - bl >= 90) {
+                    val red = r >= 170 && g <= 110 && bl <= 125 && r - g >= 100 && r - bl >= 90
+                    if (red) {
                         count[k]++
                         if (x < minX[k]) minX[k] = x
                         if (x > maxX[k]) maxX[k] = x
+                        if (!prevRed) runs++
                     }
+                    prevRed = red
                 }
+                if (runs > maxRuns[k]) maxRuns[k] = runs
             }
-            (0 until bands).any { count[it] >= 100 && maxX[it] - minX[it] >= w * 0.15f }
+            // Solo cuenta si parecen letras: bastante rojo, a lo ancho y en muchos trocitos (10 o más en una fila)
+            (0 until bands).any { count[it] >= 100 && maxX[it] - minX[it] >= w * 0.15f && maxRuns[it] >= 10 }
         } catch (e: Throwable) {
             false
         }
