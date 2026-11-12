@@ -205,7 +205,9 @@ object Macro {
                     }
                     cmds.add(Cmd("hora", arg.replace('.', ':'), 0L, 0L))
                 }
-                "esperar", "tocar", "escribir", "campo", "enlace", "imagen", "mantener", "mirar", "inicio", "historias" -> cmds.add(Cmd(op, arg, extra, extraMax))
+                "esperar", "tocar", "escribir", "campo", "enlace", "imagen", "mantener", "mirar", "inicio", "historias", "megusta", "seguir" -> cmds.add(Cmd(op, arg, extra, extraMax))
+                "me" -> if (arg.lowercase().replace(" ", "") == "gusta") cmds.add(Cmd("megusta", "", extra, extraMax))
+                "like" -> cmds.add(Cmd("megusta", "", extra, extraMax))
                 "atras", "atrás" -> cmds.add(Cmd("atras", arg, extra, extraMax))
                 "clic", "click", "pulsar" -> cmds.add(Cmd("tocar", arg, extra, extraMax))
                 "cuenta" -> {
@@ -591,6 +593,8 @@ object Macro {
                     }
                 }
                 "mirar" -> look(c)
+                "megusta" -> likePost(c)
+                "seguir" -> followAccount(c)
                 "inicio" -> feed(c)
                 "historias" -> stories(c)
                 "irperfil" -> {
@@ -883,6 +887,8 @@ object Macro {
                 c.label.isNotEmpty() -> c.label + " " + c.arg + " min"
                 c.op == "tocarcuenta" || c.op == "irperfil" || c.op == "perfil" || c.op == "dobleperfil" || c.op == "abrirlista" -> "cambiando cuenta"
                 c.op == "inicio" -> "paseo por inicio"
+                c.op == "megusta" -> "me gusta"
+                c.op == "seguir" -> "seguir cuenta"
                 c.op == "historias" -> "viendo historias"
                 else -> (c.op + " " + c.arg).trim().take(14)
             }
@@ -1647,6 +1653,116 @@ object Macro {
                     later(1500L + (Math.random() * 3500).toLong())
                 }
             }
+        }
+
+        /**
+         * «megusta»: da me gusta a la publicación abierta solo si el corazón no está rojo (si ya está, no lo toca,
+         * para no quitarlo). Si no ve el corazón, sigue con el guion.
+         */
+        private fun likePost(c: Cmd) {
+            val (w, h) = s.screenSize()
+            val liked = listOf("ya no me gusta", "te gusta", "unlike", "liked")
+            val unliked = listOf("me gusta", "like")
+            var target: Rect? = null
+            var already = false
+            for (root in windowRoots()) {
+                if (root.packageName?.toString() != INSTAGRAM) continue
+                val byId = try { root.findAccessibilityNodeInfosByViewId("$INSTAGRAM:id/row_feed_button_like") } catch (e: Exception) { null }
+                for (n in byId ?: emptyList()) {
+                    if (!n.isVisibleToUser) continue
+                    val d = (n.contentDescription?.toString() ?: "").trim().lowercase()
+                    val r = Rect()
+                    n.getBoundsInScreen(r)
+                    if (r.width() <= 0 || r.top < 0 || r.bottom > h) continue
+                    if (n.isSelected || n.isChecked || liked.any { d == it }) { already = true; break }
+                    if (target == null) target = r
+                }
+                if (already || target != null) break
+                // Sin el nombre interno: el corazón de la publicación está a la izquierda (los de los comentarios, a la derecha)
+                fun walk(n: AccessibilityNodeInfo?, depth: Int) {
+                    if (n == null || depth > 40 || already) return
+                    val d = (n.contentDescription?.toString() ?: "").trim().lowercase()
+                    if (d.isNotEmpty() && n.isVisibleToUser) {
+                        val r = Rect()
+                        n.getBoundsInScreen(r)
+                        if (r.width() > 0 && r.exactCenterX() < w * 0.3f && r.top >= 0 && r.bottom <= h) {
+                            if (liked.any { d == it } || n.isSelected) already = true
+                            else if (target == null && unliked.any { d == it }) target = r
+                        }
+                    }
+                    for (k in 0 until n.childCount) walk(n.getChild(k), depth + 1)
+                }
+                walk(root, 0)
+                if (already || target != null) break
+            }
+            if (already) {
+                trace("  el corazón ya está rojo: no lo toco")
+                advance(c.extra())
+                return
+            }
+            val t = target
+            if (t == null) {
+                if (tries < 3) {
+                    tries++
+                    later(1500L)
+                } else {
+                    trace("  no veo el corazón de la publicación: sigo")
+                    advance(c.extra())
+                }
+                return
+            }
+            trace("  doy me gusta (el corazón no estaba rojo)")
+            s.tapAt(t.exactCenterX(), t.exactCenterY())
+            advance(maxOf(c.extra(), 1200L))
+        }
+
+        /**
+         * «seguir»: si en la publicación abierta sale el botón «Seguir» junto al nombre de la cuenta, lo toca.
+         * Si ya pone «Siguiendo» o «Solicitado», no hace nada. Si no lo ve, sigue con el guion.
+         */
+        private fun followAccount(c: Cmd) {
+            val (_, h) = s.screenSize()
+            val follow = setOf("seguir", "follow", "seguir también", "seguir de vuelta", "follow back")
+            val done = setOf("siguiendo", "following", "solicitado", "requested")
+            var target: Rect? = null
+            var already = false
+            for (root in windowRoots()) {
+                if (root.packageName?.toString() != INSTAGRAM) continue
+                fun walk(n: AccessibilityNodeInfo?, depth: Int) {
+                    if (n == null || depth > 40) return
+                    val t = (n.text?.toString() ?: n.contentDescription?.toString() ?: "").trim().lowercase()
+                    if (t.isNotEmpty() && n.isVisibleToUser) {
+                        val r = Rect()
+                        n.getBoundsInScreen(r)
+                        // Solo arriba (la cabecera de la publicación), no los «Seguir» de cuentas sugeridas más abajo
+                        if (r.width() > 0 && r.top >= 0 && r.exactCenterY() < h * 0.45f) {
+                            if (t in done) already = true
+                            else if (t in follow && target == null) target = r
+                        }
+                    }
+                    for (k in 0 until n.childCount) walk(n.getChild(k), depth + 1)
+                }
+                walk(root, 0)
+            }
+            if (already && target == null) {
+                trace("  ya sigues a esta cuenta")
+                advance(c.extra())
+                return
+            }
+            val t = target
+            if (t == null) {
+                if (tries < 3) {
+                    tries++
+                    later(1500L)
+                } else {
+                    trace("  no veo el botón «Seguir»: sigo")
+                    advance(c.extra())
+                }
+                return
+            }
+            trace("  sigo a la cuenta (ponía «Seguir»)")
+            s.tapAt(t.exactCenterX(), t.exactCenterY())
+            advance(maxOf(c.extra(), 1500L))
         }
 
         /** Centro de una vista de Instagram por su nombre interno (por ejemplo «profile_tab»), si se ve. */
