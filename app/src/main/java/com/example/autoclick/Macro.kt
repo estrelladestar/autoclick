@@ -155,6 +155,17 @@ object Macro {
         "We limit how often", "Inténtalo de nuevo más tarde", "Try again later"
     )
 
+    /** Avisos (en rojo) de Instagram cuando un comentario no se publica. En minúsculas. */
+    private val NOT_POSTED_TEXTS = listOf(
+        "no se ha podido publicar", "no se pudo publicar", "no se ha publicado", "no se publicó",
+        "toca para reintentar", "no se puede comentar", "no se le puede", "no puedes comentar",
+        "no se puede mencionar", "no puedes mencionar", "no permite", "no se ha podido compartir",
+        "couldn't post", "could not post", "tap to retry", "can't comment", "can't be mentioned",
+        "can't mention", "doesn't allow", "does not allow", "not posted"
+    )
+    /** De esos, los que dicen que es por una persona mencionada. */
+    private val MENTION_ERROR_HINTS = listOf("mencion", "mention", "no permite", "no se le puede", "allow")
+
     fun start(service: ClickService, script: String, comments: List<String>) {
         if (running) {
             toast(service, "Ya hay un guion en marcha")
@@ -398,6 +409,8 @@ object Macro {
         private var last = 0L
         private var linkTurn = 0
         private val usedCombos = HashSet<String>()
+        /** Menciones del último comentario escrito: al tocar «publicar» se comprueba que ha salido bien. */
+        private var checkMention: List<String>? = null
         private val pool = ArrayList<String>()
 
         private fun later(ms: Long) {
@@ -932,8 +945,20 @@ object Macro {
                     missing -> finish("No encuentro la imagen $n. Añádela en la app. Guion detenido.")
                     pos != null -> {
                         trace("  imagen $n encontrada: toco ${pos.first.toInt()},${pos.second.toInt()}")
+                        val pick = checkMention
+                        // Lo que ya se veía antes de publicar, para no confundirlo con un aviso nuevo
+                        val before = if (pick != null) screenTexts().toSet() else emptySet()
                         s.tapAt(pos.first, pos.second)
-                        advance(c.extra())
+                        if (pick != null) {
+                            // Era «publicar» después de escribir menciones: mirar si Instagram lo ha publicado
+                            checkMention = null
+                            nextDue = System.currentTimeMillis() + 4000L
+                            main.postDelayed({
+                                if (myTry == stepGen && id == token && running) checkPosted(pick, before, c)
+                            }, 3500L)
+                        } else {
+                            advance(c.extra())
+                        }
                     }
                     else -> {
                         nudgeToFind(n)
@@ -1035,11 +1060,87 @@ object Macro {
             toast(s, "Escrito: $text")
             trace("  escrito: $text")
             usedCombos.add(key)
+            checkMention = pick
             countComment(text)
             used++
             last = System.currentTimeMillis()
             showProgress()
             advance(c.extra())
+        }
+
+        /** Todos los textos que se ven en pantalla (menos lo que hay escrito en la caja). */
+        private fun screenTexts(): List<String> {
+            val out = ArrayList<String>()
+            fun walk(n: AccessibilityNodeInfo?, depth: Int) {
+                if (n == null || depth > 40) return
+                if (!n.isEditable) {
+                    n.text?.toString()?.takeIf { it.isNotBlank() }?.let { out.add(it) }
+                    n.contentDescription?.toString()?.takeIf { it.isNotBlank() }?.let { out.add(it) }
+                }
+                for (k in 0 until n.childCount) walk(n.getChild(k), depth + 1)
+            }
+            try {
+                for (w in s.windows) {
+                    if (w.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD) continue
+                    walk(w.root, 0)
+                }
+            } catch (e: Exception) {
+                walk(s.rootInActiveWindow, 0)
+            }
+            return out
+        }
+
+        /**
+         * Después de tocar «publicar»: si Instagram muestra en rojo que el comentario no se ha publicado,
+         * quita de la lista a la persona que no deja que la mencionen (si se sabe cuál) y pasa a la siguiente cuenta.
+         * Si es un aviso de bloqueo, se para como siempre.
+         */
+        private fun checkPosted(pick: List<String>, before: Set<String>, c: Cmd) {
+            if (blocked()) {
+                finish("Instagram muestra un aviso de bloqueo o límite. Guion detenido para proteger tu cuenta.")
+                return
+            }
+            val texts = screenTexts()
+            val err = texts.firstOrNull { t -> t !in before && t.lowercase().let { l -> NOT_POSTED_TEXTS.any { l.contains(it) } } }
+            if (err == null) {
+                advance(c.extra())
+                return
+            }
+            trace("  ⚠ el comentario no se ha publicado: «${err.take(150)}»")
+            // ¿Por culpa de quién? La persona que sale en el aviso o, si solo había una mención y el aviso habla de menciones, esa.
+            val low = err.lowercase()
+            val aboutMention = MENTION_ERROR_HINTS.any { low.contains(it) }
+            var culprit = if (aboutMention) pick.filter { low.contains(it.removePrefix("@").lowercase()) } else emptyList()
+            if (culprit.isEmpty() && pick.size == 1 && aboutMention) culprit = pick
+            if (culprit.isNotEmpty()) removeMentions(culprit)
+            // Borrar lo que quede escrito y cambiar de cuenta
+            findField()?.let { f -> if ((f.text?.length ?: 0) > 0) putText(f, "") }
+            val j = (i + 1 until cmds.size).firstOrNull { cmds[it].op == "irperfil" }
+            if (j == null) {
+                advance(c.extra())
+                return
+            }
+            toast(s, "Ha salido un aviso en rojo: paso a la siguiente cuenta")
+            trace("  paso a la siguiente cuenta")
+            tries = 0
+            swipes = null
+            i = j
+            later(1500L)
+        }
+
+        /** Quita personas de la lista de menciones (y las apunta en «no_mencionar»). */
+        private fun removeMentions(handles: List<String>) {
+            val prefs = s.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE)
+            val bad = handles.map { it.removePrefix("@").lowercase() }.toSet()
+            val keep = (prefs.getString("friends", "") ?: "").lines()
+                .filter { it.trim().removePrefix("@").lowercase() !in bad }
+            val old = (prefs.getString("no_mencionar", "") ?: "").lines().filter { it.isNotBlank() }
+            prefs.edit()
+                .putString("friends", keep.joinToString("\n"))
+                .putString("no_mencionar", (old + handles).distinct().joinToString("\n"))
+                .apply()
+            toast(s, "Quito de tus menciones: ${handles.joinToString(" ")} (no deja que la mencionen)")
+            trace("  quito de la lista de menciones: ${handles.joinToString(" ")}")
         }
 
         /** Si la cuenta actual ya llegó al límite de hoy, salta al cambio de cuenta. Devuelve true si ha saltado. */
