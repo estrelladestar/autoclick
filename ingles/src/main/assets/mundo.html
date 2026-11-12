@@ -204,7 +204,7 @@ textarea.pin{min-height:150px;font-size:16px;line-height:1.5}
   <header>
     <div class="coins" id="coinsBox">🪙 <b id="coins">0</b></div>
     <div class="lvl">⭐ Level <b id="lvl">1</b><div class="xpbar"><i id="xp"></i></div></div>
-    <button class="icon" id="mus" title="Music">🎵</button><button class="icon" id="sfx" title="Sounds">🔔</button><button class="icon" id="snd" title="Voice">🗣️</button>
+    <button class="icon" id="mus" title="Music">🎵</button><button class="icon" id="sfx" title="Sounds">🔔</button><button class="icon" id="snd" title="Voice">🗣️</button><button class="icon" id="slw" title="Slow voice">🐢</button>
   </header>
   <nav>
     <button data-t="pet" class="on"><b>🐾</b>Pet</button>
@@ -396,7 +396,7 @@ textarea.pin{min-height:150px;font-size:16px;line-height:1.5}
     <div class="pbar"><i id="dbar"></i></div>
     <div class="qtop"><div class="qpet" id="dpet"></div><div class="qbubble" id="dtext"></div></div>
     <input class="din" id="din" type="text" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="Write here">
-    <div class="row2"><button class="btn blue" id="dsay">🔊 Say it again</button><button class="btn green" id="dcheck">✅ Check</button></div>
+    <div class="row2"><button class="btn blue" id="dsay">🔊 Again</button><button class="btn orange" id="dslow">🐢 Slowly</button><button class="btn green" id="dcheck">✅ Check</button></div>
     <div id="dres" style="margin-top:10px"></div>
     <button class="btn pink big" id="dnext" style="display:none;margin-top:6px">Next ▶</button>
   </section>
@@ -440,7 +440,7 @@ textarea.pin{min-height:150px;font-size:16px;line-height:1.5}
     <div class="card"><b>5️⃣ Title and check</b>
       <input class="pin" id="ptitle" placeholder="Title. Ex.: Lucy the inventor">
       <div id="pinfo" style="font-size:13px;margin:6px 0"></div>
-      <div class="row2"><button class="btn blue" onclick="recitePoem()">🐾 Read it to me</button><button class="btn green" onclick="savePoem()">💾 Save</button></div>
+      <div class="row2"><button class="btn blue" onclick="recitePoem()">🐾 Read it to me</button><button class="btn orange" onclick="recitePoem(null, true)">🐢 Slowly</button><button class="btn green" onclick="savePoem()">💾 Save</button></div>
       <button class="btn" style="width:100%;margin-top:8px;background:#ddd;color:#333" onclick="newPoem()">📄 Start a new story</button></div>
     <div class="card"><b>6️⃣ Read it aloud</b>
       <button class="btn pink big" id="precbtn" onclick="toggleRec()">🎤 Record me reading</button>
@@ -1164,13 +1164,14 @@ function moodPhrase(){
 /* ======================= voz y avisos ======================= */
 function plain(t){ return String(t).replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}]/gu, '').replace(/\s+/g, ' ').trim(); }
 /* speak(texto, idioma, cola): por defecto en INGLÉS; 'es' para las explicaciones en español. cola=true → no corta lo anterior */
-function speak(t, lang, queue){
+function speak(t, lang, queue, slow){
   if (!S.sound || MINI) return;
   var txt = plain(t); if (!txt) return;
   lang = lang || 'en';
+  var sl = lang === 'en' && (slow || S.slow);   // 🐢 más despacio (solo el inglés)
   try {
-    if (B && B.speakLang) B.speakLang(txt, lang + (queue ? '+' : ''));
-    else if (window.speechSynthesis) { if (!queue) speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(txt); u.lang = lang === 'en' ? 'en-GB' : 'es-ES'; u.pitch = 1.5; speechSynthesis.speak(u); }
+    if (B && B.speakLang) B.speakLang(txt, lang + (sl ? '~' : '') + (queue ? '+' : ''));
+    else if (window.speechSynthesis) { if (!queue) speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(txt); u.lang = lang === 'en' ? 'en-GB' : 'es-ES'; u.pitch = 1.5; u.rate = sl ? .6 : 1; speechSynthesis.speak(u); }
   } catch (e) {}
 }
 function vibrate(ms){ try { if (B && B.vibrate) B.vibrate(ms); else if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
@@ -1206,7 +1207,7 @@ function addXp(n){
 function renderHeader(){
   $('coins').textContent = S.coins; $('lvl').textContent = level();
   $('xp').style.width = (S.xp % 100) + '%';
-  $('snd').classList.toggle('off', !S.sound); $('mus').classList.toggle('off', !S.music); $('sfx').classList.toggle('off', !S.sfx);
+  $('snd').classList.toggle('off', !S.sound); $('mus').classList.toggle('off', !S.music); $('sfx').classList.toggle('off', !S.sfx); $('slw').classList.toggle('off', !S.slow);
 }
 
 /* ======================= pestaña Mascota ======================= */
@@ -1217,7 +1218,7 @@ function curMood(){ return tempMood || petMood(); }
 function say(t, noVoice){
   var en = Array.isArray(t) ? t[0] : t, es = Array.isArray(t) ? t[1] : '';
   $('bubble').classList.remove('tr');
-  $('bubble').innerHTML = esc(en) + (es ? ' <button class="btr" title="Translate">🌐</button><span class="bes">' + esc(es) + '</span>' : '');
+  $('bubble').innerHTML = esc(en) + ' <button class="btr bslow" title="Slowly">🐢</button>' + (es ? '<button class="btr" title="Translate">🌐</button><span class="bes">' + esc(es) + '</span>' : '');
   if (!noVoice) speak(en, 'en');
 }
 function anim(cls){
@@ -1773,22 +1774,23 @@ function pickQ(cat){
 function afterTools(q){
   if (q.v !== 'en') return '';
   var tq = trES(q.q), to = trES(q.ok);
-  return '<div class="qtools"><button data-say="q">🔊 Question</button><button data-sayok="1">🔊 Answer</button><button class="tr" data-tr="1">🌐 Translate</button></div><div class="trbox" id="trbox">🇪🇸 ' + esc(tq || '(no translation)') + (to && to !== q.ok ? '<br>✅ ' + esc(q.ok) + ' → <i>' + esc(to) + '</i>' : '') + '</div>';
+  return '<div class="qtools"><button data-say="q">🔊 Question</button><button data-say="q" data-slow="1">🐢 Slowly</button><button data-sayok="1">🔊 Answer</button><button data-sayok="1" data-slow="1">🐢 Answer</button><button class="tr" data-tr="1">🌐 Translate</button></div><div class="trbox" id="trbox">🇪🇸 ' + esc(tq || '(no translation)') + (to && to !== q.ok ? '<br>✅ ' + esc(q.ok) + ' → <i>' + esc(to) + '</i>' : '') + '</div>';
 }
-function sayTap(t){
+function sayTap(t, slow){
   if (!S.sound) { toast('🗣️ Turn the voice on (button at the top) to hear it'); return; }
   try { if (B && B.stopSpeak) B.stopSpeak(); else if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {}
-  speak(t, 'en');
+  speak(t, 'en', false, slow);
 }
 function cleanEn(t){ return String(t).replace(/\s*\((Sí|No|Lesson 2|Look at page 25|negativa|letras dobles|tarea de casa|¿[^)]*\?)\)/g, '').replace(/\s*\([a-záéíóúñ /]+\)$/i, '').replace(/___/g, '…'); }
 function enOf(q){ return q.v === 'w' ? q.en : cleanEn(q.q); }
 function qHTML(q, exam){
   var txt = q.q, h;
   if (q.v === 'en' || q.v === 'w') h = '<span class="qen" data-say="q">' + txt + ' 🔊</span>'; else h = txt;
-  if (exam || (q.v !== 'en')) return h;
+  if (q.v === 'w' && !exam) return h + '<div class="qtools"><button data-say="q">🔊 Listen</button><button data-say="q" data-slow="1">🐢 Slowly</button></div>';
+  if (exam || (q.v !== 'en')) return h + (q.v === 'en' || q.v === 'w' ? '<div class="qtools"><button data-say="q" data-slow="1">🐢 Slowly</button></div>' : '');
   var tq = trES(q.q), lines = q.opts.map(function(o, i){ var t = trES(o); return 'ABCD'[i] + ': ' + esc(o) + (t && t !== o ? ' → <i>' + esc(t) + '</i>' : ''); }).join('<br>');
   var gram = q.cat === 'pas' || q.cat === 'qst';  // en gramática, traducir las opciones daría la respuesta
-  return h + '<div class="qtools"><button data-say="q">🔊 Listen</button><button class="tr" data-tr="1">🌐 Translate</button></div><div class="trbox" id="trbox">🇪🇸 ' + esc(tq || '(no translation)') + (gram ? '<br><small>The answers are not translated here, so you don\'t see the solution 😉 (las respuestas no se traducen para no darte la solución)</small>' : '<br><br>' + lines) + '</div>';
+  return h + '<div class="qtools"><button data-say="q">🔊 Listen</button><button data-say="q" data-slow="1">🐢 Slowly</button><button class="tr" data-tr="1">🌐 Translate</button></div><div class="trbox" id="trbox">🇪🇸 ' + esc(tq || '(no translation)') + (gram ? '<br><small>The answers are not translated here, so you don\'t see the solution 😉 (las respuestas no se traducen para no darte la solución)</small>' : '<br><br>' + lines) + '</div>';
 }
 function optsHTML(q){
   var en = q.v === 'en' || q.v === 'oe';
@@ -1799,8 +1801,9 @@ function bindSayTools(textId, optsId, getQ){
     var q = getQ(); if (!q) return;
     var t = e.target.closest('[data-tr]');
     if (t) { var bx = $('trbox'); if (bx) { bx.classList.toggle('on'); t.textContent = bx.classList.contains('on') ? '🌐 Hide translation' : '🌐 Translate'; } return; }
-    if (e.target.closest('[data-sayok]')) { sayTap(q.ok); return; }
-    if (e.target.closest('[data-say]')) sayTap(enOf(q));
+    var sl = !!e.target.closest('[data-slow]');
+    if (e.target.closest('[data-sayok]')) { sayTap(q.ok, sl); return; }
+    if (e.target.closest('[data-say]')) sayTap(enOf(q), sl);
   });
   $(optsId).addEventListener('click', function(e){
     var o = e.target.closest('.osay'); if (!o) return;
@@ -2314,7 +2317,7 @@ function showSpeak(){
   SP.done = false; SP.tries = 0;
   $('spback').innerHTML = backBtn();
   $('sppet').innerHTML = petMiniSVG('pensar');
-  $('sptext').innerHTML = '<small>🎤 Speak · ' + (SP.i + 1) + ' of ' + SP.list.length + '</small>Listen and say it in English:<span class="bige">' + it[2] + '</span><span class="qen" data-spsay="1" style="font-size:22px">' + esc(it[0]) + ' 🔊</span><br><small style="display:inline;color:var(--muted)">(' + esc(it[1]) + ')</small>';
+  $('sptext').innerHTML = '<small>🎤 Speak · ' + (SP.i + 1) + ' of ' + SP.list.length + '</small>Listen and say it in English:<span class="bige">' + it[2] + '</span><span class="qen" data-spsay="1" style="font-size:22px">' + esc(it[0]) + ' 🔊</span><div class="qtools"><button data-spsay="1">🔊 Listen</button><button data-spsay="1" data-slow="1">🐢 Slowly</button></div><br><small style="display:inline;color:var(--muted)">(' + esc(it[1]) + ')</small>';
   $('spres').innerHTML = canListen() ? '' : '<div class="card" style="font-weight:700">🎤 Este móvil o navegador no puede escucharte. En la app de Android funciona si el móvil tiene el «Reconocimiento de voz de Google». Puedes practicar igual: escucha, repite en voz alta y pulsa «Next».</div>';
   $('spbar').style.width = (SP.i * 100 / SP.list.length) + '%';
   $('spmic').style.display = ''; $('spmic').textContent = '🎤 Tap and speak'; $('spmic').className = 'btn pink big';
@@ -2487,12 +2490,12 @@ function savePoem(){
   if (!p.paid && ns >= 6 && $('pbeg').value.trim() && $('pmid').value.trim() && $('pend').value.trim()) { p.paid = true; addCoins(30); addXp(20); sfx('level'); toast('💾 Story saved! +30 🪙'); } else { sfx('coin'); toast('💾 Story saved'); }
   save(); renderMyPoems();
 }
-function recitePoem(txt){
+function recitePoem(txt, slow){
   txt = txt || storyText(); if (!txt) { toast('Write your story first'); return; }
   if (!S.sound) { toast('🗣️ Turn the voice on (button at the top)'); return; }
   var t = $('ptitle').value.trim();
   try { if (B && B.stopSpeak) B.stopSpeak(); else if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {}
-  speak((t ? t + '. ' : '') + txt.replace(/\n/g, ' '), 'en');
+  speak((t ? t + '. ' : '') + txt.replace(/\n/g, ' '), 'en', false, slow);
 }
 function renderMyPoems(){
   var ps = S.poems || [];
@@ -2529,8 +2532,8 @@ function toggleRec(){
 function bindExtras(){
   $('extras').addEventListener('click', function(e){ var b = e.target.closest('button'); if (!b) return; var x = b.dataset.x; if (x === 'dict') startDict(); if (x === 'exam') startExam(); if (x === 'poema') openPoema(); if (x === 'speak') startSpeak(); });
   $('spmic').onclick = spListen; $('spnext').onclick = nextSpeak;
-  $('sptext').addEventListener('click', function(e){ if (e.target.closest('[data-spsay]') && SP) sayTap(SP.list[SP.i][0]); });
-  $('dcheck').onclick = checkDict; $('dnext').onclick = nextDict; $('dsay').onclick = function(){ sayWord(false); };
+  $('sptext').addEventListener('click', function(e){ if (e.target.closest('[data-spsay]') && SP) sayTap(SP.list[SP.i][0], !!e.target.closest('[data-slow]')); });
+  $('dcheck').onclick = checkDict; $('dnext').onclick = nextDict; $('dsay').onclick = function(){ sayWord(false); }; $('dslow').onclick = function(){ if (D && D.i < D.list.length) sayTap(D.list[D.i], true); };
   $('din').addEventListener('keydown', function(e){ if (e.key === 'Enter') { if (D && !D.done) checkDict(); else if (D && D.i < D.list.length) nextDict(); } });
   $('eopts').addEventListener('click', function(e){ var b = e.target.closest('.opt'); if (b && E && E.i < E.qs.length && !b.disabled) { var bs = $('eopts').querySelectorAll('.opt'); for (var i = 0; i < bs.length; i++) bs[i].disabled = true; answerExam(+b.dataset.o); } });
   $('ptemas').addEventListener('click', function(e){ var b = e.target.closest('.chip'); if (!b) return; PT.tema = b.dataset.pt; if (PT.tema) $('pinv').value = PT.tema; else { $('pinv').value = ''; $('pinv').focus(); } renderPoema(); });
@@ -2618,9 +2621,10 @@ function bind(){
     S.pet.happy = clamp(S.pet.happy + 1); save(); sfx('squeak'); anim('jump'); setTempMood('celebra', 1200);
     say(pick([['Hee hee! That tickles! 😆', '¡Jiji, cosquillas!'], ['Hello, hello! 👋', '¡Hola, hola!'], moodPhrase(), ['I love you! 💜', '¡Te quiero mucho!'], ['How are you today? 😊', '¿Cómo estás hoy?'], ['I\'m happy to see you! 🥰', '¡Me alegro de verte!']]));
   });
-  $('bubble').addEventListener('click', function(e){ e.stopPropagation(); if (e.target.closest('.btr')) { this.classList.toggle('tr'); return; } var t = this.childNodes[0] ? this.childNodes[0].textContent : ''; if (t) sayTap(t); });
+  $('bubble').addEventListener('click', function(e){ e.stopPropagation(); if (e.target.closest('.bslow')) { var t0 = this.childNodes[0] ? this.childNodes[0].textContent : ''; if (t0) sayTap(t0, true); return; } if (e.target.closest('.btr')) { this.classList.toggle('tr'); return; } var t = this.childNodes[0] ? this.childNodes[0].textContent : ''; if (t) sayTap(t); });
   $('goQuiz').onclick = function(){ tab('quiz'); };
   $('editPet').onclick = function(){ openAdopt(false); };
+  $('slw').onclick = function(){ S.slow = !S.slow; save(); renderHeader(); toast(S.slow ? '🐢 Slow English voice: ON (la voz en inglés irá siempre despacio)' : '🐇 Normal English voice'); speak(S.slow ? 'I will speak slowly.' : 'I will speak normally.'); };
   $('snd').onclick = function(){ S.sound = !S.sound; save(); renderHeader(); if (!S.sound && B && B.stopSpeak) B.stopSpeak(); toast(S.sound ? '🗣️ Voice on' : '🗣️ Voice off'); };
   $('mus').onclick = function(){ S.music = !S.music; save(); renderHeader(); musicUpdate(); toast(S.music ? '🎵 Music on' : '🎵 Music off'); };
   $('sfx').onclick = function(){ S.sfx = !S.sfx; save(); renderHeader(); sfx('coin'); toast(S.sfx ? '🔔 Sounds on' : '🔔 Sounds off'); };

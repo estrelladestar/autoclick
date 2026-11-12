@@ -141,8 +141,11 @@ class MainActivity : Activity() {
         if (!ttsReady) return
         val t = tts ?: return
         // «en+» / «es+» = a la cola (no corta lo que está diciendo); «en» / «es» = corta y habla ya.
+        // «~» = más despacio (botón 🐢)
         val queue = lang.endsWith("+")
-        setLang(t, lang.removeSuffix("+"))
+        val slow = lang.contains("~")
+        setLang(t, lang.replace("+", "").replace("~", ""))
+        t.setSpeechRate(if (slow) 0.55f else 1.05f)
         t.speak(text, if (queue) TextToSpeech.QUEUE_ADD else TextToSpeech.QUEUE_FLUSH, null, "mascota")
     }
 
