@@ -401,11 +401,79 @@ class ClickService : AccessibilityService() {
         }
         val prefs = getSharedPreferences("cfg", Context.MODE_PRIVATE)
         threshold = prefs.getFloat("th", 0.8f).toDouble()
+        val skip = overlayBox()
         capture({ bmp ->
             val p = if (bmp == null) null else findSaved(bmp, step.id)
+            // Para saber después si al publicar ha aparecido algo en rojo que antes no estaba
+            redBefore = bmp != null && hasRedText(bmp, skip)
             main.post { done(p, false) }
         }, {
             main.post { done(null, false) }
+        })
+    }
+
+    /** Dónde está ahora el botón flotante (con margen), para no confundir su color rojo con un aviso. */
+    private fun overlayBox(): android.graphics.Rect? {
+        val v = overlayRoot ?: return null
+        if (v.width <= 0) return null
+        val loc = IntArray(2)
+        v.getLocationOnScreen(loc)
+        val pad = (24 * resources.displayMetrics.density).toInt()
+        return android.graphics.Rect(loc[0] - pad, loc[1] - pad, loc[0] + v.width + pad, loc[1] + v.height + pad)
+    }
+
+    /** Si en la última captura (antes de tocar una imagen) ya había una línea de letras rojas. */
+    @Volatile var redBefore = false
+
+    /**
+     * ¿Hay en la pantalla una línea de letras rojas (como los avisos de error de Instagram)?
+     * Busca franjas con bastantes píxeles rojos y que ocupen a lo ancho (un corazón o un punto rojo no cuentan).
+     * No mira la barra de arriba ni la de abajo.
+     */
+    fun hasRedText(src: Bitmap, skip: android.graphics.Rect?): Boolean {
+        return try {
+            val b = if (src.config == Bitmap.Config.ARGB_8888) src else (src.copy(Bitmap.Config.ARGB_8888, false) ?: return false)
+            val w = b.width
+            val h = b.height
+            val y0 = (h * 0.04f).toInt()
+            val y1 = (h * 0.90f).toInt()
+            val bandH = maxOf(8, h / 45)
+            val bands = (y1 - y0) / bandH + 1
+            val count = IntArray(bands)
+            val minX = IntArray(bands) { Int.MAX_VALUE }
+            val maxX = IntArray(bands) { -1 }
+            val row = IntArray(w)
+            for (y in y0 until y1) {
+                b.getPixels(row, 0, w, 0, y, w, 1)
+                val k = (y - y0) / bandH
+                val inSkip = skip != null && y >= skip.top && y <= skip.bottom
+                for (x in 0 until w) {
+                    if (inSkip && x >= skip!!.left && x <= skip.right) continue
+                    val c = row[x]
+                    val r = (c shr 16) and 0xff
+                    val g = (c shr 8) and 0xff
+                    val bl = c and 0xff
+                    if (r >= 170 && g <= 110 && bl <= 125 && r - g >= 100 && r - bl >= 90) {
+                        count[k]++
+                        if (x < minX[k]) minX[k] = x
+                        if (x > maxX[k]) maxX[k] = x
+                    }
+                }
+            }
+            (0 until bands).any { count[it] >= 100 && maxX[it] - minX[it] >= w * 0.15f }
+        } catch (e: Throwable) {
+            false
+        }
+    }
+
+    /** Hace una captura y dice si hay letras rojas (false si no se puede capturar). */
+    fun checkRedText(done: (Boolean) -> Unit) {
+        val skip = overlayBox()
+        capture({ bmp ->
+            val red = bmp != null && hasRedText(bmp, skip)
+            main.post { done(red) }
+        }, {
+            main.post { done(false) }
         })
     }
 

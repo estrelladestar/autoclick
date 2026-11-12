@@ -1091,7 +1091,7 @@ object Macro {
         }
 
         /**
-         * Después de tocar «publicar»: si Instagram muestra en rojo que el comentario no se ha publicado,
+         * Después de tocar «publicar»: si sale cualquier aviso o línea en rojo que antes no estaba,
          * quita de la lista a la persona que no deja que la mencionen (si se sabe cuál) y pasa a la siguiente cuenta.
          * Si es un aviso de bloqueo, se para como siempre.
          */
@@ -1102,11 +1102,31 @@ object Macro {
             }
             val texts = screenTexts()
             val err = texts.firstOrNull { t -> t !in before && t.lowercase().let { l -> NOT_POSTED_TEXTS.any { l.contains(it) } } }
-            if (err == null) {
+            if (err != null) {
+                notPosted(pick, err, c)
+                return
+            }
+            // Sin aviso conocido: mirar si ha aparecido cualquier línea en rojo que antes no estaba
+            if (s.redBefore) {
                 advance(c.extra())
                 return
             }
-            trace("  ⚠ el comentario no se ha publicado: «${err.take(150)}»")
+            val gen = stepGen
+            nextDue = System.currentTimeMillis() + 10_000L
+            s.checkRedText { red ->
+                if (gen != stepGen || id != token || !running) return@checkRedText
+                if (red) notPosted(pick, null, c) else advance(c.extra())
+            }
+        }
+
+        /** Ha salido algo en rojo al publicar: quitar la mención culpable (si se sabe) y pasar a la siguiente cuenta. */
+        private fun notPosted(pick: List<String>, err: String?, c: Cmd) {
+            trace("  ⚠ ha salido un aviso en rojo al publicar" + (if (err != null) ": «${err.take(150)}»" else ""))
+            if (err == null) {
+                findField()?.let { f -> if ((f.text?.length ?: 0) > 0) putText(f, "") }
+                switchNow(c)
+                return
+            }
             // ¿Por culpa de quién? La persona que sale en el aviso o, si solo había una mención y el aviso habla de menciones, esa.
             val low = err.lowercase()
             val aboutMention = MENTION_ERROR_HINTS.any { low.contains(it) }
@@ -1115,6 +1135,11 @@ object Macro {
             if (culprit.isNotEmpty()) removeMentions(culprit)
             // Borrar lo que quede escrito y cambiar de cuenta
             findField()?.let { f -> if ((f.text?.length ?: 0) > 0) putText(f, "") }
+            switchNow(c)
+        }
+
+        /** Salta al cambio de cuenta del guion (si no hay, sigue con el paso siguiente). */
+        private fun switchNow(c: Cmd) {
             val j = (i + 1 until cmds.size).firstOrNull { cmds[it].op == "irperfil" }
             if (j == null) {
                 advance(c.extra())
