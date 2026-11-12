@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="SorteoTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">#7B2FF7</item>
+        <item name="android:colorAccent">#F72585</item>
+        <item name="android:statusBarColor">#7B2FF7</item>
+        <item name="android:navigationBarColor">#FFFFFF</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:windowBackground">@drawable/sorteo_bg</item>
+    </style>
+</resources>

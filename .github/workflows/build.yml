@@ -41,9 +41,13 @@ jobs:
         with:
           name: Gatidoku-apk
           path: gatidoku/build/outputs/apk/debug/*.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SorteosStar-apk
+          path: sorteos/build/outputs/apk/debug/*.apk
       - run: cp app/build/outputs/apk/normal/debug/app-normal-debug.apk StarApp.apk && cp StarApp.apk app-debug.apk && cp app/build/outputs/apk/historias/debug/app-historias-debug.apk StarAppHistorias.apk  # Star App (también como app-debug.apk, el enlace de siempre) y Star App Historias
-      - run: cp lengua/src/main/assets/mundo.html MiMundo_Lengua_Tema3.html && cp facil/src/main/assets/mundo.html MiMundo_Facil_Tema3.html && cp ingles/src/main/assets/mundo.html MiMundo_Ingles_Unit2.html  # versiones HTML para descargar
-      - run: mkdir -p web/ingles && cp lengua/src/main/assets/mundo.html web/index.html && cp ingles/src/main/assets/mundo.html web/ingles/index.html && touch web/.nojekyll  # páginas web de los juegos (/ = Lengua, /ingles/ = Inglés)
+      - run: cp lengua/src/main/assets/mundo.html MiMundo_Lengua_Tema3.html && cp facil/src/main/assets/mundo.html MiMundo_Facil_Tema3.html && cp ingles/src/main/assets/mundo.html MiMundo_Ingles_Unit2.html && cp sorteos/src/main/assets/sorteos.html SorteosStar.html  # versiones HTML para descargar
+      - run: mkdir -p web/ingles && cp lengua/src/main/assets/mundo.html web/index.html && mkdir -p web/sorteos && cp sorteos/src/main/assets/sorteos.html web/sorteos/index.html && cp ingles/src/main/assets/mundo.html web/ingles/index.html && touch web/.nojekyll  # páginas web de los juegos (/ = Lengua, /ingles/ = Inglés, /sorteos/ = Sorteos Star)
       - uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -55,7 +59,7 @@ jobs:
           tag_name: ultima-version
           name: Star App y juegos (última versión)
           body: |
-            Seis apps distintas, se actualizan con cada compilación:
+            Siete apps distintas, se actualizan con cada compilación:
             - StarApp.apk → Star App
             - app-debug.apk → la misma Star App (con el nombre de antes, para que el enlace de siempre siga funcionando)
             - StarAppHistorias.apk → Star App Historias (otra app, igual que Star App pero además con el paso «historia»: sube la publicación a tu historia y etiqueta a la cuenta)
@@ -67,6 +71,8 @@ jobs:
             - Gatidoku-debug.apk → Gatidoku (puzles de lógica con gatos)
             - MiMundoIngles-debug.apk → Mi Mundo Inglés (el mismo juego con la Unit 2 de inglés «Helping at home», con voz en inglés)
             - MiMundo_Ingles_Unit2.html → Mi Mundo Inglés para abrir en el navegador
+            - SorteosStar-debug.apk → Sorteos Star (sorteos de Instagram y TikTok para tiendas: pegas el enlace y recoge los comentarios)
+            - SorteosStar.html → Sorteos Star para abrir en el navegador (ahí los comentarios se pegan a mano)
           files: |
             StarApp.apk
             app-debug.apk
@@ -76,6 +82,8 @@ jobs:
             facil/build/outputs/apk/debug/*.apk
             gatidoku/build/outputs/apk/debug/*.apk
             ingles/build/outputs/apk/debug/*.apk
+            sorteos/build/outputs/apk/debug/*.apk
             MiMundo_Lengua_Tema3.html
             MiMundo_Facil_Tema3.html
             MiMundo_Ingles_Unit2.html
+            SorteosStar.html
