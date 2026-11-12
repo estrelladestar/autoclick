@@ -292,6 +292,7 @@ repetir 8"""
             "• historias 3-5 → abre las historias de arriba y ve entre 3 y 5 pasándolas (con «historias azar», solo a veces); después pon «enlace»\n" +
             "• megusta → en la publicación abierta da me gusta, solo si el corazón no está rojo (si ya está rojo no lo toca)\n" +
             "• seguir → si junto al nombre de la cuenta pone «Seguir», la sigue; si ya pone «Siguiendo», no hace nada\n" +
+            "• comprobar → con los comentarios abiertos, mira desde la cuenta nueva si se ve el último comentario de la cuenta anterior (en «Los más recientes») y lo apunta en 📊 Registro\n" +
             "• historia → (solo en Star App Historias) sube la publicación a tu historia y etiqueta a la cuenta que la publicó; «historia @cuenta» etiqueta a esa. Cada cuenta tuya lo hace una sola vez por enlace\n" +
             "• inicio → sale a la pantalla principal y baja y sube por las publicaciones (con «inicio azar», solo a veces); después pon «enlace»\n" +
             "• limite 20 → cada cuenta hace como mucho 20 comentarios al día; luego pasa a la siguiente\n" +
@@ -722,12 +723,17 @@ repetir 8"""
             sb.append("\n")
         }
         if (days.isNotEmpty()) sb.append("Menciones en estos días: ").append(weekMentions)
+        val vis = (prefs.getString("visibilidad", "") ?: "").lines().filter { it.isNotBlank() }
+        if (vis.isNotEmpty()) {
+            sb.append("\n\n👀 ¿Se ven los comentarios? (mirado desde otra cuenta, en «Los más recientes»)\n")
+            for (l in vis.takeLast(15).reversed()) sb.append("   • ").append(l).append("\n")
+        }
         AlertDialog.Builder(this)
             .setTitle("📊 Comentarios y menciones (últimos 7 días)")
             .setMessage(sb.toString().trim())
             .setPositiveButton("Cerrar", null)
             .setNeutralButton("Borrar registro") { _, _ ->
-                prefs.edit().remove("registro").remove("registro_menciones").apply()
+                prefs.edit().remove("registro").remove("registro_menciones").remove("visibilidad").apply()
                 toast("Registro borrado")
             }
             .show()

@@ -205,7 +205,7 @@ object Macro {
                     }
                     cmds.add(Cmd("hora", arg.replace('.', ':'), 0L, 0L))
                 }
-                "esperar", "tocar", "escribir", "campo", "enlace", "imagen", "mantener", "mirar", "inicio", "historias", "megusta", "seguir", "historia" -> cmds.add(Cmd(op, arg, extra, extraMax))
+                "esperar", "tocar", "escribir", "campo", "enlace", "imagen", "mantener", "mirar", "inicio", "historias", "megusta", "seguir", "historia", "comprobar" -> cmds.add(Cmd(op, arg, extra, extraMax))
                 "me" -> if (arg.lowercase().replace(" ", "") == "gusta") cmds.add(Cmd("megusta", "", extra, extraMax))
                 "like" -> cmds.add(Cmd("megusta", "", extra, extraMax))
                 "atras", "atrás" -> cmds.add(Cmd("atras", arg, extra, extraMax))
@@ -397,6 +397,11 @@ object Macro {
         private var storiesLeft = 0
         /** «historia»: en qué paso va al subir la publicación a la historia y a quién etiqueta. */
         private var sharePhase = 0
+        /** El último comentario publicado (cuenta, menciones y enlace), para mirar desde otra cuenta si se ve. */
+        private var postedBy: String? = null
+        private var postedHandles: List<String> = emptyList()
+        private var postedUrl = ""
+        private var visPhase = 0
         private var shareOwner = ""
         /** Cuenta que se acaba de tocar en la lista y dónde (para comprobar que de verdad se cambió). */
         private var pendingSwitch: Triple<String, Float, Float>? = null
@@ -446,6 +451,7 @@ object Macro {
             storyPhase = 0
             storiesLeft = 0
             sharePhase = 0
+            visPhase = 0
             openedAt = -1
             i++
             later(maxOf(ms, 400L))
@@ -483,6 +489,7 @@ object Macro {
             storyPhase = 0
             storiesLeft = 0
             sharePhase = 0
+            visPhase = 0
             openedAt = -1
             reopens = 0
             scrolls = 0
@@ -600,6 +607,7 @@ object Macro {
                 "mirar" -> look(c)
                 "megusta" -> likePost(c)
                 "historia" -> shareToStory(c)
+                "comprobar" -> checkVisible(c)
                 "seguir" -> followAccount(c)
                 "inicio" -> feed(c)
                 "historias" -> stories(c)
@@ -895,6 +903,7 @@ object Macro {
                 c.op == "inicio" -> "paseo por inicio"
                 c.op == "megusta" -> "me gusta"
                 c.op == "historia" -> "subir a historia"
+                c.op == "comprobar" -> "¿se ve el comentario?"
                 c.op == "seguir" -> "seguir cuenta"
                 c.op == "historias" -> "viendo historias"
                 else -> (c.op + " " + c.arg).trim().take(14)
@@ -1121,14 +1130,84 @@ object Macro {
             }
             // Sin aviso conocido: mirar si ha aparecido cualquier línea en rojo que antes no estaba
             if (s.redBefore) {
-                advance(c.extra())
+                posted(pick, c)
                 return
             }
             val gen = stepGen
             nextDue = System.currentTimeMillis() + 10_000L
             s.checkRedText { red ->
                 if (gen != stepGen || id != token || !running) return@checkRedText
-                if (red) notPosted(pick, null, c) else advance(c.extra())
+                if (red) notPosted(pick, null, c) else posted(pick, c)
+            }
+        }
+
+        /** El comentario se ha publicado bien: se apunta para comprobar luego, desde otra cuenta, si se ve. */
+        private fun posted(pick: List<String>, c: Cmd) {
+            postedBy = current
+            postedHandles = pick
+            postedUrl = s.lastUrl
+            advance(c.extra())
+        }
+
+        /**
+         * «comprobar»: con los comentarios abiertos y otra cuenta, los ordena por «Los más recientes» y busca
+         * el último comentario que publicó la cuenta anterior. Apunta si se ve o no (🐞 Informe y 📊 Registro).
+         */
+        private fun checkVisible(c: Cmd) {
+            val (_, h) = s.screenSize()
+            fun tap(r: Rect) = s.tapAt(r.exactCenterX(), r.exactCenterY())
+            when (visPhase) {
+                0 -> {
+                    if (postedHandles.isEmpty()) {
+                        trace("  todavía no hay ningún comentario que comprobar")
+                        advance(c.extra()); return
+                    }
+                    if (postedUrl != s.lastUrl) {
+                        trace("  el último comentario era de otra publicación: no lo compruebo")
+                        advance(c.extra()); return
+                    }
+                    if (postedBy != null && postedBy == current) {
+                        trace("  sigo con la misma cuenta que comentó: desde ella siempre se ve, no lo compruebo")
+                        advance(c.extra()); return
+                    }
+                    val sort = findIg { t, r, _ -> r.exactCenterY() < h * 0.6f && t in setOf("para ti", "for you", "más relevantes", "most relevant", "relevantes", "más relevante") }
+                    if (sort != null) {
+                        tap(sort)
+                        visPhase = 1
+                        later(2000L)
+                    } else {
+                        visPhase = 2
+                        later(500L)
+                    }
+                }
+                1 -> {
+                    val recent = findIg { t, _, _ -> t in setOf("los más recientes", "más recientes", "most recent", "newest", "recientes", "más nuevos") }
+                    if (recent != null) tap(recent)
+                    visPhase = 2
+                    tries = 0
+                    later(3000L)
+                }
+                2 -> {
+                    val want = postedHandles.map { it.lowercase() }
+                    val seen = screenTexts().any { t -> val l = t.lowercase(); want.all { l.contains(it) } }
+                    if (!seen && tries < 2) {
+                        tries++
+                        later(2500L)
+                        return
+                    }
+                    val who = postedBy?.let { "@$it" } ?: "la cuenta anterior"
+                    val from = current?.let { "@$it" } ?: "otra cuenta"
+                    val line = java.text.SimpleDateFormat("dd/MM HH:mm", java.util.Locale.US).format(java.util.Date()) +
+                        " " + who + ": " + (if (seen) "SE VE ✅" else "NO SE VE ❌") + " (mirado desde $from)"
+                    trace("  ¿se ve el comentario de $who?: " + (if (seen) "sí ✅" else "no lo encuentro ❌"))
+                    toast(s, if (seen) "El comentario de $who se ve ✅" else "No veo el comentario de $who ❌")
+                    val p = s.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE)
+                    val old = (p.getString("visibilidad", "") ?: "").lines().filter { it.isNotBlank() }
+                    p.edit().putString("visibilidad", (old + line).takeLast(60).joinToString("\n")).apply()
+                    postedHandles = emptyList()
+                    visPhase = 0
+                    advance(c.extra())
+                }
             }
         }
 
@@ -1764,6 +1843,7 @@ object Macro {
         private fun storyGiveUp(c: Cmd, why: String) {
             trace("  ⚠ no he podido subir la historia: $why. Vuelvo a la publicación y sigo")
             sharePhase = 0
+            visPhase = 0
             s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
             main.postDelayed({ s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK) }, 700L)
             val url = s.lastUrl
@@ -1881,6 +1961,7 @@ object Macro {
                     markStoryDone()
                     trace("  historia subida" + (if (shareOwner.isNotEmpty()) " con @$shareOwner" else ""))
                     sharePhase = 0
+            visPhase = 0
                     // Volver a la publicación para seguir con el guion
                     val url = s.lastUrl
                     if (url.isNotEmpty()) main.postDelayed({ s.openUrl(url) }, 1500L)
