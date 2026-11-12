@@ -1122,6 +1122,7 @@ object Macro {
         /** Ha salido algo en rojo al publicar: quitar la mención culpable (si se sabe) y pasar a la siguiente cuenta. */
         private fun notPosted(pick: List<String>, err: String?, c: Cmd) {
             trace("  ⚠ ha salido un aviso en rojo al publicar" + (if (err != null) ": «${err.take(150)}»" else ""))
+            redAlarm()
             if (err == null) {
                 findField()?.let { f -> if ((f.text?.length ?: 0) > 0) putText(f, "") }
                 switchNow(c)
@@ -1136,6 +1137,26 @@ object Macro {
             // Borrar lo que quede escrito y cambiar de cuenta
             findField()?.let { f -> if ((f.text?.length ?: 0) > 0) putText(f, "") }
             switchNow(c)
+        }
+
+        /** Suena (el tono de notificación del móvil) y vibra cuando salen letras rojas. */
+        private fun redAlarm() {
+            try {
+                val uri = android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION)
+                android.media.RingtoneManager.getRingtone(s, uri)?.play()
+            } catch (e: Exception) {
+            }
+            try {
+                val tg = android.media.ToneGenerator(android.media.AudioManager.STREAM_ALARM, 100)
+                tg.startTone(android.media.ToneGenerator.TONE_PROP_BEEP2, 600)
+                main.postDelayed({ try { tg.release() } catch (e: Exception) {} }, 1500L)
+            } catch (e: Exception) {
+            }
+            try {
+                val v = s.getSystemService(android.content.Context.VIBRATOR_SERVICE) as android.os.Vibrator
+                v.vibrate(android.os.VibrationEffect.createWaveform(longArrayOf(0, 300, 150, 300), -1))
+            } catch (e: Exception) {
+            }
         }
 
         /** Salta al cambio de cuenta del guion (si no hay, sigue con el paso siguiente). */
