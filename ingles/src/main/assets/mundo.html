@@ -246,6 +246,44 @@ textarea.pin{min-height:150px;font-size:16px;line-height:1.5}
     <div id="aprParts"></div>
     <button class="btn blue big" id="verTodo" style="margin:6px 0 10px">📖 Ver todas las explicaciones</button>
     <div id="aprCards">
+<div class="card lcard c3">
+<h2>📖 Picture dictionary (pág. 20)</h2>
+<p style="font-size:13px">Toca una palabra para oírla en inglés 🔊</p>
+<table>
+<tr><th>Nº</th><th>English</th><th>Español</th></tr>
+<tr><td>1</td><td class="en">🗑️ take the rubbish out</td><td>sacar la basura</td></tr>
+<tr><td>2</td><td class="en">👕 hang the washing out</td><td>tender la ropa</td></tr>
+<tr><td>3</td><td class="en">🐰 feed my pet</td><td>dar de comer a mi mascota</td></tr>
+<tr><td>4</td><td class="en">🫖 kettle</td><td>hervidor</td></tr>
+<tr><td>5</td><td class="en">📟 microwave</td><td>microondas</td></tr>
+<tr><td>6</td><td class="en">🧊 fridge</td><td>nevera</td></tr>
+<tr><td>7</td><td class="en">🧺 washing machine</td><td>lavadora</td></tr>
+<tr><td>8</td><td class="en">🍳 cooker</td><td>cocina (fogones)</td></tr>
+<tr><td>9</td><td class="en">📝 make a list</td><td>hacer una lista</td></tr>
+<tr><td>10</td><td class="en">🧹 hoover</td><td>aspiradora</td></tr>
+<tr><td>11</td><td class="en">🍽️ do the washing up</td><td>fregar los platos</td></tr>
+<tr><td>12</td><td class="en">🍴 set the table</td><td>poner la mesa</td></tr>
+</table>
+<p><b>Song «Oh, I love my hoover!» — words:</b></p>
+<table>
+<tr><td class="en">🧊 look in the fridge</td><td>mirar en la nevera</td></tr>
+<tr><td class="en">🥡 take my lunch out</td><td>sacar mi comida</td></tr>
+<tr><td class="en">📟 put it in the microwave</td><td>meterlo en el microondas</td></tr>
+<tr><td class="en">👚 put my clothes in</td><td>meter mi ropa</td></tr>
+<tr><td class="en">🧺 put the washing machine on</td><td>poner la lavadora</td></tr>
+<tr><td class="en">🔄 it goes around</td><td>da vueltas</td></tr>
+<tr><td class="en">🎤 sing and shout</td><td>cantar y gritar</td></tr>
+</table>
+<p><b>Food (la comida de tu mascota):</b></p>
+<table>
+<tr><td class="en">🍎 apple</td><td>manzana</td><td class="en">🍌 banana</td><td>plátano</td></tr>
+<tr><td class="en">🥛 milk</td><td>leche</td><td class="en">🥚 eggs</td><td>huevos</td></tr>
+<tr><td class="en">🍪 biscuit</td><td>galleta</td><td class="en">🍚 rice</td><td>arroz</td></tr>
+<tr><td class="en">🍞 toast with jam</td><td>tostada con mermelada</td><td class="en">🥪 sandwich</td><td>sándwich</td></tr>
+<tr><td class="en">🍲 soup</td><td>sopa</td><td class="en">🎂 birthday cake</td><td>tarta de cumpleaños</td></tr>
+</table>
+</div>
+
 <div class="card lcard c1">
 <h2>1. Chores: tareas de casa</h2>
 <table>
@@ -512,14 +550,20 @@ var ITEMS = {
   bg:[['habitacion','Mi habitación',0],['parque','Parque',40],['playa','Playa',50],['nieve','Nieve',60],['arcoiris','Arcoíris',80],['mar','Fondo del mar',80],['espacio','Espacio',100],['castillo','Castillo',120]]
 };
 var FOOD = [
-  {id:'manzana', e:'🍎', n:'Manzana', p:3, hunger:15, happy:2},
-  {id:'leche', e:'🥛', n:'Leche', p:4, hunger:10, happy:3, energy:8},
-  {id:'galleta', e:'🍪', n:'Galleta', p:5, hunger:12, happy:8},
-  {id:'bocadillo', e:'🥪', n:'Bocadillo', p:8, hunger:30, happy:4},
-  {id:'pizza', e:'🍕', n:'Pizza', p:12, hunger:40, happy:10},
-  {id:'tarta', e:'🍰', n:'Tarta', p:20, hunger:30, happy:25},
-  {id:'medicina', e:'💊', n:'Medicina', p:15, med:true}
+  {id:'manzana', e:'🍎', n:'Apple', es:'manzana', like:'apples', p:3, hunger:15, happy:2},
+  {id:'platano', e:'🍌', n:'Banana', es:'plátano', like:'bananas', p:3, hunger:15, happy:3},
+  {id:'leche', e:'🥛', n:'Milk', es:'leche', like:'milk', p:4, hunger:10, happy:3, energy:8},
+  {id:'huevos', e:'🥚', n:'Eggs', es:'huevos', like:'eggs', p:5, hunger:20, happy:2},
+  {id:'galleta', e:'🍪', n:'Biscuit', es:'galleta', like:'biscuits', p:5, hunger:12, happy:8},
+  {id:'arroz', e:'🍚', n:'Rice', es:'arroz', like:'rice', p:6, hunger:25, happy:3},
+  {id:'tostada', e:'🍞', n:'Toast with jam', es:'tostada con mermelada', like:'toast with jam', p:6, hunger:20, happy:6},
+  {id:'bocadillo', e:'🥪', n:'Sandwich', es:'sándwich', like:'sandwiches', p:8, hunger:30, happy:4},
+  {id:'sopa', e:'🍲', n:'Soup', es:'sopa', like:'soup', p:9, hunger:30, happy:4, energy:5},
+  {id:'pizza', e:'🍕', n:'Pizza', es:'pizza', like:'pizza', p:12, hunger:40, happy:10},
+  {id:'tarta', e:'🎂', n:'Birthday cake', es:'tarta de cumpleaños', like:'cake', p:20, hunger:30, happy:25},
+  {id:'medicina', e:'💊', n:'Medicine', es:'medicina', p:15, med:true}
 ];
+function foodName(f){ return '<span class="qen" data-food="' + f.n + '">' + f.n + ' 🔊</span> <small style="display:inline;color:var(--muted)">(' + f.es + ')</small>'; }
 var PACC = [['none','Nada',0],['lazo','Lazo',30],['pajarita','Pajarita',30],['gafas','Gafas',40],['fiesta','Gorro de fiesta',40],['corona','Corona',80]];
 var SPECIES = {
   gato:   {n:'Gatito',     name:'Michi',  c:'#ffb26b', b:'#ffe7cc'},
@@ -1220,11 +1264,11 @@ function action(a){
 }
 function openFood(){
   var have = FOOD.filter(function(f){ return !f.med && S.food[f.id] > 0; });
-  var h = '<h3>¿Qué le das de comer?</h3>';
+  var h = '<h3>What do you want to give? <small style="display:block;font-size:13px">¿Qué le das de comer?</small></h3>';
   if (!have.length) h += '<p style="font-weight:700">No tienes comida. ¡Cómprala en la Tienda con tus monedas! 🪙</p><div class="two"><button class="btn orange" onclick="closeModal();tab(\'shop\')">🛍️ Ir a la Tienda</button><button class="btn gray" onclick="closeModal()">Cerrar</button></div>';
   else {
-    h += have.map(function(f){ return '<div class="row"><div class="e">' + f.e + '</div><div class="t">' + f.n + '<small>Tienes ' + S.food[f.id] + '</small></div><button class="btn orange" onclick="eat(\'' + f.id + '\')">Dar</button></div>'; }).join('');
-    h += '<button class="btn gray big" style="margin-top:10px" onclick="closeModal()">Cerrar</button>';
+    h += have.map(function(f){ return '<div class="row"><div class="e">' + f.e + '</div><div class="t">' + foodName(f) + '<small>You have ' + S.food[f.id] + ' (tienes ' + S.food[f.id] + ')</small></div><button class="btn orange" onclick="eat(\'' + f.id + '\')">Give</button></div>'; }).join('');
+    h += '<button class="btn gray big" style="margin-top:10px" onclick="closeModal()">Close (cerrar)</button>';
   }
   showModal(h);
 }
@@ -1235,7 +1279,9 @@ function eat(id){
   if (p.hunger >= 98) { say('¡Estoy llenísimo! No puedo más 😅'); return; }
   S.food[id]--; p.hunger = clamp(p.hunger + f.hunger); p.happy = clamp(p.happy + (f.happy || 0)); if (f.energy) p.energy = clamp(p.energy + f.energy);
   fx($('scene'), f.e, '66%', '120px'); sfx('eat');
-  setTempMood('comer', 1600); say(pick(['¡Ñam, ñam! ¡Qué rico! 😋', '¡Mmm, delicioso! Gracias 💜', '¡Me encanta! 😋']));
+  setTempMood('comer', 1600);
+  var yum = pick([['Yummy! I love ' + f.like + '!', '¡Qué rico! Me encanta: ' + f.es], ['Thank you! The ' + f.n.toLowerCase() + ' is delicious!', '¡Gracias! Está delicioso'], ['Mmm! ' + f.n + '! My favourite!', '¡Mmm! ¡Mi favorito!']]);
+  say(yum[0] + ' 😋 (' + yum[1] + ')', true); speak(yum[0], 'en');
   save(); renderPet();
 }
 
@@ -1258,7 +1304,16 @@ const VOC=[
  ['cooker','la cocina (los fogones)','🍳'],['make a list','hacer una lista','📝'],['hoover','la aspiradora','🧹'],['do the washing up','fregar los platos','🍽️'],
  ['set the table','poner la mesa','🍴'],['come home','llegar a casa','🏠'],['do my homework','hacer mis deberes','📚'],['send a text','enviar un mensaje','📱'],
  ['read a book','leer un libro','📖'],['take off my coat','quitarme el abrigo','🧥'],['have a rest','descansar','😴'],['tidy my room','ordenar mi habitación','🧸'],
- ['cook dinner','hacer la cena','🍲'],['play the guitar','tocar la guitarra','🎸'],['go to bed','irse a la cama','🛏️'],['wash the clothes','lavar la ropa','🫧'],['make sandwiches','hacer sándwiches','🥪']];
+ ['cook dinner','hacer la cena','🍲'],['play the guitar','tocar la guitarra','🎸'],['go to bed','irse a la cama','🛏️'],['wash the clothes','lavar la ropa','🫧'],['make sandwiches','hacer sándwiches','🥪'],
+ ['look in the fridge','mirar en la nevera','🧊'],['take my lunch out','sacar mi comida','🥡'],['put it in the microwave','meterlo en el microondas','📟'],['put my clothes in','meter mi ropa','👚'],
+ ['put the washing machine on','poner la lavadora','🧺'],['it goes around','da vueltas','🔄'],['sing and shout','cantar y gritar','🎤'],
+ ['apple','manzana','🍎'],['banana','plátano','🍌'],['milk','leche','🥛'],['eggs','huevos','🥚'],['biscuit','galleta','🍪'],['rice','arroz','🍚'],['jam','mermelada','🍓'],['toast','tostada','🍞'],['soup','sopa','🍲'],['cake','tarta','🎂'],['medicine','medicina','💊']];
+const PIC20=['take the rubbish out','hang the washing out','feed my pet','kettle','microwave','fridge','washing machine','cooker','make a list','hoover','do the washing up','set the table'];
+PIC20.forEach((w,i)=>{
+  add('voc',`Page 20, picture number ${i+1}: what is it?`,[w,...others(PIC20,w,3)],w,`En el dibujo de la página 20, el número ${i+1} es «${w}» (${VOC.find(v=>v[0]===w)[1]}).`,EN);
+  const ns=[String(i+1),...others(PIC20.map((x,k)=>String(k+1)),String(i+1),3)];
+  add('voc',`What number is «${w}» in the picture on page 20?`,ns,String(i+1),`«${w}» es el número ${i+1}.`,EN);
+});
 const VES=VOC.map(v=>v[1]),VEN=VOC.map(v=>v[0]);VOC_ES=VOC;
 VOC.forEach(([en,es,em])=>{
   add('voc',`¿Qué significa «${en}»?`,[es,...others(VES,es,3)],es,`«${en}» = ${es}.`,{v:'w',es:'¿Qué significa',en:en,big:em});
@@ -1438,8 +1493,8 @@ const W2=[
 ['Where did Ivan\'s hoover appear at the end?','In the news',['In the bin','In a box','At school'],'Sale en el periódico «The NEWS!».']];
 W2.forEach(([q,ok,w,e])=>add('wri',q,[ok,...w],ok,e,EN));
 })();
-window.DICTH = ['kettle','microwave','fridge','cooker','hoover','washing machine','rubbish','table','list','pet','homework','coat','book','text','rest','kitchen','lunch','watch','sandwiches','birthday','party','machine','helper','invention','microscope','breakfast','rabbit','clothes','dinner','inventor','did','fed','hung','took','made','came','had','sent','went','sang'];
-var DMEAN = {kettle:'hervidor',microwave:'microondas',fridge:'nevera',cooker:'cocina (fogones)',hoover:'aspiradora','washing machine':'lavadora',rubbish:'basura',table:'mesa',list:'lista',pet:'mascota',homework:'deberes',coat:'abrigo',book:'libro',text:'mensaje',rest:'descanso',kitchen:'cocina (la habitación)',lunch:'comida',watch:'mirar / reloj',sandwiches:'sándwiches',birthday:'cumpleaños',party:'fiesta',machine:'máquina',helper:'ayudante',invention:'invento',microscope:'microscopio',breakfast:'desayuno',rabbit:'conejo',clothes:'ropa',dinner:'cena',inventor:'inventor',did:'hice (pasado de do)',fed:'di de comer (pasado de feed)',hung:'tendí / colgué (pasado de hang)',took:'llevé / cogí (pasado de take)',made:'hice (pasado de make)',came:'vine / llegué (pasado de come)',had:'tuve (pasado de have)',sent:'envié (pasado de send)',went:'fui (pasado de go)',sang:'canté (pasado de sing)'};
+window.DICTH = ['apple','banana','milk','eggs','rice','jam','toast','soup','pizza','cake','kettle','microwave','fridge','cooker','hoover','washing machine','rubbish','table','list','pet','homework','coat','book','text','rest','kitchen','lunch','watch','sandwiches','birthday','party','machine','helper','invention','microscope','breakfast','rabbit','clothes','dinner','inventor','did','fed','hung','took','made','came','had','sent','went','sang'];
+var DMEAN = {apple:'manzana',banana:'plátano',milk:'leche',eggs:'huevos',rice:'arroz',jam:'mermelada',toast:'tostada',soup:'sopa',pizza:'pizza',cake:'tarta',kettle:'hervidor',microwave:'microondas',fridge:'nevera',cooker:'cocina (fogones)',hoover:'aspiradora','washing machine':'lavadora',rubbish:'basura',table:'mesa',list:'lista',pet:'mascota',homework:'deberes',coat:'abrigo',book:'libro',text:'mensaje',rest:'descanso',kitchen:'cocina (la habitación)',lunch:'comida',watch:'mirar / reloj',sandwiches:'sándwiches',birthday:'cumpleaños',party:'fiesta',machine:'máquina',helper:'ayudante',invention:'invento',microscope:'microscopio',breakfast:'desayuno',rabbit:'conejo',clothes:'ropa',dinner:'cena',inventor:'inventor',did:'hice (pasado de do)',fed:'di de comer (pasado de feed)',hung:'tendí / colgué (pasado de hang)',took:'llevé / cogí (pasado de take)',made:'hice (pasado de make)',came:'vine / llegué (pasado de come)',had:'tuve (pasado de have)',sent:'envié (pasado de send)',went:'fui (pasado de go)',sang:'canté (pasado de sing)'};
 /* ===== Traducción al español de las preguntas en inglés (sin internet) ===== */
 var TRH = {
 // vocabulario y máquinas
@@ -1565,6 +1620,9 @@ function cap(t){ return t.charAt(0).toUpperCase() + t.slice(1); }
 function trES(s){
   if (TRH[s]) return TRH[s];
   var m;
+  if ((m = s.match(/^Page 20, picture number (\d+): what is it\?$/))) return 'Página 20, dibujo número ' + m[1] + ': ¿qué es?';
+  if ((m = s.match(/^What number is «(.+)» in the picture on page 20\?$/))) return '¿Qué número es «' + m[1] + '» (' + (TRH[m[1]] || '') + ') en el dibujo de la página 20?';
+  if (/^\d+$/.test(s)) return s;
   if ((m = s.match(/^Which machine is it\? «(.+)»$/))) return '¿Qué máquina es? «' + (TRH[m[1]] || m[1]) + '»';
   if ((m = s.match(/^What is the past of «(.+)»\? \((.+)\)$/))) return '¿Cuál es el pasado de «' + m[1] + '» (' + m[2] + ')?';
   if ((m = s.match(/^What is the past of «(.+)»\?$/))) return '¿Cuál es el pasado de «' + m[1] + '»?';
@@ -2047,7 +2105,7 @@ function buyTrying(){
 }
 function renderShop(){
   $('foodList').innerHTML = FOOD.map(function(f){
-    return '<div class="row"><div class="e">' + f.e + '</div><div class="t">' + f.n + '<small>' + (f.med ? 'Cura a tu mascota si se pone malita' : 'Comida +' + f.hunger + (f.happy ? ' · Felicidad +' + f.happy : '') + (f.energy ? ' · Energía +' + f.energy : '')) + ' · tienes ' + (S.food[f.id] || 0) + '</small></div><button class="btn ' + (S.coins >= f.p ? 'orange' : 'gray') + '" data-f="' + f.id + '">🪙 ' + f.p + '</button></div>';
+    return '<div class="row"><div class="e">' + f.e + '</div><div class="t">' + foodName(f) + '<small>' + (f.med ? 'Cura a tu mascota si se pone malita' : 'Comida +' + f.hunger + (f.happy ? ' · Felicidad +' + f.happy : '') + (f.energy ? ' · Energía +' + f.energy : '')) + ' · tienes ' + (S.food[f.id] || 0) + '</small></div><button class="btn ' + (S.coins >= f.p ? 'orange' : 'gray') + '" data-f="' + f.id + '">🪙 ' + f.p + '</button></div>';
   }).join('');
   if (!S.pet) { $('paccGrid').innerHTML = ''; return; }
   $('paccGrid').innerHTML = PACC.map(function(a){
@@ -2061,7 +2119,7 @@ function buyFood(id){
   var f = FOOD.filter(function(x){ return x.id === id; })[0];
   if (S.coins < f.p) { toast('Te faltan ' + (f.p - S.coins) + ' 🪙. ¡Responde preguntas!'); return; }
   S.coins -= f.p; S.food[id] = (S.food[id] || 0) + 1; sfx('buy'); save(); renderHeader(); renderShop();
-  toast(f.e + ' ¡Comprado! Tienes ' + S.food[id]);
+  toast(f.e + ' ' + f.n + '! ¡Comprado! Tienes ' + S.food[id]); speak(f.n, 'en');
 }
 function tapPacc(id){
   var a = itemInfo('pacc', id);
@@ -2372,7 +2430,7 @@ function renderApr(){
   for (var i = 0; i < cards.length; i++) cards[i].style.display = (!aprView || cards[i].dataset.part === aprView) ? '' : 'none';
 }
 function initApr(){
-  var map = ['voc', 'voc', 'pas', 'qst', 'flx', 'tan', 'spk', 'wri'], cards = document.querySelectorAll('#aprCards .lcard');
+  var map = ['voc', 'voc', 'voc', 'pas', 'qst', 'flx', 'tan', 'spk', 'wri'], cards = document.querySelectorAll('#aprCards .lcard');
   for (var i = 0; i < cards.length; i++) {
     (function(c, k){
       c.dataset.part = k;
@@ -2396,7 +2454,7 @@ function initApr(){
     var el = e.target.closest('i, td, li, p'); if (!el) return;
     var t = el.innerText.replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}]/gu, '').trim();
     if (!t) return;
-    if (/[áéíóúñ¿¡]/i.test(t) || !/\b(the|a|an|it|is|was|did|didn't|you|he|she|they|i|my|his|her|and|to|in|of|on|yes|no|do|make|take|set|feed|have|come|read|send|hang|hoover|kettle|fridge|cooker|microwave|machine|took|made|fed|hung|came|had|sent|came|went|put|sang|cook|play|tidy|lunch|watch|kitchen|sandwiches|rubbish|dinner)\b/i.test(t)) return;
+    if (!el.classList.contains('en') && (/[áéíóúñ¿¡]/i.test(t) || !/\b(the|a|an|it|is|was|did|didn't|you|he|she|they|i|my|his|her|and|to|in|of|on|yes|no|do|make|take|set|feed|have|come|read|send|hang|hoover|kettle|fridge|cooker|microwave|machine|took|made|fed|hung|came|had|sent|came|went|put|sang|cook|play|tidy|lunch|watch|kitchen|sandwiches|rubbish|dinner)\b/i.test(t))) return;
     el.style.background = '#ece6ff'; setTimeout(function(){ el.style.background = ''; }, 700);
     sayTap(t.replace(/→/g, ', '));
   });
@@ -2443,6 +2501,7 @@ function bind(){
   $('lchal').addEventListener('click', function(e){ if (e.target.closest('button')) { tab('quiz'); startChallenge(); } });
   document.addEventListener('visibilitychange', function(){ if (document.hidden) pauseAll(); else resumeAll(); });
   bindSayTools('qtext', 'qopts', function(){ return curQ; });
+  document.addEventListener('click', function(e){ var f = e.target.closest('[data-food]'); if (f) { e.stopPropagation(); sayTap(f.dataset.food); } }, true);
   bindSayTools('etext', 'eopts', function(){ return E && E.qs[E.i]; });
   $('qopts').addEventListener('click', function(e){ var b = e.target.closest('.opt'); if (b) answer(+b.dataset.o); });
   $('qnext').onclick = nextQuestion;
