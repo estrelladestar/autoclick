@@ -15,6 +15,19 @@ android {
         versionName = "1.$runNumber"
         ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }  // 64 y 32 bits (p. ej. Redmi 8A)
     }
+    // Dos apps con el mismo código: «Star App» y «Star App Historias» (que además puede subir la publicación a la historia)
+    flavorDimensions += "tipo"
+    productFlavors {
+        create("normal") {
+            dimension = "tipo"
+            manifestPlaceholders["appLabel"] = "Star App"
+        }
+        create("historias") {
+            dimension = "tipo"
+            applicationIdSuffix = ".historias"
+            manifestPlaceholders["appLabel"] = "Star App Historias"
+        }
+    }
     signingConfigs {
         getByName("debug") {
             storeFile = file("debug.keystore")

@@ -205,7 +205,7 @@ object Macro {
                     }
                     cmds.add(Cmd("hora", arg.replace('.', ':'), 0L, 0L))
                 }
-                "esperar", "tocar", "escribir", "campo", "enlace", "imagen", "mantener", "mirar", "inicio", "historias", "megusta", "seguir" -> cmds.add(Cmd(op, arg, extra, extraMax))
+                "esperar", "tocar", "escribir", "campo", "enlace", "imagen", "mantener", "mirar", "inicio", "historias", "megusta", "seguir", "historia" -> cmds.add(Cmd(op, arg, extra, extraMax))
                 "me" -> if (arg.lowercase().replace(" ", "") == "gusta") cmds.add(Cmd("megusta", "", extra, extraMax))
                 "like" -> cmds.add(Cmd("megusta", "", extra, extraMax))
                 "atras", "atrás" -> cmds.add(Cmd("atras", arg, extra, extraMax))
@@ -395,6 +395,9 @@ object Macro {
         /** Para «historias»: en qué parte va y cuántas quedan por ver. */
         private var storyPhase = 0
         private var storiesLeft = 0
+        /** «historia»: en qué paso va al subir la publicación a la historia y a quién etiqueta. */
+        private var sharePhase = 0
+        private var shareOwner = ""
         /** Cuenta que se acaba de tocar en la lista y dónde (para comprobar que de verdad se cambió). */
         private var pendingSwitch: Triple<String, Float, Float>? = null
         private var switchChecks = 0
@@ -442,6 +445,7 @@ object Macro {
             switchChecks = 0
             storyPhase = 0
             storiesLeft = 0
+            sharePhase = 0
             openedAt = -1
             i++
             later(maxOf(ms, 400L))
@@ -478,6 +482,7 @@ object Macro {
             switchChecks = 0
             storyPhase = 0
             storiesLeft = 0
+            sharePhase = 0
             openedAt = -1
             reopens = 0
             scrolls = 0
@@ -594,6 +599,7 @@ object Macro {
                 }
                 "mirar" -> look(c)
                 "megusta" -> likePost(c)
+                "historia" -> shareToStory(c)
                 "seguir" -> followAccount(c)
                 "inicio" -> feed(c)
                 "historias" -> stories(c)
@@ -888,6 +894,7 @@ object Macro {
                 c.op == "tocarcuenta" || c.op == "irperfil" || c.op == "perfil" || c.op == "dobleperfil" || c.op == "abrirlista" -> "cambiando cuenta"
                 c.op == "inicio" -> "paseo por inicio"
                 c.op == "megusta" -> "me gusta"
+                c.op == "historia" -> "subir a historia"
                 c.op == "seguir" -> "seguir cuenta"
                 c.op == "historias" -> "viendo historias"
                 else -> (c.op + " " + c.arg).trim().take(14)
@@ -1714,6 +1721,172 @@ object Macro {
             trace("  doy me gusta (el corazón no estaba rojo)")
             s.tapAt(t.exactCenterX(), t.exactCenterY())
             advance(maxOf(c.extra(), 1200L))
+        }
+
+        /** Busca en Instagram un elemento visible que cumpla la condición (texto o descripción, en minúsculas). */
+        private fun findIg(pred: (text: String, r: Rect, n: AccessibilityNodeInfo) -> Boolean): Rect? {
+            var found: Rect? = null
+            for (root in windowRoots()) {
+                if (root.packageName?.toString() != INSTAGRAM) continue
+                fun walk(n: AccessibilityNodeInfo?, depth: Int) {
+                    if (n == null || depth > 45 || found != null) return
+                    if (n.isVisibleToUser) {
+                        val t = (n.text?.toString() ?: n.contentDescription?.toString() ?: "").trim().lowercase()
+                        val r = Rect()
+                        n.getBoundsInScreen(r)
+                        if (t.isNotEmpty() && r.width() > 0 && r.height() > 0 && pred(t, r, n)) {
+                            found = r
+                            return
+                        }
+                    }
+                    for (k in 0 until n.childCount) walk(n.getChild(k), depth + 1)
+                }
+                walk(root, 0)
+                if (found != null) break
+            }
+            return found
+        }
+
+        /** Las cuentas (tuyas) que ya subieron a su historia cada enlace: «cuenta|enlace». */
+        private fun storyKey(): String = (current ?: "?") + "|" + s.lastUrl
+
+        private fun storyDone(): Boolean =
+            (s.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE).getString("historias_hechas", "") ?: "")
+                .lines().contains(storyKey())
+
+        private fun markStoryDone() {
+            val p = s.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE)
+            val old = (p.getString("historias_hechas", "") ?: "").lines().filter { it.isNotBlank() }
+            p.edit().putString("historias_hechas", (old + storyKey()).distinct().takeLast(500).joinToString("\n")).apply()
+        }
+
+        /** Algo ha fallado al subir la historia: vuelve a abrir la publicación y sigue con el guion. */
+        private fun storyGiveUp(c: Cmd, why: String) {
+            trace("  ⚠ no he podido subir la historia: $why. Vuelvo a la publicación y sigo")
+            sharePhase = 0
+            s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
+            main.postDelayed({ s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK) }, 700L)
+            val url = s.lastUrl
+            if (url.isNotEmpty()) main.postDelayed({ s.openUrl(url) }, 1500L)
+            advance(maxOf(c.extra(), 5000L))
+        }
+
+        /**
+         * «historia» (solo en Star App Historias): sube la publicación abierta a tu historia y etiqueta a la cuenta
+         * que la publicó (o a la que pongas: «historia @cuenta»). Cada cuenta tuya lo hace una sola vez por enlace.
+         */
+        private fun shareToStory(c: Cmd) {
+            if (!s.packageName.endsWith(".historias")) {
+                trace("  «historia» solo funciona en Star App Historias: lo salto")
+                advance(c.extra())
+                return
+            }
+            val (w, h) = s.screenSize()
+            fun tap(r: Rect) = s.tapAt(r.exactCenterX(), r.exactCenterY())
+            fun again(what: String, max: Int = 4) {
+                if (tries < max) { tries++; later(1500L) } else storyGiveUp(c, "no encuentro $what")
+            }
+            when (sharePhase) {
+                0 -> {
+                    if (storyDone()) {
+                        trace("  esta cuenta ya subió esta publicación a su historia: no la repito")
+                        advance(c.extra())
+                        return
+                    }
+                    // A quién etiquetar: la cuenta que pongas o la que publicó (el nombre de arriba de la publicación)
+                    shareOwner = c.arg.trim().removePrefix("@")
+                    if (shareOwner.isEmpty()) {
+                        val nameRect = findIg { _, _, n -> n.viewIdResourceName?.endsWith("row_feed_photo_profile_name") == true }
+                        if (nameRect != null) {
+                            for (root in windowRoots()) {
+                                val l = try { root.findAccessibilityNodeInfosByViewId("$INSTAGRAM:id/row_feed_photo_profile_name") } catch (e: Exception) { null }
+                                val t = l?.firstOrNull { it.isVisibleToUser }?.text?.toString()
+                                if (!t.isNullOrBlank()) { shareOwner = t.trim().split(" ", "•", "\n")[0].removePrefix("@"); break }
+                            }
+                        }
+                    }
+                    val share = findIg { t, r, n ->
+                        n.viewIdResourceName?.endsWith("row_feed_button_share") == true ||
+                            (r.exactCenterX() < w * 0.5f && t in setOf("compartir", "enviar publicación", "enviar", "share", "send post", "send"))
+                    }
+                    if (share == null) { again("el botón de compartir ✈"); return }
+                    trace("  subo la publicación a la historia" + (if (shareOwner.isNotEmpty()) " y etiqueto a @$shareOwner" else " (no sé a quién etiquetar)"))
+                    tap(share)
+                    sharePhase = 1
+                    tries = 0
+                    later(2500L)
+                }
+                1 -> {
+                    val add = findIg { t, _, _ ->
+                        (("añadir" in t || "agregar" in t) && "historia" in t) || ("add" in t && "story" in t)
+                    }
+                    if (add == null) { again("«Añadir publicación a tu historia»"); return }
+                    tap(add)
+                    sharePhase = 2
+                    tries = 0
+                    later(4000L)
+                }
+                2 -> {
+                    if (shareOwner.isEmpty()) { sharePhase = 5; later(500L); return }
+                    // Abrir el texto: el botón «Aa» o, si no se ve, tocar arriba en un hueco de la pantalla
+                    val aa = findIg { t, r, _ -> r.exactCenterY() < h * 0.2f && (t == "aa" || t == "texto" || t == "text" || t == "añadir texto" || t == "add text") }
+                    if (aa != null) tap(aa) else s.tapAt(w * 0.5f, h * 0.22f)
+                    sharePhase = 3
+                    later(2000L)
+                }
+                3 -> {
+                    val f = findField()
+                    if (f == null) {
+                        if (tries < 2) { tries++; sharePhase = 2; later(1000L) } else storyGiveUp(c, "dónde escribir el texto")
+                        return
+                    }
+                    putText(f, "@$shareOwner")
+                    sharePhase = 4
+                    tries = 0
+                    later(2500L)
+                }
+                4 -> {
+                    // Tocar la sugerencia con ese nombre (así queda como etiqueta de verdad) y luego «Listo»
+                    val sug = findIg { t, r, n -> !n.isEditable && t == shareOwner.lowercase() && r.exactCenterY() > h * 0.3f }
+                    if (sug != null && tries == 0) {
+                        tap(sug)
+                        tries = 1
+                        later(1500L)
+                        return
+                    }
+                    val ok = findIg { t, _, _ -> t == "listo" || t == "hecho" || t == "done" }
+                    if (ok != null) tap(ok) else s.tapAt(w * 0.5f, h * 0.1f)
+                    sharePhase = 5
+                    tries = 0
+                    later(2500L)
+                }
+                5 -> {
+                    val your = findIg { t, r, _ -> r.exactCenterY() > h * 0.75f && (t == "tu historia" || t == "your story" || t.startsWith("tu historia") || t.startsWith("your story")) }
+                    val sendBtn = your ?: findIg { t, r, _ -> r.exactCenterY() > h * 0.75f && (t == "compartir" || t == "share" || t == "enviar a" || t == "siguiente" || t == "next") }
+                    if (sendBtn == null) { again("«Tu historia»"); return }
+                    tap(sendBtn)
+                    sharePhase = 6
+                    tries = 0
+                    later(3000L)
+                }
+                6 -> {
+                    // A veces sale otra hoja para confirmar: «Compartir»
+                    val confirm = findIg { t, r, _ -> r.exactCenterY() > h * 0.5f && (t == "compartir" || t == "share") }
+                    if (confirm != null && tries == 0) {
+                        tap(confirm)
+                        tries = 1
+                        later(3000L)
+                        return
+                    }
+                    markStoryDone()
+                    trace("  historia subida" + (if (shareOwner.isNotEmpty()) " con @$shareOwner" else ""))
+                    sharePhase = 0
+                    // Volver a la publicación para seguir con el guion
+                    val url = s.lastUrl
+                    if (url.isNotEmpty()) main.postDelayed({ s.openUrl(url) }, 1500L)
+                    advance(maxOf(c.extra(), 5000L))
+                }
+            }
         }
 
         /**

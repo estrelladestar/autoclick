@@ -634,8 +634,12 @@ class ClickService : AccessibilityService() {
         if (!Macro.running) setOverlayText("▶")
     }
 
+    /** El último enlace abierto (para saber qué cuentas ya subieron esa publicación a su historia). */
+    @Volatile var lastUrl: String = ""
+
     private fun openLink(url: String) {
         val u = if (url.contains("://")) url else "https://$url"
+        lastUrl = u
         try {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(u)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         } catch (e: Exception) {
