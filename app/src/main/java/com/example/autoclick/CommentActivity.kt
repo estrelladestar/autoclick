@@ -57,8 +57,11 @@ repetir 1000"""
     /** Igual que el lento, pero con 2 menciones en cada comentario. */
     private val slow2Name = "⭐ Mi guion lento, 2 menciones (fijo)"
     private val slow2Script get() = defaultScript.replace("escribir menciones 1", "escribir menciones 2 lento 5-20")
+    /** Como el lento, pero escribiendo más rápido: la mitad de las veces tarda entre 2 y 5 segundos. */
+    private val fastName = "⭐ Mi guion rápido (fijo)"
+    private val fastScript get() = defaultScript.replace("escribir menciones 1", "escribir menciones 1 lento 2-5")
     /** ¿Es uno de los guiones fijos (que no se pueden borrar ni sobrescribir)? */
-    private fun isFixed(name: String) = name == fixedName || name == previousName || name == slowName || name == slow2Name
+    private fun isFixed(name: String) = name == fixedName || name == previousName || name == slowName || name == slow2Name || name == fastName
 
     /** El guion fijo de antes (con la línea «cuentas» y 10 comentarios de 2 menciones). */
     private val previousName = "⭐ Guion anterior (fijo)"
@@ -360,6 +363,7 @@ repetir 8"""
                         previousName -> previousScript
                         slowName -> slowScript
                         slow2Name -> slow2Script
+                        fastName -> fastScript
                         else -> loadScripts().optString(name, "")
                     }
                     if (text.isNotEmpty()) script.setText(text)
@@ -1030,6 +1034,7 @@ repetir 8"""
         names.add(fixedName)
         names.add(slowName)
         names.add(slow2Name)
+        names.add(fastName)
         names.add(previousName)
         val it = loadScripts().keys()
         while (it.hasNext()) { val n = it.next(); if (!isFixed(n)) names.add(n) }
