@@ -192,6 +192,17 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:60}
     </div>
     <label>Premio</label>
     <input type="text" id="prize" placeholder="Ej.: Lote de cosmética valorado en 50 €" maxlength="80">
+    <label>Termina el (para las bases)</label>
+    <input type="datetime-local" id="endAt">
+    <label>Envío del premio</label>
+    <select id="scope">
+      <option value="es">Solo España</option>
+      <option value="pen">España peninsular</option>
+      <option value="eu">Unión Europea</option>
+      <option value="all">Todo el mundo</option>
+      <option value="shop">Recogida en tienda</option>
+    </select>
+    <div class="btns"><button class="btn sec" onclick="openBases()">📜 Crear las bases del sorteo</button></div>
   </div>
 
   <div class="card">
@@ -211,6 +222,10 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:60}
       <label class="sw"><input type="checkbox" id="uniqMent" checked><i></i></label></div>
     <div class="tog"><div><span>Mencionar a cuentas reales</span><small>No vale mencionar a la tienda ni a sí mismo</small></div>
       <label class="sw"><input type="checkbox" id="noSelf" checked><i></i></label></div>
+    <div class="tog"><div><span>Excluir a quien ganó hace poco</span><small>No entran los ganadores de tus sorteos de los últimos <b id="v-prevDays2">30</b> días</small></div>
+      <label class="sw"><input type="checkbox" id="noPrevWin"><i></i></label></div>
+    <div class="tog" id="prevRow"><div><span>Días</span></div>
+      <div class="stepper"><button onclick="step('prevDays',-15)">−</button><b id="v-prevDays">30</b><button onclick="step('prevDays',15)">+</button></div></div>
     <label>Palabra o #hashtag obligatorio (opcional)</label>
     <input type="text" id="needWord" placeholder="Ej.: #SorteoLuna">
     <label>Cuentas excluidas (empleados, familia…) — una por línea</label>
@@ -256,6 +271,8 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:60}
     <h2>🔗 Enlace de la publicación</h2>
     <p class="hint">Pega el enlace del post de Instagram o del vídeo de TikTok y pulsa el botón: se cargan todos los comentarios de golpe.</p>
     <input type="text" id="postUrl" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://www.instagram.com/p/...">
+    <div id="extraLinks"></div>
+    <div class="btns"><button class="btn ghost small" onclick="addLink()">➕ Añadir otra publicación (mismo sorteo)</button></div>
     <div class="btns"><button class="btn sec small" onclick="pasteLink()">📋 Pegar enlace</button><button class="btn ghost small" onclick="$('#postUrl').value='';cfg.postUrl='';saveCfg()">🧹 Borrar</button></div>
     <div class="btns"><button class="btn main" onclick="collect()">⚡ Recoger todos los comentarios</button></div>
     <p class="hint" id="loadMode" style="margin:8px 0 0;text-align:center"></p>
@@ -297,6 +314,8 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:60}
     <input type="text" id="search" placeholder="🔎 Buscar usuario…" style="margin:10px 0">
     <div class="list" id="list"></div>
     <p class="hint" style="margin-top:8px">Toca ✕ para quitar un comentario que se haya leído mal.</p>
+    <div class="btns"><button class="btn sec small" onclick="openStats()">📊 Estadísticas</button><button class="btn sec small" onclick="exportList()">📤 Exportar lista</button></div>
+    <div id="statsBox"></div>
     <button class="btn ghost small" id="dumpBtn" style="display:none;width:100%" onclick="copyDump()">🔧 Copiar lo que ha leído la app (si algo sale mal, mándamelo)</button>
   </div>
   <button class="btn main big" onclick="go('sortear')">Siguiente: ¡sortear! →</button>
@@ -377,6 +396,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:60}
 <div class="modal" id="mCert" onclick="if(event.target===this)closeM('mCert')">
   <div class="sheet">
     <h3>🏆 Certificado del sorteo</h3>
+    <div class="seg" id="certFmt" style="margin-bottom:8px"><button data-v="post" class="on">📄 Certificado</button><button data-v="story">📱 Historia</button></div>
     <img id="certImg" alt="Certificado">
     <div class="btns">
       <button class="btn main" onclick="saveCert()">💾 Guardar imagen</button>
@@ -386,6 +406,17 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:60}
       <button class="btn sec" onclick="copyText()">📝 Copiar texto para publicar</button>
       <button class="btn ghost" onclick="closeM('mCert')">Cerrar</button>
     </div>
+  </div>
+</div>
+
+<!-- Hoja: bases del sorteo -->
+<div class="modal" id="mBases" onclick="if(event.target===this)closeM('mBases')">
+  <div class="sheet">
+    <h3>📜 Bases del sorteo</h3>
+    <p class="hint">Se crean con los datos de tu tienda, el premio y las reglas. Puedes cambiar lo que quieras antes de copiarlas.</p>
+    <textarea id="basesTxt" style="min-height:340px;font-size:13.5px"></textarea>
+    <div class="btns"><button class="btn main" onclick="copyBases()">📋 Copiar</button><button class="btn sec" onclick="shareBases()">📤 Compartir</button></div>
+    <div class="btns"><button class="btn ghost" onclick="closeM('mBases')">Cerrar</button></div>
   </div>
 </div>
 
@@ -508,14 +539,16 @@ $('#logoFile').addEventListener('change',e=>{
 });
 
 /* ============ configuración del sorteo ============ */
-let cfg=Object.assign({net:'ig',prize:'',postUrl:'',winners:1,alts:2,minMent:1,multi:true,maxTk:101,uniqMent:false,noSelf:true,needWord:'',excluded:'',mode:'auto',raw:'',src:'post',liveNet:'tt',liveUrl:'',liveWho:'all',liveWord:'',liveMulti:true},load(K.cfg,{}));
-const LIM={winners:[1,10],alts:[0,20],minMent:[0,10],maxTk:[1,101]};  // maxTk 101 = sin límite
-function step(k,d){cfg[k]=Math.max(LIM[k][0],Math.min(LIM[k][1],cfg[k]+d));$('#v-'+k).textContent=(k==='maxTk'&&cfg[k]>100)?'∞':cfg[k];saveCfg();if(dirty())analyze(false)}
+let cfg=Object.assign({net:'ig',prize:'',postUrl:'',winners:1,alts:2,minMent:1,multi:true,maxTk:101,uniqMent:false,noSelf:true,needWord:'',excluded:'',mode:'auto',raw:'',src:'post',noPrevWin:false,prevDays:30,endAt:'',scope:'es',extraUrls:[],liveNet:'tt',liveUrl:'',liveWho:'all',liveWord:'',liveMulti:true},load(K.cfg,{}));
+const LIM={winners:[1,10],alts:[0,20],minMent:[0,10],maxTk:[1,101],prevDays:[15,365]};  // maxTk 101 = sin límite
+function step(k,d){cfg[k]=Math.max(LIM[k][0],Math.min(LIM[k][1],cfg[k]+d));if(k==='prevDays')$('#v-prevDays2').textContent=cfg[k];$('#v-'+k).textContent=(k==='maxTk'&&cfg[k]>100)?'∞':cfg[k];saveCfg();if(dirty())analyze(false)}
 function renderCfg(){
   renderSrc();
   $$('#netSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===cfg.net));
   $('#postUrl').placeholder=cfg.net==='ig'?'https://www.instagram.com/p/...':'https://www.tiktok.com/@tienda/video/...';
-  ['winners','alts','minMent','maxTk'].forEach(k=>$('#v-'+k).textContent=(k==='maxTk'&&cfg[k]>100)?'∞':cfg[k]);
+  ['winners','alts','minMent','maxTk','prevDays'].forEach(k=>$('#v-'+k).textContent=(k==='maxTk'&&cfg[k]>100)?'∞':cfg[k]);
+  $('#v-prevDays2').textContent=cfg.prevDays;$('#noPrevWin').checked=!!cfg.noPrevWin;$('#prevRow').style.display=cfg.noPrevWin?'':'none';
+  $('#endAt').value=cfg.endAt||'';$('#scope').value=cfg.scope||'es';
   $('#multi').checked=cfg.multi;$('#uniqMent').checked=cfg.uniqMent;$('#noSelf').checked=cfg.noSelf;
   $('#maxRow').style.display=cfg.multi?'':'none';
   $('#prize').value=cfg.prize;$('#postUrl').value=cfg.postUrl;$('#needWord').value=cfg.needWord;$('#excluded').value=cfg.excluded;
@@ -535,7 +568,8 @@ function renderSrc(){
 }
 let saveT;function saveCfg(){clearTimeout(saveT);saveT=setTimeout(()=>store(K.cfg,cfg),300)}
 $$('#netSeg button').forEach(b=>b.onclick=()=>{cfg.net=b.dataset.v;renderCfg();saveCfg()});
-['multi','uniqMent','noSelf'].forEach(id=>$('#'+id).addEventListener('change',e=>{cfg[id]=e.target.checked;renderCfg();saveCfg();if(dirty())analyze(false)}));
+['noPrevWin','multi','uniqMent','noSelf'].forEach(id=>$('#'+id).addEventListener('change',e=>{cfg[id]=e.target.checked;renderCfg();saveCfg();if(dirty())analyze(false)}));
+['endAt','scope'].forEach(id=>$('#'+id).addEventListener('change',e=>{cfg[id]=e.target.value;saveCfg()}));
 ['prize','postUrl','needWord','excluded','raw'].forEach(id=>$('#'+id).addEventListener('input',e=>{cfg[id]=e.target.value;if(id==='raw'&&cfg.src==='got')cfg.src='post';saveCfg();if(id==='postUrl')netFromUrl()}));
 function netFromUrl(){const u=cfg.postUrl.toLowerCase();const n=u.includes('tiktok')?'tt':u.includes('instagram')||u.includes('instagr.am')?'ig':null;if(n&&n!==cfg.net){cfg.net=n;renderCfg();saveCfg()}}
 ['needWord','excluded'].forEach(id=>$('#'+id).addEventListener('change',()=>{if(dirty())analyze(false)}));
@@ -650,32 +684,50 @@ function collect(){
   if(!(APP&&APP.collect)){$('#noAppBox').style.display='';alert('Recoger los comentarios solo funciona en la app Android «Sorteos Star» (SorteosStar-debug.apk). En el navegador hay que copiar los comentarios y pegarlos en el cuadro de abajo.');return}
   if(cfg.raw.trim()&&!confirm('Se cambiarán los comentarios que hay ahora por los de este enlace. ¿Seguir?'))return;
   resetSnaps();removed=new Set();
-  if(APP.apifyOk&&APP.apifyOk()){loadAll(url);return}
+  if(APP.apifyOk&&APP.apifyOk()){loadAll(allUrls());return}
   alert('La carga de comentarios de golpe no está activada en esta versión de la app (falta la clave de Apify). Instala la última versión, o copia los comentarios y pégalos abajo.');
+}
+/* Varias publicaciones en el mismo sorteo (por ejemplo, el post de Instagram y el vídeo de TikTok) */
+function renderLinks(){
+  cfg.extraUrls=cfg.extraUrls||[];
+  $('#extraLinks').innerHTML=cfg.extraUrls.map((u,i)=>'<div class="row" style="margin-top:8px;align-items:center"><input type="text" value="'+esc(u)+'" placeholder="Otra publicación: https://…" oninput="cfg.extraUrls['+i+']=this.value;saveCfg()" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="x" style="flex:none;width:40px;height:40px;border:0;border-radius:11px;background:#FDECEC;color:var(--bad)" onclick="cfg.extraUrls.splice('+i+',1);saveCfg();renderLinks()">✕</button></div>').join('');
+}
+function addLink(){cfg.extraUrls=cfg.extraUrls||[];if(cfg.extraUrls.length>=4){toast('Como mucho 5 publicaciones por sorteo');return}cfg.extraUrls.push('');saveCfg();renderLinks();const ins=$$('#extraLinks input');ins[ins.length-1].focus()}
+function allUrls(){
+  const list=[cleanLink(cfg.postUrl)].concat((cfg.extraUrls||[]).map(cleanLink)).filter(Boolean);
+  return [...new Set(list)];
 }
 /* ⚡ Todos los comentarios de golpe (Apify). Se pide como mucho el límite del plan + 1,
    así un sorteo más grande que el plan avisa sin gastar de más. */
-let loadUrl='';
-function loadAll(url){
-  loadUrl=url;const lim=planLimit();
-  $('#loadN').textContent='0';$('#loadTxt').textContent='Se cargan todos de golpe. Suele tardar de unos segundos a 1–2 minutos según cuántos haya.';
+let loadUrls=[], loadIdx=0, loadAcc=[];
+function loadAll(urls){
+  loadUrls=Array.isArray(urls)?urls:[urls];loadIdx=0;loadAcc=[];
   $('#loadBtns').innerHTML='<button class="btn ghost" onclick="cancelLoad()">Cancelar</button>';
-  $('#mLoad').classList.add('on');
-  APP.apifyFetch(url,lim===Infinity?50000:lim+1);
+  $('#mLoad').classList.add('on');loadNext();
 }
-function onApifyProgress(n){$('#loadN').textContent=Number(n).toLocaleString('es-ES')}
+function loadNext(){
+  const lim=planLimit(),cap=lim===Infinity?50000:lim+1,left=cap-loadAcc.length;
+  if(loadIdx>=loadUrls.length||left<=0){finishLoad();return}
+  $('#loadN').textContent=loadAcc.length.toLocaleString('es-ES');
+  $('#loadTxt').textContent=(loadUrls.length>1?'Publicación '+(loadIdx+1)+' de '+loadUrls.length+'. ':'')+'Se cargan todos de golpe. Suele tardar de unos segundos a 1–2 minutos según cuántos haya.';
+  APP.apifyFetch(loadUrls[loadIdx],left);
+}
+function onApifyProgress(n){$('#loadN').textContent=(loadAcc.length+Number(n)).toLocaleString('es-ES')}
 function onApifyDone(json){
   let rows=[];try{rows=JSON.parse(json)}catch(e){}
+  rows.forEach(r=>{const u=String(r[0]||'').replace(/^@/,'').trim(),t=String(r[1]||'').replace(/\s+/g,' ').trim();if(u)loadAcc.push({u,t,nick:false,k:u.toLowerCase()+'|'+t})});
+  loadIdx++;loadNext();
+}
+function finishLoad(){
   $('#mLoad').classList.remove('on');
-  if(!rows.length){toast('No se encontraron comentarios en esa publicación');return}
-  resetSnaps();
-  rows.forEach(r=>{const u=String(r[0]||'').replace(/^@/,'').trim(),t=String(r[1]||'').replace(/\s+/g,' ').trim();if(u)collected.push({u,t,nick:false,k:u.toLowerCase()+'|'+t})});
+  if(!loadAcc.length){toast('No se encontraron comentarios en '+(loadUrls.length>1?'esas publicaciones':'esa publicación'));return}
+  resetSnaps();collected=loadAcc.slice();
   onCollectDone();
 }
 function onApifyError(msg){
   if(msg==='Cancelado'){$('#mLoad').classList.remove('on');return}
   $('#loadTxt').textContent='❌ '+msg;
-  $('#loadBtns').innerHTML='<button class="btn main" onclick="loadAll(loadUrl)">🔄 Intentarlo otra vez</button><button class="btn ghost" onclick="$(\'#mLoad\').classList.remove(\'on\')">Cerrar</button>';
+  $('#loadBtns').innerHTML='<button class="btn main" onclick="loadNext()">🔄 Intentarlo otra vez</button><button class="btn ghost" onclick="$(\'#mLoad\').classList.remove(\'on\')">Cerrar</button>';
 }
 function cancelLoad(){try{APP.apifyCancel()}catch(e){}$('#mLoad').classList.remove('on');toast('Cancelado')}
 /* Comentarios recogidos. Se guardan TODOS, también los repetidos:
@@ -792,6 +844,10 @@ function analyze(show){
   const shop=normU(cur().handle);
   const excl=new Set(cfg.excluded.split(/[\n,;\s]+/).map(normU).filter(Boolean)); if(shop)excl.add(shop);
   if(isLive&&live.owner)excl.add(normU(live.owner));
+  // Ganadores de sorteos recientes (si está activado)
+  const prevWin=new Set();
+  if(cfg.noPrevWin){const lim=Date.now()-cfg.prevDays*86400000;
+    load(K.hist,[]).forEach(d=>{if(new Date(d.date).getTime()>=lim)d.winners.forEach(w=>prevWin.add(normU(fw(d,w))))})}
   const word=(isLive?(cfg.liveWho==='word'?cfg.liveWord:''):cfg.needWord).trim().toLowerCase();
   const minM=isLive?0:cfg.minMent, multi=isLive?cfg.liveMulti:cfg.multi, maxT=cfg.maxTk>100?Infinity:cfg.maxTk;
   const usedMent={}; // por usuario: menciones ya usadas
@@ -800,6 +856,7 @@ function analyze(show){
     c.why='';c.ok=false;
     if(removed.has(c.id)){c.why='Quitado a mano';return}
     const u=normU(c.u);
+    if(prevWin.has(u)){c.why='Ganó un sorteo hace poco';return}
     if(excl.has(u)){c.why=u===shop?'Es la cuenta de la tienda':(isLive&&u===normU(live.owner))?'Es quien hace el directo':'Cuenta excluida';return}
     let ments=(c.t.match(/@([A-Za-z0-9._]{1,30})/g)||[]).map(m=>normU(m).replace(/\.+$/,''));
     if(cfg.noSelf)ments=ments.filter(m=>m!==u&&m!==shop);
@@ -821,7 +878,7 @@ function analyze(show){
   const tickets=[];list.forEach(p=>{for(let i=0;i<p.n;i++)tickets.push(normU(p.u))});
   result={people:list,tickets,total:comments.length,bad:comments.filter(c=>!c.ok).length};
   $('#stC').textContent=result.total;$('#stP').textContent=list.length;$('#stB').textContent=result.bad;
-  $('#resCard').style.display='';renderList();renderSum();
+  $('#resCard').style.display='';$('#statsBox').innerHTML='';renderList();renderSum();
   if(show){toast(list.length?('✅ '+list.length+' participantes válidos'):'⚠️ Ningún comentario cumple las reglas');vib(30)}
 }
 function renderList(){
@@ -835,6 +892,28 @@ function copyDump(){
   let d='';try{d=APP.lastDump()}catch(e){}
   if(!d){toast('Todavía no hay nada leído');return}
   try{APP.copy(d);toast('🔧 Copiado: pégalo en el chat para que lo revise')}catch(e){}
+}
+function openStats(){
+  if(!result||!result.people.length){toast('Primero recoge los comentarios');return}
+  const box=$('#statsBox');if(box.innerHTML){box.innerHTML='';return}
+  const top=result.people.slice().sort((a,b)=>b.n-a.n).slice(0,10);
+  const ments={};comments.forEach(c=>{if(c.ok)(c.t.match(/@([A-Za-z0-9._]{1,30})/g)||[]).forEach(m=>{m=normU(m);ments[m]=(ments[m]||0)+1})});
+  const mk=Object.keys(ments),totM=mk.reduce((a,k)=>a+ments[k],0);
+  const topM=mk.sort((a,b)=>ments[b]-ments[a]).slice(0,5);
+  const okC=comments.filter(c=>c.ok).length;
+  box.innerHTML='<div class="card" style="margin:10px 0 0;box-shadow:none">'
+   +'<div class="stats"><div class="stat"><b>'+(okC/result.people.length).toFixed(1).replace('.',',')+'</b><span>comentarios por persona</span></div><div class="stat"><b>'+totM.toLocaleString('es-ES')+'</b><span>menciones</span></div><div class="stat"><b>'+mk.length.toLocaleString('es-ES')+'</b><span>cuentas mencionadas</span></div></div>'
+   +'<b style="font-size:14px">🏅 Quien más papeletas tiene</b>'+top.map((p,i)=>{const pc=(p.n/result.tickets.length*100);return '<div class="it"><div style="flex:1;min-width:0"><div class="u">'+(i+1)+'. '+esc(at(p.u))+'</div><div style="height:6px;border-radius:6px;background:#EFEAFE;margin-top:4px"><div style="height:6px;border-radius:6px;background:var(--c);width:'+Math.max(3,Math.min(100,pc/ (top[0].n/result.tickets.length*100)*100))+'%"></div></div></div><span class="n">'+p.n+' · '+pc.toFixed(1).replace('.',',')+' %</span></div>'}).join('')
+   +(topM.length?'<b style="font-size:14px;display:block;margin-top:10px">👥 Cuentas más mencionadas</b>'+topM.map(m=>'<span class="pill">@'+esc(m)+' · '+ments[m]+'</span>').join(''):'')
+   +'</div>';
+}
+function exportList(){
+  if(!result||!result.people.length){toast('Primero recoge los comentarios');return}
+  const q=v=>'"'+String(v).replace(/"/g,'""')+'"';
+  let t='usuario,papeletas\n'+result.people.map(p=>q(at(p.u))+','+p.n).join('\n');
+  t+='\n\nusuario,comentario,valido,motivo\n'+comments.map(c=>q(at(c.u))+','+q(c.t)+','+(c.ok?'si':'no')+','+q(c.why||'')).join('\n');
+  if(APP&&APP.shareText){APP.shareText(t,'Participantes del sorteo');return}
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(t);a.download='participantes.csv';document.body.appendChild(a);a.click();a.remove();
 }
 function rem(id){removed.add(id);analyze(false)}
 function unRemove(id){removed.delete(id);analyze(false)}
@@ -950,19 +1029,57 @@ function confetti(){
 /* ============ resultado y certificado ============ */
 function fmtDate(iso){const d=new Date(iso);return d.toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'})+' · '+d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}
 function resultHtml(d){
-  return d.winners.map((w,i)=>'<div class="winner"><span class="medal">'+(['🥇','🥈','🥉'][i]||'🏆')+'</span><div><small>Ganador/a'+(d.winners.length>1?' '+(i+1):'')+'</small><b>'+esc(fw(d,w))+'</b></div></div>').join('')
+  return d.winners.map((w,i)=>'<div class="winner"><span class="medal">'+(['🥇','🥈','🥉'][i]||'🏆')+'</span><div style="flex:1;min-width:0"><small>Ganador/a'+(d.winners.length>1?' '+(i+1):'')+'</small><b>'+esc(fw(d,w))+'</b></div><button class="btn ghost small" style="flex:none;padding:6px 9px" onclick="replaceWinner('+i+')" title="No contesta">🔁</button></div>').join('')
+   +((d.replaced||[]).length?'<p class="hint" style="margin:4px 0 8px">🔁 '+d.replaced.map(r=>esc(fw(d,r.out))+' → '+esc(fw(d,r.in))).join(' · ')+'</p>':'')
    +d.alts.map((w,i)=>'<div class="winner alt"><span class="medal" style="font-size:22px">🎟️</span><div><small>Suplente '+(i+1)+'</small><b style="font-size:16px">'+esc(fw(d,w))+'</b></div></div>').join('')
    +'<p class="hint" style="margin:10px 0 0">'+fmtDate(d.date)+' · '+d.people+' participantes · Código <span class="code">'+d.code+'</span></p>'
    +'<div class="btns"><button class="btn main" onclick="showResultSheet(lastDraw)">🏆 Certificado</button><button class="btn sec" onclick="replay()">▶️ Ver otra vez</button></div>';
 }
+/* El ganador no contesta: pasa el primer suplente (o se sortea uno nuevo si no quedan) */
+function replaceWinner(i){
+  const d=lastDraw;if(!d)return;const out=d.winners[i];
+  let nw=null;
+  if(d.alts.length){if(!confirm('¿'+fw(d,out)+' no ha contestado? El primer suplente, '+fw(d,d.alts[0])+', pasa a ser ganador/a.'))return;nw=d.alts.shift()}
+  else{
+    if(!result){toast('No quedan suplentes. Vuelve a recoger los comentarios para sortear uno nuevo.');return}
+    const used=new Set(d.winners.concat(d.alts,(d.replaced||[]).map(r=>r.out)).map(w=>normU(fw(d,w))));
+    const pool=result.tickets.filter(u=>!used.has(u));
+    if(!pool.length){toast('No quedan más participantes');return}
+    if(!confirm('¿'+fw(d,out)+' no ha contestado? No quedan suplentes: se sortea uno nuevo entre el resto.'))return;
+    const u=pool[rnd(pool.length)];nw=at((result.people.find(p=>normU(p.u)===u)||{u}).u);
+  }
+  d.winners[i]=nw;d.replaced=(d.replaced||[]).concat([{out,in:nw,date:new Date().toISOString()}]);
+  const hist=load(K.hist,[]);const k=hist.findIndex(h=>h.id===d.id);if(k>=0){hist[k]=d;store(K.hist,hist)}
+  confetti();tada();toast('🏆 Nuevo ganador/a: '+fw(d,nw));showLast();
+}
 function showLast(){if(!lastDraw)return;$('#lastCard').style.display='';$('#lastBox').innerHTML=resultHtml(lastDraw);renderHist()}
 function replay(){if(lastDraw&&result)runLive(lastDraw,result.people.map(p=>at(p.u)));else if(lastDraw)runLive(lastDraw,lastDraw.winners.concat(lastDraw.alts).map(w=>fw(lastDraw,w)))}
 let certData=null, certDraw=null;
-function showResultSheet(d){if(!d)return;certDraw=d;certData=drawCert(d);$('#certImg').src=certData;$('#mCert').classList.add('on')}
+let certFmt='post';
+function showResultSheet(d){if(!d)return;certDraw=d;renderCertImg();$('#mCert').classList.add('on')}
+function renderCertImg(){certData=certFmt==='story'?drawStory(certDraw):drawCert(certDraw);$('#certImg').src=certData;$$('#certFmt button').forEach(b=>b.classList.toggle('on',b.dataset.v===certFmt))}
+$$('#certFmt button').forEach(b=>b.onclick=()=>{certFmt=b.dataset.v;renderCertImg()});
+/* Imagen vertical para historias (1080×1920) con el certificado dentro */
+function drawStory(d){
+  const W=1080,H=1920,cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');
+  const c=COLORS[d.shop.color]||COLORS[0];
+  const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,c[0]);g.addColorStop(1,c[1]);x.fillStyle=g;x.fillRect(0,0,W,H);
+  x.globalAlpha=.14;x.fillStyle='#fff';for(let i=0;i<40;i++){const r=(i*29%50)+6;x.beginPath();x.arc((i*233)%W,(i*389)%H,r,0,7);x.fill()}x.globalAlpha=1;
+  x.textAlign='center';x.fillStyle='#fff';
+  x.font='900 86px system-ui,sans-serif';x.fillText('¡TENEMOS',W/2,190);
+  x.fillText(d.winners.length>1?'GANADORES!':'GANADOR/A!',W/2,290);
+  const im=certCanvas(d);
+  const sc=.86,cw=1080*sc,ch=1350*sc;
+  try{x.save();x.shadowColor='rgba(0,0,0,.25)';x.shadowBlur=40;x.drawImage(im,(W-cw)/2,360,cw,ch);x.restore()}catch(e){}
+  x.font='700 40px system-ui,sans-serif';x.fillText('🎉 ¡Enhorabuena! 🎉',W/2,360+ch+90);
+  if(d.shop.handle){x.font='600 36px system-ui,sans-serif';x.globalAlpha=.9;x.fillText('@'+d.shop.handle,W/2,360+ch+150);x.globalAlpha=1}
+  return cv.toDataURL('image/png');
+}
 function wrap(x,text,maxW){const words=String(text).split(' ');const lines=[];let l='';words.forEach(w=>{const t=l?l+' '+w:w;if(x.measureText(t).width>maxW&&l){lines.push(l);l=w}else l=t});if(l)lines.push(l);return lines}
 function fitFont(x,text,maxW,size,weight){do{x.font=weight+' '+size+'px system-ui,sans-serif';size-=2}while(x.measureText(text).width>maxW&&size>18);}
 function rr(x,X,Y,W,H,R){x.beginPath();x.moveTo(X+R,Y);x.arcTo(X+W,Y,X+W,Y+H,R);x.arcTo(X+W,Y+H,X,Y+H,R);x.arcTo(X,Y+H,X,Y,R);x.arcTo(X,Y,X+W,Y,R);x.closePath()}
-function drawCert(d){
+function drawCert(d){return certCanvas(d).toDataURL('image/png')}
+function certCanvas(d){
   const W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');
   const c=COLORS[d.shop.color]||COLORS[0];
   const g=x.createLinearGradient(0,0,W,H);g.addColorStop(0,c[0]);g.addColorStop(1,c[1]);x.fillStyle=g;x.fillRect(0,0,W,H);
@@ -996,7 +1113,8 @@ function drawCert(d){
   x.fillText(fmtDate(d.date),W/2,fy+46);
   x.fillText(d.people+' participantes · '+d.tickets+' papeletas · '+d.comments+' comentarios',W/2,fy+84);
   x.font='700 24px ui-monospace,Menlo,monospace';x.fillStyle=c[0];x.fillText('Código de comprobación: '+d.code,W/2,fy+122);
-  return cv.toDataURL('image/png');
+  if((d.replaced||[]).length){x.font='600 22px system-ui,sans-serif';x.fillStyle='#6B6790';x.fillText('Sustituido por no contestar: '+d.replaced.map(r=>fw(d,r.out)+' → '+fw(d,r.in)).join(', '),W/2,fy-24)}
+  return cv;
 }
 const logoCache={};
 function preloadLogos(){[...shops.map(s=>s.logo),...load(K.hist,[]).map(h=>h.shop.logo)].forEach(src=>{if(src&&!logoCache[src]){const im=new Image();im.src=src;logoCache[src]=im}})}
@@ -1005,6 +1123,7 @@ function resText(d){
   if(d.prize)t+='🎁 Premio: '+d.prize+'\n';t+='\n';
   d.winners.forEach((w,i)=>t+='🏆 '+(d.winners.length>1?(i+1)+'. ':'')+fw(d,w)+'\n');
   if(d.alts.length)t+='\nSuplentes: '+d.alts.map(a=>fw(d,a)).join(', ')+'\n';
+  if((d.replaced||[]).length)t+='\n(Sustituido por no contestar: '+d.replaced.map(r=>fw(d,r.out)+' → '+fw(d,r.in)).join(', ')+')\n';
   t+='\nEscríbenos por mensaje privado para recoger tu premio 💌\n¡Gracias a los '+d.people+' participantes! ❤️\n\nSorteo realizado el '+fmtDate(d.date)+'\nCódigo de comprobación: '+d.code;
   return t;
 }
@@ -1015,7 +1134,7 @@ function copyText(){
   if(!ok)try{navigator.clipboard.writeText(t);ok=true}catch(e){}
   toast(ok?'📝 Texto copiado: pégalo en tu publicación':'No se pudo copiar');
 }
-function fileName(){return 'sorteo_'+(certDraw.shop.name||'tienda').replace(/[^A-Za-z0-9]+/g,'_')+'_'+certDraw.code+'.png'}
+function fileName(){return (certFmt==='story'?'historia_':'sorteo_')+(certDraw.shop.name||'tienda').replace(/[^A-Za-z0-9]+/g,'_')+'_'+certDraw.code+'.png'}
 function saveCert(){
   if(APP&&APP.saveImage){try{APP.saveImage(certData,fileName());return}catch(e){}}
   const a=document.createElement('a');a.href=certData;a.download=fileName();document.body.appendChild(a);a.click();a.remove();toast('💾 Imagen descargada');
@@ -1026,6 +1145,35 @@ async function shareCert(){
     if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],text:resText(certDraw)});return}}catch(e){if(e&&e.name==='AbortError')return}
   saveCert();
 }
+
+/* ============ bases del sorteo ============ */
+function basesText(){
+  const s=cur(),shop=s.name||'[NOMBRE DE LA TIENDA]',h=s.handle?'@'+normU(s.handle):'[@cuenta]';
+  const net=netName(cfg.net),end=cfg.endAt?new Date(cfg.endAt):null;
+  const fEnd=end?end.toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'})+' a las '+end.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}):'[FECHA Y HORA DE FIN]';
+  const scope={es:'residentes en España',pen:'residentes en la España peninsular',eu:'residentes en la Unión Europea',all:'cualquier persona, sea cual sea su país',shop:'cualquier persona que pueda recoger el premio en la tienda'}[cfg.scope||'es'];
+  const req=[];
+  req.push('Seguir la cuenta '+h+' en '+net+'.');
+  req.push(cfg.src==='live'?'Comentar durante el directo'+(cfg.liveWho==='word'&&cfg.liveWord.trim()?' escribiendo «'+cfg.liveWord.trim()+'»':'')+'.':'Comentar la publicación del sorteo'+(cfg.minMent?' mencionando a '+cfg.minMent+' '+(cfg.minMent>1?'amigos/as':'amigo/a')+(cfg.uniqMent?' distintos':''):'')+(cfg.needWord.trim()?' e incluyendo «'+cfg.needWord.trim()+'»':'')+'.');
+  const tk=cfg.src==='live'?cfg.liveMulti:cfg.multi;
+  req.push(tk?('Cada comentario válido es una participación'+(cfg.maxTk>100?'':' (máximo '+cfg.maxTk+' por persona)')+'.'):'Cada persona participa una sola vez, aunque comente varias veces.');
+  let t='BASES DEL SORTEO — '+shop.toUpperCase()+'\n\n';
+  t+='1. Organizador\nEl sorteo lo organiza '+shop+' ('+h+' en '+net+').\n\n';
+  t+='2. Premio\n'+(cfg.prize||'[PREMIO]')+'. Habrá '+cfg.winners+' '+(cfg.winners>1?'ganadores/as':'ganador/a')+(cfg.alts?' y '+cfg.alts+' '+(cfg.alts>1?'suplentes':'suplente'):'')+'. El premio no se puede cambiar por dinero.\n\n';
+  t+='3. Fechas\nSe puede participar desde la publicación del sorteo hasta el '+fEnd+'. Los comentarios posteriores no cuentan.\n\n';
+  t+='4. Quién puede participar\nPueden participar '+scope+', mayores de 18 años (o menores con permiso de su madre, padre o tutor). No pueden participar las personas que trabajan en '+shop+' ni sus familiares directos.\n\n';
+  t+='5. Cómo participar\n'+req.map(r=>'• '+r).join('\n')+'\nNo cuentan los perfiles falsos, las cuentas creadas solo para sorteos ni las menciones a cuentas que no existen o a marcas.\n\n';
+  t+='6. Cómo se elige al ganador\nEl ganador se elige al azar entre todas las participaciones válidas con la app Sorteos Star, que genera un certificado con la fecha, el número de participantes y un código de comprobación. El resultado se publicará en '+h+'.\n\n';
+  t+='7. Comunicación y entrega\nContactaremos con el ganador por mensaje privado desde '+h+'. Si no responde en 48 horas, el premio pasará al primer suplente, y así sucesivamente. '+(cfg.scope==='shop'?'El premio se recoge en la tienda.':'El envío del premio es gratuito.')+'\n\n';
+  t+='8. Datos personales\nLos datos de los participantes solo se usarán para gestionar este sorteo y contactar con el ganador, y no se cederán a nadie.\n\n';
+  t+='9. '+net+'\nEste sorteo no está patrocinado, avalado ni administrado por '+net+(cfg.net==='ig'?' ni por Meta':'')+', ni está asociado a '+(cfg.net==='ig'?'ellos':'esa red social')+'. Cada participante libera a '+net+' de toda responsabilidad.\n\n';
+  t+='10. Aceptación\nParticipar en el sorteo supone aceptar estas bases. '+shop+' puede descalificar a quien haga trampas o no cumpla las bases.';
+  return t;
+}
+function openBases(){$('#basesTxt').value=basesText();$('#mBases').classList.add('on')}
+function copyBases(){const t=$('#basesTxt').value;let ok=false;try{if(APP&&APP.copy){APP.copy(t);ok=true}}catch(e){}
+  if(!ok){try{const ta=$('#basesTxt');ta.select();ok=document.execCommand('copy')}catch(e){}}toast(ok?'📋 Bases copiadas':'No se pudo copiar')}
+function shareBases(){const t=$('#basesTxt').value;if(APP&&APP.shareText){APP.shareText(t,'Bases del sorteo');return}if(navigator.share){navigator.share({text:t}).catch(()=>{});return}copyBases()}
 
 /* ============ planes (como AppSorteos) ============ */
 /* ✏️ Tus datos de vendedor: el WhatsApp sale en la app de las tiendas para pedirte el código */
@@ -1119,7 +1267,7 @@ function closeM(id){$('#'+id).classList.remove('on')}
 /* botón «atrás» del móvil (lo llama la app Android) */
 function onBack(){
   if($('#live').classList.contains('on')){closeLive();return 'ok'}
-  for(const id of ['mCert','mHelp','mPlans','mVendor'])if($('#'+id).classList.contains('on')){closeM(id);return 'ok'}
+  for(const id of ['mCert','mHelp','mPlans','mVendor','mBases'])if($('#'+id).classList.contains('on')){closeM(id);return 'ok'}
   const order=['tienda','sorteo','part','sortear'];
   if(page==='hist'){go('sortear');return 'ok'}
   const i=order.indexOf(page);if(i>0){go(order[i-1]);return 'ok'}
@@ -1131,7 +1279,7 @@ cfg.winners=Math.min(10,Math.max(1,cfg.winners));
 if(!cfg.v2){cfg.v2=1;cfg.multi=true;cfg.maxTk=101;cfg.liveMulti=true;saveCfg()}  // que cuenten todos los comentarios
 if(!cfg.v3){cfg.v3=1;cfg.uniqMent=false;saveCfg()}  // repetir amigos en otro comentario también vale
 renderPlan();
-renderShops();applyTheme();renderCfg();preloadLogos();
+renderShops();applyTheme();renderCfg();preloadLogos();renderLinks();
 if(!(APP&&APP.collect))$('#noAppBox').style.display='';
 if(APP&&APP.lastDump)$('#dumpBtn').style.display='';
 (function(){let v='',ok=false;try{v=APP.version();ok=APP.apifyOk()}catch(e){}

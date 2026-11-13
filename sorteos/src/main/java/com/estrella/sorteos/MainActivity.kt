@@ -511,6 +511,14 @@ class MainActivity : Activity() {
         }
 
         @JavascriptInterface
+        fun shareText(text: String, title: String) {
+            ui.post {
+                val send = Intent(Intent.ACTION_SEND).apply { type = "text/plain"; putExtra(Intent.EXTRA_TEXT, text); putExtra(Intent.EXTRA_SUBJECT, title) }
+                try { startActivity(Intent.createChooser(send, title)) } catch (e: Exception) {}
+            }
+        }
+
+        @JavascriptInterface
         fun saveImage(dataUrl: String, name: String) {
             ui.post {
                 val uri = saveToGallery(dataUrl, name)
