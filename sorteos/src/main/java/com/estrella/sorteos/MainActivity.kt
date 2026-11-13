@@ -403,7 +403,7 @@ class MainActivity : Activity() {
             for ((u, t) in LectorResult.rows) arr.put(JSONArray().put(u).put(t))
             web.evaluateJavascript("onLiveImport(${JSONObject.quote(arr.toString())});onLiveDone();", null)
         } else {
-            web.evaluateJavascript("collected=new Map();", null)
+            web.evaluateJavascript("resetSnaps();", null)
             val sb = StringBuilder()
             for ((i, sn) in LectorResult.snaps.withIndex()) {
                 sb.append("onSnap(").append(JSONObject.quote(sn.second)).append(",").append(JSONObject.quote(sn.first)).append(");")

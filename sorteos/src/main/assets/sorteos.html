@@ -497,7 +497,7 @@ $('#logoFile').addEventListener('change',e=>{
 });
 
 /* ============ configuración del sorteo ============ */
-let cfg=Object.assign({net:'ig',prize:'',postUrl:'',winners:1,alts:2,minMent:1,multi:true,maxTk:101,uniqMent:true,noSelf:true,needWord:'',excluded:'',mode:'auto',raw:'',src:'post',liveNet:'tt',liveUrl:'',liveWho:'all',liveWord:'',liveMulti:true},load(K.cfg,{}));
+let cfg=Object.assign({net:'ig',prize:'',postUrl:'',winners:1,alts:2,minMent:1,multi:true,maxTk:101,uniqMent:false,noSelf:true,needWord:'',excluded:'',mode:'auto',raw:'',src:'post',liveNet:'tt',liveUrl:'',liveWho:'all',liveWord:'',liveMulti:true},load(K.cfg,{}));
 const LIM={winners:[1,10],alts:[0,20],minMent:[0,10],maxTk:[1,101]};  // maxTk 101 = sin límite
 function step(k,d){cfg[k]=Math.max(LIM[k][0],Math.min(LIM[k][1],cfg[k]+d));$('#v-'+k).textContent=(k==='maxTk'&&cfg[k]>100)?'∞':cfg[k];saveCfg();if(dirty())analyze(false)}
 function renderCfg(){
@@ -574,12 +574,14 @@ function parse(raw,mode){
   // app-ig: como en la web, pero a veces la app pone «usuario comentario» en la misma línea
   // app-tt: TikTok enseña el apodo (puede llevar espacios y emojis) en la línea de antes del comentario
   let curC=null, expect=true;
+  // ¿En esta pantalla los usuarios van en su propia línea? Entonces no se busca «usuario comentario» junto
+  let combined=mode==='app-ig'&&lines.filter(l=>l&&userLine(l)).length<2;
   for(const l of lines){
     if(!l){expect=true;continue}
     if(expect&&mode==='app-tt'&&l.length<=40&&!isNoise(l)&&!UI_WORDS.has(l.toLowerCase())&&!/^\d/.test(l)){
       curC={u:l.replace(/^@/,''),t:'',nick:!/^@/.test(l)};out.push(curC);expect=false;continue;
     }
-    if(expect&&mode==='app-ig'){
+    if(expect&&mode==='app-ig'&&combined){
       const mm=l.match(/^@?([A-Za-z0-9._]{2,30})\s+(.+)$/);
       if(mm&&/[A-Za-z]/.test(mm[1])&&!UI_WORDS.has(mm[1].toLowerCase())&&!NOISE_W.test(mm[1])&&!TIME_TOK.test(mm[1])&&!isNoise(mm[2])){
         curC={u:mm[1],t:mm[2]};out.push(curC);expect=false;continue;
@@ -628,28 +630,52 @@ function collect(){
   $('#postUrl').value=url;cfg.postUrl=url;cfg.src='post';netFromUrl();saveCfg();
   if(!(APP&&APP.collect)){$('#noAppBox').style.display='';alert('Recoger los comentarios solo funciona en la app Android «Sorteos Star» (SorteosStar-debug.apk). En el navegador hay que copiar los comentarios y pegarlos en el cuadro de abajo.');return}
   if(cfg.raw.trim()&&!confirm('Se cambiarán los comentarios que hay ahora por los de este enlace. ¿Seguir?'))return;
-  collected=new Map();removed=new Set();
+  resetSnaps();removed=new Set();
   APP.collect(url);
+}
+/* Comentarios recogidos. Se guardan TODOS, también los repetidos:
+   cada lectura se compara con la anterior y solo se apunta lo que es nuevo (lo que aparece al bajar). */
+let snapPrev=[], snapKeys=new Set();
+function resetSnaps(){collected=[];snapPrev=[];snapKeys=new Set()}
+function sameAt(prev,cur,j,e,k){const P=prev.length-e;for(let i=0;i<k;i++)if(prev[P-k+i]!==cur[j+i])return false;return true}
+/* Cuántos elementos del principio de «cur» ya estaban al final de «prev» (o -1 si no se encuentra) */
+function overlapOf(prev,cur){
+  if(!prev.length)return 0;
+  // la web va añadiendo: la lectura nueva empieza igual que la anterior
+  if(cur.length>=prev.length&&sameAt(prev,cur,0,0,prev.length))return prev.length;
+  // Primero sin saltarse nada; solo si no coincide, se salta un comentario cortado arriba o abajo
+  for(let j=0;j<=2&&j<cur.length;j++)            // arriba puede haber un comentario cortado
+    for(let e=0;e<=1&&e<prev.length;e++){        // y abajo, en la lectura anterior, otro a medias
+      const maxK=Math.min(prev.length-e,cur.length-j,300);
+      for(let k=maxK;k>=1;k--)if(sameAt(prev,cur,j,e,k))return j+k;
+    }
+  return -1;
 }
 /* La app llama a esto cada poco con el texto de los comentarios que se ven en la página */
 function onSnap(text,pmode){
-  if(!collected)collected=new Map();
+  if(!Array.isArray(collected))resetSnaps();
+  const items=[];
   parse(String(text||''),pmode||'auto').forEach(c=>{
     const u=c.nick?c.u:c.u.replace(/^@/,''),t=(c.t||'').replace(/\s+/g,' ').trim();
     if(UI_WORDS.has(u.toLowerCase())||!t&&pmode)return;
-    const k=u.toLowerCase()+'|'+t;if(!collected.has(k))collected.set(k,{u,t,nick:!!c.nick});
+    items.push({u,t,nick:!!c.nick,k:u.toLowerCase()+'|'+t});
   });
-  return collected.size;
+  const keys=items.map(x=>x.k);
+  const ov=overlapOf(snapPrev,keys);
+  if(ov>=0)items.slice(ov).forEach(x=>{collected.push(x);snapKeys.add(x.k)});
+  else items.forEach(x=>{if(!snapKeys.has(x.k)){collected.push(x);snapKeys.add(x.k)}}); // no se sabe qué es nuevo: sin repetir
+  snapPrev=keys;
+  return collected.length;
 }
 /* Al pulsar «Usar comentarios» */
 function onCollectDone(){
-  if(!collected||!collected.size){toast('No se encontraron comentarios. ¿Has iniciado sesión?');return 0}
-  const got=[...collected.values()];got.forEach(c=>{if(c.nick)NICKS.add(c.u)});
+  if(!Array.isArray(collected)||!collected.length){toast('No se encontraron comentarios. ¿Has iniciado sesión?');return 0}
+  const got=collected.map(x=>({u:x.u,t:x.t,nick:x.nick}));got.forEach(c=>{if(c.nick)NICKS.add(c.u)});
   store('ss.got',got);
   const txt=got.map(c=>at(c.u)+(c.t?': '+c.t:'')).join('\n');
   cfg.mode='auto';$('#mode').value='auto';$('#raw').value=txt;cfg.raw=txt;cfg.src='got';saveCfg();renderSrc();
   removed=new Set();go('part');analyze(true);
-  return collected.size;
+  return got.length;
 }
 
 /* ============ sorteo en directo (app Android) ============ */
@@ -1058,6 +1084,7 @@ function onBack(){
 /* ============ inicio ============ */
 cfg.winners=Math.min(10,Math.max(1,cfg.winners));
 if(!cfg.v2){cfg.v2=1;cfg.multi=true;cfg.maxTk=101;cfg.liveMulti=true;saveCfg()}  // que cuenten todos los comentarios
+if(!cfg.v3){cfg.v3=1;cfg.uniqMent=false;saveCfg()}  // repetir amigos en otro comentario también vale
 renderPlan();
 renderShops();applyTheme();renderCfg();preloadLogos();
 if(!(APP&&APP.collect))$('#noAppBox').style.display='';

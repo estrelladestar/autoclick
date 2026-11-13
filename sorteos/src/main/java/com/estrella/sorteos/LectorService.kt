@@ -206,15 +206,19 @@ class LectorService : AccessibilityService() {
             for (i in 0 until n.childCount) walk(n.getChild(i), d + 1)
         }
         walk(root, 0)
+        // Se baja solo un poco (≈40 % de la lista) y despacio, para que entre una lectura y la siguiente
+        // siempre queden comentarios en común: así se sabe cuáles son nuevos y se cuentan también los repetidos.
         val b = best
-        if (b != null && b.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD)) return
         val box = Rect()
         if (b != null) b.getBoundsInScreen(box) else root.getBoundsInScreen(box)
-        val x = box.exactCenterX()
-        val y1 = box.top + box.height() * 0.78f
-        val y2 = box.top + box.height() * 0.30f
+        val x = box.left + box.width() * 0.85f            // por el lado, para no tocar nombres ni enlaces
+        val y1 = box.top + box.height() * 0.72f
+        val y2 = box.top + box.height() * 0.32f
         val p = Path().apply { moveTo(x, y1); lineTo(x, y2) }
-        try { dispatchGesture(GestureDescription.Builder().addStroke(GestureDescription.StrokeDescription(p, 0, 350)).build(), null, null) } catch (e: Exception) {}
+        val ok = try {
+            dispatchGesture(GestureDescription.Builder().addStroke(GestureDescription.StrokeDescription(p, 0, 900)).build(), null, null)
+        } catch (e: Exception) { false }
+        if (!ok) b?.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD)
     }
 
     // ---------- directo ----------
