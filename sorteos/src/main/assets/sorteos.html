@@ -216,7 +216,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:60}
   <div id="liveBox" style="display:none">
   <div class="card">
     <h2>🔴 Sorteo en directo</h2>
-    <p class="hint">La app abre el directo y apunta a todos los que comentan desde que pulsas «Empezar». Cuando pulses «Parar y sortear», se sortea entre ellos.</p>
+    <p class="hint">La app abre el directo en la app de TikTok/Instagram y apunta a todos los que comentan desde que pulsas «Empezar». Cuando pulses «Parar y sortear», se sortea entre ellos.</p>
     <label>Red social</label>
     <div class="seg" id="liveNetSeg">
       <button data-v="tt"><span class="net tt">TikTok</span></button>
@@ -237,7 +237,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:60}
   <div id="postBox">
   <div class="card">
     <h2>🔗 Enlace de la publicación</h2>
-    <p class="hint">Pega el enlace del post de Instagram o del vídeo de TikTok y la app recoge todos los comentarios sola.</p>
+    <p class="hint">Pega el enlace del post de Instagram o del vídeo de TikTok. Se abre en la app de Instagram/TikTok y Sorteos Star lee todos los comentarios.</p>
     <input type="text" id="postUrl" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://www.instagram.com/p/...">
     <div class="btns"><button class="btn sec small" onclick="pasteLink()">📋 Pegar enlace</button><button class="btn ghost small" onclick="$('#postUrl').value='';cfg.postUrl='';saveCfg()">🧹 Borrar</button></div>
     <div class="btns"><button class="btn main" onclick="collect()">⚡ Recoger todos los comentarios</button></div>
@@ -279,6 +279,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:60}
     <input type="text" id="search" placeholder="🔎 Buscar usuario…" style="margin:10px 0">
     <div class="list" id="list"></div>
     <p class="hint" style="margin-top:8px">Toca ✕ para quitar un comentario que se haya leído mal.</p>
+    <button class="btn ghost small" id="dumpBtn" style="display:none;width:100%" onclick="copyDump()">🔧 Copiar lo que ha leído la app (si algo sale mal, mándamelo)</button>
   </div>
   <button class="btn main big" onclick="go('sortear')">Siguiente: ¡sortear! →</button>
 </section>
@@ -337,7 +338,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:60}
     <ol class="help">
       <li><b>Tienda:</b> pon el nombre, la cuenta, el logo y el color. Así sale en el certificado.</li>
       <li><b>Sorteo:</b> elige Instagram o TikTok, escribe el premio y las reglas (cuántos amigos hay que mencionar, palabra obligatoria…).</li>
-      <li><b>Recoger los comentarios (app Android):</b> en «Participantes» pega el enlace y pulsa «Recoger todos los comentarios». Se abre la publicación; la primera vez inicia sesión en Instagram o TikTok. La app baja sola y va contando los comentarios. Cuando el número deje de subir, pulsa «Usar comentarios».</li>
+      <li><b>Recoger los comentarios (app Android):</b> en «Participantes» pega el enlace y pulsa «Recoger todos los comentarios». Se abre la publicación <b>en la app de Instagram o TikTok</b> con un panel encima. Abre los comentarios y pulsa «Empezar»: la app los lee y baja sola. Cuando ponga «ya están todos», pulsa «Terminar». La primera vez te pedirá activar el permiso de accesibilidad «Sorteos Star (leer comentarios)».</li>
       <li><b>O copiarlos a mano:</b>
         <ul>
           <li><b>Desde el ordenador</b> (lo más fácil): abre la publicación en el navegador, baja hasta que se carguen todos los comentarios (pulsa «+» o «Ver más»), selecciónalos con el ratón, cópialos y pégalos en la app.</li>
@@ -454,7 +455,7 @@ function renderCfg(){
   $('#mode').value=cfg.mode;$('#raw').value=cfg.raw;
 }
 function renderSrc(){
-  $$('#srcSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===cfg.src));
+  $$('#srcSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===(cfg.src==='live'?'live':'post')));
   $('#liveBox').style.display=cfg.src==='live'?'':'none';$('#postBox').style.display=cfg.src==='live'?'none':'';
   $$('#liveNetSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===cfg.liveNet));
   $$('#liveWhoSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===cfg.liveWho));
@@ -466,10 +467,10 @@ function renderSrc(){
 let saveT;function saveCfg(){clearTimeout(saveT);saveT=setTimeout(()=>store(K.cfg,cfg),300)}
 $$('#netSeg button').forEach(b=>b.onclick=()=>{cfg.net=b.dataset.v;renderCfg();saveCfg()});
 ['multi','uniqMent','noSelf'].forEach(id=>$('#'+id).addEventListener('change',e=>{cfg[id]=e.target.checked;renderCfg();saveCfg();if(dirty())analyze(false)}));
-['prize','postUrl','needWord','excluded','raw'].forEach(id=>$('#'+id).addEventListener('input',e=>{cfg[id]=e.target.value;saveCfg();if(id==='postUrl')netFromUrl()}));
+['prize','postUrl','needWord','excluded','raw'].forEach(id=>$('#'+id).addEventListener('input',e=>{cfg[id]=e.target.value;if(id==='raw'&&cfg.src==='got')cfg.src='post';saveCfg();if(id==='postUrl')netFromUrl()}));
 function netFromUrl(){const u=cfg.postUrl.toLowerCase();const n=u.includes('tiktok')?'tt':u.includes('instagram')||u.includes('instagr.am')?'ig':null;if(n&&n!==cfg.net){cfg.net=n;renderCfg();saveCfg()}}
 ['needWord','excluded'].forEach(id=>$('#'+id).addEventListener('change',()=>{if(dirty())analyze(false)}));
-$$('#srcSeg button').forEach(b=>b.onclick=()=>{cfg.src=b.dataset.v;renderSrc();saveCfg();analyze(false)});
+$$('#srcSeg button').forEach(b=>b.onclick=()=>{if((cfg.src==='live'?'live':'post')===b.dataset.v)return;cfg.src=b.dataset.v==='post'&&load('ss.got',[]).length&&cfg.raw.trim()?'got':b.dataset.v;renderSrc();saveCfg();analyze(false)});
 $$('#liveNetSeg button').forEach(b=>b.onclick=()=>{cfg.liveNet=b.dataset.v;renderSrc();saveCfg()});
 $$('#liveWhoSeg button').forEach(b=>b.onclick=()=>{cfg.liveWho=b.dataset.v;renderSrc();saveCfg();if(cfg.src==='live')analyze(false)});
 $('#liveUrl').addEventListener('input',e=>{cfg.liveUrl=e.target.value;saveCfg();const v=e.target.value.toLowerCase();if(v.includes('tiktok')&&cfg.liveNet!=='tt'){cfg.liveNet='tt';renderSrc()}else if(v.includes('instagr')&&cfg.liveNet!=='ig'){cfg.liveNet='ig';renderSrc()}});
@@ -481,7 +482,7 @@ function dirty(){return $('#resCard').style.display!=='none'}
 /* ============ leer los comentarios ============ */
 const USER_RE=/^@?([A-Za-z0-9._]{2,30})$/;
 const TIME_TOK=/^(s|sem|semanas?|w|d|días?|dias?|h|hr|horas?|min|mins|minutos?|mes(es)?|años?|y|yr|\d+\s*(s|seg|sem|semanas?|w|wk|d|días?|dias?|h|hr|horas?|m|min|mins|minutos?|a|años?|y|yr|mes(es)?|mo)\.?|hace|ago|ahora|now|ayer|yesterday|\d{1,2}[-\/]\d{1,2}([-\/]\d{2,4})?)$/i;
-const NOISE_W=/^(responder|reply|me|gusta|like|likes|ver|see|traducción|traduccion|translation|respuestas?|replies|ocultar|hide|editado|edited|fijado|pinned|autor|author|creador|creator|verificado|verified|·|•|-|—|\d+(,\d+)?\s*(mil|k|m)?|más|more|view|all|todas?|los|las|de|del|the|of|enviar|send|mensaje|message|seguir|follow|siguiendo|following|liked|by|le|ha|dado|el|a)$/i;
+const NOISE_W=/^(responder|reply|me|gusta|like|likes|ver|see|traducción|traduccion|translation|respuestas?|replies|ocultar|hide|editado|edited|fijado|pinned|autor|author|creador|creator|verificado|verified|·|•|-|—|\d+(,\d+)?\s*(mil|k|m)?|más|more|view|all|todas?|los|las|de|del|the|of|enviar|send|mensaje|message|seguir|follow|siguiendo|following|liked|by|le|ha|dado|el|a|comentarios?|comments?|respuesta|traducir|translate|ocultar|añadir|add|agregar|escribe|write|emoji)$/i;
 function isNoise(line){
   const toks=line.replace(/[()\[\]]/g,' ').split(/\s+/).filter(Boolean);
   if(!toks.length)return true;
@@ -511,9 +512,20 @@ function parse(raw,mode){
     return out;
   }
   // automático: bloques "usuario / (tiempo) / comentario / Responder"
+  // app-ig: como en la web, pero a veces la app pone «usuario comentario» en la misma línea
+  // app-tt: TikTok enseña el apodo (puede llevar espacios y emojis) en la línea de antes del comentario
   let curC=null, expect=true;
   for(const l of lines){
     if(!l){expect=true;continue}
+    if(expect&&mode==='app-tt'&&l.length<=40&&!isNoise(l)&&!UI_WORDS.has(l.toLowerCase())&&!/^\d/.test(l)){
+      curC={u:l.replace(/^@/,''),t:'',nick:!/^@/.test(l)};out.push(curC);expect=false;continue;
+    }
+    if(expect&&mode==='app-ig'){
+      const mm=l.match(/^@?([A-Za-z0-9._]{2,30})\s+(.+)$/);
+      if(mm&&/[A-Za-z]/.test(mm[1])&&!UI_WORDS.has(mm[1].toLowerCase())&&!NOISE_W.test(mm[1])&&!TIME_TOK.test(mm[1])&&!isNoise(mm[2])){
+        curC={u:mm[1],t:mm[2]};out.push(curC);expect=false;continue;
+      }
+    }
     const one=l.match(/^@?([A-Za-z0-9._]{2,30})\s*:\s+(.+)$/); // "usuario: comentario"
     if(one&&/[A-Za-z]/.test(one[1])){curC={u:one[1],t:one[2]};out.push(curC);expect=true;continue}
     const u=userLine(l);
@@ -561,21 +573,23 @@ function collect(){
   APP.collect(url);
 }
 /* La app llama a esto cada poco con el texto de los comentarios que se ven en la página */
-function onSnap(text){
+function onSnap(text,pmode){
   if(!collected)collected=new Map();
-  parse(String(text||''),'auto').forEach(c=>{
-    const u=c.u.replace(/^@/,''),t=(c.t||'').replace(/\s+/g,' ').trim();
-    if(UI_WORDS.has(u.toLowerCase()))return;
-    const k=u.toLowerCase()+'|'+t;if(!collected.has(k))collected.set(k,{u,t});
+  parse(String(text||''),pmode||'auto').forEach(c=>{
+    const u=c.nick?c.u:c.u.replace(/^@/,''),t=(c.t||'').replace(/\s+/g,' ').trim();
+    if(UI_WORDS.has(u.toLowerCase())||!t&&pmode)return;
+    const k=u.toLowerCase()+'|'+t;if(!collected.has(k))collected.set(k,{u,t,nick:!!c.nick});
   });
   return collected.size;
 }
 /* Al pulsar «Usar comentarios» */
 function onCollectDone(){
   if(!collected||!collected.size){toast('No se encontraron comentarios. ¿Has iniciado sesión?');return 0}
-  const txt=[...collected.values()].map(c=>'@'+c.u+(c.t?': '+c.t:'')).join('\n');
-  cfg.mode='auto';$('#mode').value='auto';$('#raw').value=txt;cfg.raw=txt;saveCfg();
-  go('part');analyze(true);
+  const got=[...collected.values()];got.forEach(c=>{if(c.nick)NICKS.add(c.u)});
+  store('ss.got',got);
+  const txt=got.map(c=>at(c.u)+(c.t?': '+c.t:'')).join('\n');
+  cfg.mode='auto';$('#mode').value='auto';$('#raw').value=txt;cfg.raw=txt;cfg.src='got';saveCfg();renderSrc();
+  removed=new Set();go('part');analyze(true);
   return collected.size;
 }
 
@@ -585,6 +599,7 @@ function at(u){u=String(u);return (u[0]==='@'||NICKS.has(u))?u:'@'+u}
 function fw(d,w){return d.fmt?w:'@'+w}
 let live=load('ss.live',{owner:'',msgs:[]}), liveBase=new Set(), liveSeen=new Set(), livePeople=new Set(), liveT;
 live.msgs.forEach(m=>{if(m.nick)NICKS.add(m.u)});
+load('ss.got',[]).forEach(m=>{if(m.nick)NICKS.add(m.u)});
 function liveOpen(){
   const raw=($('#liveUrl').value||'').trim();let url='',owner='';
   const link=cleanLink(raw);
@@ -614,6 +629,15 @@ function onLive(json,started){
   if(added){clearTimeout(liveT);liveT=setTimeout(()=>store('ss.live',live),1500)}
   return livePeople.size+'|'+liveSeen.size+'|'+(d.v||0);
 }
+/* Lo que se ha leído del directo en la app de Instagram/TikTok: [[usuario, comentario], ...] */
+function onLiveImport(json){
+  let rows=[];try{rows=JSON.parse(json)}catch(e){}
+  live.msgs=[];livePeople=new Set();liveSeen=new Set();
+  rows.forEach(r=>{const x=String(r[0]||'').trim(),t=String(r[1]||'').trim();if(!x)return;
+    const nick=x[0]!=='@',u=nick?x:x.slice(1);if(nick)NICKS.add(u);
+    live.msgs.push({u,t,nick});livePeople.add(u.toLowerCase());liveSeen.add(u.toLowerCase()+'|'+t)});
+  store('ss.live',live);return livePeople.size;
+}
 /* Al pulsar «Parar y sortear» */
 function onLiveDone(){
   store('ss.live',live);cfg.src='live';saveCfg();renderSrc();removed=new Set();
@@ -628,7 +652,9 @@ function analyze(show){
   cfg.raw=$('#raw').value;saveCfg();
   const isLive=cfg.src==='live';
   if(isLive?!live.msgs.length:!cfg.raw.trim()){if(show)toast(isLive?'Todavía no hay comentarios del directo':'Primero pega los comentarios');$('#resCard').style.display='none';result=null;return}
-  comments=(isLive?live.msgs:parse(cfg.raw,cfg.mode)).map((c,i)=>({id:i,u:c.u,t:c.t||''}));
+  let src=isLive?live.msgs:null;
+  if(!isLive&&cfg.src==='got'){src=load('ss.got',[]);src.forEach(c=>{if(c.nick)NICKS.add(c.u)});if(!src.length)src=null}
+  comments=(src||parse(cfg.raw,cfg.mode)).map((c,i)=>({id:i,u:c.u,t:c.t||''}));
   if(show)removed=new Set();
   const shop=normU(cur().handle);
   const excl=new Set(cfg.excluded.split(/[\n,;\s]+/).map(normU).filter(Boolean)); if(shop)excl.add(shop);
@@ -671,6 +697,11 @@ function renderList(){
   if(q)rows=rows.filter(c=>normU(c.u).includes(q));
   const MAX=400;
   $('#list').innerHTML=rows.length?rows.slice(0,MAX).map(c=>'<div class="it"><div style="min-width:0"><div class="u">'+esc(at(NICKS.has(c.u)?c.u:c.u.replace(/^@/,'')))+'</div><div class="t">'+esc(c.t||'—')+'</div>'+(c.ok?'':'<div class="why">✗ '+esc(c.why)+'</div>')+'</div>'+(c.ok?'<span class="n">✓</span>':'')+(removed.has(c.id)?'<button class="x" style="background:#E8F8F0;color:var(--ok)" onclick="unRemove('+c.id+')">↺</button>':'<button class="x" onclick="rem('+c.id+')">✕</button>')+'</div>').join('')+(rows.length>MAX?'<div class="empty">…y '+(rows.length-MAX)+' más (usa el buscador)</div>':''):'<div class="empty">No hay nada aquí</div>';
+}
+function copyDump(){
+  let d='';try{d=APP.lastDump()}catch(e){}
+  if(!d){toast('Todavía no hay nada leído');return}
+  try{APP.copy(d);toast('🔧 Copiado: pégalo en el chat para que lo revise')}catch(e){}
 }
 function rem(id){removed.add(id);analyze(false)}
 function unRemove(id){removed.delete(id);analyze(false)}
@@ -889,6 +920,7 @@ function onBack(){
 cfg.winners=Math.min(10,Math.max(1,cfg.winners));
 renderShops();applyTheme();renderCfg();preloadLogos();
 if(!(APP&&APP.collect))$('#noAppBox').style.display='';
+if(APP&&APP.lastDump)$('#dumpBtn').style.display='';
 if(cfg.raw.trim())analyze(false);
 if(!cur().name)setTimeout(()=>toast('👋 Empieza poniendo los datos de tu tienda'),600);
 </script>

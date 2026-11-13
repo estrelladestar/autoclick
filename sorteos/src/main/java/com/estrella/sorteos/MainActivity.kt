@@ -37,6 +37,7 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
@@ -64,6 +65,7 @@ class MainActivity : Activity() {
     private var sameRounds = 0
     private var fileCb: ValueCallback<Array<Uri>>? = null
     private var pendingSave: Pair<String, String>? = null
+    private var pageReady = false
 
     private val desktopUA =
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
@@ -175,7 +177,7 @@ class MainActivity : Activity() {
                 try { startActivity(Intent(Intent.ACTION_VIEW, request.url)) } catch (e: Exception) {}
                 return true
             }
-            override fun onPageFinished(view: WebView?, url: String?) { handleShare(intent) }
+            override fun onPageFinished(view: WebView?, url: String?) { pageReady = true; handleShare(intent); deliverLector() }
         }
         web.webChromeClient = object : WebChromeClient() {
             // Para elegir el logo o abrir un archivo de comentarios
@@ -365,15 +367,68 @@ class MainActivity : Activity() {
         super.onNewIntent(intent)
         setIntent(intent)
         handleShare(intent)
+        deliverLector()
+    }
+
+    // ---------- leer desde la app de Instagram / TikTok ----------
+    /** Abre la publicación o el directo en la app de Instagram/TikTok y lo lee con el permiso de accesibilidad. */
+    private fun collectInApp(url: String, live: Boolean) {
+        val svc = LectorService.instance
+        if (svc != null) { svc.begin(url, live); return }
+        val on = LectorService.enabledInSettings(this)
+        AlertDialog.Builder(this)
+            .setTitle("Leer desde la app de Instagram / TikTok")
+            .setMessage(
+                (if (on) "El permiso está activado pero el móvil lo ha parado. Apágalo y vuelve a encenderlo.\n\n" else "") +
+                "Para leer los comentarios desde la app de Instagram o TikTok (con tu sesión de siempre), Sorteos Star necesita el permiso de accesibilidad.\n\n" +
+                "1. Pulsa «Activar permiso».\n2. Busca «Sorteos Star (leer comentarios)» (a veces dentro de «Aplicaciones instaladas» o «Servicios descargados»).\n3. Actívalo y vuelve aquí.\n\n" +
+                "Solo mira Instagram y TikTok, y solo cuando pulsas «Empezar»."
+            )
+            .setPositiveButton("Activar permiso") { _, _ ->
+                try { startActivity(Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)) } catch (e: Exception) {}
+            }
+            .setNeutralButton("Usar la web") { _, _ -> startCollect(url, live) }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    /** Al volver de Instagram/TikTok: pasa lo leído a la app. */
+    private fun deliverLector() {
+        if (!pageReady || !LectorResult.ready) return
+        LectorResult.ready = false
+        if (LectorResult.live) {
+            val arr = JSONArray()
+            for ((u, t) in LectorResult.rows) arr.put(JSONArray().put(u).put(t))
+            web.evaluateJavascript("onLiveImport(${JSONObject.quote(arr.toString())});onLiveDone();", null)
+        } else {
+            web.evaluateJavascript("collected=new Map();", null)
+            val sb = StringBuilder()
+            for ((i, sn) in LectorResult.snaps.withIndex()) {
+                sb.append("onSnap(").append(JSONObject.quote(sn.second)).append(",").append(JSONObject.quote(sn.first)).append(");")
+                if (i % 40 == 39) { web.evaluateJavascript(sb.toString(), null); sb.setLength(0) }
+            }
+            sb.append("onCollectDone();")
+            web.evaluateJavascript(sb.toString()) { r ->
+                val n = r?.toDoubleOrNull()?.toInt() ?: 0
+                if (n > 0) Toast.makeText(this, "✅ $n comentarios recogidos", Toast.LENGTH_SHORT).show()
+            }
+        }
+        LectorResult.snaps.clear(); LectorResult.rows.clear()
     }
 
     // ---------- puente con el HTML ----------
     inner class Bridge {
         @JavascriptInterface
-        fun collect(url: String) { ui.post { startCollect(url) } }
+        fun collect(url: String) { ui.post { collectInApp(url, false) } }
 
         @JavascriptInterface
-        fun collectLive(url: String) { ui.post { startCollect(url, true) } }
+        fun collectLive(url: String) { ui.post { collectInApp(url, true) } }
+
+        @JavascriptInterface
+        fun collectWeb(url: String, live: Boolean) { ui.post { startCollect(url, live) } }
+
+        @JavascriptInterface
+        fun lastDump(): String = LectorResult.lastDump
 
         @JavascriptInterface
         fun vibrate(json: String) {
@@ -503,6 +558,6 @@ class MainActivity : Activity() {
     }
 
     override fun onPause() { web.onPause(); colWeb.onPause(); super.onPause() }
-    override fun onResume() { super.onResume(); web.onResume(); colWeb.onResume() }
+    override fun onResume() { super.onResume(); web.onResume(); colWeb.onResume(); deliverLector() }
     override fun onDestroy() { ui.removeCallbacksAndMessages(null); colWeb.destroy(); web.destroy(); super.onDestroy() }
 }
