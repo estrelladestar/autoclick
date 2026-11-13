@@ -66,6 +66,7 @@ class MainActivity : Activity() {
     private var fileCb: ValueCallback<Array<Uri>>? = null
     private var pendingSave: Pair<String, String>? = null
     private var pageReady = false
+    @Volatile private var vendor = false   // modo vendedor abierto en esta sesión
 
     private val desktopUA =
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
@@ -429,6 +430,31 @@ class MainActivity : Activity() {
 
         @JavascriptInterface
         fun lastDump(): String = LectorResult.lastDump
+
+        // ---------- planes y códigos ----------
+        @JavascriptInterface
+        fun plan(): String = Licencia.current(this@MainActivity).toString()
+
+        @JavascriptInterface
+        fun activate(code: String): String = Licencia.activate(this@MainActivity, code).toString()
+
+        @JavascriptInterface
+        fun vendorUnlock(phrase: String): Boolean { vendor = Licencia.vendorOk(phrase); return vendor }
+
+        @JavascriptInterface
+        fun makeCode(device: String, plan: String, days: Int): String {
+            if (!vendor || plan.isEmpty() || plan[0] !in "SCA" || Licencia.clean(device).length != 8) return ""
+            return Licencia.make(device, plan[0], days)
+        }
+
+        @JavascriptInterface
+        fun openWhatsApp(phone: String, text: String) {
+            ui.post {
+                val num = phone.filter { it.isDigit() }
+                val u = Uri.parse("https://wa.me/$num?text=" + Uri.encode(text))
+                try { startActivity(Intent(Intent.ACTION_VIEW, u)) } catch (e: Exception) {}
+            }
+        }
 
         @JavascriptInterface
         fun vibrate(json: String) {

@@ -15,7 +15,14 @@ android {
         versionCode = runNumber
         versionName = "1.$runNumber"
         setProperty("archivesBaseName", "SorteosStar")  // el APK se llama SorteosStar-debug.apk
+        // Clave de los códigos de activación: sale del secreto SORTEOS_CLAVE de GitHub (nunca está en el código).
+        // Se guarda solo su huella (SHA-256). Sin secreto, la app funciona en plan Gratis y no acepta códigos.
+        val clave = System.getenv("SORTEOS_CLAVE")?.trim() ?: ""
+        val huella = if (clave.isEmpty()) "" else java.security.MessageDigest.getInstance("SHA-256")
+            .digest(clave.toByteArray(Charsets.UTF_8)).joinToString("") { "%02x".format(it) }
+        buildConfigField("String", "LIC_KEY", "\"$huella\"")
     }
+    buildFeatures { buildConfig = true }
     signingConfigs {
         getByName("debug") {
             storeFile = file("../app/debug.keystore")

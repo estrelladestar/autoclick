@@ -17,6 +17,8 @@ jobs:
         with:
           gradle-version: 8.7
       - run: gradle assembleDebug
+        env:
+          SORTEOS_CLAVE: ${{ secrets.SORTEOS_CLAVE }}  # clave de los códigos de Sorteos Star (Ajustes → Secrets → Actions)
       - uses: actions/upload-artifact@v4
         with:
           name: StarApp-apk
