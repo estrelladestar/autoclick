@@ -26,8 +26,11 @@ android {
         // Clave de Apify (cargar todos los comentarios de golpe): secreto APIFY_TOKEN de GitHub
         val apify = (System.getenv("APIFY_TOKEN") ?: "").trim().filter { it.isLetterOrDigit() || it == '_' || it == '-' }
         buildConfigField("String", "APIFY_TOKEN", "\"$apify\"")
+        buildConfigField("boolean", "PLAY", "false")
     }
     buildFeatures { buildConfig = true }
+    // «Pagos» de mentira: los pagos de Google solo existen en la versión de Google Play (módulo sorteosplay)
+    sourceSets { getByName("main") { java.srcDirs("src/main/java", "src/stub/java") } }
     signingConfigs {
         getByName("debug") {
             storeFile = file("../app/debug.keystore")

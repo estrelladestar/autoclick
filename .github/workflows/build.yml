@@ -20,6 +20,20 @@ jobs:
         env:
           SORTEOS_CLAVE: ${{ secrets.SORTEOS_CLAVE }}
           APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}  # clave de Apify para cargar los comentarios de golpe  # clave de los códigos de Sorteos Star (Ajustes → Secrets → Actions)
+      - name: Sorteos Star para Google Play (.aab firmado)
+        env:
+          PLAY_UPLOAD_PASS: ${{ secrets.PLAY_UPLOAD_PASS }}  # contraseña de la clave de subida de Google Play
+          APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
+        run: |
+          if [ -n "$PLAY_UPLOAD_PASS" ]; then
+            openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in sorteosplay/upload.jks.enc -out sorteosplay/upload.jks -pass env:PLAY_UPLOAD_PASS
+            gradle :sorteosplay:bundleRelease
+            cp sorteosplay/build/outputs/bundle/release/*.aab SorteosStar-GooglePlay.aab
+            rm -f sorteosplay/upload.jks
+          else
+            echo "Falta el secreto PLAY_UPLOAD_PASS: el .aab se compila sin firmar (solo para comprobar) y no se publica"
+            gradle :sorteosplay:bundleRelease
+          fi
       - uses: actions/upload-artifact@v4
         with:
           name: StarApp-apk
@@ -50,7 +64,7 @@ jobs:
           path: sorteos/build/outputs/apk/debug/*.apk
       - run: cp app/build/outputs/apk/normal/debug/app-normal-debug.apk StarApp.apk && cp StarApp.apk app-debug.apk && cp app/build/outputs/apk/historias/debug/app-historias-debug.apk StarAppHistorias.apk  # Star App (también como app-debug.apk, el enlace de siempre) y Star App Historias
       - run: cp lengua/src/main/assets/mundo.html MiMundo_Lengua_Tema3.html && cp facil/src/main/assets/mundo.html MiMundo_Facil_Tema3.html && cp ingles/src/main/assets/mundo.html MiMundo_Ingles_Unit2.html && cp sorteos/src/main/assets/sorteos.html SorteosStar.html  # versiones HTML para descargar
-      - run: mkdir -p web/ingles && cp lengua/src/main/assets/mundo.html web/index.html && mkdir -p web/sorteos && cp sorteos/src/main/assets/sorteos.html web/sorteos/index.html && cp ingles/src/main/assets/mundo.html web/ingles/index.html && touch web/.nojekyll  # páginas web de los juegos (/ = Lengua, /ingles/ = Inglés, /sorteos/ = Sorteos Star)
+      - run: mkdir -p web/ingles && cp lengua/src/main/assets/mundo.html web/index.html && mkdir -p web/sorteos && cp sorteos/src/main/assets/sorteos.html web/sorteos/index.html && cp sorteosplay/privacidad.html web/sorteos/privacidad.html && cp ingles/src/main/assets/mundo.html web/ingles/index.html && touch web/.nojekyll  # páginas web de los juegos (/ = Lengua, /ingles/ = Inglés, /sorteos/ = Sorteos Star)
       - uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -76,6 +90,7 @@ jobs:
             - MiMundo_Ingles_Unit2.html → Mi Mundo Inglés para abrir en el navegador
             - SorteosStar-debug.apk → Sorteos Star (sorteos de Instagram y TikTok para tiendas: pegas el enlace y recoge los comentarios)
             - SorteosStar.html → Sorteos Star para abrir en el navegador (ahí los comentarios se pegan a mano)
+            - SorteosStar-GooglePlay.aab → Sorteos Star para subir a Google Play (firmado con la clave de subida)
           files: |
             StarApp.apk
             app-debug.apk
@@ -90,3 +105,4 @@ jobs:
             MiMundo_Facil_Tema3.html
             MiMundo_Ingles_Unit2.html
             SorteosStar.html
+            SorteosStar-GooglePlay.aab

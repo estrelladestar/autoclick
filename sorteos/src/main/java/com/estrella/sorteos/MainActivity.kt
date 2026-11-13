@@ -24,7 +24,9 @@ import android.os.Vibrator
 import android.provider.MediaStore
 import android.util.Base64
 import android.view.View
+import android.view.WindowInsets
 import android.view.WindowManager
+import android.window.OnBackInvokedDispatcher
 import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.ValueCallback
@@ -240,6 +242,19 @@ class MainActivity : Activity() {
         root.addView(colBox, FrameLayout.LayoutParams(-1, -1))
 
         setContentView(root)
+        // Android 15+ con target 35/36: la app ocupa toda la pantalla; se deja sitio a las barras y al teclado
+        if (BuildConfig.PLAY && Build.VERSION.SDK_INT >= 30) {
+            root.setOnApplyWindowInsetsListener { v, ins ->
+                val b = ins.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.ime() or WindowInsets.Type.displayCutout())
+                v.setPadding(b.left, b.top, b.right, b.bottom)
+                WindowInsets.CONSUMED
+            }
+        }
+        // Botón «atrás» en Android 13+ (en Android 16 con target 36 ya no llega onBackPressed)
+        if (Build.VERSION.SDK_INT >= 33) {
+            onBackInvokedDispatcher.registerOnBackInvokedCallback(OnBackInvokedDispatcher.PRIORITY_DEFAULT) { handleBack() }
+        }
+        Pagos.start(this) { web.evaluateJavascript("if(window.onPlanChanged)onPlanChanged()", null) }
         Licencia.syncNetTime(this)   // fecha real de internet, para que atrasar el reloj no alargue el plan
     }
 
@@ -375,6 +390,7 @@ class MainActivity : Activity() {
     // ---------- leer desde la app de Instagram / TikTok ----------
     /** Abre la publicación o el directo en la app de Instagram/TikTok y lo lee con el permiso de accesibilidad. */
     private fun collectInApp(url: String, live: Boolean) {
+        if (BuildConfig.PLAY) { startCollect(url, live); return }   // Google Play: sin permiso de accesibilidad
         val svc = LectorService.instance
         if (svc != null) { svc.begin(url, live); return }
         val on = LectorService.enabledInSettings(this)
@@ -458,7 +474,20 @@ class MainActivity : Activity() {
 
         // ---------- planes y códigos ----------
         @JavascriptInterface
-        fun plan(): String = Licencia.current(this@MainActivity).toString()
+        fun plan(): String = Pagos.planJson() ?: Licencia.current(this@MainActivity).toString()
+
+        // ---------- Google Play (solo en la versión de la tienda) ----------
+        @JavascriptInterface
+        fun isPlay(): Boolean = BuildConfig.PLAY
+
+        @JavascriptInterface
+        fun storeProducts(): String = Pagos.productsJson()
+
+        @JavascriptInterface
+        fun storeBuy(plan: String, period: String) { ui.post { Pagos.buy(this@MainActivity, plan, period) } }
+
+        @JavascriptInterface
+        fun storeManage() { ui.post { Pagos.manage(this@MainActivity) } }
 
         @JavascriptInterface
         fun activate(code: String): String = Licencia.activate(this@MainActivity, code).toString()
@@ -608,7 +637,9 @@ class MainActivity : Activity() {
     }
 
     @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
+    override fun onBackPressed() { handleBack() }
+
+    private fun handleBack() {
         if (colBox.visibility == View.VISIBLE) {
             if (!liveMode && colWeb.canGoBack()) colWeb.goBack() else askCancel()
             return
@@ -617,6 +648,6 @@ class MainActivity : Activity() {
     }
 
     override fun onPause() { web.onPause(); colWeb.onPause(); super.onPause() }
-    override fun onResume() { super.onResume(); web.onResume(); colWeb.onResume(); deliverLector() }
-    override fun onDestroy() { ui.removeCallbacksAndMessages(null); colWeb.destroy(); web.destroy(); super.onDestroy() }
+    override fun onResume() { super.onResume(); web.onResume(); colWeb.onResume(); deliverLector(); Pagos.refresh() }
+    override fun onDestroy() { Pagos.end(); ui.removeCallbacksAndMessages(null); colWeb.destroy(); web.destroy(); super.onDestroy() }
 }

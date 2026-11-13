@@ -176,7 +176,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:60}
   <div class="card" id="planCard">
     <h2>⭐ Tu plan</h2>
     <div id="planBox"></div>
-    <div class="btns"><button class="btn sec small" onclick="openPlans()">💎 Ver planes</button><button class="btn sec small" onclick="openPlans(true)">🔑 Tengo un código</button></div>
+    <div class="btns" id="planBtns"><button class="btn sec small" onclick="openPlans()">💎 Ver planes</button><button class="btn sec small" onclick="openPlans(true)">🔑 Tengo un código</button></div>
   </div>
   <button class="btn main big" onclick="go('sorteo')">Siguiente: el sorteo →</button>
 </section>
@@ -438,9 +438,10 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:60}
     <div class="seg" id="perSeg"><button data-v="m" class="on">Mensual</button><button data-v="y">Anual (2 meses gratis)</button></div>
     <div class="plans" id="plansGrid"></div>
     <div id="buyBox"></div>
-    <label>¿Ya tienes un código?</label>
+    <div id="codeBox"><label>¿Ya tienes un código?</label>
     <input type="text" id="codeIn" placeholder="XXXX-XXXX-XXXX" autocapitalize="characters" autocomplete="off" spellcheck="false" style="font-family:ui-monospace,Menlo,monospace;letter-spacing:1px">
-    <div class="btns"><button class="btn main" onclick="activateCode()">🔓 Activar código</button><button class="btn ghost" onclick="closeM('mPlans')">Cerrar</button></div>
+    <div class="btns"><button class="btn main" onclick="activateCode()">🔓 Activar código</button></div></div>
+    <div class="btns"><button class="btn ghost" onclick="closeM('mPlans')">Cerrar</button></div>
   </div>
 </div>
 
@@ -476,6 +477,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:60}
 /* ============ utilidades ============ */
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const APP=window.SorteoApp||null;           // puente con la app Android (si existe)
+const PLAY=!!(APP&&APP.isPlay&&APP.isPlay()); // versión de Google Play: pagos con Google, sin códigos
 const K={shops:'ss.shops',cur:'ss.cur',cfg:'ss.cfg',hist:'ss.hist'};
 function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
 function store(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){toast('⚠️ No se pudo guardar (memoria llena)')}}
@@ -1183,13 +1185,18 @@ let buyPlan='S', buyPer='m';
 function myPlan(){try{if(APP&&APP.plan)return JSON.parse(APP.plan())}catch(e){}return {plan:'F'}}
 function planLimit(){return (PLANS[myPlan().plan]||PLANS.F).lim}
 function limTxt(l){return l===Infinity?'sin límite de comentarios':'hasta '+l.toLocaleString('es-ES')+' comentarios por sorteo'}
-function price(k,per){const m=PLANS[k].m;return per==='y'?(m*10)+' €/año':m+' €/mes'}
+function storePrices(){try{return JSON.parse(APP.storeProducts())}catch(e){return {}}}
+function price(k,per){
+  if(PLAY){const sp=storePrices()[k];if(sp&&sp[per])return sp[per]+(per==='y'?'/año':'/mes')}
+  const m=PLANS[k].m;return per==='y'?(m*10)+' €/año':m+' €/mes'}
 function renderPlan(){
   const p=myPlan(),P=PLANS[p.plan]||PLANS.F;
   let h='<div class="pname">'+(p.plan==='F'?'🆓 ':'💎 ')+P.n+'</div><p class="hint" style="margin:4px 0 0">Sorteos ilimitados, '+limTxt(P.lim)+'.'+(p.exp?(p.left<0?' Para siempre.':' Hasta el '+p.exp+'.'):'')+'</p>';
   if(p.expired)h+='<div class="warnbox">⏰ Tu plan '+PLANS[p.expired].n+' caducó el '+p.expDate+'. Pide un código nuevo para renovarlo.</div>';
   if(p.device)h+='<p class="hint" style="margin:10px 0 0">Código de este móvil: <span class="code">'+fmtDev(p.device)+'</span></p>';
+  if(p.store&&p.plan!=='F')h+='<p class="hint" style="margin:6px 0 0">Suscripción de Google Play: se renueva sola hasta que la canceles.</p>';
   $('#planBox').innerHTML=h;
+  if(PLAY)$('#planBtns').innerHTML='<button class="btn sec small" onclick="openPlans()">💎 Ver planes</button>'+(p.plan!=='F'?'<button class="btn ghost small" onclick="APP.storeManage()">⚙️ Gestionar suscripción</button>':'');
 }
 function fmtDev(d){return d?d.slice(0,4)+'-'+d.slice(4):''}
 function openPlans(focusCode,why){
@@ -1197,7 +1204,8 @@ function openPlans(focusCode,why){
   $('#plansWhy').innerHTML=why?'<div class="warnbox" style="margin:0 0 10px">'+why+'</div>':'<p class="hint">Todos los planes tienen sorteos ilimitados. Lo que cambia es cuántos comentarios puede tener cada sorteo.</p>';
   if(p.plan!=='F'&&PLANS[p.plan])buyPlan=p.plan==='A'?'A':(p.plan==='S'?'C':'A');
   renderPlans();$('#mPlans').classList.add('on');
-  if(focusCode)setTimeout(()=>$('#codeIn').focus(),200);
+  $('#codeBox').style.display=PLAY?'none':'';
+  if(focusCode&&!PLAY)setTimeout(()=>$('#codeIn').focus(),200);
 }
 function renderPlans(){
   const cur=myPlan().plan;
@@ -1206,7 +1214,11 @@ function renderPlans(){
     return '<button class="plan'+(k===buyPlan?' on':'')+(k==='F'?' free':'')+'" '+(k==='F'?'disabled':'onclick="buyPlan=\''+k+'\';renderPlans()"')+'><b>'+P.n+(k===cur?' ✓':'')+'</b><span class="pr">'+(k==='F'?'0 €':price(k,buyPer))+'</span><small>'+(P.lim===Infinity?'Sin límite':'Hasta '+P.lim.toLocaleString('es-ES'))+' comentarios</small></button>'}).join('');
   const p=myPlan(),dev=fmtDev(p.device);
   let h='';
-  if(!(APP&&APP.plan)){h='<div class="warnbox">Los planes de pago solo se pueden activar en la app Android Sorteos Star.</div>'}
+  if(PLAY){
+    h=cur===buyPlan?'<div class="warnbox" style="background:#E8F8F0;border-color:#B6EBD3;color:#0B6B45">✅ Ya tienes el plan '+PLANS[buyPlan].n+'.</div>'
+      :'<div class="btns"><button class="btn main" onclick="APP.storeBuy(buyPlan,buyPer)">💳 Suscribirme a '+PLANS[buyPlan].n+' ('+price(buyPlan,buyPer)+')</button></div><p class="hint" style="margin:6px 0 0">El pago lo hace Google Play. Puedes cancelar cuando quieras desde Google Play → Suscripciones.</p>';
+  }
+  else if(!(APP&&APP.plan)){h='<div class="warnbox">Los planes de pago solo se pueden activar en la app Android Sorteos Star.</div>'}
   else{
     h='<p class="hint" style="margin:6px 0 0">Para contratar <b>'+PLANS[buyPlan].n+'</b> ('+price(buyPlan,buyPer)+'): paga por '+VENDEDOR.pago+' y te mandan un código para este móvil.</p>'
      +'<div class="big-code">'+dev+'</div><p class="hint" style="text-align:center;margin:0">Código de este móvil (mándalo al pagar)</p>'
@@ -1215,6 +1227,11 @@ function renderPlans(){
   $('#buyBox').innerHTML=h;
 }
 $$('#perSeg button').forEach(b=>b.onclick=()=>{buyPer=b.dataset.v;renderPlans()});
+/* La tienda avisa de que ha cambiado el plan (compra hecha, renovación o cancelación) */
+function onPlanChanged(){
+  const p=myPlan();renderPlan();renderSum();
+  if($('#mPlans').classList.contains('on')){renderPlans();if(p.plan!=='F'&&p.plan===buyPlan){closeM('mPlans');confetti();tada();toast('🎉 Plan '+PLANS[p.plan].n+' activado')}}
+}
 function buyText(){const p=myPlan();return 'Hola 👋 Quiero el plan '+PLANS[buyPlan].n+' de Sorteos Star ('+price(buyPlan,buyPer)+') para mi tienda'+(cur().name?' «'+cur().name+'»':'')+'.\nCódigo de mi móvil: '+fmtDev(p.device)}
 function askCode(){try{APP.openWhatsApp(VENDEDOR.whatsapp,buyText())}catch(e){}}
 function copyDev(){try{APP.copy(buyText());toast('📋 Copiado: mándaselo a quien te vende la app')}catch(e){}}
@@ -1227,7 +1244,7 @@ function activateCode(){
 }
 /* Modo vendedor: toca 7 veces el logo de arriba */
 let taps=0,tapT;
-$('#hLogo').addEventListener('click',()=>{taps++;clearTimeout(tapT);tapT=setTimeout(()=>taps=0,1500);if(taps>=7){taps=0;$('#vLock').style.display='';$('#vOpen').style.display='none';$('#vPhrase').value='';$('#mVendor').classList.add('on')}});
+$('#hLogo').addEventListener('click',()=>{if(PLAY)return;taps++;clearTimeout(tapT);tapT=setTimeout(()=>taps=0,1500);if(taps>=7){taps=0;$('#vLock').style.display='';$('#vOpen').style.display='none';$('#vPhrase').value='';$('#mVendor').classList.add('on')}});
 function vendorUnlock(){
   let ok=false;try{ok=APP.vendorUnlock($('#vPhrase').value)}catch(e){}
   if(!ok){toast('Frase incorrecta');return}
@@ -1276,6 +1293,7 @@ function onBack(){
 
 /* ============ inicio ============ */
 cfg.winners=Math.min(10,Math.max(1,cfg.winners));
+if(PLAY){$$('#liveBox .hint').forEach(e=>{e.innerHTML=e.innerHTML.replace('en la app de TikTok/Instagram','(la versión web de TikTok/Instagram, dentro de Sorteos Star)')})}
 if(!cfg.v2){cfg.v2=1;cfg.multi=true;cfg.maxTk=101;cfg.liveMulti=true;saveCfg()}  // que cuenten todos los comentarios
 if(!cfg.v3){cfg.v3=1;cfg.uniqMent=false;saveCfg()}  // repetir amigos en otro comentario también vale
 renderPlan();
