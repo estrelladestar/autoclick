@@ -1,3 +1,5 @@
+import java.security.MessageDigest
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -18,7 +20,7 @@ android {
         // Clave de los códigos de activación: sale del secreto SORTEOS_CLAVE de GitHub (nunca está en el código).
         // Se guarda solo su huella (SHA-256). Sin secreto, la app funciona en plan Gratis y no acepta códigos.
         val clave = System.getenv("SORTEOS_CLAVE")?.trim() ?: ""
-        val huella = if (clave.isEmpty()) "" else java.security.MessageDigest.getInstance("SHA-256")
+        val huella = if (clave.isEmpty()) "" else MessageDigest.getInstance("SHA-256")
             .digest(clave.toByteArray(Charsets.UTF_8)).joinToString("") { "%02x".format(it) }
         buildConfigField("String", "LIC_KEY", "\"$huella\"")
     }
