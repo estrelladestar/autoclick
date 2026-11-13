@@ -231,6 +231,17 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:60}
     <label>Cuentas excluidas (empleados, familia…) — una por línea</label>
     <textarea id="excluded" style="min-height:80px" placeholder="@trabajadora1&#10;@primo_juan"></textarea>
   </div>
+
+  <div class="card">
+    <h2>🎟️ Papeletas extra</h2>
+    <p class="hint">Da más papeletas a una lista de cuentas (por ejemplo, clientas que han comprado). <b>Siempre se publica</b>: sale en las bases, en el certificado y en el texto del resultado. El ganador sigue saliendo al azar.</p>
+    <label>Cuentas — una por línea</label>
+    <textarea id="extraList" style="min-height:80px" placeholder="@clienta1&#10;@clienta2"></textarea>
+    <div class="tog"><div><span>Papeletas extra por cuenta</span><small>Se suman a las suyas si tiene al menos un comentario válido</small></div>
+      <div class="stepper"><button onclick="step('extraN',-1)">−</button><b id="v-extraN">2</b><button onclick="step('extraN',1)">+</button></div></div>
+    <label>Motivo (se publica)</label>
+    <input type="text" id="extraWhy" placeholder="Ej.: por haber comprado en la tienda este mes" maxlength="80">
+  </div>
   <button class="btn main big" onclick="go('part')">Siguiente: participantes →</button>
 </section>
 
@@ -541,16 +552,16 @@ $('#logoFile').addEventListener('change',e=>{
 });
 
 /* ============ configuración del sorteo ============ */
-let cfg=Object.assign({net:'ig',prize:'',postUrl:'',winners:1,alts:2,minMent:1,multi:true,maxTk:101,uniqMent:false,noSelf:true,needWord:'',excluded:'',mode:'auto',raw:'',src:'post',noPrevWin:false,prevDays:30,endAt:'',scope:'es',extraUrls:[],liveNet:'tt',liveUrl:'',liveWho:'all',liveWord:'',liveMulti:true},load(K.cfg,{}));
-const LIM={winners:[1,10],alts:[0,20],minMent:[0,10],maxTk:[1,101],prevDays:[15,365]};  // maxTk 101 = sin límite
+let cfg=Object.assign({net:'ig',prize:'',postUrl:'',winners:1,alts:2,minMent:1,multi:true,maxTk:101,uniqMent:false,noSelf:true,needWord:'',excluded:'',mode:'auto',raw:'',src:'post',extraList:'',extraN:2,extraWhy:'',noPrevWin:false,prevDays:30,endAt:'',scope:'es',extraUrls:[],liveNet:'tt',liveUrl:'',liveWho:'all',liveWord:'',liveMulti:true},load(K.cfg,{}));
+const LIM={winners:[1,10],alts:[0,20],minMent:[0,10],maxTk:[1,101],prevDays:[15,365],extraN:[1,10]};  // maxTk 101 = sin límite
 function step(k,d){cfg[k]=Math.max(LIM[k][0],Math.min(LIM[k][1],cfg[k]+d));if(k==='prevDays')$('#v-prevDays2').textContent=cfg[k];$('#v-'+k).textContent=(k==='maxTk'&&cfg[k]>100)?'∞':cfg[k];saveCfg();if(dirty())analyze(false)}
 function renderCfg(){
   renderSrc();
   $$('#netSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===cfg.net));
   $('#postUrl').placeholder=cfg.net==='ig'?'https://www.instagram.com/p/...':'https://www.tiktok.com/@tienda/video/...';
-  ['winners','alts','minMent','maxTk','prevDays'].forEach(k=>$('#v-'+k).textContent=(k==='maxTk'&&cfg[k]>100)?'∞':cfg[k]);
+  ['winners','alts','minMent','maxTk','prevDays','extraN'].forEach(k=>$('#v-'+k).textContent=(k==='maxTk'&&cfg[k]>100)?'∞':cfg[k]);
   $('#v-prevDays2').textContent=cfg.prevDays;$('#noPrevWin').checked=!!cfg.noPrevWin;$('#prevRow').style.display=cfg.noPrevWin?'':'none';
-  $('#endAt').value=cfg.endAt||'';$('#scope').value=cfg.scope||'es';
+  $('#extraList').value=cfg.extraList||'';$('#extraWhy').value=cfg.extraWhy||'';$('#endAt').value=cfg.endAt||'';$('#scope').value=cfg.scope||'es';
   $('#multi').checked=cfg.multi;$('#uniqMent').checked=cfg.uniqMent;$('#noSelf').checked=cfg.noSelf;
   $('#maxRow').style.display=cfg.multi?'':'none';
   $('#prize').value=cfg.prize;$('#postUrl').value=cfg.postUrl;$('#needWord').value=cfg.needWord;$('#excluded').value=cfg.excluded;
@@ -572,6 +583,7 @@ let saveT;function saveCfg(){clearTimeout(saveT);saveT=setTimeout(()=>store(K.cf
 $$('#netSeg button').forEach(b=>b.onclick=()=>{cfg.net=b.dataset.v;renderCfg();saveCfg()});
 ['noPrevWin','multi','uniqMent','noSelf'].forEach(id=>$('#'+id).addEventListener('change',e=>{cfg[id]=e.target.checked;renderCfg();saveCfg();if(dirty())analyze(false)}));
 ['endAt','scope'].forEach(id=>$('#'+id).addEventListener('change',e=>{cfg[id]=e.target.value;saveCfg()}));
+['extraList','extraWhy'].forEach(id=>{$('#'+id).addEventListener('input',e=>{cfg[id]=e.target.value;saveCfg()});$('#'+id).addEventListener('change',()=>{if(dirty())analyze(false)})});
 ['prize','postUrl','needWord','excluded','raw'].forEach(id=>$('#'+id).addEventListener('input',e=>{cfg[id]=e.target.value;if(id==='raw'&&cfg.src==='got')cfg.src='post';saveCfg();if(id==='postUrl')netFromUrl()}));
 function netFromUrl(){const u=cfg.postUrl.toLowerCase();const n=u.includes('tiktok')?'tt':u.includes('instagram')||u.includes('instagr.am')?'ig':null;if(n&&n!==cfg.net){cfg.net=n;renderCfg();saveCfg()}}
 ['needWord','excluded'].forEach(id=>$('#'+id).addEventListener('change',()=>{if(dirty())analyze(false)}));
@@ -877,18 +889,23 @@ function analyze(show){
     p.n++;c.ok=true;
   });
   const list=Object.values(people).filter(p=>p.n>0);
-  const tickets=[];list.forEach(p=>{for(let i=0;i<p.n;i++)tickets.push(normU(p.u))});
-  result={people:list,tickets,total:comments.length,bad:comments.filter(c=>!c.ok).length};
+  // Papeletas extra (públicas): se suman a quien esté en la lista y tenga al menos un comentario válido
+  const extraSet=extraAccounts(),extraGot=[];
+  list.forEach(p=>{p.x=0;if(extraSet.has(normU(p.u))){p.x=cfg.extraN;extraGot.push(p.u)}});
+  const tickets=[];list.forEach(p=>{for(let i=0;i<p.n+p.x;i++)tickets.push(normU(p.u))});
+  result={extraGot,people:list,tickets,total:comments.length,bad:comments.filter(c=>!c.ok).length};
   $('#stC').textContent=result.total;$('#stP').textContent=list.length;$('#stB').textContent=result.bad;
   $('#resCard').style.display='';$('#statsBox').innerHTML='';renderList();renderSum();
   if(show){toast(list.length?('✅ '+list.length+' participantes válidos'):'⚠️ Ningún comentario cumple las reglas');vib(30)}
 }
+function extraAccounts(){return new Set((cfg.extraList||'').split(/[\n,;\s]+/).map(normU).filter(Boolean))}
+function extraInfo(){const n=extraAccounts().size;return n?{n:cfg.extraN,why:(cfg.extraWhy||'').trim(),accounts:[...extraAccounts()]}:null}
 function renderList(){
   const q=normU($('#search').value);let rows=comments;
   if(listMode==='ok')rows=rows.filter(c=>c.ok);else if(listMode==='bad')rows=rows.filter(c=>!c.ok);
   if(q)rows=rows.filter(c=>normU(c.u).includes(q));
   const MAX=400;
-  $('#list').innerHTML=rows.length?rows.slice(0,MAX).map(c=>'<div class="it"><div style="min-width:0"><div class="u">'+esc(at(NICKS.has(c.u)?c.u:c.u.replace(/^@/,'')))+'</div><div class="t">'+esc(c.t||'—')+'</div>'+(c.ok?'':'<div class="why">✗ '+esc(c.why)+'</div>')+'</div>'+(c.ok?'<span class="n">✓</span>':'')+(removed.has(c.id)?'<button class="x" style="background:#E8F8F0;color:var(--ok)" onclick="unRemove('+c.id+')">↺</button>':'<button class="x" onclick="rem('+c.id+')">✕</button>')+'</div>').join('')+(rows.length>MAX?'<div class="empty">…y '+(rows.length-MAX)+' más (usa el buscador)</div>':''):'<div class="empty">No hay nada aquí</div>';
+  $('#list').innerHTML=rows.length?rows.slice(0,MAX).map(c=>'<div class="it"><div style="min-width:0"><div class="u">'+esc(at(NICKS.has(c.u)?c.u:c.u.replace(/^@/,'')))+'</div><div class="t">'+esc(c.t||'—')+'</div>'+(c.ok?'':'<div class="why">✗ '+esc(c.why)+'</div>')+'</div>'+(c.ok?'<span class="n">✓'+(extraAccounts().has(normU(c.u))?' +'+cfg.extraN+' extra':'')+'</span>':'')+(removed.has(c.id)?'<button class="x" style="background:#E8F8F0;color:var(--ok)" onclick="unRemove('+c.id+')">↺</button>':'<button class="x" onclick="rem('+c.id+')">✕</button>')+'</div>').join('')+(rows.length>MAX?'<div class="empty">…y '+(rows.length-MAX)+' más (usa el buscador)</div>':''):'<div class="empty">No hay nada aquí</div>';
 }
 function copyDump(){
   let d='';try{d=APP.lastDump()}catch(e){}
@@ -898,14 +915,14 @@ function copyDump(){
 function openStats(){
   if(!result||!result.people.length){toast('Primero recoge los comentarios');return}
   const box=$('#statsBox');if(box.innerHTML){box.innerHTML='';return}
-  const top=result.people.slice().sort((a,b)=>b.n-a.n).slice(0,10);
+  const tk=p=>p.n+(p.x||0);const top=result.people.slice().sort((a,b)=>tk(b)-tk(a)).slice(0,10);
   const ments={};comments.forEach(c=>{if(c.ok)(c.t.match(/@([A-Za-z0-9._]{1,30})/g)||[]).forEach(m=>{m=normU(m);ments[m]=(ments[m]||0)+1})});
   const mk=Object.keys(ments),totM=mk.reduce((a,k)=>a+ments[k],0);
   const topM=mk.sort((a,b)=>ments[b]-ments[a]).slice(0,5);
   const okC=comments.filter(c=>c.ok).length;
   box.innerHTML='<div class="card" style="margin:10px 0 0;box-shadow:none">'
    +'<div class="stats"><div class="stat"><b>'+(okC/result.people.length).toFixed(1).replace('.',',')+'</b><span>comentarios por persona</span></div><div class="stat"><b>'+totM.toLocaleString('es-ES')+'</b><span>menciones</span></div><div class="stat"><b>'+mk.length.toLocaleString('es-ES')+'</b><span>cuentas mencionadas</span></div></div>'
-   +'<b style="font-size:14px">🏅 Quien más papeletas tiene</b>'+top.map((p,i)=>{const pc=(p.n/result.tickets.length*100);return '<div class="it"><div style="flex:1;min-width:0"><div class="u">'+(i+1)+'. '+esc(at(p.u))+'</div><div style="height:6px;border-radius:6px;background:#EFEAFE;margin-top:4px"><div style="height:6px;border-radius:6px;background:var(--c);width:'+Math.max(3,Math.min(100,pc/ (top[0].n/result.tickets.length*100)*100))+'%"></div></div></div><span class="n">'+p.n+' · '+pc.toFixed(1).replace('.',',')+' %</span></div>'}).join('')
+   +'<b style="font-size:14px">🏅 Quien más papeletas tiene</b>'+top.map((p,i)=>{const pc=(tk(p)/result.tickets.length*100);return '<div class="it"><div style="flex:1;min-width:0"><div class="u">'+(i+1)+'. '+esc(at(p.u))+'</div><div style="height:6px;border-radius:6px;background:#EFEAFE;margin-top:4px"><div style="height:6px;border-radius:6px;background:var(--c);width:'+Math.max(3,Math.min(100,pc/(tk(top[0])/result.tickets.length*100)*100))+'%"></div></div></div><span class="n">'+tk(p)+' · '+pc.toFixed(1).replace('.',',')+' %</span></div>'}).join('')
    +(topM.length?'<b style="font-size:14px;display:block;margin-top:10px">👥 Cuentas más mencionadas</b>'+topM.map(m=>'<span class="pill">@'+esc(m)+' · '+ments[m]+'</span>').join(''):'')
    +'</div>';
 }
@@ -960,6 +977,8 @@ let lastDraw=null;
 async function startDraw(){
   if(!result){analyze(false)}
   if(!result||!result.people.length){toast('No hay participantes válidos');go('part');return}
+  const ex=extraInfo();
+  if(ex&&!ex.why){toast('Escribe el motivo de las papeletas extra (en «Sorteo»): se publica con el resultado');go('sorteo');setTimeout(()=>$('#extraWhy').focus(),300);return}
   const lim=planLimit();
   if(result.total>lim){
     openPlans(false,'Este sorteo tiene <b>'+result.total.toLocaleString('es-ES')+' comentarios</b> y tu plan '+PLANS[myPlan().plan].n+' permite '+limTxt(lim)+'. Elige un plan para hacerlo:');
@@ -978,7 +997,7 @@ async function startDraw(){
   const code=(await sha(listHash+'|'+date.toISOString()+'|'+order.join(','))).slice(0,10).toUpperCase();
   lastDraw={fmt:true,src:cfg.src,id:'d'+date.getTime(),date:date.toISOString(),shop:{name:s.name,handle:s.handle,logo:s.logo,color:s.color},net:cfg.net,prize:cfg.prize,postUrl:cfg.postUrl,
     winners:order.slice(0,cfg.winners).map(disp),alts:order.slice(cfg.winners).map(disp),people:result.people.length,tickets:result.tickets.length,comments:result.total,
-    rules:{minMent:cfg.minMent,multi:cfg.multi,maxTk:cfg.maxTk,word:cfg.needWord.trim()},list:listHash.slice(0,16).toUpperCase(),code};
+    rules:{minMent:cfg.minMent,multi:cfg.multi,maxTk:cfg.maxTk,word:cfg.needWord.trim()},extra:ex?{n:ex.n,why:ex.why,accounts:(result.extraGot||[]).map(u=>at(u))}:null,list:listHash.slice(0,16).toUpperCase(),code};
   const hist=load(K.hist,[]);hist.unshift(lastDraw);if(hist.length>60)hist.length=60;store(K.hist,hist);
   runLive(lastDraw,result.people.map(p=>at(p.u)));
 }
@@ -1116,6 +1135,9 @@ function certCanvas(d){
   x.fillText(d.people+' participantes · '+d.tickets+' papeletas · '+d.comments+' comentarios',W/2,fy+84);
   x.font='700 24px ui-monospace,Menlo,monospace';x.fillStyle=c[0];x.fillText('Código de comprobación: '+d.code,W/2,fy+122);
   if((d.replaced||[]).length){x.font='600 22px system-ui,sans-serif';x.fillStyle='#6B6790';x.fillText('Sustituido por no contestar: '+d.replaced.map(r=>fw(d,r.out)+' → '+fw(d,r.in)).join(', '),W/2,fy-24)}
+  if(d.extra&&d.extra.accounts&&d.extra.accounts.length){x.font='600 22px system-ui,sans-serif';x.fillStyle='#6B6790';
+    const lines=wrap(x,'🎟️ +'+d.extra.n+' papeletas extra '+d.extra.why+': '+d.extra.accounts.join(', '),W-260).slice(0,2);
+    lines.forEach((l,i)=>x.fillText(l,W/2,fy-((d.replaced||[]).length?58:24)-(lines.length-1-i)*28))}
   return cv;
 }
 const logoCache={};
@@ -1126,6 +1148,7 @@ function resText(d){
   d.winners.forEach((w,i)=>t+='🏆 '+(d.winners.length>1?(i+1)+'. ':'')+fw(d,w)+'\n');
   if(d.alts.length)t+='\nSuplentes: '+d.alts.map(a=>fw(d,a)).join(', ')+'\n';
   if((d.replaced||[]).length)t+='\n(Sustituido por no contestar: '+d.replaced.map(r=>fw(d,r.out)+' → '+fw(d,r.in)).join(', ')+')\n';
+  if(d.extra&&d.extra.accounts&&d.extra.accounts.length)t+='\n🎟️ Papeletas extra (+'+d.extra.n+' '+d.extra.why+'): '+d.extra.accounts.join(', ')+'\n';
   t+='\nEscríbenos por mensaje privado para recoger tu premio 💌\n¡Gracias a los '+d.people+' participantes! ❤️\n\nSorteo realizado el '+fmtDate(d.date)+'\nCódigo de comprobación: '+d.code;
   return t;
 }
@@ -1159,6 +1182,8 @@ function basesText(){
   req.push(cfg.src==='live'?'Comentar durante el directo'+(cfg.liveWho==='word'&&cfg.liveWord.trim()?' escribiendo «'+cfg.liveWord.trim()+'»':'')+'.':'Comentar la publicación del sorteo'+(cfg.minMent?' mencionando a '+cfg.minMent+' '+(cfg.minMent>1?'amigos/as':'amigo/a')+(cfg.uniqMent?' distintos':''):'')+(cfg.needWord.trim()?' e incluyendo «'+cfg.needWord.trim()+'»':'')+'.');
   const tk=cfg.src==='live'?cfg.liveMulti:cfg.multi;
   req.push(tk?('Cada comentario válido es una participación'+(cfg.maxTk>100?'':' (máximo '+cfg.maxTk+' por persona)')+'.'):'Cada persona participa una sola vez, aunque comente varias veces.');
+  const ex=extraInfo();
+  if(ex)req.push('Papeletas extra: '+(ex.why?'por '+ex.why.replace(/^por /i,'')+', ':'')+'estas cuentas tienen '+ex.n+' '+(ex.n>1?'papeletas':'papeleta')+' más (si participan): '+ex.accounts.map(a=>'@'+a).join(', ')+'.');
   let t='BASES DEL SORTEO — '+shop.toUpperCase()+'\n\n';
   t+='1. Organizador\nEl sorteo lo organiza '+shop+' ('+h+' en '+net+').\n\n';
   t+='2. Premio\n'+(cfg.prize||'[PREMIO]')+'. Habrá '+cfg.winners+' '+(cfg.winners>1?'ganadores/as':'ganador/a')+(cfg.alts?' y '+cfg.alts+' '+(cfg.alts>1?'suplentes':'suplente'):'')+'. El premio no se puede cambiar por dinero.\n\n';
