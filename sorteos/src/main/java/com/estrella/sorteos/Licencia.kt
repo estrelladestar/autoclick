@@ -60,10 +60,45 @@ object Licencia {
         return b32(mac.doFinal("SS1|$device|$plan|$exp".toByteArray()), 8)
     }
 
-    fun today(): Int {
-        val c = Calendar.getInstance(TimeZone.getTimeZone("Europe/Madrid"))
+    private fun dayOf(millis: Long): Int {
         val base = Calendar.getInstance(TimeZone.getTimeZone("Europe/Madrid")).apply { clear(); set(2026, 0, 1) }
-        return ((c.timeInMillis - base.timeInMillis) / 86_400_000L).toInt()
+        return ((millis - base.timeInMillis) / 86_400_000L).toInt()
+    }
+
+    /**
+     * El día de hoy SIN fiarse solo del reloj del móvil:
+     * se guarda la fecha más adelantada que se ha visto (del móvil o de internet).
+     * Así, atrasar la fecha del móvil no alarga el plan.
+     */
+    fun today(ctx: Context): Int {
+        val prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val seen = prefs.getInt("maxDay", Int.MIN_VALUE)
+        val now = dayOf(System.currentTimeMillis())
+        return if (now > seen) { prefs.edit().putInt("maxDay", now).apply(); now } else seen
+    }
+
+    /** Fecha real sacada de internet (cabecera «Date» de una web). */
+    fun saveNetTime(ctx: Context, millis: Long) {
+        val prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val d = dayOf(millis)
+        if (d > prefs.getInt("maxDay", Int.MIN_VALUE)) prefs.edit().putInt("maxDay", d).apply()
+    }
+
+    /** Pregunta la hora a internet (en segundo plano). Si no hay conexión, no pasa nada. */
+    fun syncNetTime(ctx: Context) {
+        val app = ctx.applicationContext
+        Thread {
+            for (u in listOf("https://www.google.com", "https://www.cloudflare.com", "https://github.com")) {
+                try {
+                    val c = java.net.URL(u).openConnection() as java.net.HttpURLConnection
+                    c.requestMethod = "HEAD"; c.connectTimeout = 6000; c.readTimeout = 6000; c.useCaches = false
+                    c.connect()
+                    val t = c.date
+                    c.disconnect()
+                    if (t > 0L) { saveNetTime(app, t); return@Thread }
+                } catch (e: Exception) {}
+            }
+        }.start()
     }
 
     fun dateOf(days: Int): String {
@@ -73,9 +108,9 @@ object Licencia {
     }
 
     /** Crea un código (solo en modo vendedor). */
-    fun make(device: String, plan: Char, days: Int): String {
+    fun make(ctx: Context, device: String, plan: Char, days: Int): String {
         val d = clean(device)
-        val exp = if (days >= FOREVER) FOREVER else (today() + days).coerceAtMost(FOREVER - 1)
+        val exp = if (days >= FOREVER) FOREVER else (today(ctx) + days).coerceAtMost(FOREVER - 1)
         val code = plan.toString() + num(exp, 3) + sign(d, plan, exp)
         return code.substring(0, 4) + "-" + code.substring(4, 8) + "-" + code.substring(8)
     }
@@ -92,7 +127,7 @@ object Licencia {
 
     fun activate(ctx: Context, input: String): JSONObject {
         val r = check(ctx, input) ?: return JSONObject().put("ok", false).put("why", if (hasKey()) "Ese código no es válido para este móvil" else "Esta versión de la app no acepta códigos todavía")
-        if (r.second < today()) return JSONObject().put("ok", false).put("why", "Ese código ya ha caducado (${dateOf(r.second)})")
+        if (r.second < today(ctx)) return JSONObject().put("ok", false).put("why", "Ese código ya ha caducado (${dateOf(r.second)})")
         ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString("code", clean(input)).apply()
         return current(ctx).put("ok", true)
     }
@@ -103,7 +138,7 @@ object Licencia {
         val r = if (code != null) check(ctx, code) else null
         val out = JSONObject().put("device", deviceCode(ctx)).put("canActivate", hasKey())
         if (r == null) return out.put("plan", "F")
-        val left = r.second - today()
+        val left = r.second - today(ctx)
         if (left < 0) return out.put("plan", "F").put("expired", r.first.toString()).put("expDate", dateOf(r.second))
         return out.put("plan", r.first.toString()).put("exp", dateOf(r.second)).put("left", if (r.second >= FOREVER) -1 else left)
     }

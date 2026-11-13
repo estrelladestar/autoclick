@@ -240,6 +240,7 @@ class MainActivity : Activity() {
         root.addView(colBox, FrameLayout.LayoutParams(-1, -1))
 
         setContentView(root)
+        Licencia.syncNetTime(this)   // fecha real de internet, para que atrasar el reloj no alargue el plan
     }
 
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
@@ -444,7 +445,7 @@ class MainActivity : Activity() {
         @JavascriptInterface
         fun makeCode(device: String, plan: String, days: Int): String {
             if (!vendor || plan.isEmpty() || plan[0] !in "SCA" || Licencia.clean(device).length != 8) return ""
-            return Licencia.make(device, plan[0], days)
+            return Licencia.make(this@MainActivity, device, plan[0], days)
         }
 
         @JavascriptInterface
