@@ -167,7 +167,7 @@ class LectorService : AccessibilityService() {
         val root = targetRoot()
         if (root == null) { if (started) say("Vuelve a la app de Instagram/TikTok para seguir leyendo"); return }
         val lines = dump(root)
-        LectorResult.lastDump = "[${root.packageName}]\n" + lines.joinToString("\n")
+        LectorResult.lastDump = "[${root.packageName}]\n" + lines.joinToString("\n") + "\n---\n" + treeDump(root)
         if (!started) return
         rounds++
         val mode = if (isTikTok(root)) "app-tt" else "app-ig"
@@ -221,49 +221,107 @@ class LectorService : AccessibilityService() {
     private val badRe = Regex("(se ha unido|se uni[oó]|joined|ha empezado a seguir|started following|followed|le ha dado|liked|ha enviado|sent |compartid|shared|está viendo|watching|dio me gusta|bienvenid|welcome)", RegexOption.IGNORE_CASE)
     private val handleRe = Regex("^@?([A-Za-z0-9._]{2,30})$")
 
-    /** Mensajes del chat: se agrupan los textos que comparten contenedor (nombre + mensaje). */
-    private fun liveRows(root: AccessibilityNodeInfo): List<Pair<String, String>> {
-        val groups = LinkedHashMap<Int, ArrayList<String>>()
-        fun walk(n: AccessibilityNodeInfo?, parentKey: Int, d: Int) {
-            if (n == null || d > 60) return
+    /** Textos de la pantalla del directo que NO son comentarios. */
+    private val uiWords = setOf("live", "en directo", "directo", "seguir", "follow", "siguiendo", "following", "compartir", "share",
+        "regalo", "regalos", "gift", "gifts", "añade un comentario...", "añade un comentario", "add comment...", "add comment",
+        "comentar", "comment", "di algo...", "say something...", "espectadores", "viewers", "top", "ranking", "invitar", "invite",
+        "más", "more", "x", "multi-guest", "invitado", "invitados", "suscribirse", "subscribe", "tienda", "shop")
+
+    private fun textsOf(n: AccessibilityNodeInfo?, out: ArrayList<String>, d: Int = 0) {
+        if (n == null || d > 25) return
+        if (n.isVisibleToUser) {
             val t = n.text?.toString()?.trim()
-            if (n.isVisibleToUser && !t.isNullOrEmpty()) groups.getOrPut(parentKey) { ArrayList() }.add(t.replace('\n', ' '))
-            val key = System.identityHashCode(n)
-            for (i in 0 until n.childCount) walk(n.getChild(i), key, d + 1)
+            if (!t.isNullOrEmpty()) out.add(t.replace('\n', ' '))
+            else {
+                val ds = n.contentDescription?.toString()?.trim()
+                val cls = n.className?.toString() ?: ""
+                if (!ds.isNullOrEmpty() && !cls.contains("Image") && ds.length < 200) out.add(ds.replace('\n', ' '))
+            }
         }
-        walk(root, 0, 0)
-        val ig = !isTikTok(root)
-        val out = ArrayList<Pair<String, String>>()
-        for (g in groups.values) {
-            val texts = g.filter { it.isNotBlank() && !it.matches(Regex("^\\d{1,3}$")) }   // fuera números de nivel
-            var u: String; var t: String
-            if (texts.size >= 2) { u = texts[0]; t = texts.drop(1).joinToString(" ") }
-            else if (texts.size == 1) {
-                val s = texts[0]
-                val m = Regex("^(.{1,30}?)\\s*[:：]\\s+(.+)$").find(s)
-                if (m != null) { u = m.groupValues[1]; t = m.groupValues[2] }
-                else {
-                    val sp = s.indexOf(' ')
-                    if (sp <= 0) continue
-                    u = s.substring(0, sp); t = s.substring(sp + 1)
-                }
-            } else continue
-            u = u.trim().trimEnd(':', '：').trim(); t = t.trim()
-            if (u.isEmpty() || u.length > 40 || t.isEmpty() || t.length > 300) continue
-            if (badRe.containsMatchIn(t) && t.length < 70) continue
-            // Instagram enseña @usuarios; TikTok, apodos
-            if (ig) { val h = handleRe.find(u) ?: continue; u = "@" + h.groupValues[1] }
-            else if (!(u.startsWith("@") && handleRe.matches(u))) u = u.removePrefix("@")
-            out.add(u to t)
+        for (i in 0 until n.childCount) textsOf(n.getChild(i), out, d + 1)
+    }
+
+    /** Las listas que se pueden desplazar (el chat del directo es una de ellas). */
+    private fun lists(root: AccessibilityNodeInfo): List<AccessibilityNodeInfo> {
+        val out = ArrayList<AccessibilityNodeInfo>()
+        fun walk(n: AccessibilityNodeInfo?, d: Int) {
+            if (n == null || d > 60) return
+            val cls = n.className?.toString() ?: ""
+            if (n.isVisibleToUser && n.childCount > 0 && (n.isScrollable || cls.contains("RecyclerView") || cls.contains("ListView"))) out.add(n)
+            for (i in 0 until n.childCount) walk(n.getChild(i), d + 1)
         }
+        walk(root, 0)
         return out
+    }
+
+    /** Convierte los textos de un mensaje del chat en (nombre, comentario). */
+    private fun rowOf(texts0: List<String>, ig: Boolean): Pair<String, String>? {
+        val texts = texts0.map { it.trim() }.filter { it.isNotEmpty() && !it.matches(Regex("^[\\d.,kKmM+]{1,6}$")) && it.lowercase() !in uiWords }
+        if (texts.isEmpty()) return null
+        var u: String; var t: String
+        if (texts.size >= 2) { u = texts[0]; t = texts.drop(1).joinToString(" ") }
+        else {
+            val s = texts[0]
+            val m = Regex("^(.{1,30}?)\\s*[:：]\\s+(.+)$").find(s)
+            if (m != null) { u = m.groupValues[1]; t = m.groupValues[2] }
+            else if (ig) { val sp = s.indexOf(' '); if (sp <= 0) return null; u = s.substring(0, sp); t = s.substring(sp + 1) }
+            else return null      // TikTok: sin «:» no se sabe dónde acaba el nombre
+        }
+        u = u.trim().trimEnd(':', '：').trim(); t = t.trim()
+        if (u.isEmpty() || u.length > 40 || t.isEmpty() || t.length > 300) return null
+        if (u.lowercase() in uiWords) return null
+        if (badRe.containsMatchIn(t) && t.length < 70) return null
+        if (ig) { val h = handleRe.find(u) ?: return null; u = "@" + h.groupValues[1] }
+        else if (!(u.startsWith("@") && handleRe.matches(u))) u = u.removePrefix("@")
+        return u to t
+    }
+
+    /**
+     * Mensajes del chat: cada elemento de una lista es un mensaje (nombre + comentario).
+     * Se usa la lista que más mensajes válidos da (la del chat), así no entran los textos sueltos de la pantalla.
+     */
+    private fun liveRows(root: AccessibilityNodeInfo): List<Pair<String, String>> {
+        val ig = !isTikTok(root)
+        var best: List<Pair<String, String>> = emptyList()
+        for (l in lists(root)) {
+            val rows = ArrayList<Pair<String, String>>()
+            for (i in 0 until l.childCount) {
+                val texts = ArrayList<String>(); textsOf(l.getChild(i), texts)
+                rowOf(texts, ig)?.let { rows.add(it) }
+            }
+            if (rows.size > best.size) best = rows
+        }
+        return best
+    }
+
+    /** Para ajustar la app: el árbol de la pantalla con tipo, id y texto de cada elemento. */
+    private fun treeDump(root: AccessibilityNodeInfo): String {
+        val sb = StringBuilder()
+        fun walk(n: AccessibilityNodeInfo?, d: Int) {
+            if (n == null || d > 40 || sb.length > 30000) return
+            if (n.isVisibleToUser) {
+                val cls = (n.className?.toString() ?: "").substringAfterLast('.')
+                val id = (n.viewIdResourceName ?: "").substringAfterLast('/')
+                val t = n.text?.toString()?.replace('\n', ' ') ?: ""
+                val ds = n.contentDescription?.toString()?.replace('\n', ' ') ?: ""
+                sb.append("  ".repeat(d.coerceAtMost(20))).append(cls)
+                if (id.isNotEmpty()) sb.append(" #").append(id)
+                if (n.isScrollable) sb.append(" [lista]")
+                if (t.isNotEmpty()) sb.append(" «").append(t.take(80)).append("»")
+                if (ds.isNotEmpty()) sb.append(" {").append(ds.take(80)).append("}")
+                sb.append('\n')
+            }
+            for (i in 0 until n.childCount) walk(n.getChild(i), d + 1)
+        }
+        walk(root, 0)
+        return sb.toString()
     }
 
     private fun liveRound() {
         val root = targetRoot()
         if (root == null) { say(if (started) "⚠️ Vuelve al directo en la app para seguir contando · 👥 ${livePeople.size}" else "🔴 Entra en el directo en la app…"); return }
         val rows = liveRows(root)
-        LectorResult.lastDump = "[${root.packageName} directo]\n" + rows.joinToString("\n") { it.first + " → " + it.second } + "\n---\n" + dump(root).joinToString("\n")
+        LectorResult.lastDump = "[${root.packageName} directo]\n" + rows.joinToString("\n") { it.first + " → " + it.second } + "\n---\n" + treeDump(root)
         if (rows.isEmpty()) noTextRounds++ else noTextRounds = 0
         if (!started) {
             liveBase.clear(); rows.forEach { liveBase.add(it.first.lowercase() + "|" + it.second) }
