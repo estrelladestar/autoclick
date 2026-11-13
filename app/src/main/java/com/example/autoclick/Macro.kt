@@ -1024,7 +1024,12 @@ object Macro {
                 finish("No hay menciones. Pon tus amigos en el cuadro de menciones. Guion detenido.")
                 return
             }
-            val tokens = c.arg.trim().split(" ").filter { it.isNotEmpty() }
+            val allTokens = c.arg.trim().split(" ").filter { it.isNotEmpty() }
+            // «lento 5-20»: algunas veces (la mitad, al azar) escribe poco a poco, tardando entre 5 y 20 segundos
+            val slowAt = allTokens.indexOfFirst { it.lowercase() == "lento" }
+            val tokens = if (slowAt < 0) allTokens else allTokens.subList(0, slowAt)
+            val slowRange: Pair<Long, Long>? = if (slowAt < 0) null else
+                parseSecs(allTokens.getOrNull(slowAt + 1)?.lowercase()?.removeSuffix("s")?.replace("s-", "-") ?: "5-20")
             val withCopied = tokens.firstOrNull()?.lowercase()?.startsWith("copiado") == true
             if (withCopied && comments.isEmpty()) {
                 finish("No hay comentarios copiados. Pégalos en «TUS COMENTARIOS». Guion detenido.")
@@ -1074,11 +1079,47 @@ object Macro {
                 val before = if (pos == 2) Math.random() < 0.5 else pos == 0
                 text = if (before) "$phrase $text" else "$text $phrase"
             }
+            if (slowRange != null && Math.random() < 0.5) {
+                val ms = slowRange.first + (Math.random() * (slowRange.second - slowRange.first + 1)).toLong()
+                typeSlowly(c, f, text, ms, key, pick)
+                return
+            }
             if (!putText(f, text)) {
                 if (tries == 0) toast(s, "Intento escribir: $text")
                 retry("dónde escribir: Instagram no deja escribir en la caja")
                 return
             }
+            written(c, text, key, pick)
+        }
+
+        /** Escribe el texto poco a poco (letra a letra), tardando en total unos «ms» milisegundos. */
+        private fun typeSlowly(c: Cmd, first: AccessibilityNodeInfo, text: String, ms: Long, key: String, pick: List<String>) {
+            trace("  escribo despacio, en unos ${ms / 1000} s")
+            showProgress("escribiendo despacio (${ms / 1000} s)")
+            val gen = stepGen
+            val step = (ms / text.length.coerceAtLeast(1)).coerceAtLeast(60L)
+            nextDue = System.currentTimeMillis() + ms + 15_000L
+            var k = 0
+            fun tick() {
+                if (gen != stepGen || id != token || !running) return
+                k++
+                val f = findField() ?: first
+                if (!putText(f, text.substring(0, k.coerceAtMost(text.length)))) {
+                    retry("dónde escribir: Instagram no deja escribir en la caja")
+                    return
+                }
+                if (k >= text.length) {
+                    written(c, text, key, pick)
+                    return
+                }
+                // Un poco de variación entre letras, como al teclear
+                main.postDelayed({ tick() }, (step * (0.5 + Math.random())).toLong())
+            }
+            tick()
+        }
+
+        /** El comentario ya está escrito en la caja. */
+        private fun written(c: Cmd, text: String, key: String, pick: List<String>) {
             toast(s, "Escrito: $text")
             trace("  escrito: $text")
             usedCombos.add(key)

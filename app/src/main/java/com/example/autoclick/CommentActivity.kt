@@ -290,6 +290,7 @@ repetir 8"""
             "• cuenta doble → doble toque en tu foto de perfil (Instagram solo salta entre tus 2 últimas cuentas)\n" +
             "• descanso 10-20 → pausa al azar de 10 a 20 minutos\n" +
             "• historias 3-5 → abre las historias de arriba y ve entre 3 y 5 pasándolas (con «historias azar», solo a veces); después pon «enlace»\n" +
+            "• escribir menciones 1 lento 5-20 → la mitad de las veces (al azar) escribe poco a poco, tardando entre 5 y 20 segundos; las demás, de golpe\n" +
             "• megusta → en la publicación abierta da me gusta, solo si el corazón no está rojo (si ya está rojo no lo toca)\n" +
             "• seguir → si junto al nombre de la cuenta pone «Seguir», la sigue; si ya pone «Siguiendo», no hace nada\n" +
             "• comprobar → con los comentarios abiertos, mira desde la cuenta nueva si se ve el último comentario de la cuenta anterior (en «Los más recientes») y lo apunta en 📊 Registro\n" +
