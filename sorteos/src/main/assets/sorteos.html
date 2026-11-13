@@ -97,6 +97,8 @@ nav button.on em{filter:none;opacity:1}
 #live .lg{width:96px;height:96px;font-size:44px;margin-bottom:10px}
 #live h3{margin:0;font-size:20px;opacity:.95}
 #live .prize{font-size:17px;opacity:.85;margin:6px 0 22px}
+#liveDemo{display:none;background:#E5484D;color:#fff;font-weight:900;font-size:15px;letter-spacing:.5px;border-radius:12px;padding:8px 14px;margin:0 0 14px;box-shadow:0 4px 14px #0004}
+.demoBar{height:10px;border-radius:6px;background:#EFEAFE;margin-top:4px}.demoBar div{height:10px;border-radius:6px}
 #reel{font-size:34px;font-weight:900;min-height:56px;word-break:break-all;letter-spacing:.5px;text-shadow:0 3px 12px #0005}
 #reel.final{animation:pop .5s}
 @keyframes pop{0%{transform:scale(.5)}70%{transform:scale(1.25)}100%{transform:scale(1)}}
@@ -340,6 +342,11 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:60}
     <div class="btns"><button class="btn main big" onclick="startDraw()">🎲 ¡Hacer el sorteo!</button></div>
     <p class="hint" style="margin-top:10px">Se abre la pantalla del sorteo con cuenta atrás y ruleta de nombres: puedes grabarla para enseñarla en tu perfil.</p>
   </div>
+  <div class="card">
+    <h2>🎓 Modo demostración</h2>
+    <p class="hint">Para clase: con los comentarios reales que hayas cargado, da a una cuenta las papeletas que quieras y compara un sorteo trucado con uno justo. Todo sale marcado como <b>DEMOSTRACIÓN · NO VÁLIDO</b> y no se guarda en el historial.</p>
+    <button class="btn sec" style="width:100%" onclick="openDemo()">🎓 Abrir la demostración</button>
+  </div>
   <div class="card" id="lastCard" style="display:none">
     <h2>🏆 Resultado</h2>
     <div id="lastBox"></div>
@@ -371,11 +378,12 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:60}
   <div class="logo lg" id="liveLogo">🎁</div>
   <h3 id="liveShop">Sorteo</h3>
   <div class="prize" id="livePrize"></div>
+  <div id="liveDemo"></div>
   <div id="count"></div>
   <div id="reel"></div>
   <div id="liveMsg"></div>
   <div id="liveWins"></div>
-  <div id="liveDone"><button class="btn big" style="background:#fff;color:var(--c)" onclick="closeLive();showResultSheet(lastDraw)">Ver certificado 🏆</button></div>
+  <div id="liveDone"><button class="btn big" style="background:#fff;color:var(--c)" onclick="closeLive();showResultSheet(liveDraw||lastDraw)">Ver certificado 🏆</button></div>
 </div>
 <canvas id="fx"></canvas>
 
@@ -417,6 +425,25 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:60}
       <button class="btn sec" onclick="copyText()">📝 Copiar texto para publicar</button>
       <button class="btn ghost" onclick="closeM('mCert')">Cerrar</button>
     </div>
+  </div>
+</div>
+
+<!-- Hoja: modo demostración (para clase) -->
+<div class="modal" id="mDemo" onclick="if(event.target===this)closeM('mDemo')">
+  <div class="sheet">
+    <h3>🎓 Demostración: sorteo justo vs. trucado</h3>
+    <div class="warnbox" style="margin:0 0 10px;background:#FDECEC;border-color:#F6C3C5;color:#9B1C21">⚠️ Solo para enseñar cómo funciona. Lo que salga aquí lleva el aviso «DEMOSTRACIÓN · SORTEO TRUCADO A PROPÓSITO · NO VÁLIDO», no tiene código de comprobación y no se guarda.</div>
+    <label>Cuenta a la que dar más papeletas</label>
+    <input type="text" id="demoAcc" list="demoList" placeholder="@cuenta" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <datalist id="demoList"></datalist>
+    <label>Papeletas totales para esa cuenta</label>
+    <input type="number" id="demoN" value="500" min="1" max="1000000">
+    <div class="btns"><button class="btn sec small" onclick="demoAdd()">➕ Añadir</button></div>
+    <div id="demoTable"></div>
+    <div class="btns"><button class="btn sec" onclick="demoSim()">🔁 Simular 1.000 sorteos</button></div>
+    <div id="demoSimBox"></div>
+    <div class="btns"><button class="btn main" style="background:#E5484D" onclick="demoRun(true)">🎰 Sorteo trucado</button><button class="btn main" onclick="demoRun(false)">⚖️ Sorteo justo</button></div>
+    <div class="btns"><button class="btn ghost" onclick="closeM('mDemo')">Cerrar</button></div>
   </div>
 </div>
 
@@ -1003,10 +1030,12 @@ async function startDraw(){
 }
 
 /* ============ pantalla en directo ============ */
-let liveStop=false;
+let liveStop=false, liveDraw=null;
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 async function runLive(d,names){
-  liveStop=false;
+  liveStop=false;liveDraw=d;
+  $('#liveDemo').style.display=d.demo?'block':'none';
+  $('#liveDemo').textContent=d.demo?(d.demo==='rig'?'⚠️ DEMOSTRACIÓN · SORTEO TRUCADO A PROPÓSITO · NO VÁLIDO':'🎓 DEMOSTRACIÓN · SORTEO JUSTO PARA COMPARAR · NO VÁLIDO'):'';
   $('#live').classList.add('on');setLogo($('#liveLogo'),d.shop.logo,'🎁');
   $('#liveShop').textContent=(d.shop.name?d.shop.name+' · ':'')+'Sorteo en '+netName(d.net);
   $('#livePrize').textContent=d.prize?'🎁 '+d.prize:'';
@@ -1138,11 +1167,22 @@ function certCanvas(d){
   if(d.extra&&d.extra.accounts&&d.extra.accounts.length){x.font='600 22px system-ui,sans-serif';x.fillStyle='#6B6790';
     const lines=wrap(x,'🎟️ +'+d.extra.n+' papeletas extra '+d.extra.why+': '+d.extra.accounts.join(', '),W-260).slice(0,2);
     lines.forEach((l,i)=>x.fillText(l,W/2,fy-((d.replaced||[]).length?58:24)-(lines.length-1-i)*28))}
+  if(d.demo){
+    // tapar el código y marcar todo como demostración
+    x.fillStyle='#fff';x.fillRect(130,fy+98,W-260,34);
+    x.font='800 24px system-ui,sans-serif';x.fillStyle='#E5484D';x.fillText('DEMOSTRACIÓN · SIN CÓDIGO · NO ES UN SORTEO REAL',W/2,fy+122);
+    x.save();x.translate(W/2,H/2);x.rotate(-Math.PI/7);x.globalAlpha=.16;x.fillStyle='#E5484D';x.font='900 92px system-ui,sans-serif';
+    x.fillText(d.demo==='rig'?'TRUCADO':'DEMOSTRACIÓN',0,-60);x.font='900 64px system-ui,sans-serif';x.fillText('NO VÁLIDO',0,40);x.restore();
+    rr(x,60,60,W-120,70,0);x.fillStyle='#E5484D';x.fillRect(60,60,W-120,62);
+    x.fillStyle='#fff';x.font='900 30px system-ui,sans-serif';x.fillText(d.demo==='rig'?'⚠️ DEMOSTRACIÓN · SORTEO TRUCADO A PROPÓSITO':'🎓 DEMOSTRACIÓN · SORTEO JUSTO PARA COMPARAR',W/2,101);
+    if(d.demo==='rig'&&d.rig){x.font='700 22px system-ui,sans-serif';x.fillStyle='#E5484D';x.fillText('Papeletas trucadas: '+d.rig.map(r=>r.u+' ('+r.n.toLocaleString('es-ES')+')').join(', '),W/2,fy-24)}
+  }
   return cv;
 }
 const logoCache={};
 function preloadLogos(){[...shops.map(s=>s.logo),...load(K.hist,[]).map(h=>h.shop.logo)].forEach(src=>{if(src&&!logoCache[src]){const im=new Image();im.src=src;logoCache[src]=im}})}
 function resText(d){
+  if(d.demo)return '⚠️ DEMOSTRACIÓN PARA CLASE: '+(d.demo==='rig'?'sorteo trucado a propósito':'sorteo justo para comparar')+'. NO es un sorteo real ni tiene premio.\n\n'+(d.rig&&d.demo==='rig'?'Papeletas trucadas: '+d.rig.map(r=>r.u+' ('+r.n+')').join(', ')+'\n':'')+'Resultado de la demostración: '+d.winners.join(', ');
   let t='🎉 ¡Ya tenemos '+(d.winners.length>1?'ganadores':'ganador/a')+' del sorteo'+(d.shop.name?' de '+d.shop.name:'')+'! 🎉\n';
   if(d.prize)t+='🎁 Premio: '+d.prize+'\n';t+='\n';
   d.winners.forEach((w,i)=>t+='🏆 '+(d.winners.length>1?(i+1)+'. ':'')+fw(d,w)+'\n');
@@ -1159,7 +1199,7 @@ function copyText(){
   if(!ok)try{navigator.clipboard.writeText(t);ok=true}catch(e){}
   toast(ok?'📝 Texto copiado: pégalo en tu publicación':'No se pudo copiar');
 }
-function fileName(){return (certFmt==='story'?'historia_':'sorteo_')+(certDraw.shop.name||'tienda').replace(/[^A-Za-z0-9]+/g,'_')+'_'+certDraw.code+'.png'}
+function fileName(){return (certDraw.demo?'DEMO_':'')+(certFmt==='story'?'historia_':'sorteo_')+(certDraw.shop.name||'tienda').replace(/[^A-Za-z0-9]+/g,'_')+'_'+certDraw.code+'.png'}
 function saveCert(){
   if(APP&&APP.saveImage){try{APP.saveImage(certData,fileName());return}catch(e){}}
   const a=document.createElement('a');a.href=certData;a.download=fileName();document.body.appendChild(a);a.click();a.remove();toast('💾 Imagen descargada');
@@ -1169,6 +1209,63 @@ async function shareCert(){
   try{const b=await (await fetch(certData)).blob();const f=new File([b],fileName(),{type:'image/png'});
     if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],text:resText(certDraw)});return}}catch(e){if(e&&e.name==='AbortError')return}
   saveCert();
+}
+
+/* ============ modo demostración (para clase) ============ */
+let demoRig=[];
+function openDemo(){
+  if(!result)analyze(false);
+  if(!result||!result.people.length){toast('Primero carga comentarios en «Participantes»');go('part');return}
+  $('#demoList').innerHTML=result.people.slice(0,500).map(p=>'<option value="'+esc(at(p.u))+'">').join('');
+  demoRig=demoRig.filter(r=>result.people.some(p=>normU(p.u)===normU(r.u)));
+  renderDemo();$('#demoSimBox').innerHTML='';$('#mDemo').classList.add('on');
+}
+function demoAdd(){
+  const u=normU($('#demoAcc').value),n=Math.max(1,Math.min(1000000,parseInt($('#demoN').value)||1));
+  const p=result.people.find(q=>normU(q.u)===u);
+  if(!p){toast('Esa cuenta no está entre los participantes');return}
+  demoRig=demoRig.filter(r=>normU(r.u)!==u);demoRig.push({u:at(p.u),n});$('#demoAcc').value='';renderDemo();$('#demoSimBox').innerHTML='';
+}
+function demoWeights(rig){
+  const w=new Map();result.people.forEach(p=>w.set(normU(p.u),p.n+(p.x||0)));
+  if(rig)demoRig.forEach(r=>w.set(normU(r.u),r.n));
+  return w;
+}
+function pct(w,u){let t=0;w.forEach(v=>t+=v);return w.get(u)/t*100}
+function fmtPct(v){return (v<0.1&&v>0?'<0,1':v.toFixed(1).replace('.',','))+' %'}
+function renderDemo(){
+  if(!demoRig.length){$('#demoTable').innerHTML='<p class="hint" style="margin:8px 0 0">Añade una cuenta para ver cómo cambian las opciones.</p>';return}
+  const fair=demoWeights(false),rig=demoWeights(true);
+  const others=(w)=>{let t=0,o=0;w.forEach((v,k)=>{t+=v;if(!demoRig.some(r=>normU(r.u)===k))o+=v});return o/t*100};
+  $('#demoTable').innerHTML='<div class="list" style="margin-top:10px">'+demoRig.map(r=>{const u=normU(r.u),a=pct(fair,u),b=pct(rig,u);
+    return '<div class="it"><div style="flex:1"><div class="u">'+esc(r.u)+' · '+r.n.toLocaleString('es-ES')+' papeletas <button class="x" style="width:24px;height:24px;font-size:12px;margin-left:6px" onclick="demoRig=demoRig.filter(x=>x.u!==\''+esc(r.u).replace(/'/g,"\\'")+'\');renderDemo()">✕</button></div>'
+     +'<div class="t">Justo: '+fmtPct(a)+' → Trucado: <b style="color:#E5484D">'+fmtPct(b)+'</b></div>'
+     +'<div class="demoBar"><div style="width:'+Math.max(1,a)+'%;background:var(--ok)"></div></div><div class="demoBar"><div style="width:'+Math.max(1,b)+'%;background:#E5484D"></div></div></div></div>'}).join('')
+   +'<div class="it"><div style="flex:1"><div class="u">Todos los demás ('+(result.people.length-demoRig.length)+' personas)</div><div class="t">Justo: '+fmtPct(others(fair))+' → Trucado: <b style="color:#E5484D">'+fmtPct(others(rig))+'</b></div></div></div></div>';
+}
+function weightedPick(w,skip){
+  let t=0;w.forEach((v,k)=>{if(!skip.has(k))t+=v});if(!t)return null;
+  let r=rnd(Math.min(t,4294967295));for(const [k,v] of w){if(skip.has(k))continue;if(r<v)return k;r-=v}return null;
+}
+function demoSim(){
+  if(!demoRig.length){toast('Añade primero una cuenta');return}
+  const N=1000,fair=demoWeights(false),rig=demoWeights(true),cF={},cR={};
+  for(let i=0;i<N;i++){const a=weightedPick(fair,new Set()),b=weightedPick(rig,new Set());cF[a]=(cF[a]||0)+1;cR[b]=(cR[b]||0)+1}
+  const rows=demoRig.map(r=>({u:r.u,f:cF[normU(r.u)]||0,r:cR[normU(r.u)]||0}));
+  const oF=N-rows.reduce((a,x)=>a+x.f,0),oR=N-rows.reduce((a,x)=>a+x.r,0);
+  $('#demoSimBox').innerHTML='<div class="card" style="margin:10px 0 0;box-shadow:none"><b style="font-size:14px">De 1.000 sorteos, cuántas veces gana…</b>'
+   +rows.concat([{u:'Todos los demás',f:oF,r:oR}]).map(x=>'<div class="it"><div style="flex:1"><div class="u">'+esc(x.u)+'</div><div class="t">Justo: <b>'+x.f+'</b> veces · Trucado: <b style="color:#E5484D">'+x.r+'</b> veces</div>'
+     +'<div class="demoBar"><div style="width:'+Math.max(.5,x.f/10)+'%;background:var(--ok)"></div></div><div class="demoBar"><div style="width:'+Math.max(.5,x.r/10)+'%;background:#E5484D"></div></div></div></div>').join('')
+   +'<p class="hint" style="margin:8px 0 0">Verde = sorteo justo · Rojo = sorteo trucado</p></div>';
+}
+function demoRun(rigged){
+  if(rigged&&!demoRig.length){toast('Añade primero una cuenta con papeletas');return}
+  const w=demoWeights(rigged),skip=new Set(),order=[],want=Math.min(cfg.winners+cfg.alts,result.people.length);
+  while(order.length<want){const k=weightedPick(w,skip);if(k==null)break;skip.add(k);order.push(k)}
+  const disp=u=>at((result.people.find(p=>normU(p.u)===u)||{u}).u),s=cur();
+  const d={demo:rigged?'rig':'fair',fmt:true,src:cfg.src,id:'demo'+Date.now(),date:new Date().toISOString(),shop:{name:s.name,handle:s.handle,logo:s.logo,color:s.color},net:cfg.net,prize:cfg.prize,
+    winners:order.slice(0,cfg.winners).map(disp),alts:order.slice(cfg.winners).map(disp),people:result.people.length,tickets:[...w.values()].reduce((a,b)=>a+b,0),comments:result.total,code:'DEMO',rig:rigged?demoRig.slice():null};
+  closeM('mDemo');runLive(d,result.people.map(p=>at(p.u)));   // no se guarda en el historial
 }
 
 /* ============ bases del sorteo ============ */
@@ -1309,7 +1406,7 @@ function closeM(id){$('#'+id).classList.remove('on')}
 /* botón «atrás» del móvil (lo llama la app Android) */
 function onBack(){
   if($('#live').classList.contains('on')){closeLive();return 'ok'}
-  for(const id of ['mCert','mHelp','mPlans','mVendor','mBases'])if($('#'+id).classList.contains('on')){closeM(id);return 'ok'}
+  for(const id of ['mCert','mHelp','mPlans','mVendor','mBases','mDemo'])if($('#'+id).classList.contains('on')){closeM(id);return 'ok'}
   const order=['tienda','sorteo','part','sortear'];
   if(page==='hist'){go('sortear');return 'ok'}
   const i=order.indexOf(page);if(i>0){go(order[i-1]);return 'ok'}
