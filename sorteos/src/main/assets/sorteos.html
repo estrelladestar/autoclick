@@ -212,7 +212,8 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:60}
   <div class="card">
     <h2>🔗 Enlace de la publicación</h2>
     <p class="hint">Pega el enlace del post de Instagram o del vídeo de TikTok y la app recoge todos los comentarios sola.</p>
-    <input type="url" id="postUrl" placeholder="https://www.instagram.com/p/...">
+    <input type="text" id="postUrl" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://www.instagram.com/p/...">
+    <div class="btns"><button class="btn sec small" onclick="pasteLink()">📋 Pegar enlace</button><button class="btn ghost small" onclick="$('#postUrl').value='';cfg.postUrl='';saveCfg()">🧹 Borrar</button></div>
     <div class="btns"><button class="btn main" onclick="collect()">⚡ Recoger todos los comentarios</button></div>
     <div class="warnbox" id="noAppBox" style="display:none">ℹ️ Recoger comentarios solo funciona en la app Android. En el navegador, cópialos y pégalos abajo.</div>
   </div>
@@ -494,11 +495,23 @@ function isTable(lines){ // archivos .csv exportados
 
 /* ============ recoger comentarios desde el enlace (app Android) ============ */
 let collected=null;
+/* Saca el enlace aunque venga con texto alrededor o sin «https://» */
+function cleanLink(txt){
+  const m=String(txt||'').match(/(https?:\/\/)?((www\.|m\.|vm\.|vt\.)?(instagram\.com|instagr\.am|tiktok\.com)\/[^\s"'<>]*)/i);
+  return m?'https://'+m[2]:'';
+}
+async function pasteLink(){
+  let t='';
+  try{if(APP&&APP.getClipboard)t=APP.getClipboard();else t=await navigator.clipboard.readText()}catch(e){}
+  const u=cleanLink(t);
+  if(!u){toast(t?'Lo copiado no es un enlace de Instagram o TikTok':'Mantén pulsado el cuadro y elige «Pegar»');$('#postUrl').focus();return}
+  $('#postUrl').value=u;cfg.postUrl=u;saveCfg();netFromUrl();toast('✅ Enlace puesto');
+}
 function collect(){
-  const url=($('#postUrl').value||'').trim();
-  if(!/^https?:\/\/\S+/i.test(url)||!/(instagram|instagr\.am|tiktok)/i.test(url)){toast('Pega un enlace de Instagram o TikTok');$('#postUrl').focus();return}
-  cfg.postUrl=url;netFromUrl();saveCfg();
-  if(!(APP&&APP.collect)){$('#noAppBox').style.display='';toast('Esto solo funciona en la app Android');return}
+  const url=cleanLink($('#postUrl').value);
+  if(!url){toast($('#postUrl').value.trim()?'Ese enlace no es de Instagram ni de TikTok':'Primero pega el enlace de la publicación');$('#postUrl').focus();return}
+  $('#postUrl').value=url;cfg.postUrl=url;netFromUrl();saveCfg();
+  if(!(APP&&APP.collect)){$('#noAppBox').style.display='';alert('Recoger los comentarios solo funciona en la app Android «Sorteos Star» (SorteosStar-debug.apk). En el navegador hay que copiar los comentarios y pegarlos en el cuadro de abajo.');return}
   if(cfg.raw.trim()&&!confirm('Se cambiarán los comentarios que hay ahora por los de este enlace. ¿Seguir?'))return;
   collected=new Map();removed=new Set();
   APP.collect(url);
