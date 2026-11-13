@@ -60,7 +60,7 @@ repetir 1000"""
     /** Como el lento, pero escribiendo más rápido: la mitad de las veces tarda entre 2 y 5 segundos. */
     private val fastName = "⭐ Mi guion rápido (fijo)"
     private val fastScript get() = defaultScript.replace("escribir menciones 1", "escribir menciones 1 lento 2-5")
-    /** Como «Mi guion» pero dando la vuelta más deprisa: esperas cortas, sin paseos ni historias y descanso corto. */
+    /** Como «Mi guion» pero dando la vuelta más deprisa: esperas cortas, sin historias, paseos solo a veces y descanso corto. */
     private val quickName = "⭐ Mi guion veloz (fijo)"
     private val quickScript = """enlace
 esperar 5
@@ -68,6 +68,7 @@ imagen 1 | 1-3
 escribir menciones 1
 esperar 1-3
 imagen 3 | 1-3
+mirar azar
 imagen 2 | 1-3
 escribir menciones 1
 esperar 1-3
@@ -86,6 +87,7 @@ imagen 2 | 1-3
 escribir menciones 1
 esperar 1-3
 imagen 3 | 1-3
+inicio azar
 descanso 0.5-1
 cuenta siguiente
 repetir 1000"""

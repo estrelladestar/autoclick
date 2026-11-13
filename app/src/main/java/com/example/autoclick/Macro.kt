@@ -966,11 +966,15 @@ object Macro {
                 when {
                     missing -> finish("No encuentro la imagen $n. Añádela en la app. Guion detenido.")
                     pos != null -> {
-                        trace("  imagen $n encontrada: toco ${pos.first.toInt()},${pos.second.toInt()}")
+                        // No tocar siempre en el mismo punto exacto: un poco al azar dentro del botón (hasta ±5 dp)
+                        val jit = 5f * s.resources.displayMetrics.density
+                        val tx = pos.first + ((Math.random() * 2 - 1) * jit).toFloat()
+                        val ty = pos.second + ((Math.random() * 2 - 1) * jit).toFloat()
+                        trace("  imagen $n encontrada: toco ${tx.toInt()},${ty.toInt()}")
                         val pick = checkMention
                         // Lo que ya se veía antes de publicar, para no confundirlo con un aviso nuevo
                         val before = if (pick != null) screenTexts().toSet() else emptySet()
-                        s.tapAt(pos.first, pos.second)
+                        s.tapAt(tx, ty)
                         if (pick != null) {
                             // Era «publicar» después de escribir menciones: mirar si Instagram lo ha publicado
                             checkMention = null
