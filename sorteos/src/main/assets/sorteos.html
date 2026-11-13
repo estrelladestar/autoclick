@@ -557,7 +557,7 @@ function isNoise(line){
   if(!toks.length)return true;
   return toks.every(t=>TIME_TOK.test(t)||NOISE_W.test(t));
 }
-const UI_WORDS=new Set('inicio buscar búsqueda explorar reels mensajes notificaciones crear perfil más threads meta home search explore messages notifications create profile more información ayuda privacidad condiciones idioma español english siguiendo seguir following follow comentarios comments responder reply foryou amigos friends live directo subir upload iniciar entrar login registrarse signup'.split(' '));
+const UI_WORDS=new Set('ignorar ignore buscar búsqueda explorar reels mensajes notificaciones crear perfil más threads meta home search explore messages notifications create profile more información ayuda privacidad condiciones idioma español english siguiendo seguir following follow comentarios comments responder reply foryou amigos friends live directo subir upload iniciar entrar login registrarse signup'.split(' '));
 function userLine(line){ // "usuario" o "usuario 2 sem" o "usuario · Autor"
   const toks=line.split(/\s+/);const m=toks[0].match(USER_RE);
   if(!m||!/[A-Za-z]/.test(m[1]))return null;
@@ -581,6 +581,14 @@ function parse(raw,mode){
     return out;
   }
   // automático: bloques "usuario / (tiempo) / comentario / Responder"
+  // Apps de Instagram/TikTok: cada comentario tiene una descripción «usuario ha dicho comentario».
+  // Si aparecen, se usan SOLO esas (lo demás son botones: Responder, Me gusta, Ignorar…).
+  if(mode==='app-ig'||mode==='app-tt'){
+    const said=[];
+    lines.forEach(l=>{const m=l.match(/^@?(.{1,40}?) (?:ha dicho|dijo|said|commented|ha comentado)[:,]? (.+)$/i);
+      if(m&&!/^(responder|reply|tocar|tap)/i.test(m[1]))said.push({u:m[1].trim(),t:m[2].trim(),nick:mode==='app-tt'&&!/^[A-Za-z0-9._]{1,30}$/.test(m[1].trim())})});
+    if(said.length)return said;
+  }
   // app-ig: como en la web, pero a veces la app pone «usuario comentario» en la misma línea
   // app-tt: TikTok enseña el apodo (puede llevar espacios y emojis) en la línea de antes del comentario
   let curC=null, expect=true;
