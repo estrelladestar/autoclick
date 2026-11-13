@@ -73,8 +73,8 @@ class LectorService : AccessibilityService() {
     private var noTextRounds = 0
     private val seenSnaps = HashSet<String>()
     private val replyKeys = HashSet<String>()           // para contar comentarios (cada uno tiene su «Responder»)
-    private val liveBase = HashSet<String>()
-    private val liveSeen = HashSet<String>()
+    private var livePrev: List<String> = emptyList()
+    private var liveCount = 0
     private val livePeople = HashSet<String>()
 
     override fun onServiceConnected() { instance = this }
@@ -88,7 +88,7 @@ class LectorService : AccessibilityService() {
         stop()
         LectorResult.clear(); LectorResult.live = live
         liveMode = live; started = false; rounds = 0; sameRounds = 0; noTextRounds = 0
-        seenSnaps.clear(); replyKeys.clear(); liveBase.clear(); liveSeen.clear(); livePeople.clear()
+        seenSnaps.clear(); replyKeys.clear(); livePrev = emptyList(); liveCount = 0; livePeople.clear()
         openInApp(url)
         showPanel()
         if (live) {
@@ -323,18 +323,24 @@ class LectorService : AccessibilityService() {
         val rows = liveRows(root)
         LectorResult.lastDump = "[${root.packageName} directo]\n" + rows.joinToString("\n") { it.first + " → " + it.second } + "\n---\n" + treeDump(root)
         if (rows.isEmpty()) noTextRounds++ else noTextRounds = 0
+        val keys = rows.map { it.first.lowercase() + "|" + it.second }
         if (!started) {
-            liveBase.clear(); rows.forEach { liveBase.add(it.first.lowercase() + "|" + it.second) }
+            livePrev = keys
             say(if (rows.isEmpty()) "🔴 Entra en el directo. Todavía no veo mensajes en el chat." else "🔴 Veo el chat ✅ Pulsa «Empezar a contar» cuando quieras.")
             return
         }
-        for ((u, t) in rows) {
-            val k = u.lowercase() + "|" + t
-            if (k in liveBase || !liveSeen.add(k)) continue
-            LectorResult.rows.add(u to t); livePeople.add(u.lowercase())
+        // Mensajes nuevos: los que hay después de la parte que coincide con la lectura anterior
+        // (así un «quiero» repetido cuenta cada vez que se escribe)
+        var overlap = 0
+        for (k in minOf(livePrev.size, keys.size) downTo 1) {
+            if (livePrev.subList(livePrev.size - k, livePrev.size) == keys.subList(0, k)) { overlap = k; break }
+        }
+        livePrev = keys
+        for ((u, t) in rows.drop(overlap)) {
+            LectorResult.rows.add(u to t); livePeople.add(u.lowercase()); liveCount++
         }
         say(if (noTextRounds > 8) "⚠️ No veo el chat (¿ha terminado el directo?) · 👥 ${livePeople.size} personas"
-            else "🔴 Contando… 👥 ${livePeople.size} personas · 💬 ${liveSeen.size} comentarios")
+            else "🔴 Contando… 👥 ${livePeople.size} personas · 💬 $liveCount comentarios")
     }
 
     // ---------- botones ----------
