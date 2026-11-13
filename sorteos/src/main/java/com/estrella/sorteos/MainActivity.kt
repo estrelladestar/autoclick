@@ -437,6 +437,9 @@ class MainActivity : Activity() {
         fun apifyOk(): Boolean = Apify.hasToken()
 
         @JavascriptInterface
+        fun version(): String = BuildConfig.VERSION_NAME
+
+        @JavascriptInterface
         fun apifyFetch(url: String, max: Int) {
             Thread {
                 try {

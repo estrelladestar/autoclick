@@ -258,6 +258,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:60}
     <input type="text" id="postUrl" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://www.instagram.com/p/...">
     <div class="btns"><button class="btn sec small" onclick="pasteLink()">📋 Pegar enlace</button><button class="btn ghost small" onclick="$('#postUrl').value='';cfg.postUrl='';saveCfg()">🧹 Borrar</button></div>
     <div class="btns"><button class="btn main" onclick="collect()">⚡ Recoger todos los comentarios</button></div>
+    <p class="hint" id="loadMode" style="margin:8px 0 0;text-align:center"></p>
     <div class="warnbox" id="noAppBox" style="display:none">ℹ️ Recoger comentarios solo funciona en la app Android. En el navegador, cópialos y pégalos abajo.</div>
   </div>
   <div class="card">
@@ -650,7 +651,7 @@ function collect(){
   if(cfg.raw.trim()&&!confirm('Se cambiarán los comentarios que hay ahora por los de este enlace. ¿Seguir?'))return;
   resetSnaps();removed=new Set();
   if(APP.apifyOk&&APP.apifyOk()){loadAll(url);return}
-  APP.collect(url);
+  alert('La carga de comentarios de golpe no está activada en esta versión de la app (falta la clave de Apify). Instala la última versión, o copia los comentarios y pégalos abajo.');
 }
 /* ⚡ Todos los comentarios de golpe (Apify). Se pide como mucho el límite del plan + 1,
    así un sorteo más grande que el plan avisa sin gastar de más. */
@@ -674,7 +675,7 @@ function onApifyDone(json){
 function onApifyError(msg){
   if(msg==='Cancelado'){$('#mLoad').classList.remove('on');return}
   $('#loadTxt').textContent='❌ '+msg;
-  $('#loadBtns').innerHTML='<button class="btn main" onclick="$(\'#mLoad\').classList.remove(\'on\');APP.collect(loadUrl)">📱 Leer desde la app de Instagram/TikTok</button><button class="btn ghost" onclick="$(\'#mLoad\').classList.remove(\'on\')">Cerrar</button>';
+  $('#loadBtns').innerHTML='<button class="btn main" onclick="loadAll(loadUrl)">🔄 Intentarlo otra vez</button><button class="btn ghost" onclick="$(\'#mLoad\').classList.remove(\'on\')">Cerrar</button>';
 }
 function cancelLoad(){try{APP.apifyCancel()}catch(e){}$('#mLoad').classList.remove('on');toast('Cancelado')}
 /* Comentarios recogidos. Se guardan TODOS, también los repetidos:
@@ -1133,6 +1134,8 @@ renderPlan();
 renderShops();applyTheme();renderCfg();preloadLogos();
 if(!(APP&&APP.collect))$('#noAppBox').style.display='';
 if(APP&&APP.lastDump)$('#dumpBtn').style.display='';
+(function(){let v='',ok=false;try{v=APP.version();ok=APP.apifyOk()}catch(e){}
+  $('#loadMode').innerHTML=APP&&APP.collect?((ok?'⚡ Carga de golpe activada':'⚠️ Carga de golpe NO activada')+(v?' · versión '+esc(v):'')):'';})();
 if(cfg.raw.trim())analyze(false);
 if(!cur().name)setTimeout(()=>toast('👋 Empieza poniendo los datos de tu tienda'),600);
 </script>
