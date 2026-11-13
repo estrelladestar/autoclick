@@ -51,6 +51,15 @@ inicio azar
 descanso 1-2
 cuenta siguiente
 repetir 1000"""
+    /** Igual que «Mi guion», pero la mitad de las veces escribe despacio (entre 5 y 20 segundos). */
+    private val slowName = "⭐ Mi guion lento (fijo)"
+    private val slowScript get() = defaultScript.replace("escribir menciones 1", "escribir menciones 1 lento 5-20")
+    /** Igual que el lento, pero con 2 menciones en cada comentario. */
+    private val slow2Name = "⭐ Mi guion lento, 2 menciones (fijo)"
+    private val slow2Script get() = defaultScript.replace("escribir menciones 1", "escribir menciones 2 lento 5-20")
+    /** ¿Es uno de los guiones fijos (que no se pueden borrar ni sobrescribir)? */
+    private fun isFixed(name: String) = name == fixedName || name == previousName || name == slowName || name == slow2Name
+
     /** El guion fijo de antes (con la línea «cuentas» y 10 comentarios de 2 menciones). */
     private val previousName = "⭐ Guion anterior (fijo)"
     private val previousScript = """cuentas cory_gm0 nuberosa56 del_mar190 amimanera6 mama.dedylan morenina.iscar comoyoquiero1 mimi88red
@@ -349,6 +358,8 @@ repetir 8"""
                     val text = when (name) {
                         fixedName -> defaultScript
                         previousName -> previousScript
+                        slowName -> slowScript
+                        slow2Name -> slow2Script
                         else -> loadScripts().optString(name, "")
                     }
                     if (text.isNotEmpty()) script.setText(text)
@@ -1017,9 +1028,11 @@ repetir 8"""
         val names = ArrayList<String>()
         names.add("— elegir un guion guardado —")
         names.add(fixedName)
+        names.add(slowName)
+        names.add(slow2Name)
         names.add(previousName)
         val it = loadScripts().keys()
-        while (it.hasNext()) { val n = it.next(); if (n != fixedName && n != previousName) names.add(n) }
+        while (it.hasNext()) { val n = it.next(); if (!isFixed(n)) names.add(n) }
         savedSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, names)
         if (select != null) savedSpinner.setSelection(names.indexOf(select).coerceAtLeast(0))
     }
@@ -1032,7 +1045,7 @@ repetir 8"""
             .setView(input)
             .setPositiveButton("Guardar") { _, _ ->
                 val name = input.text.toString().trim()
-                if (name == fixedName || name == previousName) {
+                if (isFixed(name)) {
                     toast("Ese nombre es el de un guion fijo. Elige otro nombre.")
                 } else if (name.isNotEmpty()) {
                     val all = loadScripts()
@@ -1052,7 +1065,7 @@ repetir 8"""
             return
         }
         val name = savedSpinner.selectedItem.toString()
-        if (name == fixedName || name == previousName) {
+        if (isFixed(name)) {
             toast("Los guiones fijos no se pueden borrar")
             return
         }
