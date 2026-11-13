@@ -209,6 +209,32 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:60}
 
 <!-- 3 · PARTICIPANTES -->
 <section class="page" id="p-part">
+  <div class="seg" id="srcSeg" style="margin-bottom:14px;background:#fff;border:1px solid var(--line)">
+    <button data-v="post" class="on">🔗 Publicación</button>
+    <button data-v="live">🔴 Directo</button>
+  </div>
+  <div id="liveBox" style="display:none">
+  <div class="card">
+    <h2>🔴 Sorteo en directo</h2>
+    <p class="hint">La app abre el directo y apunta a todos los que comentan desde que pulsas «Empezar». Cuando pulses «Parar y sortear», se sortea entre ellos.</p>
+    <label>Red social</label>
+    <div class="seg" id="liveNetSeg">
+      <button data-v="tt"><span class="net tt">TikTok</span></button>
+      <button data-v="ig"><span class="net ig">Instagram</span></button>
+    </div>
+    <label>Cuenta que está en directo (o el enlace del directo)</label>
+    <input type="text" id="liveUrl" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="@modaluna">
+    <label>Quién entra en el sorteo</label>
+    <div class="seg" id="liveWhoSeg">
+      <button data-v="all">Todo el que comente</button>
+      <button data-v="word">Solo quien escriba…</button>
+    </div>
+    <input type="text" id="liveWord" placeholder="La palabra, ej.: QUIERO" style="margin-top:8px">
+    <div class="btns"><button class="btn main" onclick="liveOpen()">🔴 Abrir el directo</button></div>
+    <div class="warnbox">ℹ️ Solo cuentan los comentarios escritos <b>desde que pulsas «Empezar»</b>. Deja la app abierta en el directo todo el rato. Cada persona tiene una papeleta aunque comente muchas veces. En TikTok algunos pueden salir con su apodo en vez de @usuario.</div>
+  </div>
+  </div>
+  <div id="postBox">
   <div class="card">
     <h2>🔗 Enlace de la publicación</h2>
     <p class="hint">Pega el enlace del post de Instagram o del vídeo de TikTok y la app recoge todos los comentarios sola.</p>
@@ -234,7 +260,8 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:60}
       <button class="btn ghost small" onclick="clearRaw()">🧹 Vaciar</button>
     </div>
     <input type="file" id="txtFile" accept=".txt,.csv,text/plain,text/csv" hidden>
-    <div class="btns"><button class="btn main" onclick="analyze(true)">🔍 Comprobar comentarios</button></div>
+    <div class="btns"><button class="btn main" onclick="cfg.src='post';analyze(true)">🔍 Comprobar comentarios</button></div>
+  </div>
   </div>
 
   <div class="card" id="resCard" style="display:none">
@@ -413,10 +440,11 @@ $('#logoFile').addEventListener('change',e=>{
 });
 
 /* ============ configuración del sorteo ============ */
-let cfg=Object.assign({net:'ig',prize:'',postUrl:'',winners:1,alts:2,minMent:1,multi:false,maxTk:5,uniqMent:true,noSelf:true,needWord:'',excluded:'',mode:'auto',raw:''},load(K.cfg,{}));
+let cfg=Object.assign({net:'ig',prize:'',postUrl:'',winners:1,alts:2,minMent:1,multi:false,maxTk:5,uniqMent:true,noSelf:true,needWord:'',excluded:'',mode:'auto',raw:'',src:'post',liveNet:'tt',liveUrl:'',liveWho:'all',liveWord:''},load(K.cfg,{}));
 const LIM={winners:[1,10],alts:[0,20],minMent:[0,10],maxTk:[1,100]};
 function step(k,d){cfg[k]=Math.max(LIM[k][0],Math.min(LIM[k][1],cfg[k]+d));$('#v-'+k).textContent=cfg[k];saveCfg();if(dirty())analyze(false)}
 function renderCfg(){
+  renderSrc();
   $$('#netSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===cfg.net));
   $('#postUrl').placeholder=cfg.net==='ig'?'https://www.instagram.com/p/...':'https://www.tiktok.com/@tienda/video/...';
   ['winners','alts','minMent','maxTk'].forEach(k=>$('#v-'+k).textContent=cfg[k]);
@@ -425,12 +453,28 @@ function renderCfg(){
   $('#prize').value=cfg.prize;$('#postUrl').value=cfg.postUrl;$('#needWord').value=cfg.needWord;$('#excluded').value=cfg.excluded;
   $('#mode').value=cfg.mode;$('#raw').value=cfg.raw;
 }
+function renderSrc(){
+  $$('#srcSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===cfg.src));
+  $('#liveBox').style.display=cfg.src==='live'?'':'none';$('#postBox').style.display=cfg.src==='live'?'none':'';
+  $$('#liveNetSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===cfg.liveNet));
+  $$('#liveWhoSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===cfg.liveWho));
+  $('#liveWord').style.display=cfg.liveWho==='word'?'':'none';
+  $('#liveUrl').placeholder=cfg.liveNet==='tt'?'@cuenta  o  https://www.tiktok.com/@cuenta/live':'@cuenta  o  https://www.instagram.com/cuenta/live/';
+  if(document.activeElement!==$('#liveUrl'))$('#liveUrl').value=cfg.liveUrl;
+  if(document.activeElement!==$('#liveWord'))$('#liveWord').value=cfg.liveWord;
+}
 let saveT;function saveCfg(){clearTimeout(saveT);saveT=setTimeout(()=>store(K.cfg,cfg),300)}
 $$('#netSeg button').forEach(b=>b.onclick=()=>{cfg.net=b.dataset.v;renderCfg();saveCfg()});
 ['multi','uniqMent','noSelf'].forEach(id=>$('#'+id).addEventListener('change',e=>{cfg[id]=e.target.checked;renderCfg();saveCfg();if(dirty())analyze(false)}));
 ['prize','postUrl','needWord','excluded','raw'].forEach(id=>$('#'+id).addEventListener('input',e=>{cfg[id]=e.target.value;saveCfg();if(id==='postUrl')netFromUrl()}));
 function netFromUrl(){const u=cfg.postUrl.toLowerCase();const n=u.includes('tiktok')?'tt':u.includes('instagram')||u.includes('instagr.am')?'ig':null;if(n&&n!==cfg.net){cfg.net=n;renderCfg();saveCfg()}}
 ['needWord','excluded'].forEach(id=>$('#'+id).addEventListener('change',()=>{if(dirty())analyze(false)}));
+$$('#srcSeg button').forEach(b=>b.onclick=()=>{cfg.src=b.dataset.v;renderSrc();saveCfg();analyze(false)});
+$$('#liveNetSeg button').forEach(b=>b.onclick=()=>{cfg.liveNet=b.dataset.v;renderSrc();saveCfg()});
+$$('#liveWhoSeg button').forEach(b=>b.onclick=()=>{cfg.liveWho=b.dataset.v;renderSrc();saveCfg();if(cfg.src==='live')analyze(false)});
+$('#liveUrl').addEventListener('input',e=>{cfg.liveUrl=e.target.value;saveCfg();const v=e.target.value.toLowerCase();if(v.includes('tiktok')&&cfg.liveNet!=='tt'){cfg.liveNet='tt';renderSrc()}else if(v.includes('instagr')&&cfg.liveNet!=='ig'){cfg.liveNet='ig';renderSrc()}});
+$('#liveWord').addEventListener('input',e=>{cfg.liveWord=e.target.value;saveCfg()});
+$('#liveWord').addEventListener('change',()=>{if(cfg.src==='live')analyze(false)});
 $('#mode').addEventListener('change',e=>{cfg.mode=e.target.value;saveCfg();if(cfg.raw.trim())analyze(false)});
 function dirty(){return $('#resCard').style.display!=='none'}
 
@@ -510,7 +554,7 @@ async function pasteLink(){
 function collect(){
   const url=cleanLink($('#postUrl').value);
   if(!url){toast($('#postUrl').value.trim()?'Ese enlace no es de Instagram ni de TikTok':'Primero pega el enlace de la publicación');$('#postUrl').focus();return}
-  $('#postUrl').value=url;cfg.postUrl=url;netFromUrl();saveCfg();
+  $('#postUrl').value=url;cfg.postUrl=url;cfg.src='post';netFromUrl();saveCfg();
   if(!(APP&&APP.collect)){$('#noAppBox').style.display='';alert('Recoger los comentarios solo funciona en la app Android «Sorteos Star» (SorteosStar-debug.apk). En el navegador hay que copiar los comentarios y pegarlos en el cuadro de abajo.');return}
   if(cfg.raw.trim()&&!confirm('Se cambiarán los comentarios que hay ahora por los de este enlace. ¿Seguir?'))return;
   collected=new Map();removed=new Set();
@@ -535,23 +579,69 @@ function onCollectDone(){
   return collected.size;
 }
 
+/* ============ sorteo en directo (app Android) ============ */
+const NICKS=new Set();               // apodos de TikTok (se enseñan sin @)
+function at(u){u=String(u);return (u[0]==='@'||NICKS.has(u))?u:'@'+u}
+function fw(d,w){return d.fmt?w:'@'+w}
+let live=load('ss.live',{owner:'',msgs:[]}), liveBase=new Set(), liveSeen=new Set(), livePeople=new Set(), liveT;
+live.msgs.forEach(m=>{if(m.nick)NICKS.add(m.u)});
+function liveOpen(){
+  const raw=($('#liveUrl').value||'').trim();let url='',owner='';
+  const link=cleanLink(raw);
+  if(link){url=link;const m=link.match(/tiktok\.com\/@([A-Za-z0-9._]+)/i)||link.match(/instagram\.com\/([A-Za-z0-9._]+)/i);owner=m?m[1]:'';
+    cfg.liveNet=/tiktok/i.test(link)?'tt':'ig';}
+  else{const m=raw.match(/^@?([A-Za-z0-9._]{1,30})$/);
+    if(!m){toast('Escribe la cuenta que está en directo (ej.: @modaluna)');$('#liveUrl').focus();return}
+    owner=m[1];url=cfg.liveNet==='tt'?'https://www.tiktok.com/@'+owner+'/live':'https://www.instagram.com/'+owner+'/live/';}
+  if(cfg.liveWho==='word'&&!cfg.liveWord.trim()){toast('Escribe la palabra que tienen que poner');$('#liveWord').focus();return}
+  cfg.net=cfg.liveNet;renderCfg();saveCfg();
+  if(!(APP&&APP.collectLive)){alert('El sorteo en directo solo funciona en la app Android «Sorteos Star» (SorteosStar-debug.apk).');return}
+  live={owner,msgs:[]};liveBase=new Set();liveSeen=new Set();livePeople=new Set();store('ss.live',live);
+  APP.collectLive(url);
+}
+/* La app llama a esto cada segundo con los mensajes del chat que se ven. started=false: aún no se ha pulsado «Empezar» */
+function onLive(json,started){
+  let d;try{d=JSON.parse(json)}catch(e){d={v:0,m:[]}}
+  const items=(d.m||[]).map(x=>{const u=String(x[0]||'').trim(),t=String(x[1]||'').trim();return {u,t,k:u.toLowerCase()+'|'+t}}).filter(x=>x.u);
+  if(!started){liveBase=new Set(items.map(x=>x.k));return '0|0|'+(d.v||0)}
+  let added=false;
+  items.forEach(x=>{
+    if(liveBase.has(x.k)||liveSeen.has(x.k))return;liveSeen.add(x.k);
+    const nick=x.u[0]!=='@', u=nick?x.u:x.u.slice(1);
+    if(nick)NICKS.add(u);
+    live.msgs.push({u,t:x.t,nick});livePeople.add(u.toLowerCase());added=true;
+  });
+  if(added){clearTimeout(liveT);liveT=setTimeout(()=>store('ss.live',live),1500)}
+  return livePeople.size+'|'+liveSeen.size+'|'+(d.v||0);
+}
+/* Al pulsar «Parar y sortear» */
+function onLiveDone(){
+  store('ss.live',live);cfg.src='live';saveCfg();renderSrc();removed=new Set();
+  analyze(false);go('sortear');
+  toast(result&&result.people.length?('🔴 '+result.people.length+' participantes del directo'):'No ha comentado nadie que cumpla las reglas');
+  return livePeople.size;
+}
+
 /* ============ comprobar reglas ============ */
 let comments=[], removed=new Set(), result=null, listMode='ok';
 function analyze(show){
   cfg.raw=$('#raw').value;saveCfg();
-  if(!cfg.raw.trim()){if(show)toast('Primero pega los comentarios');$('#resCard').style.display='none';result=null;return}
-  comments=parse(cfg.raw,cfg.mode).map((c,i)=>({id:i,u:c.u,t:c.t}));
+  const isLive=cfg.src==='live';
+  if(isLive?!live.msgs.length:!cfg.raw.trim()){if(show)toast(isLive?'Todavía no hay comentarios del directo':'Primero pega los comentarios');$('#resCard').style.display='none';result=null;return}
+  comments=(isLive?live.msgs:parse(cfg.raw,cfg.mode)).map((c,i)=>({id:i,u:c.u,t:c.t||''}));
   if(show)removed=new Set();
   const shop=normU(cur().handle);
   const excl=new Set(cfg.excluded.split(/[\n,;\s]+/).map(normU).filter(Boolean)); if(shop)excl.add(shop);
-  const word=cfg.needWord.trim().toLowerCase();
+  if(isLive&&live.owner)excl.add(normU(live.owner));
+  const word=(isLive?(cfg.liveWho==='word'?cfg.liveWord:''):cfg.needWord).trim().toLowerCase();
+  const minM=isLive?0:cfg.minMent, multi=isLive?false:cfg.multi;
   const usedMent={}; // por usuario: menciones ya usadas
   const people={};
   comments.forEach(c=>{
     c.why='';c.ok=false;
     if(removed.has(c.id)){c.why='Quitado a mano';return}
     const u=normU(c.u);
-    if(excl.has(u)){c.why=u===shop?'Es la cuenta de la tienda':'Cuenta excluida';return}
+    if(excl.has(u)){c.why=u===shop?'Es la cuenta de la tienda':(isLive&&u===normU(live.owner))?'Es quien hace el directo':'Cuenta excluida';return}
     let ments=(c.t.match(/@([A-Za-z0-9._]{1,30})/g)||[]).map(m=>normU(m).replace(/\.+$/,''));
     if(cfg.noSelf)ments=ments.filter(m=>m!==u&&m!==shop);
     if(cfg.uniqMent){
@@ -560,11 +650,11 @@ function analyze(show){
       c._m=ments;
     }else c._m=ments;
     c.nm=ments.length;
-    if(c.nm<cfg.minMent){c.why=c.nm?('Solo '+c.nm+' mención'+(c.nm>1?'es':'')+' válida'+(c.nm>1?'s':'')+' (pide '+cfg.minMent+')'):'Sin menciones válidas';return}
-    if(word&&!c.t.toLowerCase().includes(word)){c.why='Falta «'+cfg.needWord.trim()+'»';return}
-    const p=people[u]||(people[u]={u:c.u.replace(/^@/,''),n:0});
-    if(!cfg.multi&&p.n>=1){c.why='Ya participa con otro comentario';c.dup=true;return}
-    if(cfg.multi&&p.n>=cfg.maxTk){c.why='Ya tiene el máximo de papeletas';c.dup=true;return}
+    if(c.nm<minM){c.why=c.nm?('Solo '+c.nm+' mención'+(c.nm>1?'es':'')+' válida'+(c.nm>1?'s':'')+' (pide '+minM+')'):'Sin menciones válidas';return}
+    if(word&&!c.t.toLowerCase().includes(word)){c.why='Falta «'+word+'»';return}
+    const p=people[u]||(people[u]={u:NICKS.has(c.u)?c.u:c.u.replace(/^@/,''),n:0});
+    if(!multi&&p.n>=1){c.why='Ya participa con otro comentario';c.dup=true;return}
+    if(multi&&p.n>=cfg.maxTk){c.why='Ya tiene el máximo de papeletas';c.dup=true;return}
     if(cfg.uniqMent)c._m.forEach(m=>usedMent[u].add(m));
     p.n++;c.ok=true;
   });
@@ -580,7 +670,7 @@ function renderList(){
   if(listMode==='ok')rows=rows.filter(c=>c.ok);else if(listMode==='bad')rows=rows.filter(c=>!c.ok);
   if(q)rows=rows.filter(c=>normU(c.u).includes(q));
   const MAX=400;
-  $('#list').innerHTML=rows.length?rows.slice(0,MAX).map(c=>'<div class="it"><div style="min-width:0"><div class="u">@'+esc(c.u.replace(/^@/,''))+'</div><div class="t">'+esc(c.t||'—')+'</div>'+(c.ok?'':'<div class="why">✗ '+esc(c.why)+'</div>')+'</div>'+(c.ok?'<span class="n">✓</span>':'')+(removed.has(c.id)?'<button class="x" style="background:#E8F8F0;color:var(--ok)" onclick="unRemove('+c.id+')">↺</button>':'<button class="x" onclick="rem('+c.id+')">✕</button>')+'</div>').join('')+(rows.length>MAX?'<div class="empty">…y '+(rows.length-MAX)+' más (usa el buscador)</div>':''):'<div class="empty">No hay nada aquí</div>';
+  $('#list').innerHTML=rows.length?rows.slice(0,MAX).map(c=>'<div class="it"><div style="min-width:0"><div class="u">'+esc(at(NICKS.has(c.u)?c.u:c.u.replace(/^@/,'')))+'</div><div class="t">'+esc(c.t||'—')+'</div>'+(c.ok?'':'<div class="why">✗ '+esc(c.why)+'</div>')+'</div>'+(c.ok?'<span class="n">✓</span>':'')+(removed.has(c.id)?'<button class="x" style="background:#E8F8F0;color:var(--ok)" onclick="unRemove('+c.id+')">↺</button>':'<button class="x" onclick="rem('+c.id+')">✕</button>')+'</div>').join('')+(rows.length>MAX?'<div class="empty">…y '+(rows.length-MAX)+' más (usa el buscador)</div>':''):'<div class="empty">No hay nada aquí</div>';
 }
 function rem(id){removed.add(id);analyze(false)}
 function unRemove(id){removed.delete(id);analyze(false)}
@@ -603,13 +693,14 @@ function netName(n){return n==='tt'?'TikTok':'Instagram'}
 function renderSum(){
   const s=cur(), r=result;
   let h='<div class="tog"><span>Tienda</span><b>'+esc(s.name||'—')+'</b></div>'
+   +'<div class="tog"><span>De dónde</span><b>'+(cfg.src==='live'?'🔴 Directo':'🔗 Publicación')+'</b></div>'
    +'<div class="tog"><span>Red social</span><b class="net '+cfg.net+'">'+netName(cfg.net)+'</b></div>'
    +'<div class="tog"><span>Premio</span><b style="text-align:right">'+esc(cfg.prize||'—')+'</b></div>'
    +'<div class="tog"><span>Participantes válidos</span><b>'+(r?r.people.length:0)+'</b></div>'
    +'<div class="tog"><span>Papeletas</span><b>'+(r?r.tickets.length:0)+'</b></div>'
    +'<div class="tog"><span>Ganadores / suplentes</span><b>'+cfg.winners+' / '+cfg.alts+'</b></div>';
   const need=cfg.winners+cfg.alts;
-  if(!r||!r.people.length)h+='<div class="warnbox">⚠️ Aún no hay participantes. Ve a «Participantes», pega los comentarios y pulsa «Comprobar».</div>';
+  if(!r||!r.people.length)h+='<div class="warnbox">⚠️ Aún no hay participantes. Ve a «Participantes» y recoge los comentarios de la publicación o del directo.</div>';
   else if(r.people.length<need)h+='<div class="warnbox">⚠️ Hay '+r.people.length+' participantes y pides '+need+' (ganadores + suplentes). Se sortearán los que haya.</div>';
   if(!s.name)h+='<div class="warnbox">💡 Pon el nombre de la tienda en «Tienda» para que salga en el certificado.</div>';
   $('#sumBox').innerHTML=h;
@@ -628,16 +719,16 @@ async function startDraw(){
     const left=pool.filter(u=>!taken.has(u)); if(!left.length)break;
     const u=left[rnd(left.length)]; taken.add(u); order.push(u);
   }
-  const disp=u=>(result.people.find(p=>normU(p.u)===u)||{u}).u;
+  const disp=u=>at((result.people.find(p=>normU(p.u)===u)||{u}).u);
   const s=cur();
   const date=new Date();
   const listHash=await sha(result.tickets.slice().sort().join(','));
   const code=(await sha(listHash+'|'+date.toISOString()+'|'+order.join(','))).slice(0,10).toUpperCase();
-  lastDraw={id:'d'+date.getTime(),date:date.toISOString(),shop:{name:s.name,handle:s.handle,logo:s.logo,color:s.color},net:cfg.net,prize:cfg.prize,postUrl:cfg.postUrl,
+  lastDraw={fmt:true,src:cfg.src,id:'d'+date.getTime(),date:date.toISOString(),shop:{name:s.name,handle:s.handle,logo:s.logo,color:s.color},net:cfg.net,prize:cfg.prize,postUrl:cfg.postUrl,
     winners:order.slice(0,cfg.winners).map(disp),alts:order.slice(cfg.winners).map(disp),people:result.people.length,tickets:result.tickets.length,comments:result.total,
     rules:{minMent:cfg.minMent,multi:cfg.multi,maxTk:cfg.maxTk,word:cfg.needWord.trim()},list:listHash.slice(0,16).toUpperCase(),code};
   const hist=load(K.hist,[]);hist.unshift(lastDraw);if(hist.length>60)hist.length=60;store(K.hist,hist);
-  runLive(lastDraw,result.people.map(p=>p.u));
+  runLive(lastDraw,result.people.map(p=>at(p.u)));
 }
 
 /* ============ pantalla en directo ============ */
@@ -655,11 +746,11 @@ async function runLive(d,names){
   for(const x of all){
     if(liveStop)return;
     $('#liveMsg').textContent=x.alt?('Suplente '+(x.i+1)):(d.winners.length>1?('Ganador/a '+(x.i+1)):'Y el ganador/a es…');
-    await spin(names,x.w,x.alt?1400:2600);
+    await spin(names,fw(d,x.w),x.alt?1400:2600);
     if(liveStop)return;
     if(!x.alt){confetti();tada();vib([60,40,120])}else beep(700,.15);
     const div=document.createElement('div');if(x.alt)div.className='s';
-    div.textContent=(x.alt?'Suplente '+(x.i+1)+': ':'🏆 ')+'@'+x.w;$('#liveWins').appendChild(div);
+    div.textContent=(x.alt?'Suplente '+(x.i+1)+': ':'🏆 ')+fw(d,x.w);$('#liveWins').appendChild(div);
     await wait(x.alt?500:1300);
   }
   $('#reel').textContent='';$('#liveMsg').textContent='¡Enhorabuena! 🎉';
@@ -668,8 +759,8 @@ async function runLive(d,names){
 }
 async function spin(names,final,ms){
   const reel=$('#reel');reel.classList.remove('final');const t0=Date.now();let delay=45;
-  while(Date.now()-t0<ms){if(liveStop)return;reel.textContent='@'+names[rnd(names.length)];tick();await wait(delay);delay=Math.min(delay*1.06,260)}
-  reel.textContent='@'+final;void reel.offsetWidth;reel.classList.add('final');
+  while(Date.now()-t0<ms){if(liveStop)return;reel.textContent=names[rnd(names.length)];tick();await wait(delay);delay=Math.min(delay*1.06,260)}
+  reel.textContent=final;void reel.offsetWidth;reel.classList.add('final');
 }
 function closeLive(){liveStop=true;$('#live').classList.remove('on');showLast()}
 
@@ -688,13 +779,13 @@ function confetti(){
 /* ============ resultado y certificado ============ */
 function fmtDate(iso){const d=new Date(iso);return d.toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'})+' · '+d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}
 function resultHtml(d){
-  return d.winners.map((w,i)=>'<div class="winner"><span class="medal">'+(['🥇','🥈','🥉'][i]||'🏆')+'</span><div><small>Ganador/a'+(d.winners.length>1?' '+(i+1):'')+'</small><b>@'+esc(w)+'</b></div></div>').join('')
-   +d.alts.map((w,i)=>'<div class="winner alt"><span class="medal" style="font-size:22px">🎟️</span><div><small>Suplente '+(i+1)+'</small><b style="font-size:16px">@'+esc(w)+'</b></div></div>').join('')
+  return d.winners.map((w,i)=>'<div class="winner"><span class="medal">'+(['🥇','🥈','🥉'][i]||'🏆')+'</span><div><small>Ganador/a'+(d.winners.length>1?' '+(i+1):'')+'</small><b>'+esc(fw(d,w))+'</b></div></div>').join('')
+   +d.alts.map((w,i)=>'<div class="winner alt"><span class="medal" style="font-size:22px">🎟️</span><div><small>Suplente '+(i+1)+'</small><b style="font-size:16px">'+esc(fw(d,w))+'</b></div></div>').join('')
    +'<p class="hint" style="margin:10px 0 0">'+fmtDate(d.date)+' · '+d.people+' participantes · Código <span class="code">'+d.code+'</span></p>'
    +'<div class="btns"><button class="btn main" onclick="showResultSheet(lastDraw)">🏆 Certificado</button><button class="btn sec" onclick="replay()">▶️ Ver otra vez</button></div>';
 }
 function showLast(){if(!lastDraw)return;$('#lastCard').style.display='';$('#lastBox').innerHTML=resultHtml(lastDraw);renderHist()}
-function replay(){if(lastDraw&&result)runLive(lastDraw,result.people.map(p=>p.u));else if(lastDraw)runLive(lastDraw,lastDraw.winners.concat(lastDraw.alts))}
+function replay(){if(lastDraw&&result)runLive(lastDraw,result.people.map(p=>at(p.u)));else if(lastDraw)runLive(lastDraw,lastDraw.winners.concat(lastDraw.alts).map(w=>fw(lastDraw,w)))}
 let certData=null, certDraw=null;
 function showResultSheet(d){if(!d)return;certDraw=d;certData=drawCert(d);$('#certImg').src=certData;$('#mCert').classList.add('on')}
 function wrap(x,text,maxW){const words=String(text).split(' ');const lines=[];let l='';words.forEach(w=>{const t=l?l+' '+w:w;if(x.measureText(t).width>maxW&&l){lines.push(l);l=w}else l=t});if(l)lines.push(l);return lines}
@@ -717,17 +808,17 @@ function drawCert(d){
   let y=LY+LS+62;
   fitFont(x,d.shop.name||'Sorteo',W-220,52,'800');x.fillStyle='#1E1B3A';x.fillText(d.shop.name||'Sorteo',W/2,y);
   y+=42;x.font='600 28px system-ui,sans-serif';x.fillStyle='#6B6790';
-  x.fillText((d.shop.handle?'@'+d.shop.handle+' · ':'')+'Sorteo en '+netName(d.net),W/2,y);
+  x.fillText((d.shop.handle?'@'+d.shop.handle+' · ':'')+(d.src==='live'?'Sorteo en directo de ':'Sorteo en ')+netName(d.net),W/2,y);
   if(d.prize){y+=66;x.font='700 34px system-ui,sans-serif';x.fillStyle=c[0];wrap(x,'🎁 '+d.prize,W-240).slice(0,2).forEach(l=>{x.fillText(l,W/2,y);y+=44});y-=44}
   y+=70;x.font='900 40px system-ui,sans-serif';x.fillStyle='#1E1B3A';x.fillText(d.winners.length>1?'🏆 GANADORES 🏆':'🏆 GANADOR/A 🏆',W/2,y);
   y+=24;
   const nW=d.winners.length, big=nW<=2?60:nW<=4?46:nW<=6?36:28, boxH=big+38;
   d.winners.slice(0,10).forEach((w,i)=>{
     rr(x,130,y,W-260,boxH,26);const bg=x.createLinearGradient(130,0,W-130,0);bg.addColorStop(0,'#FFF6D6');bg.addColorStop(1,'#FFE7F1');x.fillStyle=bg;x.fill();
-    fitFont(x,'@'+w,W-340,big,'900');x.fillStyle='#1E1B3A';x.fillText('@'+w,W/2,y+boxH/2+big*.36);y+=boxH+14;
+    fitFont(x,fw(d,w),W-340,big,'900');x.fillStyle='#1E1B3A';x.fillText(fw(d,w),W/2,y+boxH/2+big*.36);y+=boxH+14;
   });
   if(d.alts.length){y+=22;x.font='700 26px system-ui,sans-serif';x.fillStyle='#6B6790';x.fillText('SUPLENTES',W/2,y);y+=40;
-    x.font='600 28px system-ui,sans-serif';x.fillStyle='#1E1B3A';wrap(x,d.alts.map((a,i)=>(i+1)+'. @'+a).join('   '),W-220).slice(0,3).forEach(l=>{x.fillText(l,W/2,y);y+=38})}
+    x.font='600 28px system-ui,sans-serif';x.fillStyle='#1E1B3A';wrap(x,d.alts.map((a,i)=>(i+1)+'. '+fw(d,a)).join('   '),W-220).slice(0,3).forEach(l=>{x.fillText(l,W/2,y);y+=38})}
   // pie
   const fy=H-200;x.strokeStyle='#E6E2F5';x.lineWidth=2;x.beginPath();x.moveTo(130,fy);x.lineTo(W-130,fy);x.stroke();
   x.font='600 26px system-ui,sans-serif';x.fillStyle='#6B6790';
@@ -741,8 +832,8 @@ function preloadLogos(){[...shops.map(s=>s.logo),...load(K.hist,[]).map(h=>h.sho
 function resText(d){
   let t='🎉 ¡Ya tenemos '+(d.winners.length>1?'ganadores':'ganador/a')+' del sorteo'+(d.shop.name?' de '+d.shop.name:'')+'! 🎉\n';
   if(d.prize)t+='🎁 Premio: '+d.prize+'\n';t+='\n';
-  d.winners.forEach((w,i)=>t+='🏆 '+(d.winners.length>1?(i+1)+'. ':'')+'@'+w+'\n');
-  if(d.alts.length)t+='\nSuplentes: '+d.alts.map(a=>'@'+a).join(', ')+'\n';
+  d.winners.forEach((w,i)=>t+='🏆 '+(d.winners.length>1?(i+1)+'. ':'')+fw(d,w)+'\n');
+  if(d.alts.length)t+='\nSuplentes: '+d.alts.map(a=>fw(d,a)).join(', ')+'\n';
   t+='\nEscríbenos por mensaje privado para recoger tu premio 💌\n¡Gracias a los '+d.people+' participantes! ❤️\n\nSorteo realizado el '+fmtDate(d.date)+'\nCódigo de comprobación: '+d.code;
   return t;
 }
@@ -768,7 +859,7 @@ async function shareCert(){
 /* ============ historial ============ */
 function renderHist(){
   const h=load(K.hist,[]);
-  $('#histList').innerHTML=h.length?h.map((d,i)=>'<div class="it" style="cursor:pointer" onclick="openHist('+i+')"><div style="min-width:0"><div class="u">'+esc(d.shop.name||'Sin tienda')+' · <span class="net '+d.net+'">'+netName(d.net)+'</span></div><div class="t">🏆 '+d.winners.map(w=>'@'+esc(w)).join(', ')+'</div><div class="t">'+fmtDate(d.date)+' · '+d.people+' part. · <span class="code" style="font-size:11px">'+d.code+'</span></div></div><button class="x" onclick="event.stopPropagation();delHist('+i+')">🗑</button></div>').join(''):'<div class="empty">Todavía no has hecho ningún sorteo</div>';
+  $('#histList').innerHTML=h.length?h.map((d,i)=>'<div class="it" style="cursor:pointer" onclick="openHist('+i+')"><div style="min-width:0"><div class="u">'+esc(d.shop.name||'Sin tienda')+' · <span class="net '+d.net+'">'+netName(d.net)+'</span></div><div class="t">🏆 '+d.winners.map(w=>esc(fw(d,w))).join(', ')+'</div><div class="t">'+fmtDate(d.date)+' · '+d.people+' part. · <span class="code" style="font-size:11px">'+d.code+'</span></div></div><button class="x" onclick="event.stopPropagation();delHist('+i+')">🗑</button></div>').join(''):'<div class="empty">Todavía no has hecho ningún sorteo</div>';
 }
 function openHist(i){const d=load(K.hist,[])[i];if(d)showResultSheet(d)}
 function delHist(i){if(!confirm('¿Borrar este sorteo del historial?'))return;const h=load(K.hist,[]);h.splice(i,1);store(K.hist,h);renderHist()}

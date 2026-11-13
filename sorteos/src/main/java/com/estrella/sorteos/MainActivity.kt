@@ -3,6 +3,7 @@ package com.estrella.sorteos
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.ContentValues
@@ -22,9 +23,8 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.provider.MediaStore
 import android.util.Base64
-import android.view.Gravity
 import android.view.View
-import android.view.ViewGroup
+import android.view.WindowManager
 import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.ValueCallback
@@ -55,6 +55,11 @@ class MainActivity : Activity() {
     private lateinit var colStatus: TextView
     private val ui = Handler(Looper.getMainLooper())
     private var collecting = false
+    private var liveMode = false      // true: chat de un directo; false: comentarios de una publicación
+    private var liveStarted = false   // se ha pulsado «Empezar a contar»
+    private var noChatRounds = 0
+    private lateinit var useBtn: Button
+    private lateinit var colHint: TextView
     private var lastCount = -1
     private var sameRounds = 0
     private var fileCb: ValueCallback<Array<Uri>>? = null
@@ -110,6 +115,48 @@ class MainActivity : Activity() {
         })()
     """.trimIndent()
 
+    /**
+     * Lee los mensajes del chat del directo que se ven ahora mismo.
+     * Devuelve {"v": mensajes vistos, "m": [[usuario, texto], ...]}.
+     * TikTok: cada mensaje es [data-e2e="chat-message"]; si hay enlace al perfil se usa el @usuario, si no el apodo.
+     * Instagram y otros: mensajes que empiezan por un enlace al perfil (/usuario/).
+     * Se quitan los avisos («se ha unido», regalos, me gusta…).
+     */
+    private val liveJs = """
+        (function(){try{
+          var out=[];
+          var bad=/(se ha unido|se uni[oó]|joined|ha empezado a seguir|started following|followed the host|le ha dado|liked the live|ha enviado|sent |ha compartido|shared the live|dio me gusta|está viendo|is watching)/i;
+          function add(u,t){u=(u||'').replace(/\s+/g,' ').trim();t=(t||'').replace(/\s+/g,' ').trim();
+            if(!u||u.length>40||!t)return; if(bad.test(t)&&t.length<70)return; out.push([u,t]);}
+          var tk=document.querySelectorAll('[data-e2e="chat-message"]');
+          if(tk.length){
+            for(var i=0;i<tk.length;i++){var m=tk[i],u='';
+              var a=m.querySelector('a[href*="/@"]');
+              if(a){var mm=(a.getAttribute('href')||'').match(/\/@([A-Za-z0-9._]{2,30})/);if(mm)u='@'+mm[1];}
+              var ne=m.querySelector('[data-e2e="message-owner-name"]');
+              var nick=ne?((ne.getAttribute('title')||ne.innerText||'').trim()):'';
+              if(!u)u=nick;
+              var t=(m.innerText||'');
+              if(ne&&ne.innerText){var k=t.indexOf(ne.innerText);if(k>=0)t=t.slice(k+ne.innerText.length);}
+              t=t.replace(/^\s*[:：·]\s*/,'');
+              add(u,t);
+            }
+            return JSON.stringify({v:tk.length,m:out});
+          }
+          var links=document.querySelectorAll('a[href^="/"]'),v=0;
+          for(var j=0;j<links.length;j++){var l=links[j];
+            var mm2=(l.getAttribute('href')||'').match(/^\/([A-Za-z0-9._]{2,30})\/?$/);if(!mm2)continue;
+            var name=(l.innerText||'').trim();if(name.toLowerCase()!==mm2[1].toLowerCase())continue;
+            var row=l.parentElement;
+            for(var d=0;d<4&&row&&(row.innerText||'').trim()===name;d++)row=row.parentElement;
+            if(!row)continue;var tx=(row.innerText||'').trim();
+            if(tx.indexOf(name)===0)tx=tx.slice(name.length);
+            if(!tx.trim()||tx.length>300)continue;v++;add('@'+mm2[1],tx);
+          }
+          return JSON.stringify({v:v,m:out});
+        }catch(e){return '{"v":0,"m":[]}'}})()
+    """.trimIndent()
+
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -158,16 +205,16 @@ class MainActivity : Activity() {
             setTextColor(Color.WHITE); textSize = 15f; typeface = Typeface.DEFAULT_BOLD
             text = "Abriendo la publicación…"
         }
-        val hint = TextView(this).apply {
+        colHint = TextView(this).apply {
             setTextColor(Color.parseColor("#F0E6FF")); textSize = 12.5f
             text = "Si te pide iniciar sesión, hazlo aquí. La app baja sola por los comentarios. Cuando el número deje de subir, pulsa «Usar comentarios»."
         }
         val btns = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setPadding(0, dp(8), 0, 0) }
-        val use = pill("✅ Usar comentarios", Color.WHITE, Color.parseColor("#7B2FF7")) { finishCollect(true) }
-        val cancel = pill("✕ Cancelar", Color.parseColor("#33FFFFFF"), Color.WHITE) { finishCollect(false) }
-        btns.addView(use, LinearLayout.LayoutParams(0, dp(44), 1f).apply { rightMargin = dp(8) })
+        useBtn = pill("✅ Usar comentarios", Color.WHITE, Color.parseColor("#7B2FF7")) { onMainButton() }
+        val cancel = pill("✕ Cancelar", Color.parseColor("#33FFFFFF"), Color.WHITE) { askCancel() }
+        btns.addView(useBtn, LinearLayout.LayoutParams(0, dp(44), 1f).apply { rightMargin = dp(8) })
         btns.addView(cancel, LinearLayout.LayoutParams(0, dp(44), 0.7f))
-        bar.addView(colStatus); bar.addView(hint); bar.addView(btns)
+        bar.addView(colStatus); bar.addView(colHint); bar.addView(btns)
         colBox.addView(bar, LinearLayout.LayoutParams(-1, -2))
 
         colWeb = WebView(this)
@@ -201,18 +248,71 @@ class MainActivity : Activity() {
     }
 
     // ---------- recogida de comentarios ----------
-    private fun startCollect(url: String) {
-        collecting = true; lastCount = -1; sameRounds = 0
-        colStatus.text = "Abriendo la publicación…"
+    private fun startCollect(url: String, live: Boolean = false) {
+        collecting = true; lastCount = -1; sameRounds = 0; noChatRounds = 0
+        liveMode = live; liveStarted = false
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)   // que la pantalla no se apague
+        if (live) {
+            colStatus.text = "🔴 Abriendo el directo…"
+            colHint.text = "Si te pide iniciar sesión, hazlo aquí. Cuando quieras empezar el sorteo, pulsa «Empezar a contar»: desde ese momento se apunta a todos los que comenten."
+            useBtn.text = "▶️ Empezar a contar"
+        } else {
+            colStatus.text = "Abriendo la publicación…"
+            colHint.text = "Si te pide iniciar sesión, hazlo aquí. La app baja sola por los comentarios. Cuando el número deje de subir, pulsa «Usar comentarios»."
+            useBtn.text = "✅ Usar comentarios"
+        }
         colBox.visibility = View.VISIBLE
         colWeb.loadUrl(url)
         ui.removeCallbacks(loop)
         ui.postDelayed(loop, 3500)
     }
 
+    private fun onMainButton() {
+        if (liveMode && !liveStarted) {
+            liveStarted = true
+            useBtn.text = "⏹️ Parar y sortear"
+            colStatus.text = "🔴 Contando… 👥 0 personas"
+            colHint.text = "Se apunta a cada persona que comenta. Deja esta pantalla abierta. Cuando quieras, pulsa «Parar y sortear»."
+            vibrate(longArrayOf(0, 80))
+            return
+        }
+        finishCollect(true)
+    }
+
+    private fun askCancel() {
+        if (liveMode && liveStarted) {
+            AlertDialog.Builder(this)
+                .setMessage("¿Salir sin sortear? Se perderán los comentarios apuntados del directo.")
+                .setPositiveButton("Salir") { _, _ -> finishCollect(false) }
+                .setNegativeButton("Seguir contando", null)
+                .show()
+        } else finishCollect(false)
+    }
+
+    private fun liveTick() {
+        colWeb.evaluateJavascript(liveJs) { txt ->
+            if (!collecting) return@evaluateJavascript
+            web.evaluateJavascript("onLive(${txt ?: "'{}'"},$liveStarted)") { r ->
+                val parts = (r ?: "").trim('"').split("|")
+                val people = parts.getOrNull(0)?.toIntOrNull() ?: 0
+                val msgs = parts.getOrNull(1)?.toIntOrNull() ?: 0
+                val seen = parts.getOrNull(2)?.toIntOrNull() ?: 0
+                if (seen == 0) noChatRounds++ else noChatRounds = 0
+                colStatus.text = when {
+                    !liveStarted && noChatRounds > 8 -> "🔴 No veo el chat. ¿Ha empezado el directo? ¿Hay que iniciar sesión?"
+                    !liveStarted && seen > 0 -> "🔴 Directo abierto: veo el chat ✅ Pulsa «Empezar a contar»"
+                    !liveStarted -> "🔴 Esperando el chat del directo…"
+                    noChatRounds > 8 -> "⚠️ Ya no veo el chat (¿ha terminado el directo?) · 👥 $people personas"
+                    else -> "🔴 Contando… 👥 $people personas · 💬 $msgs comentarios"
+                }
+            }
+        }
+    }
+
     private val loop: Runnable = object : Runnable {
         override fun run() {
             if (!collecting) return
+            if (liveMode) { liveTick(); ui.postDelayed(this, 1000); return }
             colWeb.evaluateJavascript(stepJs) { txt ->
                 if (!collecting) return@evaluateJavascript
                 // txt ya es un texto de JavaScript entre comillas: se lo pasamos tal cual a la app
@@ -235,9 +335,13 @@ class MainActivity : Activity() {
     private fun finishCollect(use: Boolean) {
         collecting = false
         ui.removeCallbacks(loop)
+        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        val wasLive = liveMode
         colBox.visibility = View.GONE
         colWeb.loadUrl("about:blank")
-        if (use) {
+        if (use && wasLive) {
+            web.evaluateJavascript("onLiveDone()", null)
+        } else if (use) {
             // Última lectura y se pasan a la app
             web.evaluateJavascript("onCollectDone()") { r ->
                 val n = r?.toDoubleOrNull()?.toInt() ?: 0
@@ -267,6 +371,9 @@ class MainActivity : Activity() {
     inner class Bridge {
         @JavascriptInterface
         fun collect(url: String) { ui.post { startCollect(url) } }
+
+        @JavascriptInterface
+        fun collectLive(url: String) { ui.post { startCollect(url, true) } }
 
         @JavascriptInterface
         fun vibrate(json: String) {
@@ -389,7 +496,7 @@ class MainActivity : Activity() {
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         if (colBox.visibility == View.VISIBLE) {
-            if (colWeb.canGoBack()) colWeb.goBack() else finishCollect(false)
+            if (!liveMode && colWeb.canGoBack()) colWeb.goBack() else askCancel()
             return
         }
         web.evaluateJavascript("onBack()") { r -> if (r == null || r.contains("exit")) finish() }
