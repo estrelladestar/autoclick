@@ -432,6 +432,27 @@ class MainActivity : Activity() {
         @JavascriptInterface
         fun lastDump(): String = LectorResult.lastDump
 
+        // ---------- cargar los comentarios de golpe (Apify) ----------
+        @JavascriptInterface
+        fun apifyOk(): Boolean = Apify.hasToken()
+
+        @JavascriptInterface
+        fun apifyFetch(url: String, max: Int) {
+            Thread {
+                try {
+                    val rows = Apify.fetch(url, max) { n -> ui.post { web.evaluateJavascript("onApifyProgress($n)", null) } }
+                    val q = JSONObject.quote(rows.toString())
+                    ui.post { web.evaluateJavascript("onApifyDone($q)", null) }
+                } catch (e: Exception) {
+                    val q = JSONObject.quote(e.message ?: "No se pudieron cargar los comentarios")
+                    ui.post { web.evaluateJavascript("onApifyError($q)", null) }
+                }
+            }.start()
+        }
+
+        @JavascriptInterface
+        fun apifyCancel() { Apify.cancelled = true }
+
         // ---------- planes y códigos ----------
         @JavascriptInterface
         fun plan(): String = Licencia.current(this@MainActivity).toString()

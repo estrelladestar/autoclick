@@ -18,7 +18,8 @@ jobs:
           gradle-version: 8.7
       - run: gradle assembleDebug
         env:
-          SORTEOS_CLAVE: ${{ secrets.SORTEOS_CLAVE }}  # clave de los códigos de Sorteos Star (Ajustes → Secrets → Actions)
+          SORTEOS_CLAVE: ${{ secrets.SORTEOS_CLAVE }}
+          APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}  # clave de Apify para cargar los comentarios de golpe  # clave de los códigos de Sorteos Star (Ajustes → Secrets → Actions)
       - uses: actions/upload-artifact@v4
         with:
           name: StarApp-apk

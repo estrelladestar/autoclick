@@ -254,7 +254,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:60}
   <div id="postBox">
   <div class="card">
     <h2>🔗 Enlace de la publicación</h2>
-    <p class="hint">Pega el enlace del post de Instagram o del vídeo de TikTok. Se abre en la app de Instagram/TikTok y Sorteos Star lee todos los comentarios.</p>
+    <p class="hint">Pega el enlace del post de Instagram o del vídeo de TikTok y pulsa el botón: se cargan todos los comentarios de golpe.</p>
     <input type="text" id="postUrl" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://www.instagram.com/p/...">
     <div class="btns"><button class="btn sec small" onclick="pasteLink()">📋 Pegar enlace</button><button class="btn ghost small" onclick="$('#postUrl').value='';cfg.postUrl='';saveCfg()">🧹 Borrar</button></div>
     <div class="btns"><button class="btn main" onclick="collect()">⚡ Recoger todos los comentarios</button></div>
@@ -385,6 +385,16 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:60}
       <button class="btn sec" onclick="copyText()">📝 Copiar texto para publicar</button>
       <button class="btn ghost" onclick="closeM('mCert')">Cerrar</button>
     </div>
+  </div>
+</div>
+
+<!-- Hoja: cargando comentarios de golpe -->
+<div class="modal" id="mLoad">
+  <div class="sheet" style="text-align:center">
+    <h3>⚡ Cargando comentarios…</h3>
+    <div style="font-size:46px;font-weight:900;color:var(--c);margin:10px 0" id="loadN">0</div>
+    <p class="hint" id="loadTxt">Se cargan todos de golpe. Suele tardar de unos segundos a 1–2 minutos según cuántos haya.</p>
+    <div class="btns" id="loadBtns"><button class="btn ghost" onclick="cancelLoad()">Cancelar</button></div>
   </div>
 </div>
 
@@ -631,8 +641,34 @@ function collect(){
   if(!(APP&&APP.collect)){$('#noAppBox').style.display='';alert('Recoger los comentarios solo funciona en la app Android «Sorteos Star» (SorteosStar-debug.apk). En el navegador hay que copiar los comentarios y pegarlos en el cuadro de abajo.');return}
   if(cfg.raw.trim()&&!confirm('Se cambiarán los comentarios que hay ahora por los de este enlace. ¿Seguir?'))return;
   resetSnaps();removed=new Set();
+  if(APP.apifyOk&&APP.apifyOk()){loadAll(url);return}
   APP.collect(url);
 }
+/* ⚡ Todos los comentarios de golpe (Apify). Se pide como mucho el límite del plan + 1,
+   así un sorteo más grande que el plan avisa sin gastar de más. */
+let loadUrl='';
+function loadAll(url){
+  loadUrl=url;const lim=planLimit();
+  $('#loadN').textContent='0';$('#loadTxt').textContent='Se cargan todos de golpe. Suele tardar de unos segundos a 1–2 minutos según cuántos haya.';
+  $('#loadBtns').innerHTML='<button class="btn ghost" onclick="cancelLoad()">Cancelar</button>';
+  $('#mLoad').classList.add('on');
+  APP.apifyFetch(url,lim===Infinity?50000:lim+1);
+}
+function onApifyProgress(n){$('#loadN').textContent=Number(n).toLocaleString('es-ES')}
+function onApifyDone(json){
+  let rows=[];try{rows=JSON.parse(json)}catch(e){}
+  $('#mLoad').classList.remove('on');
+  if(!rows.length){toast('No se encontraron comentarios en esa publicación');return}
+  resetSnaps();
+  rows.forEach(r=>{const u=String(r[0]||'').replace(/^@/,'').trim(),t=String(r[1]||'').replace(/\s+/g,' ').trim();if(u)collected.push({u,t,nick:false,k:u.toLowerCase()+'|'+t})});
+  onCollectDone();
+}
+function onApifyError(msg){
+  if(msg==='Cancelado'){$('#mLoad').classList.remove('on');return}
+  $('#loadTxt').textContent='❌ '+msg;
+  $('#loadBtns').innerHTML='<button class="btn main" onclick="$(\'#mLoad\').classList.remove(\'on\');APP.collect(loadUrl)">📱 Leer desde la app de Instagram/TikTok</button><button class="btn ghost" onclick="$(\'#mLoad\').classList.remove(\'on\')">Cerrar</button>';
+}
+function cancelLoad(){try{APP.apifyCancel()}catch(e){}$('#mLoad').classList.remove('on');toast('Cancelado')}
 /* Comentarios recogidos. Se guardan TODOS, también los repetidos:
    cada lectura se compara con la anterior y solo se apunta lo que es nuevo (lo que aparece al bajar). */
 let snapPrev=[], snapKeys=new Set();
