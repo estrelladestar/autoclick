@@ -21,6 +21,8 @@ class CommentActivity : Activity() {
     private val fixedName = "⭐ Mi guion (fijo)"
     private val defaultScript = """enlace
 esperar 8
+seguir
+esperar 1-3
 imagen 1 | 3-8
 escribir menciones 1
 esperar 3-8
@@ -33,6 +35,8 @@ imagen 3 | 3-8
 historias 3-5
 enlace
 esperar 8
+seguir
+esperar 1-3
 imagen 1 | 3-8
 escribir menciones 1
 esperar 3-8
@@ -64,6 +68,8 @@ repetir 1000"""
     private val quickName = "⭐ Mi guion veloz (fijo)"
     private val quickScript = """enlace
 esperar 5
+seguir
+esperar 1-3
 imagen 1 | 1-3
 escribir menciones 1
 esperar 1-3
@@ -75,6 +81,8 @@ esperar 1-3
 imagen 3 | 1-3
 enlace
 esperar 5
+seguir
+esperar 1-3
 imagen 1 | 1-3
 escribir menciones 1
 esperar 1-3
@@ -99,6 +107,8 @@ repetir 1000"""
     private val previousScript = """cuentas cory_gm0 nuberosa56 del_mar190 amimanera6 mama.dedylan morenina.iscar comoyoquiero1 mimi88red
 enlace
 esperar 8
+seguir
+esperar 1-3
 imagen 1 | 3-8
 escribir menciones 2
 esperar 3-8
