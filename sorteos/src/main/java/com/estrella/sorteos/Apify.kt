@@ -8,7 +8,7 @@ import java.net.URLEncoder
 
 /**
  * Carga TODOS los comentarios de una publicación de golpe con Apify (sin abrir Instagram/TikTok).
- * Instagram: robot «apify/instagram-comment-scraper»; TikTok: «clockworks/tiktok-comments-scraper».
+ * Instagram: robots fetch_cat, easyapi y el oficial de Apify (se usa el que más traiga); TikTok: «clockworks/tiktok-comments-scraper».
  * La clave sale del secreto APIFY_TOKEN de GitHub (no está en el código).
  */
 object Apify {
@@ -46,15 +46,44 @@ object Apify {
 
     /**
      * Pide los comentarios. Llamar en un hilo aparte (tarda de segundos a algunos minutos).
-     * progress(n) se llama con los comentarios cargados hasta ahora.
+     * Instagram: se prueban varios robots en orden y se queda el que más comentarios traiga
+     * (algunos solo devuelven unos pocos sin sesión). progress(n) = comentarios cargados.
      * Devuelve [[usuario, comentario], ...].
      */
     fun fetch(postUrl: String, max: Int, progress: (Int) -> Unit): JSONArray {
         cancelled = false
-        val tt = postUrl.contains("tiktok", true)
-        val actor = if (tt) "clockworks~tiktok-comments-scraper" else "apify~instagram-comment-scraper"
-        val input = if (tt) JSONObject().put("postURLs", JSONArray().put(postUrl)).put("commentsPerPost", max).put("maxRepliesPerComment", 0)
-                    else JSONObject().put("directUrls", JSONArray().put(postUrl)).put("resultsLimit", max)
+        if (postUrl.contains("tiktok", true)) {
+            return runActor("clockworks~tiktok-comments-scraper",
+                JSONObject().put("postURLs", JSONArray().put(postUrl)).put("commentsPerPost", max).put("maxRepliesPerComment", 0), progress)
+        }
+        val robots = listOf(
+            "fetch_cat~instagram-comments-scraper" to JSONObject()
+                .put("startUrls", JSONArray().put(JSONObject().put("url", postUrl)))
+                .put("maxItems", max).put("maxLoadMoreAttempts", 5000),
+            "easyapi~instagram-comments-scraper" to JSONObject()
+                .put("postUrls", JSONArray().put(postUrl)).put("maxItems", max),
+            "apify~instagram-comment-scraper" to JSONObject()
+                .put("directUrls", JSONArray().put(postUrl)).put("resultsLimit", max)
+        )
+        var best = JSONArray()
+        var lastError: Exception? = null
+        for ((actor, input) in robots) {
+            if (cancelled) throw Exception("Cancelado")
+            try {
+                val r = runActor(actor, input) { n -> progress(maxOf(n, best.length())) }
+                if (r.length() > best.length()) best = r
+                // Si ya trae casi todo lo pedido, o hay muchos, no hace falta probar otro robot
+                if (best.length() >= max - 1 || best.length() >= 100) break
+            } catch (e: Exception) {
+                if (e.message == "Cancelado") throw e
+                lastError = e
+            }
+        }
+        if (best.length() == 0 && lastError != null) throw lastError
+        return best
+    }
+
+    private fun runActor(actor: String, input: JSONObject, progress: (Int) -> Unit): JSONArray {
         val run = http("POST", "$API/acts/$actor/runs?${tk()}", input.toString())!!.getJSONObject("data")
         val id = run.getString("id"); runId = id
         val dataset = run.getString("defaultDatasetId")
@@ -72,17 +101,18 @@ object Apify {
         }
         runId = null
 
-        // Descargar los comentarios, de 1.000 en 1.000
+        // Descargar los comentarios, de 1.000 en 1.000 (sirve para los distintos robots)
         val out = JSONArray()
         var offset = 0
         while (true) {
             val arr = http("GET", "$API/datasets/$dataset/items?${tk()}&clean=true&format=json&offset=$offset&limit=1000")!!.getJSONArray("array")
             for (i in 0 until arr.length()) {
                 val o = arr.optJSONObject(i) ?: continue
-                val u = firstOf(o, "ownerUsername", "uniqueId", "username") ?: o.optJSONObject("owner")?.optString("username")
-                    ?: o.optJSONObject("user")?.optString("uniqueId") ?: continue
-                val t = firstOf(o, "text", "comment") ?: ""
-                if (u.isBlank()) continue
+                if (o.has("error") && !o.has("text") && !o.has("message")) continue
+                val u = firstOf(o, "ownerUsername", "uniqueId", "username", "authorUsername")
+                    ?: o.optJSONObject("owner")?.optString("username")?.takeIf { it.isNotBlank() }
+                    ?: o.optJSONObject("user")?.let { firstOf(it, "username", "uniqueId") } ?: continue
+                val t = firstOf(o, "text", "message", "comment") ?: ""
                 out.put(JSONArray().put(u).put(t))
             }
             if (arr.length() < 1000) break
