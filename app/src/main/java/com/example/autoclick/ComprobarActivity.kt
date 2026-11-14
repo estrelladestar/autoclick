@@ -31,6 +31,7 @@ class ComprobarActivity : Activity() {
     private lateinit var results: LinearLayout
     private lateinit var goBtn: Button
     @Volatile private var running = false
+    @Volatile private var loaded = 0
 
     private val defaultAccounts = "cory_gm0 nuberosa56 del_mar190 amimanera6 mama.dedylan morenina.iscar comoyoquiero1 mimi88red"
 
@@ -135,13 +136,25 @@ class ComprobarActivity : Activity() {
         running = true
         goBtn.text = "■ Parar"
         results.removeAllViews()
-        status.text = "Cargando comentarios… (puede tardar unos minutos)"
+        val t0 = System.currentTimeMillis()
+        loaded = 0
+        val tick = object : Runnable {
+            override fun run() {
+                if (!running) return
+                val sec = (System.currentTimeMillis() - t0) / 1000
+                status.text = "⏳ Apify está trabajando… ${sec / 60} min ${sec % 60} s  ·  $loaded cargados\n" +
+                    "Es normal que ponga 0 un rato: Apify abre la publicación y los comentarios suelen llegar casi al final. " +
+                    "Suele tardar de 1 a 5 minutos. No cierres esta pantalla."
+                main.postDelayed(this, 1000)
+            }
+        }
+        main.post(tick)
         Thread {
             try {
-                val all = Apify.fetch(link, max) { n -> main.post { status.text = "Cargando comentarios… $n cargados" } }
-                main.post { showResult(link, accounts, all, max) }
+                val all = Apify.fetch(link, max) { n -> loaded = n }
+                main.post { running = false; showResult(link, accounts, all, max) }
             } catch (e: Exception) {
-                main.post { status.text = if (e.message == "Cancelado") "Parado." else "❌ ${e.message}" }
+                main.post { running = false; status.text = if (e.message == "Cancelado") "Parado." else "❌ ${e.message}" }
             } finally {
                 main.post { running = false; goBtn.text = "▶ Comprobar ahora" }
             }
@@ -161,7 +174,7 @@ class ComprobarActivity : Activity() {
         accounts.forEach { count[it] = 0; texts[it] = mutableListOf() }
         for (i in 0 until all.length()) {
             val row = all.optJSONArray(i) ?: continue
-            val u = row.optString(0).lowercase().removePrefix("@")
+            val u = row.optString(0).trim().lowercase().removePrefix("@")
             if (count.containsKey(u)) {
                 count[u] = count[u]!! + 1
                 texts[u]!!.add(row.optString(1))
