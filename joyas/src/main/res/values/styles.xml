@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="JoyasTheme" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:colorPrimary">#5B2BB5</item>
+        <item name="android:colorAccent">#FFD23F</item>
+        <item name="android:statusBarColor">#4A2398</item>
+        <item name="android:navigationBarColor">#170736</item>
+        <item name="android:windowBackground">@drawable/joyas_bg</item>
+    </style>
+</resources>

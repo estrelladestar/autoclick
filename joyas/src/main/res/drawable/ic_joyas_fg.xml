@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Estrella dorada de Star Joyas, con un corazón y una gota, dentro de la zona segura -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#40000000" android:pathData="M54.00,31.00 L61.94,47.08 L79.68,49.66 L66.84,62.17 L69.87,79.84 L54.00,71.50 L38.13,79.84 L41.16,62.17 L28.32,49.66 L46.06,47.08 Z"/>
+    <path android:fillColor="#FFD60A" android:strokeColor="#B38600" android:strokeWidth="2.2" android:strokeLineJoin="round" android:pathData="M54.00,28.00 L61.94,44.08 L79.68,46.66 L66.84,59.17 L69.87,76.84 L54.00,68.50 L38.13,76.84 L41.16,59.17 L28.32,46.66 L46.06,44.08 Z"/>
+    <path android:fillColor="#FFFBD0" android:fillAlpha="0.75" android:pathData="M44,46 Q50,38 56,40 Q50,44 46,50 Z"/>
+    <path android:fillColor="#FF4D6D" android:strokeColor="#A8102F" android:strokeWidth="1.4" android:pathData="M34,79 C27,74 28,67 34,70 C40,67 41,74 34,79 Z"/>
+    <path android:fillColor="#3A86FF" android:strokeColor="#123FA8" android:strokeWidth="1.4" android:pathData="M76,66 Q81,72 80,75 A4,4 0 1,1 72,75 Q71,72 76,66 Z"/>
+</vector>
