@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Sorteos Star</title>
+<meta name="theme-color" content="#7B2FF7">
+<style>
+:root{
+  --c:#7B2FF7;          /* color de la tienda (se cambia) */
+  --c2:#F72585;
+  --ink:#1E1B3A; --soft:#6B6790; --line:#E6E2F5; --bg:#F6F3FF; --card:#fff;
+  --ok:#14A86B; --bad:#E5484D; --warn:#F5A524;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px}
+body{padding-bottom:84px}
+header{background:linear-gradient(135deg,var(--c),var(--c2));color:#fff;padding:18px 16px 22px;border-radius:0 0 26px 26px;box-shadow:0 6px 20px rgba(80,30,160,.25)}
+.hrow{display:flex;align-items:center;gap:12px}
+.logo{width:52px;height:52px;border-radius:50%;background:#fff3;display:flex;align-items:center;justify-content:center;font-size:26px;overflow:hidden;flex:none;border:2px solid #fff8}
+.logo img{width:100%;height:100%;object-fit:cover}
+header h1{margin:0;font-size:21px;line-height:1.1}
+header small{opacity:.9;font-size:13px}
+main{padding:14px;max-width:720px;margin:0 auto}
+.card{background:var(--card);border-radius:20px;padding:16px;margin-bottom:14px;box-shadow:0 2px 10px rgba(60,40,140,.07);border:1px solid var(--line)}
+.card h2{margin:0 0 4px;font-size:18px;display:flex;align-items:center;gap:8px}
+.card p.hint{margin:0 0 12px;color:var(--soft);font-size:14px;line-height:1.4}
+label{display:block;font-size:14px;font-weight:600;margin:12px 0 5px}
+input[type=text],input[type=number],input[type=url],textarea,select{width:100%;padding:12px 13px;border:1.5px solid var(--line);border-radius:13px;font-size:16px;font-family:inherit;background:#FCFBFF;color:var(--ink)}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--c)}
+textarea{min-height:170px;resize:vertical;font-size:14px;line-height:1.4}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.btn{border:0;border-radius:14px;padding:13px 16px;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.btn.main{background:linear-gradient(135deg,var(--c),var(--c2));color:#fff;width:100%;box-shadow:0 5px 16px rgba(123,47,247,.3)}
+.btn.sec{background:#EFEAFE;color:var(--c)}
+.btn.ghost{background:transparent;color:var(--soft);border:1.5px solid var(--line)}
+.btn.small{padding:8px 12px;font-size:14px;border-radius:11px}
+.btn.big{font-size:20px;padding:18px}
+.btn:active{transform:scale(.97)}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.btns .btn{flex:1}
+.seg{display:flex;background:#EFEAFE;border-radius:14px;padding:4px;gap:4px}
+.seg button{flex:1;border:0;background:transparent;padding:10px 6px;border-radius:11px;font-weight:700;font-size:14px;color:var(--soft);font-family:inherit}
+.seg button.on{background:#fff;color:var(--c);box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.tog{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px dashed var(--line)}
+.tog:last-child{border-bottom:0}
+.tog span{font-size:15px}.tog small{display:block;color:var(--soft);font-size:12.5px}
+.sw{position:relative;width:50px;height:30px;flex:none}
+.sw input{opacity:0;width:0;height:0}
+.sw i{position:absolute;inset:0;background:#D9D4EC;border-radius:30px;transition:.2s}
+.sw i:before{content:"";position:absolute;width:24px;height:24px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px #0003}
+.sw input:checked+i{background:var(--c)}
+.sw input:checked+i:before{transform:translateX(20px)}
+.stepper{display:flex;align-items:center;gap:8px}
+.stepper button{width:38px;height:38px;border-radius:12px;border:0;background:#EFEAFE;color:var(--c);font-size:22px;font-weight:800}
+.stepper b{min-width:26px;text-align:center;font-size:18px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.stat{background:#F7F5FF;border-radius:14px;padding:10px;text-align:center}
+.stat b{display:block;font-size:22px}.stat span{font-size:12px;color:var(--soft)}
+.stat.ok b{color:var(--ok)}.stat.bad b{color:var(--bad)}
+.list{max-height:330px;overflow:auto;border:1px solid var(--line);border-radius:14px}
+.it{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;border-bottom:1px solid var(--line);font-size:14px}
+.it:last-child{border-bottom:0}
+.it .u{font-weight:700}
+.it .t{color:var(--soft);font-size:13px;word-break:break-word}
+.it .why{color:var(--bad);font-size:12px;font-weight:600}
+.it .x{margin-left:auto;border:0;background:#FDECEC;color:var(--bad);border-radius:9px;width:30px;height:30px;font-size:15px;flex:none}
+.it .n{margin-left:auto;background:#E8F8F0;color:var(--ok);border-radius:9px;padding:3px 8px;font-weight:700;font-size:12px;flex:none}
+.pill{display:inline-block;padding:3px 9px;border-radius:20px;background:#EFEAFE;color:var(--c);font-size:12px;font-weight:700;margin:2px}
+.empty{padding:22px;text-align:center;color:var(--soft);font-size:14px}
+nav{position:fixed;left:0;right:0;bottom:0;background:#fff;display:flex;border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom));z-index:20;box-shadow:0 -4px 16px rgba(60,40,140,.08)}
+nav button{flex:1;border:0;background:transparent;font-family:inherit;font-size:11px;font-weight:700;color:var(--soft);display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 0;border-radius:12px}
+nav button em{font-style:normal;font-size:22px;filter:grayscale(1);opacity:.6}
+nav button.on{color:var(--c);background:#F3EEFF}
+nav button.on em{filter:none;opacity:1}
+.page{display:none}.page.on{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+.colors{display:flex;gap:9px;flex-wrap:wrap}
+.colors button{width:38px;height:38px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1.5px var(--line)}
+.colors button.on{box-shadow:0 0 0 3px var(--ink)}
+.shops{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 8px}
+.shop{flex:none;width:86px;text-align:center;font-size:12px;font-weight:600;border:0;background:transparent;font-family:inherit;color:var(--ink)}
+.shop .logo{width:62px;height:62px;margin:0 auto 5px;border:3px solid transparent;color:#fff}
+.shop.on .logo{border-color:var(--c)}
+.net{font-weight:800}
+.ig{background:linear-gradient(45deg,#F58529,#DD2A7B,#8134AF);-webkit-background-clip:text;background-clip:text;color:transparent}
+.tt{color:#111;text-shadow:1.5px 1px 0 #25F4EE,-1.5px -1px 0 #FE2C55}
+.winner{display:flex;align-items:center;gap:12px;padding:12px;border-radius:16px;background:linear-gradient(135deg,#FFF6D6,#FFE7F1);margin-bottom:8px}
+.winner .medal{font-size:30px}
+.winner b{font-size:18px;word-break:break-all}
+.winner small{display:block;color:var(--soft);font-size:12.5px}
+.alt{background:#F4F2FB}
+.code{font-family:ui-monospace,Menlo,monospace;background:#F4F2FB;padding:3px 8px;border-radius:8px;font-weight:700;letter-spacing:1px}
+/* Pantalla del sorteo en directo */
+#live{position:fixed;inset:0;z-index:50;display:none;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:24px;background:radial-gradient(circle at 50% 30%,var(--c2),var(--c) 60%,#1a0b3d)}
+#live.on{display:flex}
+#live .lg{width:96px;height:96px;font-size:44px;margin-bottom:10px}
+#live h3{margin:0;font-size:20px;opacity:.95}
+#live .prize{font-size:17px;opacity:.85;margin:6px 0 22px}
+#liveDemo{display:none;background:#E5484D;color:#fff;font-weight:900;font-size:15px;letter-spacing:.5px;border-radius:12px;padding:8px 14px;margin:0 0 14px;box-shadow:0 4px 14px #0004}
+.demoBar{height:10px;border-radius:6px;background:#EFEAFE;margin-top:4px}.demoBar div{height:10px;border-radius:6px}
+#reel{font-size:34px;font-weight:900;min-height:56px;word-break:break-all;letter-spacing:.5px;text-shadow:0 3px 12px #0005}
+#reel.final{animation:pop .5s}
+@keyframes pop{0%{transform:scale(.5)}70%{transform:scale(1.25)}100%{transform:scale(1)}}
+#count{font-size:120px;font-weight:900;line-height:1;text-shadow:0 6px 24px #0006}
+#liveMsg{margin-top:14px;font-size:16px;opacity:.9;min-height:22px}
+#liveWins{margin-top:14px;max-width:420px;width:100%}
+#liveWins div{background:#fff2;border-radius:14px;padding:9px;margin:6px 0;font-weight:800;font-size:18px;animation:pop .4s}
+#liveWins div.s{font-size:14px;font-weight:600;opacity:.85}
+#liveClose{position:absolute;top:calc(14px + env(safe-area-inset-top));right:14px;background:#fff3;color:#fff;border:0;border-radius:50%;width:44px;height:44px;font-size:22px}
+#liveDone{margin-top:18px;display:none}
+canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:60}
+#toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:14px;font-size:14px;opacity:0;transition:.25s;z-index:70;max-width:90%;text-align:center;pointer-events:none}
+#toast.on{opacity:1;transform:translateX(-50%)}
+.modal{position:fixed;inset:0;background:#0007;z-index:40;display:none;align-items:flex-end;justify-content:center}
+.modal.on{display:flex}
+.sheet{background:#fff;width:100%;max-width:720px;max-height:88vh;overflow:auto;border-radius:24px 24px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
+.sheet h3{margin:0 0 10px}
+.help li{margin-bottom:9px;font-size:14.5px;line-height:1.45}
+#planCard .pname{font-size:22px;font-weight:900}
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.plan{border:2px solid var(--line);border-radius:16px;padding:11px;background:#fff;text-align:left;font-family:inherit;color:var(--ink)}
+.plan.on{border-color:var(--c);background:#F7F3FF}
+.plan b{display:block;font-size:16px}.plan .pr{font-size:20px;font-weight:900;color:var(--c)}.plan small{color:var(--soft);font-size:12px;display:block}
+.plan.free{opacity:.75}
+.big-code{font-family:ui-monospace,Menlo,monospace;font-size:22px;font-weight:800;letter-spacing:2px;text-align:center;background:#F4F2FB;border-radius:14px;padding:12px;margin:8px 0;user-select:all}
+#certImg{width:100%;border-radius:16px;box-shadow:0 4px 16px #0002;margin:6px 0 4px}
+.warnbox{background:#FFF7E6;border:1px solid #FFE1A6;color:#8A5A00;border-radius:12px;padding:10px 12px;font-size:13.5px;margin-top:10px;line-height:1.4}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hrow">
+    <div class="logo" id="hLogo">🎁</div>
+    <div style="flex:1;min-width:0">
+      <h1 id="hName">Sorteos Star</h1>
+      <small id="hSub">Sorteos de Instagram y TikTok para tiendas</small>
+    </div>
+    <button class="btn small" style="background:#fff3;color:#fff" onclick="openHelp()">❓</button>
+  </div>
+</header>
+
+<main>
+
+<!-- 1 · TIENDA -->
+<section class="page on" id="p-tienda">
+  <div class="card">
+    <h2>🏪 Tiendas</h2>
+    <p class="hint">Elige la tienda que hace el sorteo o crea una nueva. Cada tienda guarda su logo y su color.</p>
+    <div class="shops" id="shops"></div>
+  </div>
+  <div class="card">
+    <h2 id="shopTitle">✏️ Datos de la tienda</h2>
+    <label>Nombre de la tienda</label>
+    <input type="text" id="sName" placeholder="Ej.: Moda Luna" maxlength="40">
+    <label>Cuenta de la tienda (para no contarla como participante)</label>
+    <input type="text" id="sHandle" placeholder="@modaluna" maxlength="40">
+    <label>Logo</label>
+    <div class="row" style="align-items:center">
+      <div class="logo" id="sLogoPrev" style="width:64px;height:64px;flex:none;background:var(--c);color:#fff">🏪</div>
+      <div>
+        <button class="btn sec small" onclick="$('#logoFile').click()">📷 Elegir imagen</button>
+        <button class="btn ghost small" onclick="clearLogo()">Quitar</button>
+      </div>
+    </div>
+    <input type="file" id="logoFile" accept="image/*" hidden>
+    <label>Color</label>
+    <div class="colors" id="colors"></div>
+    <div class="btns">
+      <button class="btn main" onclick="saveShop()">💾 Guardar tienda</button>
+    </div>
+    <div class="btns">
+      <button class="btn ghost small" onclick="newShop()">➕ Nueva tienda</button>
+      <button class="btn ghost small" id="delShopBtn" onclick="delShop()">🗑️ Borrar esta tienda</button>
+    </div>
+  </div>
+  <div class="card" id="planCard">
+    <h2>⭐ Tu plan</h2>
+    <div id="planBox"></div>
+    <div class="btns" id="planBtns"><button class="btn sec small" onclick="openPlans()">💎 Ver planes</button><button class="btn sec small" onclick="openPlans(true)">🔑 Tengo un código</button></div>
+  </div>
+  <button class="btn main big" onclick="go('sorteo')">Siguiente: el sorteo →</button>
+</section>
+
+<!-- 2 · SORTEO Y REGLAS -->
+<section class="page" id="p-sorteo">
+  <div class="card">
+    <h2>🎁 El sorteo</h2>
+    <label>Red social</label>
+    <div class="seg" id="netSeg">
+      <button data-v="ig" class="on"><span class="net ig">Instagram</span></button>
+      <button data-v="tt"><span class="net tt">TikTok</span></button>
+    </div>
+    <label>Premio</label>
+    <input type="text" id="prize" placeholder="Ej.: Lote de cosmética valorado en 50 €" maxlength="80">
+    <label>Termina el (para las bases)</label>
+    <input type="datetime-local" id="endAt">
+    <label>Envío del premio</label>
+    <select id="scope">
+      <option value="es">Solo España</option>
+      <option value="pen">España peninsular</option>
+      <option value="eu">Unión Europea</option>
+      <option value="all">Todo el mundo</option>
+      <option value="shop">Recogida en tienda</option>
+    </select>
+    <div class="btns"><button class="btn sec" onclick="openBases()">📜 Crear las bases del sorteo</button></div>
+  </div>
+
+  <div class="card">
+    <h2>📋 Reglas</h2>
+    <p class="hint">La app comprueba cada comentario con estas reglas. Quien no las cumple no entra.</p>
+    <div class="tog"><div><span>Ganadores</span><small>De 1 a 10</small></div>
+      <div class="stepper"><button onclick="step('winners',-1)">−</button><b id="v-winners">1</b><button onclick="step('winners',1)">+</button></div></div>
+    <div class="tog"><div><span>Suplentes</span><small>Por si un ganador no contesta</small></div>
+      <div class="stepper"><button onclick="step('alts',-1)">−</button><b id="v-alts">2</b><button onclick="step('alts',1)">+</button></div></div>
+    <div class="tog"><div><span>Menciones mínimas</span><small>Amigos @ etiquetados en cada comentario</small></div>
+      <div class="stepper"><button onclick="step('minMent',-1)">−</button><b id="v-minMent">1</b><button onclick="step('minMent',1)">+</button></div></div>
+    <div class="tog"><div><span>Más comentarios = más papeletas</span><small>Si está apagado, cada persona cuenta una vez</small></div>
+      <label class="sw"><input type="checkbox" id="multi"><i></i></label></div>
+    <div class="tog" id="maxRow"><div><span>Máximo de papeletas por persona</span><small>Sube hasta ∞ para que cuenten todos los comentarios</small></div>
+      <div class="stepper"><button onclick="step('maxTk',-1)">−</button><b id="v-maxTk">5</b><button onclick="step('maxTk',1)">+</button></div></div>
+    <div class="tog"><div><span>Menciones distintas</span><small>Repetir al mismo amigo no cuenta (en ese comentario ni en otros)</small></div>
+      <label class="sw"><input type="checkbox" id="uniqMent" checked><i></i></label></div>
+    <div class="tog"><div><span>Mencionar a cuentas reales</span><small>No vale mencionar a la tienda ni a sí mismo</small></div>
+      <label class="sw"><input type="checkbox" id="noSelf" checked><i></i></label></div>
+    <div class="tog"><div><span>Excluir a quien ganó hace poco</span><small>No entran los ganadores de tus sorteos de los últimos <b id="v-prevDays2">30</b> días</small></div>
+      <label class="sw"><input type="checkbox" id="noPrevWin"><i></i></label></div>
+    <div class="tog" id="prevRow"><div><span>Días</span></div>
+      <div class="stepper"><button onclick="step('prevDays',-15)">−</button><b id="v-prevDays">30</b><button onclick="step('prevDays',15)">+</button></div></div>
+    <label>Palabra o #hashtag obligatorio (opcional)</label>
+    <input type="text" id="needWord" placeholder="Ej.: #SorteoLuna">
+    <label>Cuentas excluidas (empleados, familia…) — una por línea</label>
+    <textarea id="excluded" style="min-height:80px" placeholder="@trabajadora1&#10;@primo_juan"></textarea>
+  </div>
+
+  <div class="card">
+    <h2>🎟️ Papeletas extra</h2>
+    <p class="hint">Da más papeletas a una lista de cuentas (por ejemplo, clientas que han comprado). <b>Siempre se publica</b>: sale en las bases, en el certificado y en el texto del resultado. El ganador sigue saliendo al azar.</p>
+    <label>Cuentas — una por línea</label>
+    <textarea id="extraList" style="min-height:80px" placeholder="@clienta1&#10;@clienta2"></textarea>
+    <div class="tog"><div><span>Papeletas extra por cuenta</span><small>Se suman a las suyas si tiene al menos un comentario válido</small></div>
+      <div class="stepper"><button onclick="step('extraN',-1)">−</button><b id="v-extraN">2</b><button onclick="step('extraN',1)">+</button></div></div>
+    <label>Motivo (se publica)</label>
+    <input type="text" id="extraWhy" placeholder="Ej.: por haber comprado en la tienda este mes" maxlength="80">
+  </div>
+  <button class="btn main big" onclick="go('part')">Siguiente: participantes →</button>
+</section>
+
+<!-- 3 · PARTICIPANTES -->
+<section class="page" id="p-part">
+  <div class="seg" id="srcSeg" style="margin-bottom:14px;background:#fff;border:1px solid var(--line)">
+    <button data-v="post" class="on">🔗 Publicación</button>
+    <button data-v="live">🔴 Directo</button>
+  </div>
+  <div id="liveBox" style="display:none">
+  <div class="card">
+    <h2>🔴 Sorteo en directo</h2>
+    <p class="hint">La app abre el directo en la app de TikTok/Instagram y apunta a todos los que comentan desde que pulsas «Empezar». Cuando pulses «Parar y sortear», se sortea entre ellos.</p>
+    <label>Red social</label>
+    <div class="seg" id="liveNetSeg">
+      <button data-v="tt"><span class="net tt">TikTok</span></button>
+      <button data-v="ig"><span class="net ig">Instagram</span></button>
+    </div>
+    <label>Cuenta que está en directo (o el enlace del directo)</label>
+    <input type="text" id="liveUrl" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="@modaluna">
+    <label>Quién entra en el sorteo</label>
+    <div class="seg" id="liveWhoSeg">
+      <button data-v="all">Todo el que comente</button>
+      <button data-v="word">Solo quien escriba…</button>
+    </div>
+    <input type="text" id="liveWord" placeholder="La palabra, ej.: QUIERO" style="margin-top:8px">
+    <label>Papeletas</label>
+    <div class="seg" id="liveTkSeg">
+      <button data-v="one">1 por persona</button>
+      <button data-v="all">1 por cada comentario</button>
+    </div>
+    <div class="btns"><button class="btn main" onclick="liveOpen()">🔴 Abrir el directo</button></div>
+    <div class="warnbox">ℹ️ Solo cuentan los comentarios escritos <b>desde que pulsas «Empezar»</b>. Deja la app abierta en el directo todo el rato. <span id="liveTkTxt"></span> En TikTok algunos pueden salir con su apodo en vez de @usuario.</div>
+  </div>
+  </div>
+  <div id="postBox">
+  <div class="card">
+    <h2>🔗 Enlace de la publicación</h2>
+    <p class="hint">Pega el enlace del post de Instagram o del vídeo de TikTok y pulsa el botón: se cargan todos los comentarios de golpe.</p>
+    <input type="text" id="postUrl" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://www.instagram.com/p/...">
+    <div id="extraLinks"></div>
+    <div class="btns"><button class="btn ghost small" onclick="addLink()">➕ Añadir otra publicación (mismo sorteo)</button></div>
+    <div class="btns"><button class="btn sec small" onclick="pasteLink()">📋 Pegar enlace</button><button class="btn ghost small" onclick="$('#postUrl').value='';cfg.postUrl='';saveCfg()">🧹 Borrar</button></div>
+    <div class="btns"><button class="btn main" onclick="collect()">⚡ Recoger todos los comentarios</button></div>
+    <p class="hint" id="loadMode" style="margin:8px 0 0;text-align:center"></p>
+    <div class="warnbox" id="noAppBox" style="display:none">ℹ️ Recoger comentarios solo funciona en la app Android. En el navegador, cópialos y pégalos abajo.</div>
+  </div>
+  <div class="card">
+    <h2>👥 Comentarios</h2>
+    <p class="hint">Aquí aparecen los comentarios recogidos. También puedes pegarlos tú. <a href="#" onclick="openHelp();return false">¿Cómo los copio?</a></p>
+    <label>Cómo están escritos</label>
+    <select id="mode">
+      <option value="auto">Comentarios copiados de Instagram / TikTok (automático)</option>
+      <option value="line">Una línea por comentario: usuario y comentario</option>
+      <option value="names">Solo nombres (una persona por línea)</option>
+    </select>
+    <label>Comentarios</label>
+    <textarea id="raw" placeholder="Pega aquí los comentarios…"></textarea>
+    <div class="btns">
+      <button class="btn sec small" onclick="pasteClip()">📋 Pegar</button>
+      <button class="btn sec small" onclick="$('#txtFile').click()">📄 Abrir archivo</button>
+      <button class="btn ghost small" onclick="clearRaw()">🧹 Vaciar</button>
+    </div>
+    <input type="file" id="txtFile" accept=".txt,.csv,text/plain,text/csv" hidden>
+    <div class="btns"><button class="btn main" onclick="cfg.src='post';analyze(true)">🔍 Comprobar comentarios</button></div>
+  </div>
+  </div>
+
+  <div class="card" id="resCard" style="display:none">
+    <h2>✅ Resultado de la comprobación</h2>
+    <div class="stats">
+      <div class="stat"><b id="stC">0</b><span>comentarios</span></div>
+      <div class="stat ok"><b id="stP">0</b><span>participantes válidos</span></div>
+      <div class="stat bad"><b id="stB">0</b><span>no válidos</span></div>
+    </div>
+    <div class="seg" id="listSeg">
+      <button data-v="ok" class="on">Válidos</button>
+      <button data-v="bad">No válidos</button>
+      <button data-v="all">Todos</button>
+    </div>
+    <input type="text" id="search" placeholder="🔎 Buscar usuario…" style="margin:10px 0">
+    <div class="list" id="list"></div>
+    <p class="hint" style="margin-top:8px">Toca ✕ para quitar un comentario que se haya leído mal.</p>
+    <div class="btns"><button class="btn sec small" onclick="openStats()">📊 Estadísticas</button><button class="btn sec small" onclick="exportList()">📤 Exportar lista</button></div>
+    <div id="statsBox"></div>
+    <button class="btn ghost small" id="dumpBtn" style="display:none;width:100%" onclick="copyDump()">🔧 Copiar lo que ha leído la app (si algo sale mal, mándamelo)</button>
+  </div>
+  <button class="btn main big" onclick="go('sortear')">Siguiente: ¡sortear! →</button>
+</section>
+
+<!-- 4 · SORTEAR -->
+<section class="page" id="p-sortear">
+  <div class="card">
+    <h2>🎉 Sortear</h2>
+    <div id="sumBox"></div>
+    <div class="btns"><button class="btn main big" onclick="startDraw()">🎲 ¡Hacer el sorteo!</button></div>
+    <p class="hint" style="margin-top:10px">Se abre la pantalla del sorteo con cuenta atrás y ruleta de nombres: puedes grabarla para enseñarla en tu perfil.</p>
+  </div>
+  <div class="card">
+    <h2>🎓 Modo demostración</h2>
+    <p class="hint">Para clase: con los comentarios reales que hayas cargado, da a una cuenta las papeletas que quieras y compara un sorteo trucado con uno justo. Todo sale marcado como <b>DEMOSTRACIÓN · NO VÁLIDO</b> y no se guarda en el historial.</p>
+    <button class="btn sec" style="width:100%" onclick="openDemo()">🎓 Abrir la demostración</button>
+  </div>
+  <div class="card" id="lastCard" style="display:none">
+    <h2>🏆 Resultado</h2>
+    <div id="lastBox"></div>
+  </div>
+</section>
+
+<!-- 5 · HISTORIAL -->
+<section class="page" id="p-hist">
+  <div class="card">
+    <h2>🗂️ Sorteos hechos</h2>
+    <p class="hint">Aquí se guardan todos los sorteos, con su código de comprobación.</p>
+    <div id="histList"></div>
+  </div>
+</section>
+
+</main>
+
+<nav id="nav">
+  <button data-p="tienda" class="on"><em>🏪</em>Tienda</button>
+  <button data-p="sorteo"><em>🎁</em>Sorteo</button>
+  <button data-p="part"><em>👥</em>Participantes</button>
+  <button data-p="sortear"><em>🎲</em>Sortear</button>
+  <button data-p="hist"><em>🗂️</em>Historial</button>
+</nav>
+
+<!-- Pantalla del sorteo en directo -->
+<div id="live">
+  <button id="liveClose" onclick="closeLive()">✕</button>
+  <div class="logo lg" id="liveLogo">🎁</div>
+  <h3 id="liveShop">Sorteo</h3>
+  <div class="prize" id="livePrize"></div>
+  <div id="liveDemo"></div>
+  <div id="count"></div>
+  <div id="reel"></div>
+  <div id="liveMsg"></div>
+  <div id="liveWins"></div>
+  <div id="liveDone"><button class="btn big" style="background:#fff;color:var(--c)" onclick="closeLive();showResultSheet(liveDraw||lastDraw)">Ver certificado 🏆</button></div>
+</div>
+<canvas id="fx"></canvas>
+
+<!-- Hoja: ayuda -->
+<div class="modal" id="mHelp" onclick="if(event.target===this)closeM('mHelp')">
+  <div class="sheet">
+    <h3>❓ Cómo hacer un sorteo</h3>
+    <ol class="help">
+      <li><b>Tienda:</b> pon el nombre, la cuenta, el logo y el color. Así sale en el certificado.</li>
+      <li><b>Sorteo:</b> elige Instagram o TikTok, escribe el premio y las reglas (cuántos amigos hay que mencionar, palabra obligatoria…).</li>
+      <li><b>Recoger los comentarios (app Android):</b> en «Participantes» pega el enlace y pulsa «Recoger todos los comentarios». Se abre la publicación <b>en la app de Instagram o TikTok</b> con un panel encima. Abre los comentarios y pulsa «Empezar»: la app los lee y baja sola. Cuando ponga «ya están todos», pulsa «Terminar». La primera vez te pedirá activar el permiso de accesibilidad «Sorteos Star (leer comentarios)».</li>
+      <li><b>O copiarlos a mano:</b>
+        <ul>
+          <li><b>Desde el ordenador</b> (lo más fácil): abre la publicación en el navegador, baja hasta que se carguen todos los comentarios (pulsa «+» o «Ver más»), selecciónalos con el ratón, cópialos y pégalos en la app.</li>
+          <li><b>Desde el móvil:</b> abre la publicación en el navegador (Chrome) en vez de en la app, activa «Ver como ordenador», carga los comentarios, mantén pulsado para seleccionar y copia.</li>
+          <li>Si usas otra herramienta que te da un archivo .txt o .csv de comentarios, pulsa «Abrir archivo».</li>
+          <li>También puedes escribir la lista tú mismo: elige «Una línea por comentario» (ej.: <i>@ana me encanta @luis @eva</i>) o «Solo nombres».</li>
+        </ul></li>
+      <li><b>Comprobar:</b> la app separa los comentarios válidos de los que no cumplen las reglas y te dice por qué. Si alguno se ha leído mal, quítalo con ✕.</li>
+      <li><b>Sortear:</b> sale la ruleta con cuenta atrás. Los ganadores se eligen con el azar seguro del móvil (no se puede trucar).</li>
+      <li><b>Certificado:</b> guarda o comparte la imagen con los ganadores, la fecha, el número de participantes y un <b>código de comprobación</b>. Si la lista de participantes cambia, el código cambia: así se demuestra que el sorteo fue limpio.</li>
+    </ol>
+    <div class="warnbox">ℹ️ La app solo lee los comentarios que se ven en la publicación. Si inicias sesión, lo haces en la página oficial de Instagram o TikTok: la app no guarda ni ve tu contraseña. Todo se queda en este móvil.</div>
+    <div class="btns"><button class="btn main" onclick="closeM('mHelp')">Entendido</button></div>
+  </div>
+</div>
+
+<!-- Hoja: certificado -->
+<div class="modal" id="mCert" onclick="if(event.target===this)closeM('mCert')">
+  <div class="sheet">
+    <h3>🏆 Certificado del sorteo</h3>
+    <div class="seg" id="certFmt" style="margin-bottom:8px"><button data-v="post" class="on">📄 Certificado</button><button data-v="story">📱 Historia</button></div>
+    <img id="certImg" alt="Certificado">
+    <div class="btns">
+      <button class="btn main" onclick="saveCert()">💾 Guardar imagen</button>
+      <button class="btn sec" onclick="shareCert()">📤 Compartir</button>
+    </div>
+    <div class="btns">
+      <button class="btn sec" onclick="copyText()">📝 Copiar texto para publicar</button>
+      <button class="btn ghost" onclick="closeM('mCert')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hoja: modo demostración (para clase) -->
+<div class="modal" id="mDemo" onclick="if(event.target===this)closeM('mDemo')">
+  <div class="sheet">
+    <h3>🎓 Demostración: sorteo justo vs. trucado</h3>
+    <div class="warnbox" style="margin:0 0 10px;background:#FDECEC;border-color:#F6C3C5;color:#9B1C21">⚠️ Solo para enseñar cómo funciona. Lo que salga aquí lleva el aviso «DEMOSTRACIÓN · SORTEO TRUCADO A PROPÓSITO · NO VÁLIDO», no tiene código de comprobación y no se guarda.</div>
+    <label>Cuenta a la que dar más papeletas</label>
+    <input type="text" id="demoAcc" list="demoList" placeholder="@cuenta" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <datalist id="demoList"></datalist>
+    <label>Papeletas totales para esa cuenta</label>
+    <input type="number" id="demoN" value="500" min="1" max="1000000">
+    <div class="btns"><button class="btn sec small" onclick="demoAdd()">➕ Añadir</button></div>
+    <div id="demoTable"></div>
+    <div class="btns"><button class="btn sec" onclick="demoSim()">🔁 Simular 1.000 sorteos</button></div>
+    <div id="demoSimBox"></div>
+    <div class="btns"><button class="btn main" style="background:#E5484D" onclick="demoRun(true)">🎰 Sorteo trucado</button><button class="btn main" onclick="demoRun(false)">⚖️ Sorteo justo</button></div>
+    <div class="btns"><button class="btn ghost" onclick="closeM('mDemo')">Cerrar</button></div>
+  </div>
+</div>
+
+<!-- Hoja: bases del sorteo -->
+<div class="modal" id="mBases" onclick="if(event.target===this)closeM('mBases')">
+  <div class="sheet">
+    <h3>📜 Bases del sorteo</h3>
+    <p class="hint">Se crean con los datos de tu tienda, el premio y las reglas. Puedes cambiar lo que quieras antes de copiarlas.</p>
+    <textarea id="basesTxt" style="min-height:340px;font-size:13.5px"></textarea>
+    <div class="btns"><button class="btn main" onclick="copyBases()">📋 Copiar</button><button class="btn sec" onclick="shareBases()">📤 Compartir</button></div>
+    <div class="btns"><button class="btn ghost" onclick="closeM('mBases')">Cerrar</button></div>
+  </div>
+</div>
+
+<!-- Hoja: cargando comentarios de golpe -->
+<div class="modal" id="mLoad">
+  <div class="sheet" style="text-align:center">
+    <h3>⚡ Cargando comentarios…</h3>
+    <div style="font-size:46px;font-weight:900;color:var(--c);margin:10px 0" id="loadN">0</div>
+    <p class="hint" id="loadTxt">Se cargan todos de golpe. Suele tardar de unos segundos a 1–2 minutos según cuántos haya.</p>
+    <div class="btns" id="loadBtns"><button class="btn ghost" onclick="cancelLoad()">Cancelar</button></div>
+  </div>
+</div>
+
+<!-- Hoja: planes -->
+<div class="modal" id="mPlans" onclick="if(event.target===this)closeM('mPlans')">
+  <div class="sheet">
+    <h3>💎 Planes</h3>
+    <div id="plansWhy"></div>
+    <div class="seg" id="perSeg"><button data-v="m" class="on">Mensual</button><button data-v="y">Anual (2 meses gratis)</button></div>
+    <div class="plans" id="plansGrid"></div>
+    <div id="buyBox"></div>
+    <div id="codeBox"><label>¿Ya tienes un código?</label>
+    <input type="text" id="codeIn" placeholder="XXXX-XXXX-XXXX" autocapitalize="characters" autocomplete="off" spellcheck="false" style="font-family:ui-monospace,Menlo,monospace;letter-spacing:1px">
+    <div class="btns"><button class="btn main" onclick="activateCode()">🔓 Activar código</button></div></div>
+    <div class="btns"><button class="btn ghost" onclick="closeM('mPlans')">Cerrar</button></div>
+  </div>
+</div>
+
+<!-- Hoja: modo vendedor -->
+<div class="modal" id="mVendor" onclick="if(event.target===this)closeM('mVendor')">
+  <div class="sheet">
+    <h3>🔐 Modo vendedor</h3>
+    <div id="vLock">
+      <p class="hint">Escribe tu frase secreta (la de SORTEOS_CLAVE).</p>
+      <input type="password" id="vPhrase" autocomplete="off">
+      <div class="btns"><button class="btn main" onclick="vendorUnlock()">Entrar</button></div>
+    </div>
+    <div id="vOpen" style="display:none">
+      <p class="hint">Crea el código para una tienda. Pídele el «código de este móvil» que sale en su app (Tienda → Tu plan).</p>
+      <label>Código del móvil de la tienda</label>
+      <input type="text" id="vDev" placeholder="XXXX-XXXX" autocapitalize="characters" autocomplete="off" spellcheck="false" style="font-family:ui-monospace,Menlo,monospace;letter-spacing:1px">
+      <label>Plan</label>
+      <div class="seg" id="vPlan"><button data-v="S" class="on">Starter</button><button data-v="C">Creator</button><button data-v="A">Agency</button></div>
+      <label>Duración</label>
+      <div class="seg" id="vDur"><button data-v="1">1 día</button><button data-v="31" class="on">1 mes</button><button data-v="366">1 año</button><button data-v="32767">Siempre</button></div>
+      <div class="btns"><button class="btn main" onclick="vendorMake()">✨ Crear código</button></div>
+      <div id="vOut"></div>
+      <div class="btns"><button class="btn sec small" onclick="$('#vDev').value=(myPlan().device||'');vendorMake()">Para este móvil</button></div>
+    </div>
+    <div class="btns"><button class="btn ghost" onclick="closeM('mVendor')">Cerrar</button></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+"use strict";
+/* ============ utilidades ============ */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const APP=window.SorteoApp||null;           // puente con la app Android (si existe)
+const PLAY=!!(APP&&APP.isPlay&&APP.isPlay()); // versión de Google Play: pagos con Google, sin códigos
+const K={shops:'ss.shops',cur:'ss.cur',cfg:'ss.cfg',hist:'ss.hist'};
+function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+function store(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){toast('⚠️ No se pudo guardar (memoria llena)')}}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),2600)}
+function vib(p){try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}}
+function normU(u){return String(u||'').trim().replace(/^@+/,'').toLowerCase()}
+function rnd(n){ // número al azar seguro entre 0 y n-1 (sin sesgo)
+  const a=new Uint32Array(1), lim=Math.floor(0x100000000/n)*n;
+  do{crypto.getRandomValues(a)}while(a[0]>=lim);
+  return a[0]%n;
+}
+const COLORS=[['#7B2FF7','#F72585'],['#FF5E7E','#FFB86C'],['#00A6A6','#34D399'],['#2563EB','#06B6D4'],['#E11D74','#F59E0B'],['#111827','#6B7280'],['#9333EA','#EC4899'],['#EA580C','#FACC15'],['#059669','#84CC16'],['#BE123C','#FB7185']];
+
+/* ============ tiendas ============ */
+let shops=load(K.shops,[]), curId=load(K.cur,null), editLogo=null, editColor=0;
+if(!shops.length){shops=[{id:'t'+Date.now(),name:'',handle:'',logo:null,color:0}];curId=shops[0].id}
+function cur(){return shops.find(s=>s.id===curId)||shops[0]}
+function applyTheme(){
+  const s=cur(), c=COLORS[s.color]||COLORS[0];
+  document.documentElement.style.setProperty('--c',c[0]);
+  document.documentElement.style.setProperty('--c2',c[1]);
+  $('#hName').textContent=s.name||'Sorteos Star';
+  $('#hSub').textContent=s.name?(s.handle?'@'+normU(s.handle)+' · ':'')+'Sorteos de Instagram y TikTok':'Sorteos de Instagram y TikTok para tiendas';
+  setLogo($('#hLogo'),s.logo,'🎁');
+  try{APP&&APP.setColor(c[0])}catch(e){}
+}
+function setLogo(el,src,fb){el.innerHTML=src?'<img src="'+src+'">':fb}
+function renderShops(){
+  $('#shops').innerHTML=shops.map(s=>{const c=COLORS[s.color]||COLORS[0];return '<button class="shop'+(s.id===curId?' on':'')+'" onclick="pickShop(\''+s.id+'\')"><div class="logo" style="background:linear-gradient(135deg,'+c[0]+','+c[1]+')">'+(s.logo?'<img src="'+s.logo+'">':'🏪')+'</div>'+esc(s.name||'Sin nombre')+'</button>'}).join('')
+   +'<button class="shop" onclick="newShop()"><div class="logo" style="background:#EFEAFE;color:var(--c)">➕</div>Nueva</button>';
+  const s=cur(); $('#sName').value=s.name; $('#sHandle').value=s.handle?'@'+normU(s.handle):'';
+  editLogo=s.logo; editColor=s.color; renderEditor();
+  $('#delShopBtn').style.display=shops.length>1?'':'none';
+}
+function renderEditor(){
+  const c=COLORS[editColor]||COLORS[0];
+  $('#sLogoPrev').style.background='linear-gradient(135deg,'+c[0]+','+c[1]+')';
+  setLogo($('#sLogoPrev'),editLogo,'🏪');
+  $('#colors').innerHTML=COLORS.map((c,i)=>'<button class="'+(i===editColor?'on':'')+'" style="background:linear-gradient(135deg,'+c[0]+','+c[1]+')" onclick="editColor='+i+';renderEditor()"></button>').join('');
+}
+function pickShop(id){curId=id;store(K.cur,curId);renderShops();applyTheme();toast('Tienda: '+(cur().name||'sin nombre'))}
+function newShop(){const s={id:'t'+Date.now(),name:'',handle:'',logo:null,color:(shops.length)%COLORS.length};shops.push(s);curId=s.id;store(K.shops,shops);store(K.cur,curId);renderShops();applyTheme();$('#sName').focus()}
+function saveShop(){
+  const s=cur(); s.name=$('#sName').value.trim(); s.handle=normU($('#sHandle').value); s.logo=editLogo; s.color=editColor;
+  if(!s.name){toast('Escribe el nombre de la tienda');$('#sName').focus();return}
+  store(K.shops,shops);store(K.cur,curId);renderShops();applyTheme();toast('✅ Tienda guardada');
+}
+function delShop(){
+  if(shops.length<2)return; if(!confirm('¿Borrar la tienda «'+(cur().name||'sin nombre')+'»?'))return;
+  shops=shops.filter(s=>s.id!==curId);curId=shops[0].id;store(K.shops,shops);store(K.cur,curId);renderShops();applyTheme();
+}
+function clearLogo(){editLogo=null;renderEditor()}
+$('#logoFile').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f)return; const r=new FileReader();
+  r.onload=()=>{const im=new Image();im.onload=()=>{ // se reduce a 300 px para que ocupe poco
+    const S=300,cv=document.createElement('canvas');cv.width=cv.height=S;const x=cv.getContext('2d');
+    const m=Math.min(im.width,im.height);x.drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,S,S);
+    editLogo=cv.toDataURL('image/jpeg',.85);renderEditor();toast('Logo listo: pulsa «Guardar tienda»');
+  };im.src=r.result};r.readAsDataURL(f); e.target.value='';
+});
+
+/* ============ configuración del sorteo ============ */
+let cfg=Object.assign({net:'ig',prize:'',postUrl:'',winners:1,alts:2,minMent:1,multi:true,maxTk:101,uniqMent:false,noSelf:true,needWord:'',excluded:'',mode:'auto',raw:'',src:'post',extraList:'',extraN:2,extraWhy:'',noPrevWin:false,prevDays:30,endAt:'',scope:'es',extraUrls:[],liveNet:'tt',liveUrl:'',liveWho:'all',liveWord:'',liveMulti:true},load(K.cfg,{}));
+const LIM={winners:[1,10],alts:[0,20],minMent:[0,10],maxTk:[1,101],prevDays:[15,365],extraN:[1,10]};  // maxTk 101 = sin límite
+function step(k,d){cfg[k]=Math.max(LIM[k][0],Math.min(LIM[k][1],cfg[k]+d));if(k==='prevDays')$('#v-prevDays2').textContent=cfg[k];$('#v-'+k).textContent=(k==='maxTk'&&cfg[k]>100)?'∞':cfg[k];saveCfg();if(dirty())analyze(false)}
+function renderCfg(){
+  renderSrc();
+  $$('#netSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===cfg.net));
+  $('#postUrl').placeholder=cfg.net==='ig'?'https://www.instagram.com/p/...':'https://www.tiktok.com/@tienda/video/...';
+  ['winners','alts','minMent','maxTk','prevDays','extraN'].forEach(k=>$('#v-'+k).textContent=(k==='maxTk'&&cfg[k]>100)?'∞':cfg[k]);
+  $('#v-prevDays2').textContent=cfg.prevDays;$('#noPrevWin').checked=!!cfg.noPrevWin;$('#prevRow').style.display=cfg.noPrevWin?'':'none';
+  $('#extraList').value=cfg.extraList||'';$('#extraWhy').value=cfg.extraWhy||'';$('#endAt').value=cfg.endAt||'';$('#scope').value=cfg.scope||'es';
+  $('#multi').checked=cfg.multi;$('#uniqMent').checked=cfg.uniqMent;$('#noSelf').checked=cfg.noSelf;
+  $('#maxRow').style.display=cfg.multi?'':'none';
+  $('#prize').value=cfg.prize;$('#postUrl').value=cfg.postUrl;$('#needWord').value=cfg.needWord;$('#excluded').value=cfg.excluded;
+  $('#mode').value=cfg.mode;$('#raw').value=cfg.raw;
+}
+function renderSrc(){
+  $$('#srcSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===(cfg.src==='live'?'live':'post')));
+  $('#liveBox').style.display=cfg.src==='live'?'':'none';$('#postBox').style.display=cfg.src==='live'?'none':'';
+  $$('#liveNetSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===cfg.liveNet));
+  $$('#liveWhoSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===cfg.liveWho));
+  $('#liveWord').style.display=cfg.liveWho==='word'?'':'none';
+  $$('#liveTkSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===(cfg.liveMulti?'all':'one')));
+  $('#liveTkTxt').textContent=cfg.liveMulti?('Cada comentario es una papeleta: quien más comenta, más opciones tiene'+(cfg.maxTk>100?'.':' (máximo '+cfg.maxTk+' por persona, se cambia en «Sorteo»).')):'Cada persona tiene una papeleta aunque comente muchas veces.';
+  $('#liveUrl').placeholder=cfg.liveNet==='tt'?'@cuenta  o  https://www.tiktok.com/@cuenta/live':'@cuenta  o  https://www.instagram.com/cuenta/live/';
+  if(document.activeElement!==$('#liveUrl'))$('#liveUrl').value=cfg.liveUrl;
+  if(document.activeElement!==$('#liveWord'))$('#liveWord').value=cfg.liveWord;
+}
+let saveT;function saveCfg(){clearTimeout(saveT);saveT=setTimeout(()=>store(K.cfg,cfg),300)}
+$$('#netSeg button').forEach(b=>b.onclick=()=>{cfg.net=b.dataset.v;renderCfg();saveCfg()});
+['noPrevWin','multi','uniqMent','noSelf'].forEach(id=>$('#'+id).addEventListener('change',e=>{cfg[id]=e.target.checked;renderCfg();saveCfg();if(dirty())analyze(false)}));
+['endAt','scope'].forEach(id=>$('#'+id).addEventListener('change',e=>{cfg[id]=e.target.value;saveCfg()}));
+['extraList','extraWhy'].forEach(id=>{$('#'+id).addEventListener('input',e=>{cfg[id]=e.target.value;saveCfg()});$('#'+id).addEventListener('change',()=>{if(dirty())analyze(false)})});
+['prize','postUrl','needWord','excluded','raw'].forEach(id=>$('#'+id).addEventListener('input',e=>{cfg[id]=e.target.value;if(id==='raw'&&cfg.src==='got')cfg.src='post';saveCfg();if(id==='postUrl')netFromUrl()}));
+function netFromUrl(){const u=cfg.postUrl.toLowerCase();const n=u.includes('tiktok')?'tt':u.includes('instagram')||u.includes('instagr.am')?'ig':null;if(n&&n!==cfg.net){cfg.net=n;renderCfg();saveCfg()}}
+['needWord','excluded'].forEach(id=>$('#'+id).addEventListener('change',()=>{if(dirty())analyze(false)}));
+$$('#srcSeg button').forEach(b=>b.onclick=()=>{if((cfg.src==='live'?'live':'post')===b.dataset.v)return;cfg.src=b.dataset.v==='post'&&load('ss.got',[]).length&&cfg.raw.trim()?'got':b.dataset.v;renderSrc();saveCfg();analyze(false)});
+$$('#liveNetSeg button').forEach(b=>b.onclick=()=>{cfg.liveNet=b.dataset.v;renderSrc();saveCfg()});
+$$('#liveTkSeg button').forEach(b=>b.onclick=()=>{cfg.liveMulti=b.dataset.v==='all';renderSrc();saveCfg();if(cfg.src==='live')analyze(false)});
+$$('#liveWhoSeg button').forEach(b=>b.onclick=()=>{cfg.liveWho=b.dataset.v;renderSrc();saveCfg();if(cfg.src==='live')analyze(false)});
+$('#liveUrl').addEventListener('input',e=>{cfg.liveUrl=e.target.value;saveCfg();const v=e.target.value.toLowerCase();if(v.includes('tiktok')&&cfg.liveNet!=='tt'){cfg.liveNet='tt';renderSrc()}else if(v.includes('instagr')&&cfg.liveNet!=='ig'){cfg.liveNet='ig';renderSrc()}});
+$('#liveWord').addEventListener('input',e=>{cfg.liveWord=e.target.value;saveCfg()});
+$('#liveWord').addEventListener('change',()=>{if(cfg.src==='live')analyze(false)});
+$('#mode').addEventListener('change',e=>{cfg.mode=e.target.value;saveCfg();if(cfg.raw.trim())analyze(false)});
+function dirty(){return $('#resCard').style.display!=='none'}
+
+/* ============ leer los comentarios ============ */
+const USER_RE=/^@?([A-Za-z0-9._]{2,30})$/;
+const TIME_TOK=/^(s|sem|semanas?|w|d|días?|dias?|h|hr|horas?|min|mins|minutos?|mes(es)?|años?|y|yr|\d+\s*(s|seg|sem|semanas?|w|wk|d|días?|dias?|h|hr|horas?|m|min|mins|minutos?|a|años?|y|yr|mes(es)?|mo)\.?|hace|ago|ahora|now|ayer|yesterday|\d{1,2}[-\/]\d{1,2}([-\/]\d{2,4})?)$/i;
+const NOISE_W=/^(responder|reply|me|gusta|like|likes|ver|see|traducción|traduccion|translation|respuestas?|replies|ocultar|hide|editado|edited|fijado|pinned|autor|author|creador|creator|verificado|verified|·|•|-|—|\d+(,\d+)?\s*(mil|k|m)?|más|more|view|all|todas?|los|las|de|del|the|of|enviar|send|mensaje|message|seguir|follow|siguiendo|following|liked|by|le|ha|dado|el|a|comentarios?|comments?|respuesta|traducir|translate|ocultar|añadir|add|agregar|escribe|write|emoji)$/i;
+function isNoise(line){
+  const toks=line.replace(/[()\[\]]/g,' ').split(/\s+/).filter(Boolean);
+  if(!toks.length)return true;
+  return toks.every(t=>TIME_TOK.test(t)||NOISE_W.test(t));
+}
+const UI_WORDS=new Set('ignorar ignore buscar búsqueda explorar reels mensajes notificaciones crear perfil más threads meta home search explore messages notifications create profile more información ayuda privacidad condiciones idioma español english siguiendo seguir following follow comentarios comments responder reply foryou amigos friends live directo subir upload iniciar entrar login registrarse signup'.split(' '));
+function userLine(line){ // "usuario" o "usuario 2 sem" o "usuario · Autor"
+  const toks=line.split(/\s+/);const m=toks[0].match(USER_RE);
+  if(!m||!/[A-Za-z]/.test(m[1]))return null;
+  if(NOISE_W.test(m[1])||TIME_TOK.test(m[1])||UI_WORDS.has(m[1].toLowerCase()))return null;
+  if(toks.length>1&&!isNoise(toks.slice(1).join(' ')))return null;
+  return m[1];
+}
+function parse(raw,mode){
+  const lines=raw.replace(/\r/g,'').split('\n').map(l=>l.replace(/\u200e|\u200f|\u00a0/g,' ').trim());
+  const out=[];
+  if(mode==='names'){
+    lines.forEach(l=>{if(!l)return;const m=l.match(/@?([A-Za-z0-9._]{2,30})/);if(m)out.push({u:m[1],t:''})});
+    return out;
+  }
+  if(mode==='line'||isTable(lines)){
+    lines.forEach(l=>{
+      if(!l)return;
+      let m=l.match(/^"?@?([A-Za-z0-9._]{2,30})"?\s*[,;\t:\-–]\s*"?(.*?)"?$/)||l.match(/^@?([A-Za-z0-9._]{2,30})\s+(.+)$/);
+      if(m&&!/^(usuario|username|user|nombre|name)$/i.test(m[1]))out.push({u:m[1],t:m[2]||''});
+    });
+    return out;
+  }
+  // automático: bloques "usuario / (tiempo) / comentario / Responder"
+  // Apps de Instagram/TikTok: cada comentario tiene una descripción «usuario ha dicho comentario».
+  // Si aparecen, se usan SOLO esas (lo demás son botones: Responder, Me gusta, Ignorar…).
+  if(mode==='app-ig'||mode==='app-tt'){
+    const said=[];
+    lines.forEach(l=>{const m=l.match(/^@?(.{1,40}?) (?:ha dicho|dijo|said|commented|ha comentado)[:,]? (.+)$/i);
+      if(m&&!/^(responder|reply|tocar|tap)/i.test(m[1]))said.push({u:m[1].trim(),t:m[2].trim(),nick:mode==='app-tt'&&!/^[A-Za-z0-9._]{1,30}$/.test(m[1].trim())})});
+    if(said.length)return said;
+  }
+  // app-ig: como en la web, pero a veces la app pone «usuario comentario» en la misma línea
+  // app-tt: TikTok enseña el apodo (puede llevar espacios y emojis) en la línea de antes del comentario
+  let curC=null, expect=true;
+  // ¿En esta pantalla los usuarios van en su propia línea? Entonces no se busca «usuario comentario» junto
+  let combined=mode==='app-ig'&&lines.filter(l=>l&&userLine(l)).length<2;
+  for(const l of lines){
+    if(!l){expect=true;continue}
+    if(expect&&mode==='app-tt'&&l.length<=40&&!isNoise(l)&&!UI_WORDS.has(l.toLowerCase())&&!/^\d/.test(l)){
+      curC={u:l.replace(/^@/,''),t:'',nick:!/^@/.test(l)};out.push(curC);expect=false;continue;
+    }
+    if(expect&&mode==='app-ig'&&combined){
+      const mm=l.match(/^@?([A-Za-z0-9._]{2,30})\s+(.+)$/);
+      if(mm&&/[A-Za-z]/.test(mm[1])&&!UI_WORDS.has(mm[1].toLowerCase())&&!NOISE_W.test(mm[1])&&!TIME_TOK.test(mm[1])&&!isNoise(mm[2])){
+        curC={u:mm[1],t:mm[2]};out.push(curC);expect=false;continue;
+      }
+    }
+    const one=l.match(/^@?([A-Za-z0-9._]{2,30})\s*:\s+(.+)$/); // "usuario: comentario"
+    if(one&&/[A-Za-z]/.test(one[1])){curC={u:one[1],t:one[2]};out.push(curC);expect=true;continue}
+    const u=userLine(l);
+    if(u&&(expect||!curC||(curC&&!curC.t))){
+      if(curC&&!curC.t&&!expect){ // el anterior no tenía texto: este "usuario" era el comentario
+        curC.t=l;expect=false;continue;
+      }
+      curC={u,t:''};out.push(curC);expect=false;continue;
+    }
+    if(isNoise(l)){
+      // «Responder», «Me gusta»… cierran el comentario; la fecha sola no (va entre usuario y texto)
+      if(/(responder|reply|gusta|like|respuesta|repl|traduc|transl)/i.test(l)||!curC||curC.t)expect=true;
+      continue;
+    }
+    if(curC){curC.t+=(curC.t?' ':'')+l;expect=false}
+  }
+  return out.filter(c=>c.u);
+}
+function isTable(lines){ // archivos .csv exportados
+  const f=lines.filter(Boolean);if(f.length<2)return false;
+  return f.slice(0,5).filter(l=>/^"?@?[A-Za-z0-9._]{2,30}"?\s*[,;\t]/.test(l)).length>=Math.min(3,f.length);
+}
+
+/* ============ recoger comentarios desde el enlace (app Android) ============ */
+let collected=null;
+/* Saca el enlace aunque venga con texto alrededor o sin «https://» */
+function cleanLink(txt){
+  const m=String(txt||'').match(/(https?:\/\/)?((www\.|m\.|vm\.|vt\.)?(instagram\.com|instagr\.am|tiktok\.com)\/[^\s"'<>]*)/i);
+  return m?'https://'+m[2]:'';
+}
+async function pasteLink(){
+  let t='';
+  try{if(APP&&APP.getClipboard)t=APP.getClipboard();else t=await navigator.clipboard.readText()}catch(e){}
+  const u=cleanLink(t);
+  if(!u){toast(t?'Lo copiado no es un enlace de Instagram o TikTok':'Mantén pulsado el cuadro y elige «Pegar»');$('#postUrl').focus();return}
+  $('#postUrl').value=u;cfg.postUrl=u;saveCfg();netFromUrl();toast('✅ Enlace puesto');
+}
+function collect(){
+  const url=cleanLink($('#postUrl').value);
+  if(!url){toast($('#postUrl').value.trim()?'Ese enlace no es de Instagram ni de TikTok':'Primero pega el enlace de la publicación');$('#postUrl').focus();return}
+  $('#postUrl').value=url;cfg.postUrl=url;cfg.src='post';netFromUrl();saveCfg();
+  if(!(APP&&APP.collect)){$('#noAppBox').style.display='';alert('Recoger los comentarios solo funciona en la app Android «Sorteos Star» (SorteosStar-debug.apk). En el navegador hay que copiar los comentarios y pegarlos en el cuadro de abajo.');return}
+  if(cfg.raw.trim()&&!confirm('Se cambiarán los comentarios que hay ahora por los de este enlace. ¿Seguir?'))return;
+  resetSnaps();removed=new Set();
+  if(APP.apifyOk&&APP.apifyOk()){loadAll(allUrls());return}
+  alert('La carga de comentarios de golpe no está activada en esta versión de la app (falta la clave de Apify). Instala la última versión, o copia los comentarios y pégalos abajo.');
+}
+/* Varias publicaciones en el mismo sorteo (por ejemplo, el post de Instagram y el vídeo de TikTok) */
+function renderLinks(){
+  cfg.extraUrls=cfg.extraUrls||[];
+  $('#extraLinks').innerHTML=cfg.extraUrls.map((u,i)=>'<div class="row" style="margin-top:8px;align-items:center"><input type="text" value="'+esc(u)+'" placeholder="Otra publicación: https://…" oninput="cfg.extraUrls['+i+']=this.value;saveCfg()" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="x" style="flex:none;width:40px;height:40px;border:0;border-radius:11px;background:#FDECEC;color:var(--bad)" onclick="cfg.extraUrls.splice('+i+',1);saveCfg();renderLinks()">✕</button></div>').join('');
+}
+function addLink(){cfg.extraUrls=cfg.extraUrls||[];if(cfg.extraUrls.length>=4){toast('Como mucho 5 publicaciones por sorteo');return}cfg.extraUrls.push('');saveCfg();renderLinks();const ins=$$('#extraLinks input');ins[ins.length-1].focus()}
+function allUrls(){
+  const list=[cleanLink(cfg.postUrl)].concat((cfg.extraUrls||[]).map(cleanLink)).filter(Boolean);
+  return [...new Set(list)];
+}
+/* ⚡ Todos los comentarios de golpe (Apify). Se pide como mucho el límite del plan + 1,
+   así un sorteo más grande que el plan avisa sin gastar de más. */
+let loadUrls=[], loadIdx=0, loadAcc=[];
+function loadAll(urls){
+  loadUrls=Array.isArray(urls)?urls:[urls];loadIdx=0;loadAcc=[];
+  $('#loadBtns').innerHTML='<button class="btn ghost" onclick="cancelLoad()">Cancelar</button>';
+  $('#mLoad').classList.add('on');loadNext();
+}
+function loadNext(){
+  const lim=planLimit(),cap=lim===Infinity?50000:lim+1,left=cap-loadAcc.length;
+  if(loadIdx>=loadUrls.length||left<=0){finishLoad();return}
+  $('#loadN').textContent=loadAcc.length.toLocaleString('es-ES');
+  $('#loadTxt').textContent=(loadUrls.length>1?'Publicación '+(loadIdx+1)+' de '+loadUrls.length+'. ':'')+'Se cargan todos de golpe. Suele tardar de unos segundos a 1–2 minutos según cuántos haya.';
+  APP.apifyFetch(loadUrls[loadIdx],left);
+}
+function onApifyProgress(n){$('#loadN').textContent=(loadAcc.length+Number(n)).toLocaleString('es-ES')}
+function onApifyDone(json){
+  let rows=[];try{rows=JSON.parse(json)}catch(e){}
+  rows.forEach(r=>{const u=String(r[0]||'').replace(/^@/,'').trim(),t=String(r[1]||'').replace(/\s+/g,' ').trim();if(u)loadAcc.push({u,t,nick:false,k:u.toLowerCase()+'|'+t})});
+  loadIdx++;loadNext();
+}
+function finishLoad(){
+  $('#mLoad').classList.remove('on');
+  if(!loadAcc.length){toast('No se encontraron comentarios en '+(loadUrls.length>1?'esas publicaciones':'esa publicación'));return}
+  resetSnaps();collected=loadAcc.slice();
+  onCollectDone();
+}
+function onApifyError(msg){
+  if(msg==='Cancelado'){$('#mLoad').classList.remove('on');return}
+  $('#loadTxt').textContent='❌ '+msg;
+  $('#loadBtns').innerHTML='<button class="btn main" onclick="loadNext()">🔄 Intentarlo otra vez</button><button class="btn ghost" onclick="$(\'#mLoad\').classList.remove(\'on\')">Cerrar</button>';
+}
+function cancelLoad(){try{APP.apifyCancel()}catch(e){}$('#mLoad').classList.remove('on');toast('Cancelado')}
+/* Comentarios recogidos. Se guardan TODOS, también los repetidos:
+   cada lectura se compara con la anterior y solo se apunta lo que es nuevo (lo que aparece al bajar). */
+let snapPrev=[], snapKeys=new Set();
+function resetSnaps(){collected=[];snapPrev=[];snapKeys=new Set()}
+function sameAt(prev,cur,j,e,k){const P=prev.length-e;for(let i=0;i<k;i++)if(prev[P-k+i]!==cur[j+i])return false;return true}
+/* Cuántos elementos del principio de «cur» ya estaban al final de «prev» (o -1 si no se encuentra) */
+function overlapOf(prev,cur){
+  if(!prev.length)return 0;
+  // la web va añadiendo: la lectura nueva empieza igual que la anterior
+  if(cur.length>=prev.length&&sameAt(prev,cur,0,0,prev.length))return prev.length;
+  // Primero sin saltarse nada; solo si no coincide, se salta un comentario cortado arriba o abajo
+  for(let j=0;j<=2&&j<cur.length;j++)            // arriba puede haber un comentario cortado
+    for(let e=0;e<=1&&e<prev.length;e++){        // y abajo, en la lectura anterior, otro a medias
+      const maxK=Math.min(prev.length-e,cur.length-j,300);
+      for(let k=maxK;k>=1;k--)if(sameAt(prev,cur,j,e,k))return j+k;
+    }
+  return -1;
+}
+/* La app llama a esto cada poco con el texto de los comentarios que se ven en la página */
+function onSnap(text,pmode){
+  if(!Array.isArray(collected))resetSnaps();
+  const items=[];
+  parse(String(text||''),pmode||'auto').forEach(c=>{
+    const u=c.nick?c.u:c.u.replace(/^@/,''),t=(c.t||'').replace(/\s+/g,' ').trim();
+    if(UI_WORDS.has(u.toLowerCase())||!t&&pmode)return;
+    items.push({u,t,nick:!!c.nick,k:u.toLowerCase()+'|'+t});
+  });
+  const keys=items.map(x=>x.k);
+  const ov=overlapOf(snapPrev,keys);
+  if(ov>=0)items.slice(ov).forEach(x=>{collected.push(x);snapKeys.add(x.k)});
+  else items.forEach(x=>{if(!snapKeys.has(x.k)){collected.push(x);snapKeys.add(x.k)}}); // no se sabe qué es nuevo: sin repetir
+  snapPrev=keys;
+  return collected.length;
+}
+/* Al pulsar «Usar comentarios» */
+function onCollectDone(){
+  if(!Array.isArray(collected)||!collected.length){toast('No se encontraron comentarios. ¿Has iniciado sesión?');return 0}
+  const got=collected.map(x=>({u:x.u,t:x.t,nick:x.nick}));got.forEach(c=>{if(c.nick)NICKS.add(c.u)});
+  store('ss.got',got);
+  const txt=got.map(c=>at(c.u)+(c.t?': '+c.t:'')).join('\n');
+  cfg.mode='auto';$('#mode').value='auto';$('#raw').value=txt;cfg.raw=txt;cfg.src='got';saveCfg();renderSrc();
+  removed=new Set();go('part');analyze(true);
+  return got.length;
+}
+
+/* ============ sorteo en directo (app Android) ============ */
+const NICKS=new Set();               // apodos de TikTok (se enseñan sin @)
+function at(u){u=String(u);return (u[0]==='@'||NICKS.has(u))?u:'@'+u}
+function fw(d,w){return d.fmt?w:'@'+w}
+let live=load('ss.live',{owner:'',msgs:[]}), liveBase=new Set(), liveSeen=new Set(), livePeople=new Set(), liveT, livePrev=[], liveCount=0;
+/* Mensajes nuevos de una lectura del chat: lo que hay después de la parte que coincide con la lectura anterior */
+function newTail(prev,cur){for(let k=Math.min(prev.length,cur.length);k>0;k--){let ok=true;for(let i=0;i<k;i++)if(prev[prev.length-k+i]!==cur[i]){ok=false;break}if(ok)return cur.slice(k)}return cur}
+live.msgs.forEach(m=>{if(m.nick)NICKS.add(m.u)});
+load('ss.got',[]).forEach(m=>{if(m.nick)NICKS.add(m.u)});
+function liveOpen(){
+  const raw=($('#liveUrl').value||'').trim();let url='',owner='';
+  const link=cleanLink(raw);
+  if(link){url=link;const m=link.match(/tiktok\.com\/@([A-Za-z0-9._]+)/i)||link.match(/instagram\.com\/([A-Za-z0-9._]+)/i);owner=m?m[1]:'';
+    cfg.liveNet=/tiktok/i.test(link)?'tt':'ig';}
+  else{const m=raw.match(/^@?([A-Za-z0-9._]{1,30})$/);
+    if(!m){toast('Escribe la cuenta que está en directo (ej.: @modaluna)');$('#liveUrl').focus();return}
+    owner=m[1];url=cfg.liveNet==='tt'?'https://www.tiktok.com/@'+owner+'/live':'https://www.instagram.com/'+owner+'/live/';}
+  if(cfg.liveWho==='word'&&!cfg.liveWord.trim()){toast('Escribe la palabra que tienen que poner');$('#liveWord').focus();return}
+  cfg.net=cfg.liveNet;renderCfg();saveCfg();
+  if(!(APP&&APP.collectLive)){alert('El sorteo en directo solo funciona en la app Android «Sorteos Star» (SorteosStar-debug.apk).');return}
+  live={owner,msgs:[]};liveBase=new Set();liveSeen=new Set();livePeople=new Set();livePrev=[];liveCount=0;store('ss.live',live);
+  APP.collectLive(url);
+}
+/* La app llama a esto cada segundo con los mensajes del chat que se ven. started=false: aún no se ha pulsado «Empezar» */
+function onLive(json,started){
+  let d;try{d=JSON.parse(json)}catch(e){d={v:0,m:[]}}
+  const items=(d.m||[]).map(x=>{const u=String(x[0]||'').trim(),t=String(x[1]||'').trim();return {u,t,k:u.toLowerCase()+'|'+t}}).filter(x=>x.u);
+  const keys=items.map(x=>x.k);
+  if(!started){livePrev=keys;return '0|0|'+(d.v||0)}
+  const fresh=newTail(livePrev,keys);livePrev=keys;
+  let added=false;
+  items.slice(items.length-fresh.length).forEach(x=>{
+    const nick=x.u[0]!=='@', u=nick?x.u:x.u.slice(1);
+    if(nick)NICKS.add(u);
+    live.msgs.push({u,t:x.t,nick});livePeople.add(u.toLowerCase());liveCount++;added=true;
+  });
+  if(added){clearTimeout(liveT);liveT=setTimeout(()=>store('ss.live',live),1500)}
+  return livePeople.size+'|'+liveCount+'|'+(d.v||0);
+}
+/* Lo que se ha leído del directo en la app de Instagram/TikTok: [[usuario, comentario], ...] */
+function onLiveImport(json){
+  let rows=[];try{rows=JSON.parse(json)}catch(e){}
+  live.msgs=[];livePeople=new Set();liveSeen=new Set();
+  rows.forEach(r=>{const x=String(r[0]||'').trim(),t=String(r[1]||'').trim();if(!x)return;
+    const nick=x[0]!=='@',u=nick?x:x.slice(1);if(nick)NICKS.add(u);
+    live.msgs.push({u,t,nick});livePeople.add(u.toLowerCase());liveSeen.add(u.toLowerCase()+'|'+t)});
+  store('ss.live',live);return livePeople.size;
+}
+/* Al pulsar «Parar y sortear» */
+function onLiveDone(){
+  store('ss.live',live);cfg.src='live';saveCfg();renderSrc();removed=new Set();
+  analyze(false);go('sortear');
+  toast(result&&result.people.length?('🔴 '+result.people.length+' participantes del directo'):'No ha comentado nadie que cumpla las reglas');
+  return livePeople.size;
+}
+
+/* ============ comprobar reglas ============ */
+let comments=[], removed=new Set(), result=null, listMode='ok';
+function analyze(show){
+  cfg.raw=$('#raw').value;saveCfg();
+  const isLive=cfg.src==='live';
+  if(isLive?!live.msgs.length:!cfg.raw.trim()){if(show)toast(isLive?'Todavía no hay comentarios del directo':'Primero pega los comentarios');$('#resCard').style.display='none';result=null;return}
+  let src=isLive?live.msgs:null;
+  if(!isLive&&cfg.src==='got'){src=load('ss.got',[]);src.forEach(c=>{if(c.nick)NICKS.add(c.u)});if(!src.length)src=null}
+  comments=(src||parse(cfg.raw,cfg.mode)).map((c,i)=>({id:i,u:c.u,t:c.t||''}));
+  if(show)removed=new Set();
+  const shop=normU(cur().handle);
+  const excl=new Set(cfg.excluded.split(/[\n,;\s]+/).map(normU).filter(Boolean)); if(shop)excl.add(shop);
+  if(isLive&&live.owner)excl.add(normU(live.owner));
+  // Ganadores de sorteos recientes (si está activado)
+  const prevWin=new Set();
+  if(cfg.noPrevWin){const lim=Date.now()-cfg.prevDays*86400000;
+    load(K.hist,[]).forEach(d=>{if(new Date(d.date).getTime()>=lim)d.winners.forEach(w=>prevWin.add(normU(fw(d,w))))})}
+  const word=(isLive?(cfg.liveWho==='word'?cfg.liveWord:''):cfg.needWord).trim().toLowerCase();
+  const minM=isLive?0:cfg.minMent, multi=isLive?cfg.liveMulti:cfg.multi, maxT=cfg.maxTk>100?Infinity:cfg.maxTk;
+  const usedMent={}; // por usuario: menciones ya usadas
+  const people={};
+  comments.forEach(c=>{
+    c.why='';c.ok=false;
+    if(removed.has(c.id)){c.why='Quitado a mano';return}
+    const u=normU(c.u);
+    if(prevWin.has(u)){c.why='Ganó un sorteo hace poco';return}
+    if(excl.has(u)){c.why=u===shop?'Es la cuenta de la tienda':(isLive&&u===normU(live.owner))?'Es quien hace el directo':'Cuenta excluida';return}
+    let ments=(c.t.match(/@([A-Za-z0-9._]{1,30})/g)||[]).map(m=>normU(m).replace(/\.+$/,''));
+    if(cfg.noSelf)ments=ments.filter(m=>m!==u&&m!==shop);
+    if(cfg.uniqMent){
+      const seen=usedMent[u]||(usedMent[u]=new Set());
+      ments=[...new Set(ments)].filter(m=>!seen.has(m));
+      c._m=ments;
+    }else c._m=ments;
+    c.nm=ments.length;
+    if(c.nm<minM){c.why=c.nm?('Solo '+c.nm+' mención'+(c.nm>1?'es':'')+' válida'+(c.nm>1?'s':'')+' (pide '+minM+')'):'Sin menciones válidas';return}
+    if(word&&!c.t.toLowerCase().includes(word)){c.why='Falta «'+word+'»';return}
+    const p=people[u]||(people[u]={u:NICKS.has(c.u)?c.u:c.u.replace(/^@/,''),n:0});
+    if(!multi&&p.n>=1){c.why='Ya participa con otro comentario';c.dup=true;return}
+    if(multi&&p.n>=maxT){c.why='Ya tiene el máximo de papeletas';c.dup=true;return}
+    if(cfg.uniqMent)c._m.forEach(m=>usedMent[u].add(m));
+    p.n++;c.ok=true;
+  });
+  const list=Object.values(people).filter(p=>p.n>0);
+  // Papeletas extra (públicas): se suman a quien esté en la lista y tenga al menos un comentario válido
+  const extraSet=extraAccounts(),extraGot=[];
+  list.forEach(p=>{p.x=0;if(extraSet.has(normU(p.u))){p.x=cfg.extraN;extraGot.push(p.u)}});
+  const tickets=[];list.forEach(p=>{for(let i=0;i<p.n+p.x;i++)tickets.push(normU(p.u))});
+  result={extraGot,people:list,tickets,total:comments.length,bad:comments.filter(c=>!c.ok).length};
+  $('#stC').textContent=result.total;$('#stP').textContent=list.length;$('#stB').textContent=result.bad;
+  $('#resCard').style.display='';$('#statsBox').innerHTML='';renderList();renderSum();
+  if(show){toast(list.length?('✅ '+list.length+' participantes válidos'):'⚠️ Ningún comentario cumple las reglas');vib(30)}
+}
+function extraAccounts(){return new Set((cfg.extraList||'').split(/[\n,;\s]+/).map(normU).filter(Boolean))}
+function extraInfo(){const n=extraAccounts().size;return n?{n:cfg.extraN,why:(cfg.extraWhy||'').trim(),accounts:[...extraAccounts()]}:null}
+function renderList(){
+  const q=normU($('#search').value);let rows=comments;
+  if(listMode==='ok')rows=rows.filter(c=>c.ok);else if(listMode==='bad')rows=rows.filter(c=>!c.ok);
+  if(q)rows=rows.filter(c=>normU(c.u).includes(q));
+  const MAX=400;
+  $('#list').innerHTML=rows.length?rows.slice(0,MAX).map(c=>'<div class="it"><div style="min-width:0"><div class="u">'+esc(at(NICKS.has(c.u)?c.u:c.u.replace(/^@/,'')))+'</div><div class="t">'+esc(c.t||'—')+'</div>'+(c.ok?'':'<div class="why">✗ '+esc(c.why)+'</div>')+'</div>'+(c.ok?'<span class="n">✓'+(extraAccounts().has(normU(c.u))?' +'+cfg.extraN+' extra':'')+'</span>':'')+(removed.has(c.id)?'<button class="x" style="background:#E8F8F0;color:var(--ok)" onclick="unRemove('+c.id+')">↺</button>':'<button class="x" onclick="rem('+c.id+')">✕</button>')+'</div>').join('')+(rows.length>MAX?'<div class="empty">…y '+(rows.length-MAX)+' más (usa el buscador)</div>':''):'<div class="empty">No hay nada aquí</div>';
+}
+function copyDump(){
+  let d='';try{d=APP.lastDump()}catch(e){}
+  if(!d){toast('Todavía no hay nada leído');return}
+  try{APP.copy(d);toast('🔧 Copiado: pégalo en el chat para que lo revise')}catch(e){}
+}
+function openStats(){
+  if(!result||!result.people.length){toast('Primero recoge los comentarios');return}
+  const box=$('#statsBox');if(box.innerHTML){box.innerHTML='';return}
+  const tk=p=>p.n+(p.x||0);const top=result.people.slice().sort((a,b)=>tk(b)-tk(a)).slice(0,10);
+  const ments={};comments.forEach(c=>{if(c.ok)(c.t.match(/@([A-Za-z0-9._]{1,30})/g)||[]).forEach(m=>{m=normU(m);ments[m]=(ments[m]||0)+1})});
+  const mk=Object.keys(ments),totM=mk.reduce((a,k)=>a+ments[k],0);
+  const topM=mk.sort((a,b)=>ments[b]-ments[a]).slice(0,5);
+  const okC=comments.filter(c=>c.ok).length;
+  box.innerHTML='<div class="card" style="margin:10px 0 0;box-shadow:none">'
+   +'<div class="stats"><div class="stat"><b>'+(okC/result.people.length).toFixed(1).replace('.',',')+'</b><span>comentarios por persona</span></div><div class="stat"><b>'+totM.toLocaleString('es-ES')+'</b><span>menciones</span></div><div class="stat"><b>'+mk.length.toLocaleString('es-ES')+'</b><span>cuentas mencionadas</span></div></div>'
+   +'<b style="font-size:14px">🏅 Quien más papeletas tiene</b>'+top.map((p,i)=>{const pc=(tk(p)/result.tickets.length*100);return '<div class="it"><div style="flex:1;min-width:0"><div class="u">'+(i+1)+'. '+esc(at(p.u))+'</div><div style="height:6px;border-radius:6px;background:#EFEAFE;margin-top:4px"><div style="height:6px;border-radius:6px;background:var(--c);width:'+Math.max(3,Math.min(100,pc/(tk(top[0])/result.tickets.length*100)*100))+'%"></div></div></div><span class="n">'+tk(p)+' · '+pc.toFixed(1).replace('.',',')+' %</span></div>'}).join('')
+   +(topM.length?'<b style="font-size:14px;display:block;margin-top:10px">👥 Cuentas más mencionadas</b>'+topM.map(m=>'<span class="pill">@'+esc(m)+' · '+ments[m]+'</span>').join(''):'')
+   +'</div>';
+}
+function exportList(){
+  if(!result||!result.people.length){toast('Primero recoge los comentarios');return}
+  const q=v=>'"'+String(v).replace(/"/g,'""')+'"';
+  let t='usuario,papeletas\n'+result.people.map(p=>q(at(p.u))+','+p.n).join('\n');
+  t+='\n\nusuario,comentario,valido,motivo\n'+comments.map(c=>q(at(c.u))+','+q(c.t)+','+(c.ok?'si':'no')+','+q(c.why||'')).join('\n');
+  if(APP&&APP.shareText){APP.shareText(t,'Participantes del sorteo');return}
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(t);a.download='participantes.csv';document.body.appendChild(a);a.click();a.remove();
+}
+function rem(id){removed.add(id);analyze(false)}
+function unRemove(id){removed.delete(id);analyze(false)}
+$$('#listSeg button').forEach(b=>b.onclick=()=>{listMode=b.dataset.v;$$('#listSeg button').forEach(x=>x.classList.toggle('on',x===b));renderList()});
+$('#search').addEventListener('input',renderList);
+function clearRaw(){if(cfg.raw&&!confirm('¿Vaciar los comentarios pegados?'))return;$('#raw').value='';cfg.raw='';saveCfg();removed=new Set();analyze(false)}
+async function pasteClip(){
+  let t='';
+  try{if(APP&&APP.getClipboard)t=APP.getClipboard();else t=await navigator.clipboard.readText()}catch(e){}
+  if(!t){toast('Mantén pulsado el cuadro y elige «Pegar»');$('#raw').focus();return}
+  const r=$('#raw');r.value=(r.value.trim()?r.value.trim()+'\n':'')+t;cfg.raw=r.value;saveCfg();analyze(true);
+}
+$('#txtFile').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{$('#raw').value=r.result;cfg.raw=r.result;saveCfg();analyze(true)};r.readAsText(f);e.target.value='';
+});
+
+/* ============ resumen y sorteo ============ */
+function netName(n){return n==='tt'?'TikTok':'Instagram'}
+function renderSum(){
+  const s=cur(), r=result;
+  let h='<div class="tog"><span>Tienda</span><b>'+esc(s.name||'—')+'</b></div>'
+   +'<div class="tog"><span>De dónde</span><b>'+(cfg.src==='live'?'🔴 Directo':'🔗 Publicación')+'</b></div>'
+   +'<div class="tog"><span>Red social</span><b class="net '+cfg.net+'">'+netName(cfg.net)+'</b></div>'
+   +'<div class="tog"><span>Premio</span><b style="text-align:right">'+esc(cfg.prize||'—')+'</b></div>'
+   +'<div class="tog"><span>Participantes válidos</span><b>'+(r?r.people.length:0)+'</b></div>'
+   +'<div class="tog"><span>Papeletas</span><b>'+(r?r.tickets.length:0)+'</b></div>'
+   +'<div class="tog"><span>Tu plan</span><b>'+PLANS[myPlan().plan].n+' ('+(planLimit()===Infinity?'sin límite':'hasta '+planLimit().toLocaleString('es-ES'))+')</b></div>'
+   +'<div class="tog"><span>Ganadores / suplentes</span><b>'+cfg.winners+' / '+cfg.alts+'</b></div>';
+  const need=cfg.winners+cfg.alts;
+  if(!r||!r.people.length)h+='<div class="warnbox">⚠️ Aún no hay participantes. Ve a «Participantes» y recoge los comentarios de la publicación o del directo.</div>';
+  else if(r.people.length<need)h+='<div class="warnbox">⚠️ Hay '+r.people.length+' participantes y pides '+need+' (ganadores + suplentes). Se sortearán los que haya.</div>';
+  if(r&&r.total>planLimit())h+='<div class="warnbox">💎 Este sorteo tiene '+r.total.toLocaleString('es-ES')+' comentarios: tu plan '+PLANS[myPlan().plan].n+' llega hasta '+planLimit().toLocaleString('es-ES')+'. <a href="#" onclick="openPlans();return false">Ver planes</a></div>';
+  if(!s.name)h+='<div class="warnbox">💡 Pon el nombre de la tienda en «Tienda» para que salga en el certificado.</div>';
+  $('#sumBox').innerHTML=h;
+}
+async function sha(text){
+  try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+  catch(e){let h1=0x811c9dc5,h2=0x1234567;for(let i=0;i<text.length;i++){h1=Math.imul(h1^text.charCodeAt(i),16777619);h2=Math.imul(h2^text.charCodeAt(i),2246822507)}return ((h1>>>0).toString(16)+(h2>>>0).toString(16)).padStart(16,'0')}
+}
+let lastDraw=null;
+async function startDraw(){
+  if(!result){analyze(false)}
+  if(!result||!result.people.length){toast('No hay participantes válidos');go('part');return}
+  const ex=extraInfo();
+  if(ex&&!ex.why){toast('Escribe el motivo de las papeletas extra (en «Sorteo»): se publica con el resultado');go('sorteo');setTimeout(()=>$('#extraWhy').focus(),300);return}
+  const lim=planLimit();
+  if(result.total>lim){
+    openPlans(false,'Este sorteo tiene <b>'+result.total.toLocaleString('es-ES')+' comentarios</b> y tu plan '+PLANS[myPlan().plan].n+' permite '+limTxt(lim)+'. Elige un plan para hacerlo:');
+    buyPlan=result.total<=2000?'S':result.total<=5000?'C':'A';renderPlans();return;
+  }
+  const pool=result.tickets.slice();
+  const order=[], taken=new Set(), want=Math.min(cfg.winners+cfg.alts,result.people.length);
+  while(order.length<want){
+    const left=pool.filter(u=>!taken.has(u)); if(!left.length)break;
+    const u=left[rnd(left.length)]; taken.add(u); order.push(u);
+  }
+  const disp=u=>at((result.people.find(p=>normU(p.u)===u)||{u}).u);
+  const s=cur();
+  const date=new Date();
+  const listHash=await sha(result.tickets.slice().sort().join(','));
+  const code=(await sha(listHash+'|'+date.toISOString()+'|'+order.join(','))).slice(0,10).toUpperCase();
+  lastDraw={fmt:true,src:cfg.src,id:'d'+date.getTime(),date:date.toISOString(),shop:{name:s.name,handle:s.handle,logo:s.logo,color:s.color},net:cfg.net,prize:cfg.prize,postUrl:cfg.postUrl,
+    winners:order.slice(0,cfg.winners).map(disp),alts:order.slice(cfg.winners).map(disp),people:result.people.length,tickets:result.tickets.length,comments:result.total,
+    rules:{minMent:cfg.minMent,multi:cfg.multi,maxTk:cfg.maxTk,word:cfg.needWord.trim()},extra:ex?{n:ex.n,why:ex.why,accounts:(result.extraGot||[]).map(u=>at(u))}:null,list:listHash.slice(0,16).toUpperCase(),code};
+  const hist=load(K.hist,[]);hist.unshift(lastDraw);if(hist.length>60)hist.length=60;store(K.hist,hist);
+  runLive(lastDraw,result.people.map(p=>at(p.u)));
+}
+
+/* ============ pantalla en directo ============ */
+let liveStop=false, liveDraw=null;
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+async function runLive(d,names){
+  liveStop=false;liveDraw=d;
+  $('#liveDemo').style.display=d.demo?'block':'none';
+  $('#liveDemo').textContent=d.demo?(d.demo==='rig'?'⚠️ DEMOSTRACIÓN · SORTEO TRUCADO A PROPÓSITO · NO VÁLIDO':'🎓 DEMOSTRACIÓN · SORTEO JUSTO PARA COMPARAR · NO VÁLIDO'):'';
+  $('#live').classList.add('on');setLogo($('#liveLogo'),d.shop.logo,'🎁');
+  $('#liveShop').textContent=(d.shop.name?d.shop.name+' · ':'')+'Sorteo en '+netName(d.net);
+  $('#livePrize').textContent=d.prize?'🎁 '+d.prize:'';
+  $('#liveWins').innerHTML='';$('#liveDone').style.display='none';$('#reel').textContent='';$('#liveMsg').textContent=d.people+' participantes';
+  for(const n of [3,2,1]){if(liveStop)return;$('#count').textContent=n;beep(520+n*80,.12);vib(40);await wait(850)}
+  $('#count').textContent='';
+  const all=d.winners.map((w,i)=>({w,i,alt:false})).concat(d.alts.map((w,i)=>({w,i,alt:true})));
+  for(const x of all){
+    if(liveStop)return;
+    $('#liveMsg').textContent=x.alt?('Suplente '+(x.i+1)):(d.winners.length>1?('Ganador/a '+(x.i+1)):'Y el ganador/a es…');
+    await spin(names,fw(d,x.w),x.alt?1400:2600);
+    if(liveStop)return;
+    if(!x.alt){confetti();tada();vib([60,40,120])}else beep(700,.15);
+    const div=document.createElement('div');if(x.alt)div.className='s';
+    div.textContent=(x.alt?'Suplente '+(x.i+1)+': ':'🏆 ')+fw(d,x.w);$('#liveWins').appendChild(div);
+    await wait(x.alt?500:1300);
+  }
+  $('#reel').textContent='';$('#liveMsg').textContent='¡Enhorabuena! 🎉';
+  $('#liveDone').style.display='block';
+  showLast();
+}
+async function spin(names,final,ms){
+  const reel=$('#reel');reel.classList.remove('final');const t0=Date.now();let delay=45;
+  while(Date.now()-t0<ms){if(liveStop)return;reel.textContent=names[rnd(names.length)];tick();await wait(delay);delay=Math.min(delay*1.06,260)}
+  reel.textContent=final;void reel.offsetWidth;reel.classList.add('final');
+}
+function closeLive(){liveStop=true;$('#live').classList.remove('on');showLast()}
+
+/* sonidos y confeti */
+let AC;function ac(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){}return AC}
+function beep(f,d,type){const a=ac();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.type=type||'sine';o.frequency.value=f;g.gain.setValueAtTime(.18,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);o.connect(g).connect(a.destination);o.start();o.stop(a.currentTime+d)}
+function tick(){beep(1200,.025,'square')}
+function tada(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,.35,'triangle'),i*110))}
+function confetti(){
+  const cv=$('#fx'),x=cv.getContext('2d');cv.width=innerWidth;cv.height=innerHeight;
+  const cols=['#FFD60A','#FF5E7E','#7B2FF7','#34D399','#38BDF8','#fff',getComputedStyle(document.documentElement).getPropertyValue('--c2')];
+  const P=Array.from({length:170},()=>({x:cv.width/2,y:cv.height*.45,vx:(Math.random()-.5)*16,vy:-Math.random()*16-4,s:Math.random()*8+4,r:Math.random()*6,vr:(Math.random()-.5)*.3,c:cols[Math.floor(Math.random()*cols.length)]}));
+  const t0=Date.now();(function f(){x.clearRect(0,0,cv.width,cv.height);P.forEach(p=>{p.vy+=.4;p.vx*=.99;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);x.restore()});if(Date.now()-t0<3200)requestAnimationFrame(f);else x.clearRect(0,0,cv.width,cv.height)})();
+}
+
+/* ============ resultado y certificado ============ */
+function fmtDate(iso){const d=new Date(iso);return d.toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'})+' · '+d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}
+function resultHtml(d){
+  return d.winners.map((w,i)=>'<div class="winner"><span class="medal">'+(['🥇','🥈','🥉'][i]||'🏆')+'</span><div style="flex:1;min-width:0"><small>Ganador/a'+(d.winners.length>1?' '+(i+1):'')+'</small><b>'+esc(fw(d,w))+'</b></div><button class="btn ghost small" style="flex:none;padding:6px 9px" onclick="replaceWinner('+i+')" title="No contesta">🔁</button></div>').join('')
+   +((d.replaced||[]).length?'<p class="hint" style="margin:4px 0 8px">🔁 '+d.replaced.map(r=>esc(fw(d,r.out))+' → '+esc(fw(d,r.in))).join(' · ')+'</p>':'')
+   +d.alts.map((w,i)=>'<div class="winner alt"><span class="medal" style="font-size:22px">🎟️</span><div><small>Suplente '+(i+1)+'</small><b style="font-size:16px">'+esc(fw(d,w))+'</b></div></div>').join('')
+   +'<p class="hint" style="margin:10px 0 0">'+fmtDate(d.date)+' · '+d.people+' participantes · Código <span class="code">'+d.code+'</span></p>'
+   +'<div class="btns"><button class="btn main" onclick="showResultSheet(lastDraw)">🏆 Certificado</button><button class="btn sec" onclick="replay()">▶️ Ver otra vez</button></div>';
+}
+/* El ganador no contesta: pasa el primer suplente (o se sortea uno nuevo si no quedan) */
+function replaceWinner(i){
+  const d=lastDraw;if(!d)return;const out=d.winners[i];
+  let nw=null;
+  if(d.alts.length){if(!confirm('¿'+fw(d,out)+' no ha contestado? El primer suplente, '+fw(d,d.alts[0])+', pasa a ser ganador/a.'))return;nw=d.alts.shift()}
+  else{
+    if(!result){toast('No quedan suplentes. Vuelve a recoger los comentarios para sortear uno nuevo.');return}
+    const used=new Set(d.winners.concat(d.alts,(d.replaced||[]).map(r=>r.out)).map(w=>normU(fw(d,w))));
+    const pool=result.tickets.filter(u=>!used.has(u));
+    if(!pool.length){toast('No quedan más participantes');return}
+    if(!confirm('¿'+fw(d,out)+' no ha contestado? No quedan suplentes: se sortea uno nuevo entre el resto.'))return;
+    const u=pool[rnd(pool.length)];nw=at((result.people.find(p=>normU(p.u)===u)||{u}).u);
+  }
+  d.winners[i]=nw;d.replaced=(d.replaced||[]).concat([{out,in:nw,date:new Date().toISOString()}]);
+  const hist=load(K.hist,[]);const k=hist.findIndex(h=>h.id===d.id);if(k>=0){hist[k]=d;store(K.hist,hist)}
+  confetti();tada();toast('🏆 Nuevo ganador/a: '+fw(d,nw));showLast();
+}
+function showLast(){if(!lastDraw)return;$('#lastCard').style.display='';$('#lastBox').innerHTML=resultHtml(lastDraw);renderHist()}
+function replay(){if(lastDraw&&result)runLive(lastDraw,result.people.map(p=>at(p.u)));else if(lastDraw)runLive(lastDraw,lastDraw.winners.concat(lastDraw.alts).map(w=>fw(lastDraw,w)))}
+let certData=null, certDraw=null;
+let certFmt='post';
+function showResultSheet(d){if(!d)return;certDraw=d;renderCertImg();$('#mCert').classList.add('on')}
+function renderCertImg(){certData=certFmt==='story'?drawStory(certDraw):drawCert(certDraw);$('#certImg').src=certData;$$('#certFmt button').forEach(b=>b.classList.toggle('on',b.dataset.v===certFmt))}
+$$('#certFmt button').forEach(b=>b.onclick=()=>{certFmt=b.dataset.v;renderCertImg()});
+/* Imagen vertical para historias (1080×1920) con el certificado dentro */
+function drawStory(d){
+  const W=1080,H=1920,cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');
+  const c=COLORS[d.shop.color]||COLORS[0];
+  const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,c[0]);g.addColorStop(1,c[1]);x.fillStyle=g;x.fillRect(0,0,W,H);
+  x.globalAlpha=.14;x.fillStyle='#fff';for(let i=0;i<40;i++){const r=(i*29%50)+6;x.beginPath();x.arc((i*233)%W,(i*389)%H,r,0,7);x.fill()}x.globalAlpha=1;
+  x.textAlign='center';x.fillStyle='#fff';
+  x.font='900 86px system-ui,sans-serif';x.fillText('¡TENEMOS',W/2,190);
+  x.fillText(d.winners.length>1?'GANADORES!':'GANADOR/A!',W/2,290);
+  const im=certCanvas(d);
+  const sc=.86,cw=1080*sc,ch=1350*sc;
+  try{x.save();x.shadowColor='rgba(0,0,0,.25)';x.shadowBlur=40;x.drawImage(im,(W-cw)/2,360,cw,ch);x.restore()}catch(e){}
+  x.font='700 40px system-ui,sans-serif';x.fillText('🎉 ¡Enhorabuena! 🎉',W/2,360+ch+90);
+  if(d.shop.handle){x.font='600 36px system-ui,sans-serif';x.globalAlpha=.9;x.fillText('@'+d.shop.handle,W/2,360+ch+150);x.globalAlpha=1}
+  return cv.toDataURL('image/png');
+}
+function wrap(x,text,maxW){const words=String(text).split(' ');const lines=[];let l='';words.forEach(w=>{const t=l?l+' '+w:w;if(x.measureText(t).width>maxW&&l){lines.push(l);l=w}else l=t});if(l)lines.push(l);return lines}
+function fitFont(x,text,maxW,size,weight){do{x.font=weight+' '+size+'px system-ui,sans-serif';size-=2}while(x.measureText(text).width>maxW&&size>18);}
+function rr(x,X,Y,W,H,R){x.beginPath();x.moveTo(X+R,Y);x.arcTo(X+W,Y,X+W,Y+H,R);x.arcTo(X+W,Y+H,X,Y+H,R);x.arcTo(X,Y+H,X,Y,R);x.arcTo(X,Y,X+W,Y,R);x.closePath()}
+function drawCert(d){return certCanvas(d).toDataURL('image/png')}
+function certCanvas(d){
+  const W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');
+  const c=COLORS[d.shop.color]||COLORS[0];
+  const g=x.createLinearGradient(0,0,W,H);g.addColorStop(0,c[0]);g.addColorStop(1,c[1]);x.fillStyle=g;x.fillRect(0,0,W,H);
+  // destellos
+  x.globalAlpha=.12;x.fillStyle='#fff';for(let i=0;i<26;i++){const r=(i*37%60)+8;x.beginPath();x.arc((i*211)%W,(i*347)%H,r,0,7);x.fill()}x.globalAlpha=1;
+  rr(x,60,60,W-120,H-120,48);x.fillStyle='#fff';x.fill();
+  x.textAlign='center';x.fillStyle='#1E1B3A';
+  // logo
+  const LY=110,LS=150;
+  x.save();x.beginPath();x.arc(W/2,LY+LS/2,LS/2,0,7);x.closePath();const lg=x.createLinearGradient(0,LY,0,LY+LS);lg.addColorStop(0,c[0]);lg.addColorStop(1,c[1]);x.fillStyle=lg;x.fill();x.clip();
+  if(d.shop.logo&&logoCache[d.shop.logo]&&logoCache[d.shop.logo].complete)x.drawImage(logoCache[d.shop.logo],W/2-LS/2,LY,LS,LS);
+  else{x.font='80px system-ui';x.textBaseline='middle';x.fillText('🎁',W/2,LY+LS/2+4);x.textBaseline='alphabetic'}
+  x.restore();
+  let y=LY+LS+62;
+  fitFont(x,d.shop.name||'Sorteo',W-220,52,'800');x.fillStyle='#1E1B3A';x.fillText(d.shop.name||'Sorteo',W/2,y);
+  y+=42;x.font='600 28px system-ui,sans-serif';x.fillStyle='#6B6790';
+  x.fillText((d.shop.handle?'@'+d.shop.handle+' · ':'')+(d.src==='live'?'Sorteo en directo de ':'Sorteo en ')+netName(d.net),W/2,y);
+  if(d.prize){y+=66;x.font='700 34px system-ui,sans-serif';x.fillStyle=c[0];wrap(x,'🎁 '+d.prize,W-240).slice(0,2).forEach(l=>{x.fillText(l,W/2,y);y+=44});y-=44}
+  y+=70;x.font='900 40px system-ui,sans-serif';x.fillStyle='#1E1B3A';x.fillText(d.winners.length>1?'🏆 GANADORES 🏆':'🏆 GANADOR/A 🏆',W/2,y);
+  y+=24;
+  const nW=d.winners.length, big=nW<=2?60:nW<=4?46:nW<=6?36:28, boxH=big+38;
+  d.winners.slice(0,10).forEach((w,i)=>{
+    rr(x,130,y,W-260,boxH,26);const bg=x.createLinearGradient(130,0,W-130,0);bg.addColorStop(0,'#FFF6D6');bg.addColorStop(1,'#FFE7F1');x.fillStyle=bg;x.fill();
+    fitFont(x,fw(d,w),W-340,big,'900');x.fillStyle='#1E1B3A';x.fillText(fw(d,w),W/2,y+boxH/2+big*.36);y+=boxH+14;
+  });
+  if(d.alts.length){y+=22;x.font='700 26px system-ui,sans-serif';x.fillStyle='#6B6790';x.fillText('SUPLENTES',W/2,y);y+=40;
+    x.font='600 28px system-ui,sans-serif';x.fillStyle='#1E1B3A';wrap(x,d.alts.map((a,i)=>(i+1)+'. '+fw(d,a)).join('   '),W-220).slice(0,3).forEach(l=>{x.fillText(l,W/2,y);y+=38})}
+  // pie
+  const fy=H-200;x.strokeStyle='#E6E2F5';x.lineWidth=2;x.beginPath();x.moveTo(130,fy);x.lineTo(W-130,fy);x.stroke();
+  x.font='600 26px system-ui,sans-serif';x.fillStyle='#6B6790';
+  x.fillText(fmtDate(d.date),W/2,fy+46);
+  x.fillText(d.people+' participantes · '+d.tickets+' papeletas · '+d.comments+' comentarios',W/2,fy+84);
+  x.font='700 24px ui-monospace,Menlo,monospace';x.fillStyle=c[0];x.fillText('Código de comprobación: '+d.code,W/2,fy+122);
+  if((d.replaced||[]).length){x.font='600 22px system-ui,sans-serif';x.fillStyle='#6B6790';x.fillText('Sustituido por no contestar: '+d.replaced.map(r=>fw(d,r.out)+' → '+fw(d,r.in)).join(', '),W/2,fy-24)}
+  if(d.extra&&d.extra.accounts&&d.extra.accounts.length){x.font='600 22px system-ui,sans-serif';x.fillStyle='#6B6790';
+    const lines=wrap(x,'🎟️ +'+d.extra.n+' papeletas extra '+d.extra.why+': '+d.extra.accounts.join(', '),W-260).slice(0,2);
+    lines.forEach((l,i)=>x.fillText(l,W/2,fy-((d.replaced||[]).length?58:24)-(lines.length-1-i)*28))}
+  if(d.demo){
+    // tapar el código y marcar todo como demostración
+    x.fillStyle='#fff';x.fillRect(130,fy+98,W-260,34);
+    x.font='800 24px system-ui,sans-serif';x.fillStyle='#E5484D';x.fillText('DEMOSTRACIÓN · SIN CÓDIGO · NO ES UN SORTEO REAL',W/2,fy+122);
+    x.save();x.translate(W/2,H/2);x.rotate(-Math.PI/7);x.globalAlpha=.16;x.fillStyle='#E5484D';x.font='900 92px system-ui,sans-serif';
+    x.fillText(d.demo==='rig'?'TRUCADO':'DEMOSTRACIÓN',0,-60);x.font='900 64px system-ui,sans-serif';x.fillText('NO VÁLIDO',0,40);x.restore();
+    rr(x,60,60,W-120,70,0);x.fillStyle='#E5484D';x.fillRect(60,60,W-120,62);
+    x.fillStyle='#fff';x.font='900 30px system-ui,sans-serif';x.fillText(d.demo==='rig'?'⚠️ DEMOSTRACIÓN · SORTEO TRUCADO A PROPÓSITO':'🎓 DEMOSTRACIÓN · SORTEO JUSTO PARA COMPARAR',W/2,101);
+    if(d.demo==='rig'&&d.rig){x.font='700 22px system-ui,sans-serif';x.fillStyle='#E5484D';x.fillText('Papeletas trucadas: '+d.rig.map(r=>r.u+' ('+r.n.toLocaleString('es-ES')+')').join(', '),W/2,fy-24)}
+  }
+  return cv;
+}
+const logoCache={};
+function preloadLogos(){[...shops.map(s=>s.logo),...load(K.hist,[]).map(h=>h.shop.logo)].forEach(src=>{if(src&&!logoCache[src]){const im=new Image();im.src=src;logoCache[src]=im}})}
+function resText(d){
+  if(d.demo)return '⚠️ DEMOSTRACIÓN PARA CLASE: '+(d.demo==='rig'?'sorteo trucado a propósito':'sorteo justo para comparar')+'. NO es un sorteo real ni tiene premio.\n\n'+(d.rig&&d.demo==='rig'?'Papeletas trucadas: '+d.rig.map(r=>r.u+' ('+r.n+')').join(', ')+'\n':'')+'Resultado de la demostración: '+d.winners.join(', ');
+  let t='🎉 ¡Ya tenemos '+(d.winners.length>1?'ganadores':'ganador/a')+' del sorteo'+(d.shop.name?' de '+d.shop.name:'')+'! 🎉\n';
+  if(d.prize)t+='🎁 Premio: '+d.prize+'\n';t+='\n';
+  d.winners.forEach((w,i)=>t+='🏆 '+(d.winners.length>1?(i+1)+'. ':'')+fw(d,w)+'\n');
+  if(d.alts.length)t+='\nSuplentes: '+d.alts.map(a=>fw(d,a)).join(', ')+'\n';
+  if((d.replaced||[]).length)t+='\n(Sustituido por no contestar: '+d.replaced.map(r=>fw(d,r.out)+' → '+fw(d,r.in)).join(', ')+')\n';
+  if(d.extra&&d.extra.accounts&&d.extra.accounts.length)t+='\n🎟️ Papeletas extra (+'+d.extra.n+' '+d.extra.why+'): '+d.extra.accounts.join(', ')+'\n';
+  t+='\nEscríbenos por mensaje privado para recoger tu premio 💌\n¡Gracias a los '+d.people+' participantes! ❤️\n\nSorteo realizado el '+fmtDate(d.date)+'\nCódigo de comprobación: '+d.code;
+  return t;
+}
+function copyText(){
+  const t=resText(certDraw);let ok=false;
+  try{if(APP&&APP.copy){APP.copy(t);ok=true}}catch(e){}
+  if(!ok){try{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();ok=document.execCommand('copy');ta.remove()}catch(e){}}
+  if(!ok)try{navigator.clipboard.writeText(t);ok=true}catch(e){}
+  toast(ok?'📝 Texto copiado: pégalo en tu publicación':'No se pudo copiar');
+}
+function fileName(){return (certDraw.demo?'DEMO_':'')+(certFmt==='story'?'historia_':'sorteo_')+(certDraw.shop.name||'tienda').replace(/[^A-Za-z0-9]+/g,'_')+'_'+certDraw.code+'.png'}
+function saveCert(){
+  if(APP&&APP.saveImage){try{APP.saveImage(certData,fileName());return}catch(e){}}
+  const a=document.createElement('a');a.href=certData;a.download=fileName();document.body.appendChild(a);a.click();a.remove();toast('💾 Imagen descargada');
+}
+async function shareCert(){
+  if(APP&&APP.shareImage){try{APP.shareImage(certData,fileName(),resText(certDraw));return}catch(e){}}
+  try{const b=await (await fetch(certData)).blob();const f=new File([b],fileName(),{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],text:resText(certDraw)});return}}catch(e){if(e&&e.name==='AbortError')return}
+  saveCert();
+}
+
+/* ============ modo demostración (para clase) ============ */
+let demoRig=[];
+function openDemo(){
+  if(!result)analyze(false);
+  if(!result||!result.people.length){toast('Primero carga comentarios en «Participantes»');go('part');return}
+  $('#demoList').innerHTML=result.people.slice(0,500).map(p=>'<option value="'+esc(at(p.u))+'">').join('');
+  demoRig=demoRig.filter(r=>result.people.some(p=>normU(p.u)===normU(r.u)));
+  renderDemo();$('#demoSimBox').innerHTML='';$('#mDemo').classList.add('on');
+}
+function demoAdd(){
+  const u=normU($('#demoAcc').value),n=Math.max(1,Math.min(1000000,parseInt($('#demoN').value)||1));
+  const p=result.people.find(q=>normU(q.u)===u);
+  if(!p){toast('Esa cuenta no está entre los participantes');return}
+  demoRig=demoRig.filter(r=>normU(r.u)!==u);demoRig.push({u:at(p.u),n});$('#demoAcc').value='';renderDemo();$('#demoSimBox').innerHTML='';
+}
+function demoWeights(rig){
+  const w=new Map();result.people.forEach(p=>w.set(normU(p.u),p.n+(p.x||0)));
+  if(rig)demoRig.forEach(r=>w.set(normU(r.u),r.n));
+  return w;
+}
+function pct(w,u){let t=0;w.forEach(v=>t+=v);return w.get(u)/t*100}
+function fmtPct(v){return (v<0.1&&v>0?'<0,1':v.toFixed(1).replace('.',','))+' %'}
+function renderDemo(){
+  if(!demoRig.length){$('#demoTable').innerHTML='<p class="hint" style="margin:8px 0 0">Añade una cuenta para ver cómo cambian las opciones.</p>';return}
+  const fair=demoWeights(false),rig=demoWeights(true);
+  const others=(w)=>{let t=0,o=0;w.forEach((v,k)=>{t+=v;if(!demoRig.some(r=>normU(r.u)===k))o+=v});return o/t*100};
+  $('#demoTable').innerHTML='<div class="list" style="margin-top:10px">'+demoRig.map(r=>{const u=normU(r.u),a=pct(fair,u),b=pct(rig,u);
+    return '<div class="it"><div style="flex:1"><div class="u">'+esc(r.u)+' · '+r.n.toLocaleString('es-ES')+' papeletas <button class="x" style="width:24px;height:24px;font-size:12px;margin-left:6px" onclick="demoRig=demoRig.filter(x=>x.u!==\''+esc(r.u).replace(/'/g,"\\'")+'\');renderDemo()">✕</button></div>'
+     +'<div class="t">Justo: '+fmtPct(a)+' → Trucado: <b style="color:#E5484D">'+fmtPct(b)+'</b></div>'
+     +'<div class="demoBar"><div style="width:'+Math.max(1,a)+'%;background:var(--ok)"></div></div><div class="demoBar"><div style="width:'+Math.max(1,b)+'%;background:#E5484D"></div></div></div></div>'}).join('')
+   +'<div class="it"><div style="flex:1"><div class="u">Todos los demás ('+(result.people.length-demoRig.length)+' personas)</div><div class="t">Justo: '+fmtPct(others(fair))+' → Trucado: <b style="color:#E5484D">'+fmtPct(others(rig))+'</b></div></div></div></div>';
+}
+function weightedPick(w,skip){
+  let t=0;w.forEach((v,k)=>{if(!skip.has(k))t+=v});if(!t)return null;
+  let r=rnd(Math.min(t,4294967295));for(const [k,v] of w){if(skip.has(k))continue;if(r<v)return k;r-=v}return null;
+}
+function demoSim(){
+  if(!demoRig.length){toast('Añade primero una cuenta');return}
+  const N=1000,fair=demoWeights(false),rig=demoWeights(true),cF={},cR={};
+  for(let i=0;i<N;i++){const a=weightedPick(fair,new Set()),b=weightedPick(rig,new Set());cF[a]=(cF[a]||0)+1;cR[b]=(cR[b]||0)+1}
+  const rows=demoRig.map(r=>({u:r.u,f:cF[normU(r.u)]||0,r:cR[normU(r.u)]||0}));
+  const oF=N-rows.reduce((a,x)=>a+x.f,0),oR=N-rows.reduce((a,x)=>a+x.r,0);
+  $('#demoSimBox').innerHTML='<div class="card" style="margin:10px 0 0;box-shadow:none"><b style="font-size:14px">De 1.000 sorteos, cuántas veces gana…</b>'
+   +rows.concat([{u:'Todos los demás',f:oF,r:oR}]).map(x=>'<div class="it"><div style="flex:1"><div class="u">'+esc(x.u)+'</div><div class="t">Justo: <b>'+x.f+'</b> veces · Trucado: <b style="color:#E5484D">'+x.r+'</b> veces</div>'
+     +'<div class="demoBar"><div style="width:'+Math.max(.5,x.f/10)+'%;background:var(--ok)"></div></div><div class="demoBar"><div style="width:'+Math.max(.5,x.r/10)+'%;background:#E5484D"></div></div></div></div>').join('')
+   +'<p class="hint" style="margin:8px 0 0">Verde = sorteo justo · Rojo = sorteo trucado</p></div>';
+}
+function demoRun(rigged){
+  if(rigged&&!demoRig.length){toast('Añade primero una cuenta con papeletas');return}
+  const w=demoWeights(rigged),skip=new Set(),order=[],want=Math.min(cfg.winners+cfg.alts,result.people.length);
+  while(order.length<want){const k=weightedPick(w,skip);if(k==null)break;skip.add(k);order.push(k)}
+  const disp=u=>at((result.people.find(p=>normU(p.u)===u)||{u}).u),s=cur();
+  const d={demo:rigged?'rig':'fair',fmt:true,src:cfg.src,id:'demo'+Date.now(),date:new Date().toISOString(),shop:{name:s.name,handle:s.handle,logo:s.logo,color:s.color},net:cfg.net,prize:cfg.prize,
+    winners:order.slice(0,cfg.winners).map(disp),alts:order.slice(cfg.winners).map(disp),people:result.people.length,tickets:[...w.values()].reduce((a,b)=>a+b,0),comments:result.total,code:'DEMO',rig:rigged?demoRig.slice():null};
+  closeM('mDemo');runLive(d,result.people.map(p=>at(p.u)));   // no se guarda en el historial
+}
+
+/* ============ bases del sorteo ============ */
+function basesText(){
+  const s=cur(),shop=s.name||'[NOMBRE DE LA TIENDA]',h=s.handle?'@'+normU(s.handle):'[@cuenta]';
+  const net=netName(cfg.net),end=cfg.endAt?new Date(cfg.endAt):null;
+  const fEnd=end?end.toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'})+' a las '+end.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}):'[FECHA Y HORA DE FIN]';
+  const scope={es:'residentes en España',pen:'residentes en la España peninsular',eu:'residentes en la Unión Europea',all:'cualquier persona, sea cual sea su país',shop:'cualquier persona que pueda recoger el premio en la tienda'}[cfg.scope||'es'];
+  const req=[];
+  req.push('Seguir la cuenta '+h+' en '+net+'.');
+  req.push(cfg.src==='live'?'Comentar durante el directo'+(cfg.liveWho==='word'&&cfg.liveWord.trim()?' escribiendo «'+cfg.liveWord.trim()+'»':'')+'.':'Comentar la publicación del sorteo'+(cfg.minMent?' mencionando a '+cfg.minMent+' '+(cfg.minMent>1?'amigos/as':'amigo/a')+(cfg.uniqMent?' distintos':''):'')+(cfg.needWord.trim()?' e incluyendo «'+cfg.needWord.trim()+'»':'')+'.');
+  const tk=cfg.src==='live'?cfg.liveMulti:cfg.multi;
+  req.push(tk?('Cada comentario válido es una participación'+(cfg.maxTk>100?'':' (máximo '+cfg.maxTk+' por persona)')+'.'):'Cada persona participa una sola vez, aunque comente varias veces.');
+  const ex=extraInfo();
+  if(ex)req.push('Papeletas extra: '+(ex.why?'por '+ex.why.replace(/^por /i,'')+', ':'')+'estas cuentas tienen '+ex.n+' '+(ex.n>1?'papeletas':'papeleta')+' más (si participan): '+ex.accounts.map(a=>'@'+a).join(', ')+'.');
+  let t='BASES DEL SORTEO — '+shop.toUpperCase()+'\n\n';
+  t+='1. Organizador\nEl sorteo lo organiza '+shop+' ('+h+' en '+net+').\n\n';
+  t+='2. Premio\n'+(cfg.prize||'[PREMIO]')+'. Habrá '+cfg.winners+' '+(cfg.winners>1?'ganadores/as':'ganador/a')+(cfg.alts?' y '+cfg.alts+' '+(cfg.alts>1?'suplentes':'suplente'):'')+'. El premio no se puede cambiar por dinero.\n\n';
+  t+='3. Fechas\nSe puede participar desde la publicación del sorteo hasta el '+fEnd+'. Los comentarios posteriores no cuentan.\n\n';
+  t+='4. Quién puede participar\nPueden participar '+scope+', mayores de 18 años (o menores con permiso de su madre, padre o tutor). No pueden participar las personas que trabajan en '+shop+' ni sus familiares directos.\n\n';
+  t+='5. Cómo participar\n'+req.map(r=>'• '+r).join('\n')+'\nNo cuentan los perfiles falsos, las cuentas creadas solo para sorteos ni las menciones a cuentas que no existen o a marcas.\n\n';
+  t+='6. Cómo se elige al ganador\nEl ganador se elige al azar entre todas las participaciones válidas con la app Sorteos Star, que genera un certificado con la fecha, el número de participantes y un código de comprobación. El resultado se publicará en '+h+'.\n\n';
+  t+='7. Comunicación y entrega\nContactaremos con el ganador por mensaje privado desde '+h+'. Si no responde en 48 horas, el premio pasará al primer suplente, y así sucesivamente. '+(cfg.scope==='shop'?'El premio se recoge en la tienda.':'El envío del premio es gratuito.')+'\n\n';
+  t+='8. Datos personales\nLos datos de los participantes solo se usarán para gestionar este sorteo y contactar con el ganador, y no se cederán a nadie.\n\n';
+  t+='9. '+net+'\nEste sorteo no está patrocinado, avalado ni administrado por '+net+(cfg.net==='ig'?' ni por Meta':'')+', ni está asociado a '+(cfg.net==='ig'?'ellos':'esa red social')+'. Cada participante libera a '+net+' de toda responsabilidad.\n\n';
+  t+='10. Aceptación\nParticipar en el sorteo supone aceptar estas bases. '+shop+' puede descalificar a quien haga trampas o no cumpla las bases.';
+  return t;
+}
+function openBases(){$('#basesTxt').value=basesText();$('#mBases').classList.add('on')}
+function copyBases(){const t=$('#basesTxt').value;let ok=false;try{if(APP&&APP.copy){APP.copy(t);ok=true}}catch(e){}
+  if(!ok){try{const ta=$('#basesTxt');ta.select();ok=document.execCommand('copy')}catch(e){}}toast(ok?'📋 Bases copiadas':'No se pudo copiar')}
+function shareBases(){const t=$('#basesTxt').value;if(APP&&APP.shareText){APP.shareText(t,'Bases del sorteo');return}if(navigator.share){navigator.share({text:t}).catch(()=>{});return}copyBases()}
+
+/* ============ planes (como AppSorteos) ============ */
+/* ✏️ Tus datos de vendedor: el WhatsApp sale en la app de las tiendas para pedirte el código */
+const VENDEDOR={whatsapp:'',pago:'Bizum, PayPal o transferencia'};
+const PLANS={F:{n:'Gratis',lim:300,m:0},S:{n:'Starter',lim:2000,m:9},C:{n:'Creator',lim:5000,m:19},A:{n:'Agency',lim:Infinity,m:49}};
+let buyPlan='S', buyPer='m';
+function myPlan(){try{if(APP&&APP.plan)return JSON.parse(APP.plan())}catch(e){}return {plan:'F'}}
+function planLimit(){return (PLANS[myPlan().plan]||PLANS.F).lim}
+function limTxt(l){return l===Infinity?'sin límite de comentarios':'hasta '+l.toLocaleString('es-ES')+' comentarios por sorteo'}
+function storePrices(){try{return JSON.parse(APP.storeProducts())}catch(e){return {}}}
+function price(k,per){
+  if(PLAY){const sp=storePrices()[k];if(sp&&sp[per])return sp[per]+(per==='y'?'/año':'/mes')}
+  const m=PLANS[k].m;return per==='y'?(m*10)+' €/año':m+' €/mes'}
+function renderPlan(){
+  const p=myPlan(),P=PLANS[p.plan]||PLANS.F;
+  let h='<div class="pname">'+(p.plan==='F'?'🆓 ':'💎 ')+P.n+'</div><p class="hint" style="margin:4px 0 0">Sorteos ilimitados, '+limTxt(P.lim)+'.'+(p.exp?(p.left<0?' Para siempre.':' Hasta el '+p.exp+'.'):'')+'</p>';
+  if(p.expired)h+='<div class="warnbox">⏰ Tu plan '+PLANS[p.expired].n+' caducó el '+p.expDate+'. Pide un código nuevo para renovarlo.</div>';
+  if(p.device)h+='<p class="hint" style="margin:10px 0 0">Código de este móvil: <span class="code">'+fmtDev(p.device)+'</span></p>';
+  if(p.store&&p.plan!=='F')h+='<p class="hint" style="margin:6px 0 0">Suscripción de Google Play: se renueva sola hasta que la canceles.</p>';
+  $('#planBox').innerHTML=h;
+  if(PLAY)$('#planBtns').innerHTML='<button class="btn sec small" onclick="openPlans()">💎 Ver planes</button>'+(p.plan!=='F'?'<button class="btn ghost small" onclick="APP.storeManage()">⚙️ Gestionar suscripción</button>':'');
+}
+function fmtDev(d){return d?d.slice(0,4)+'-'+d.slice(4):''}
+function openPlans(focusCode,why){
+  const p=myPlan();
+  $('#plansWhy').innerHTML=why?'<div class="warnbox" style="margin:0 0 10px">'+why+'</div>':'<p class="hint">Todos los planes tienen sorteos ilimitados. Lo que cambia es cuántos comentarios puede tener cada sorteo.</p>';
+  if(p.plan!=='F'&&PLANS[p.plan])buyPlan=p.plan==='A'?'A':(p.plan==='S'?'C':'A');
+  renderPlans();$('#mPlans').classList.add('on');
+  $('#codeBox').style.display=PLAY?'none':'';
+  if(focusCode&&!PLAY)setTimeout(()=>$('#codeIn').focus(),200);
+}
+function renderPlans(){
+  const cur=myPlan().plan;
+  $$('#perSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===buyPer));
+  $('#plansGrid').innerHTML=Object.keys(PLANS).map(k=>{const P=PLANS[k];
+    return '<button class="plan'+(k===buyPlan?' on':'')+(k==='F'?' free':'')+'" '+(k==='F'?'disabled':'onclick="buyPlan=\''+k+'\';renderPlans()"')+'><b>'+P.n+(k===cur?' ✓':'')+'</b><span class="pr">'+(k==='F'?'0 €':price(k,buyPer))+'</span><small>'+(P.lim===Infinity?'Sin límite':'Hasta '+P.lim.toLocaleString('es-ES'))+' comentarios</small></button>'}).join('');
+  const p=myPlan(),dev=fmtDev(p.device);
+  let h='';
+  if(PLAY){
+    h=cur===buyPlan?'<div class="warnbox" style="background:#E8F8F0;border-color:#B6EBD3;color:#0B6B45">✅ Ya tienes el plan '+PLANS[buyPlan].n+'.</div>'
+      :'<div class="btns"><button class="btn main" onclick="APP.storeBuy(buyPlan,buyPer)">💳 Suscribirme a '+PLANS[buyPlan].n+' ('+price(buyPlan,buyPer)+')</button></div><p class="hint" style="margin:6px 0 0">El pago lo hace Google Play. Puedes cancelar cuando quieras desde Google Play → Suscripciones.</p>';
+  }
+  else if(!(APP&&APP.plan)){h='<div class="warnbox">Los planes de pago solo se pueden activar en la app Android Sorteos Star.</div>'}
+  else{
+    h='<p class="hint" style="margin:6px 0 0">Para contratar <b>'+PLANS[buyPlan].n+'</b> ('+price(buyPlan,buyPer)+'): paga por '+VENDEDOR.pago+' y te mandan un código para este móvil.</p>'
+     +'<div class="big-code">'+dev+'</div><p class="hint" style="text-align:center;margin:0">Código de este móvil (mándalo al pagar)</p>'
+     +'<div class="btns">'+(VENDEDOR.whatsapp?'<button class="btn main" onclick="askCode()">💬 Pedir el código por WhatsApp</button>':'')+'<button class="btn sec" onclick="copyDev()">📋 Copiar código del móvil</button></div>';
+  }
+  $('#buyBox').innerHTML=h;
+}
+$$('#perSeg button').forEach(b=>b.onclick=()=>{buyPer=b.dataset.v;renderPlans()});
+/* La tienda avisa de que ha cambiado el plan (compra hecha, renovación o cancelación) */
+function onPlanChanged(){
+  const p=myPlan();renderPlan();renderSum();
+  if($('#mPlans').classList.contains('on')){renderPlans();if(p.plan!=='F'&&p.plan===buyPlan){closeM('mPlans');confetti();tada();toast('🎉 Plan '+PLANS[p.plan].n+' activado')}}
+}
+function buyText(){const p=myPlan();return 'Hola 👋 Quiero el plan '+PLANS[buyPlan].n+' de Sorteos Star ('+price(buyPlan,buyPer)+') para mi tienda'+(cur().name?' «'+cur().name+'»':'')+'.\nCódigo de mi móvil: '+fmtDev(p.device)}
+function askCode(){try{APP.openWhatsApp(VENDEDOR.whatsapp,buyText())}catch(e){}}
+function copyDev(){try{APP.copy(buyText());toast('📋 Copiado: mándaselo a quien te vende la app')}catch(e){}}
+function activateCode(){
+  const c=$('#codeIn').value.trim();if(!c){toast('Escribe el código');return}
+  if(!(APP&&APP.activate)){toast('Solo en la app Android');return}
+  let r={};try{r=JSON.parse(APP.activate(c))}catch(e){}
+  if(r.ok){closeM('mPlans');$('#codeIn').value='';renderPlan();renderSum();confetti();tada();toast('🎉 Plan '+PLANS[r.plan].n+' activado'+(r.exp?(r.left<0?' para siempre':' hasta el '+r.exp):''))}
+  else toast('❌ '+(r.why||'Código no válido'));
+}
+/* Modo vendedor: toca 7 veces el logo de arriba */
+let taps=0,tapT;
+$('#hLogo').addEventListener('click',()=>{if(PLAY)return;taps++;clearTimeout(tapT);tapT=setTimeout(()=>taps=0,1500);if(taps>=7){taps=0;$('#vLock').style.display='';$('#vOpen').style.display='none';$('#vPhrase').value='';$('#mVendor').classList.add('on')}});
+function vendorUnlock(){
+  let ok=false;try{ok=APP.vendorUnlock($('#vPhrase').value)}catch(e){}
+  if(!ok){toast('Frase incorrecta');return}
+  $('#vLock').style.display='none';$('#vOpen').style.display='';$('#vOut').innerHTML='';
+}
+let vPlan='S',vDur=31;
+$$('#vPlan button').forEach(b=>b.onclick=()=>{vPlan=b.dataset.v;$$('#vPlan button').forEach(x=>x.classList.toggle('on',x===b))});
+$$('#vDur button').forEach(b=>b.onclick=()=>{vDur=+b.dataset.v;$$('#vDur button').forEach(x=>x.classList.toggle('on',x===b))});
+function vendorMake(){
+  let code='';try{code=APP.makeCode($('#vDev').value,vPlan,vDur)}catch(e){}
+  if(!code){toast('Revisa el código del móvil (8 letras)');return}
+  const dur={1:'1 día',31:'1 mes',366:'1 año',32767:'para siempre'}[vDur];
+  const msg='✅ Tu código de Sorteos Star — plan '+PLANS[vPlan].n+' ('+dur+'):\n'+code+'\n\nEn la app: Tienda → Tu plan → «Tengo un código».';
+  $('#vOut').innerHTML='<div class="big-code">'+code+'</div><div class="btns"><button class="btn sec" id="vCopy">📋 Copiar mensaje para la tienda</button></div>';
+  $('#vCopy').onclick=()=>{try{APP.copy(msg);toast('📋 Copiado')}catch(e){}};
+}
+
+/* ============ historial ============ */
+function renderHist(){
+  const h=load(K.hist,[]);
+  $('#histList').innerHTML=h.length?h.map((d,i)=>'<div class="it" style="cursor:pointer" onclick="openHist('+i+')"><div style="min-width:0"><div class="u">'+esc(d.shop.name||'Sin tienda')+' · <span class="net '+d.net+'">'+netName(d.net)+'</span></div><div class="t">🏆 '+d.winners.map(w=>esc(fw(d,w))).join(', ')+'</div><div class="t">'+fmtDate(d.date)+' · '+d.people+' part. · <span class="code" style="font-size:11px">'+d.code+'</span></div></div><button class="x" onclick="event.stopPropagation();delHist('+i+')">🗑</button></div>').join(''):'<div class="empty">Todavía no has hecho ningún sorteo</div>';
+}
+function openHist(i){const d=load(K.hist,[])[i];if(d)showResultSheet(d)}
+function delHist(i){if(!confirm('¿Borrar este sorteo del historial?'))return;const h=load(K.hist,[]);h.splice(i,1);store(K.hist,h);renderHist()}
+
+/* ============ navegación ============ */
+let page='tienda';
+function go(p){
+  page=p;$$('.page').forEach(e=>e.classList.toggle('on',e.id==='p-'+p));$$('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.p===p));
+  if(p==='sortear'){if(cfg.raw.trim()&&!result)analyze(false);renderSum()}
+  if(p==='hist')renderHist();
+  scrollTo(0,0);
+}
+$$('#nav button').forEach(b=>b.onclick=()=>go(b.dataset.p));
+function openHelp(){$('#mHelp').classList.add('on')}
+function closeM(id){$('#'+id).classList.remove('on')}
+/* botón «atrás» del móvil (lo llama la app Android) */
+function onBack(){
+  if($('#live').classList.contains('on')){closeLive();return 'ok'}
+  for(const id of ['mCert','mHelp','mPlans','mVendor','mBases','mDemo'])if($('#'+id).classList.contains('on')){closeM(id);return 'ok'}
+  const order=['tienda','sorteo','part','sortear'];
+  if(page==='hist'){go('sortear');return 'ok'}
+  const i=order.indexOf(page);if(i>0){go(order[i-1]);return 'ok'}
+  return 'exit';
+}
+
+/* ============ inicio ============ */
+cfg.winners=Math.min(10,Math.max(1,cfg.winners));
+if(PLAY){$$('#liveBox .hint').forEach(e=>{e.innerHTML=e.innerHTML.replace('en la app de TikTok/Instagram','(la versión web de TikTok/Instagram, dentro de Sorteos Star)')})}
+if(!cfg.v2){cfg.v2=1;cfg.multi=true;cfg.maxTk=101;cfg.liveMulti=true;saveCfg()}  // que cuenten todos los comentarios
+if(!cfg.v3){cfg.v3=1;cfg.uniqMent=false;saveCfg()}  // repetir amigos en otro comentario también vale
+renderPlan();
+renderShops();applyTheme();renderCfg();preloadLogos();renderLinks();
+if(!(APP&&APP.collect))$('#noAppBox').style.display='';
+if(APP&&APP.lastDump)$('#dumpBtn').style.display='';
+(function(){let v='',ok=false;try{v=APP.version();ok=APP.apifyOk()}catch(e){}
+  $('#loadMode').innerHTML=APP&&APP.collect?((ok?'⚡ Carga de golpe activada':'⚠️ Carga de golpe NO activada')+(v?' · versión '+esc(v):'')):'';})();
+if(cfg.raw.trim())analyze(false);
+if(!cur().name)setTimeout(()=>toast('👋 Empieza poniendo los datos de tu tienda'),600);
+</script>
+</body>
+</html>
