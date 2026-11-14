@@ -27,6 +27,7 @@ class ComprobarActivity : Activity() {
     private lateinit var linkBox: EditText
     private lateinit var accountsBox: EditText
     private lateinit var maxBox: EditText
+    private lateinit var viewerBox: EditText
     private lateinit var status: TextView
     private lateinit var results: LinearLayout
     private lateinit var goBtn: Button
@@ -79,6 +80,13 @@ class ComprobarActivity : Activity() {
             root.addView(this)
         }
 
+        label("Cuenta con la que estás mirando en Instagram (sus comentarios no salen fiables, los de las demás sí):", 13f)
+        viewerBox = EditText(ctx).apply {
+            inputType = InputType.TYPE_CLASS_TEXT
+            hint = "p. ej. cory_gm0"
+            setText(prefs.getString("comprobar_mirando", "") ?: "")
+            root.addView(this)
+        }
         Button(ctx).apply {
             text = "▶ Comprobar gratis en Instagram"
             setOnClickListener { startFree() }
@@ -87,7 +95,8 @@ class ComprobarActivity : Activity() {
         label(
             "Se abre la publicación en Instagram. Abre los comentarios y pulsa «Empezar» en el cuadro morado: " +
                 "la app baja sola y los va leyendo. Puedes pulsar «Terminar» cuando quieras.\n" +
-                "⚠️ Mira con una cuenta que NO esté en la lista: Instagram te enseña tus propios comentarios aunque a los demás se los oculte.",
+                "⚠️ Instagram te enseña tus propios comentarios aunque a los demás se los oculte. Por eso la cuenta con la que miras sale en gris: " +
+                "para comprobarla a ella, cambia a otra cuenta y vuelve a comprobar.",
             13f
         )
         label("O con Apify (con el plan gratis de Apify solo carga 15 comentarios):", 13f)
@@ -133,7 +142,8 @@ class ComprobarActivity : Activity() {
         if (ClickService.instance == null) { toast("Primero activa el servicio de accesibilidad de Star App"); return }
         getSharedPreferences("cfg", Context.MODE_PRIVATE).edit()
             .putString("comprobar_enlace", link)
-            .putString("comprobar_cuentas", accountsBox.text.toString().trim()).apply()
+            .putString("comprobar_cuentas", accountsBox.text.toString().trim())
+            .putString("comprobar_mirando", viewerBox.text.toString().trim()).apply()
         status.text = "Leyendo en Instagram…"
         Lector.begin(this, link, accounts)
     }
@@ -238,11 +248,13 @@ class ComprobarActivity : Activity() {
             val line = StringBuilder("@$acc: se ven $n")
             if (written > 0) line.append("  ·  hoy Star App escribió $written (en todas las publicaciones)")
             if (before >= 0 && before != n) line.append("  ·  antes se veían $before" + if (n < before) " ⬇️ (han desaparecido ${before - n})" else "")
+            val viewer = fromApp && acc == viewerBox.text.toString().trim().removePrefix("@").lowercase()
+            if (viewer) line.append("  ·  es la cuenta con la que mirabas: no fiable")
             val v = TextView(this).apply {
-                text = (if (n == 0) "🔴 " else if (before > n) "🟠 " else "🟢 ") + line
+                text = (if (viewer) "⚪ " else if (n == 0) "🔴 " else if (before > n) "🟠 " else "🟢 ") + line
                 textSize = 16f
                 setPadding(0, 20, 0, 20)
-                setTextColor(if (n == 0) Color.rgb(200, 30, 30) else if (before > n) Color.rgb(220, 110, 0) else Color.rgb(20, 130, 60))
+                setTextColor(if (viewer) Color.GRAY else if (n == 0) Color.rgb(200, 30, 30) else if (before > n) Color.rgb(220, 110, 0) else Color.rgb(20, 130, 60))
                 setOnClickListener {
                     val t = texts[acc]!!
                     AlertDialog.Builder(this@ComprobarActivity).setTitle("@$acc — $n visibles")
