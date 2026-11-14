@@ -1954,6 +1954,55 @@ function nextQuestion(){
 }
 function setCat(c){ S.qcat = c; save(); renderQCats(); nextQuestion(); }
 function wakeAndPlay(){ S.pet.sleeping = false; save(); renderPet(); musicUpdate(); nextQuestion(); }
+/* ---------- explicaciones cuando se falla ---------- */
+var GLOS = [
+ [/sólid/i,'Los sólidos tienen forma fija y su volumen no cambia, como una piedra o el hielo.'],
+ [/líquid/i,'Los líquidos tienen volumen fijo, pero toman la forma del recipiente, como el agua o el zumo.'],
+ [/gase|gas\b|\bgas/i,'Los gases no tienen forma ni volumen fijos y llenan todo el recipiente, como el aire o el vapor.'],
+ [/plasma/i,'El plasma es otro estado de la materia; está en el Sol, en las estrellas y en los rayos.'],
+ [/heterog/i,'En una mezcla heterogénea SÍ se ven sus componentes a simple vista, como en una ensalada.'],
+ [/homog/i,'En una mezcla homogénea NO se ven sus componentes a simple vista, como el agua con azúcar disuelto.'],
+ [/sustancia pura|sustancias puras/i,'Una sustancia pura tiene un solo componente, como el oro o el oxígeno.'],
+ [/mezcla/i,'Una mezcla está formada por varias sustancias puras, llamadas componentes.'],
+ [/fusión/i,'La fusión es el paso de sólido a líquido, al subir la temperatura (el hielo se derrite).'],
+ [/vaporiza/i,'La vaporización es el paso de líquido a gas, al subir la temperatura (el agua hierve o se seca un charco).'],
+ [/condensa/i,'La condensación es el paso de gas a líquido, al bajar la temperatura (el espejo se empaña).'],
+ [/solidifica/i,'La solidificación es el paso de líquido a sólido, al bajar la temperatura (el agua se congela).'],
+ [/oxida/i,'La oxidación es un cambio químico: una sustancia se transforma por el oxígeno, como el hierro que se pone rojizo.'],
+ [/combusti|quema/i,'La combustión es un cambio químico: algo se quema, da luz y calor, y se convierte en cenizas y humo.'],
+ [/ferment|yogur/i,'La fermentación es un cambio químico: bacterias o levaduras transforman una sustancia, como la leche en yogur.'],
+ [/químic/i,'En un cambio químico la materia se transforma en otra distinta y no se puede recuperar.'],
+ [/físic/i,'En un cambio físico la materia sigue siendo la misma; solo cambia su forma o su estado.'],
+ [/irreversible/i,'Irreversible quiere decir que la materia no recupera su estado, como un vaso roto.'],
+ [/reversible/i,'Reversible quiere decir que la materia recupera su estado, como una goma que estiras y sueltas.'],
+ [/gravedad/i,'La gravedad es una fuerza a distancia: la Tierra atrae todo hacia su centro sin tocarlo.'],
+ [/magn|imán|imanes/i,'El magnetismo es una fuerza a distancia: los imanes atraen el hierro y el acero sin tocarlos.'],
+ [/contacto/i,'Una fuerza de contacto necesita tocar el objeto, como chutar un balón o empujar un carro.'],
+ [/distancia/i,'Una fuerza a distancia actúa sin tocar, como la gravedad o los imanes.'],
+ [/atracci/i,'Hay atracción cuando dos imanes se juntan: polos distintos (norte y sur).'],
+ [/repulsi/i,'Hay repulsión cuando dos imanes se separan: polos iguales (norte con norte o sur con sur).'],
+ [/masa/i,'La masa es la cantidad de materia. Se mide en kilogramos con básculas.'],
+ [/volumen/i,'El volumen es el espacio que ocupa un cuerpo. Se mide en litros con recipientes graduados.'],
+ [/conductor/i,'Un conductor térmico deja pasar bien el calor, como el acero o el aluminio.'],
+ [/aislante/i,'Un aislante térmico casi no deja pasar el calor, como la madera o el plástico.'],
+ [/específic/i,'Las propiedades específicas (color, dureza, conductividad) sirven para diferenciar materiales.'],
+ [/general/i,'Las propiedades generales (masa y volumen) las tiene cualquier tipo de materia.'],
+ [/dureza|duro/i,'La dureza es lo fácil o difícil que es rayar un material.'],
+ [/kilogram/i,'En kilogramos se mide la masa.'],
+ [/litro/i,'En litros se mide el volumen.'],
+ [/forma/i,'Una fuerza puede cambiar la forma de un objeto, como al aplastar plastilina.'],
+ [/movimiento/i,'Una fuerza puede mover, parar o cambiar la dirección de un objeto.']
+];
+function glosa(t){ t = String(t); for (var i = 0; i < GLOS.length; i++) if (GLOS[i][0].test(t)) return GLOS[i][1]; return ''; }
+function explainWrong(chosen, ok, fact){
+  var a = glosa(chosen), b = glosa(ok), out = [];
+  if (a && a !== b) out.push('Tú has elegido «' + chosen + '». ' + a);
+  else out.push('Tú has elegido «' + chosen + '», pero no es correcto.');
+  out.push('La respuesta correcta es «' + ok + '».');
+  if (fact) out.push(fact);
+  else if (b) out.push(b);
+  return out;
+}
 function answer(i){
   if (answered || !curQ) return;
   answered = true;
@@ -1983,13 +2032,14 @@ function answer(i){
   } else {
     btns[i].classList.add('bad'); S.stats.streak = 0; quizMood = 'triste';
     if (q.key && inWrong < 0) { S.wrong.push(q.key); if (S.wrong.length > 60) S.wrong.shift(); }
+    var ex = explainWrong(q.opts[i], q.ok, q.fact);
     var m2 = '¡Casi! La respuesta era: <b>' + q.ok + '</b>.' + (q.key ? ' Te la volveré a preguntar más adelante 📝' : '') + ' (+1 🪙)';
-    $('qtext').innerHTML = '<small>❌ ' + q.q + '</small>' + extra + m2 + fact;
-    voice = '¡Casi! La respuesta era: ' + q.ok;
+    $('qtext').innerHTML = '<small>❌ ' + q.q + '</small>' + extra + m2 + '<span class="fact">🧑‍🏫 <b>Te lo explico:</b> ' + ex.map(esc).join(' ') + '<br><button class="btn blue" style="margin-top:8px;padding:8px 12px;font-size:13px" onclick="speak(this.dataset.t)" data-t="' + esc(ex.join(' ')) + '">🔊 Explícamelo otra vez</button></span>';
+    voice = '¡Casi! ' + ex.join(' ');
     sfx('bad'); vibrate(120);
     addCoins(1); addXp(3);
   }
-  if (q.fact) voice += '. ' + q.fact;
+  if (good && q.fact) voice += '. ' + q.fact;
   speak(voice);
   if (q.sayAfter) setTimeout(function(){ speak(q.sayAfter, 'en'); }, 1500);
   if (chActive()) { S.ch.n++; if (good) S.ch.ok++; if (S.ch.n >= 5) setTimeout(finishChallenge, 900); }
@@ -2386,7 +2436,12 @@ function checkDict(k){
   var bs = $('dopts').querySelectorAll('.opt'); for (var i = 0; i < bs.length; i++) { bs[i].disabled = true; if (+bs[i].dataset.o === it.ok) bs[i].classList.add('ok'); else if (+bs[i].dataset.o === k) bs[i].classList.add('bad'); }
   var msg, voice;
   if (k === it.ok) { D.ok++; D.coins += 5; addCoins(5); addXp(5); msg = '✅ ¡Correcto! +5 🪙'; voice = pick(['¡Muy bien!', '¡Correcto!', '¡Genial!']); sfx('ok'); quizMood = 'celebra'; }
-  else { msg = '❌ No era esa.'; voice = 'Era ' + plain(it.opts[it.ok]); sfx('bad'); }
+  else {
+    var ch = plain(it.opts[k]).replace(/^(✅|❌)\s*/, ''), okt = plain(it.opts[it.ok]).replace(/^(✅|❌)\s*/, '');
+    var ex2 = D.kind === 'vf' ? ['Has dicho «' + ch + '», pero es ' + okt.toLowerCase() + '.', it.exp.replace(/^Es (falso|verdadero)\. ?/, '')] : explainWrong(ch, okt, '');
+    msg = '❌ No era esa. <span style="display:block;margin-top:6px;font-weight:600">🧑‍🏫 ' + ex2.map(esc).join(' ') + '</span><button class="btn blue" style="margin-top:8px;padding:8px 12px;font-size:13px" onclick="speak(this.dataset.t)" data-t="' + esc(ex2.join(' ')) + '">🔊 Explícamelo otra vez</button>';
+    voice = ex2.join(' '); sfx('bad');
+  }
   $('dres').innerHTML = '<div class="card" style="font-weight:700">' + msg + '<span class="fact">📘 ' + it.exp + '</span></div>';
   speak(voice); checkStickers(); checkMedals(); save();
   $('dnext').style.display = ''; $('dnext').textContent = D.i + 1 < D.list.length ? 'Siguiente ▶' : 'Ver resultado 🏆';
@@ -2452,9 +2507,9 @@ function finishExam(){
   $('etext').innerHTML = '<small>📝 Resultado del examen</small><span class="bige">' + nota + '</span>' + msg + ' Has acertado ' + ok + ' de ' + E.qs.length + '. +' + earn + ' 🪙';
   $('eopts').innerHTML = '';
   var hist = S.exams.slice().reverse().map(function(x){ return x.d + ': <b>' + x.n + '</b>'; }).join(' · ');
-  $('eres').innerHTML = (fails.length ? '<h2>❌ Para repasar (ya están en 📝 Repaso)</h2>' + fails.map(function(f){ return '<div class="card" style="font-size:14px"><b>' + f[0].q + '</b><br>Tu respuesta: ' + esc(f[1]) + '<br>✅ Correcta: <b>' + f[0].ok + '</b>' + (f[0].fact ? '<span class="fact">📘 ' + f[0].fact + '</span>' : '') + '</div>'; }).join('') : '<div class="card" style="font-weight:800">¡Ningún fallo! 🎉</div>') +
+  $('eres').innerHTML = (fails.length ? '<h2>❌ Para repasar (ya están en 📝 Repaso)</h2>' + fails.map(function(f){ return '<div class="card" style="font-size:14px"><b>' + f[0].q + '</b><br>Tu respuesta: ' + esc(f[1]) + '<br>✅ Correcta: <b>' + f[0].ok + '</b>' + '<span class="fact">🧑‍🏫 ' + explainWrong(f[1], f[0].ok, f[0].fact).map(esc).join(' ') + '</span><button class="btn blue" style="margin-top:8px;padding:8px 12px;font-size:13px" onclick="speak(this.dataset.t)" data-t="' + esc(explainWrong(f[1], f[0].ok, f[0].fact).join(' ')) + '">🔊 Escuchar explicación</button></div>'; }).join('') : '<div class="card" style="font-weight:800">¡Ningún fallo! 🎉</div>') +
     '<div class="card" style="font-size:13px">📈 Tus últimos exámenes: ' + hist + '</div><button class="btn pink big" onclick="startExam()">🔁 Otro examen</button>';
-  speak('Tu nota es ' + String(nota).replace('.', ' coma ') + '. ' + msg);
+  speak('Tu nota es ' + String(nota).replace('.', ' coma ') + '. ' + msg + (fails.length ? ' Abajo te explico los fallos. Pulsa el botón de cada uno para escucharlo.' : ''));
   sfx(nota >= 5 ? 'level' : 'bad');
   checkStickers(); checkMedals(); save();
 }
