@@ -33,6 +33,9 @@ object Lector {
     private var started = false
     private var rounds = 0
     private var sameRounds = 0
+    /** Vueltas seguidas en las que la pantalla no ha cambiado nada (= ya no baja más). */
+    private var stuckRounds = 0
+    private var lastScreen = ""
     private var accounts: Set<String> = emptySet()
     /** Comentarios leídos: clave autor|texto → (autor, texto). */
     private val seen = LinkedHashMap<String, Pair<String, String>>()
@@ -53,7 +56,7 @@ object Lector {
         val s = ClickService.instance ?: return
         stop()
         accounts = accs.map { it.lowercase().removePrefix("@") }.toSet()
-        seen.clear(); started = false; rounds = 0; sameRounds = 0; result = null
+        seen.clear(); started = false; rounds = 0; sameRounds = 0; stuckRounds = 0; lastScreen = ""; result = null
         try {
             s.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).setPackage("com.instagram.android").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         } catch (e: Exception) {
@@ -148,12 +151,16 @@ object Lector {
         val before = seen.size
         for ((u, t) in best) seen.putIfAbsent("$u|$t", u to t)
         if (seen.size == before) sameRounds++ else sameRounds = 0
+        // ¿Ha cambiado algo en la pantalla desde la última vez? Si no cambia, es que ya no baja más.
+        val screen = ArrayList<String>().also { textsOf(bestList ?: root, it) }.joinToString("\n")
+        if (screen == lastScreen) stuckRounds++ else stuckRounds = 0
+        lastScreen = screen
 
         val mine = seen.values.count { it.first in accounts }
         when {
             seen.isEmpty() && rounds > 6 -> say("No veo comentarios. ¿Has abierto los comentarios de la publicación?")
-            sameRounds >= 10 -> { say("✅ Ya están todos: ${seen.size} comentarios, $mine de tus cuentas."); finish(); return }
-            sameRounds >= 4 -> say("💬 ${seen.size} leídos · $mine de tus cuentas\nCreo que ya casi están todos…")
+            stuckRounds >= 12 -> { say("✅ He llegado al final: ${seen.size} comentarios, $mine de tus cuentas."); finish(); return }
+            stuckRounds >= 4 -> say("💬 ${seen.size} leídos · $mine de tus cuentas\nEsperando a que Instagram cargue más…")
             else -> say("💬 ${seen.size} leídos · $mine de tus cuentas\nBajando… (pulsa «Terminar» cuando quieras)")
         }
         if (!clickMore(root)) scrollDown(s, root, bestList)
@@ -177,16 +184,18 @@ object Lector {
 
     /** Baja un poco (por el lado derecho, para no tocar nombres ni enlaces). */
     private fun scrollDown(s: ClickService, root: AccessibilityNodeInfo, list: AccessibilityNodeInfo?) {
+        // Primero se le pide a la lista que baje (no toca nada de la pantalla)
+        if (list != null && list.isScrollable && list.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD) && stuckRounds < 2) return
+        // Si no baja, se desliza el dedo por el centro (un deslizamiento lento no pulsa nada)
         val box = Rect()
         (list ?: root).getBoundsInScreen(box)
-        val x = box.left + box.width() * 0.9f
-        val y1 = box.top + box.height() * 0.75f
-        val y2 = box.top + box.height() * 0.30f
+        val x = box.left + box.width() * 0.55f
+        val y1 = box.top + box.height() * 0.85f
+        val y2 = box.top + box.height() * 0.15f
         val p = Path().apply { moveTo(x, y1); lineTo(x, y2) }
-        val ok = try {
-            s.dispatchGesture(GestureDescription.Builder().addStroke(GestureDescription.StrokeDescription(p, 0, 700)).build(), null, null)
-        } catch (e: Exception) { false }
-        if (!ok) list?.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD)
+        try {
+            s.dispatchGesture(GestureDescription.Builder().addStroke(GestureDescription.StrokeDescription(p, 0, 600)).build(), null, null)
+        } catch (e: Exception) {}
     }
 
     private fun finish() {
