@@ -239,6 +239,7 @@ body:before{content:'🔬 ⚗️ 🧲 🌍 🧪 💧 🔥 ⚖️';position:fixed
   <section id="t-quiz">
     <div class="extras" id="extras"><button class="x1" data-x="dict"><b>🧪</b>Clasifica</button><button class="x2" data-x="exam"><b>📝</b>Examen</button><button class="x3" data-x="poema"><b>✅</b>¿V o F?</button></div>
     <div class="chal" id="qchal"></div>
+    <div class="chips" id="qlv" style="margin-bottom:4px"></div>
     <div class="chips" id="qcats"></div>
     <div class="qtop">
       <div class="qpet" id="qpet"></div>
@@ -1236,8 +1237,10 @@ var QCATS = [['todas', '🌟 Todo lo dado'], ['repaso', '📝 Repaso'], ['mias',
    [parte, pregunta, opciones, índice correcta, explicación] — por puntos, en el orden del libro ===== */
 var Q3 = [];
 (function(){
-const add=(p,t,opts,ok,exp)=>{const o=[...new Set(opts)];if(o.indexOf(ok)<0)return;Q3.push([p,t,[ok,...shuffle(o.filter(x=>x!==ok)).slice(0,3)],0,exp||''])};
-const L=(p,arr)=>arr.forEach(([q,ok,w,e])=>add(p,q,[ok,...w],ok,e));
+let LV=1;
+const add=(p,t,opts,ok,exp)=>{const o=[...new Set(opts)];if(o.indexOf(ok)<0)return;Q3.push([p,t,[ok,...shuffle(o.filter(x=>x!==ok)).slice(0,3)],0,exp||'',LV])};
+const LL=(lv)=>(p,arr)=>{const o=LV;LV=lv;arr.forEach(([q,ok,w,e])=>add(p,q,[ok,...w],ok,e));LV=o;};
+const L=LL(2),LE=LL(1),LH=LL(3);
 
 /* ---------- 1. LA MATERIA Y SUS PROPIEDADES (págs. 46, 48-49) ---------- */
 L('mat',[
@@ -1424,13 +1427,177 @@ L('lab',[
 ['La expresión «Más vale maña que fuerza» significa…','Que es mejor la habilidad o la inteligencia que la fuerza bruta',['Que hay que ser muy fuerte','Que la mañana es mejor','Que la fuerza es mala'],'Es una expresión relacionada con las fuerzas (pág. 43).'],
 ['En el laboratorio, para ver un cambio químico puedes…','Hacer yogur o ver un clavo oxidarse',['Derretir hielo','Arrugar papel','Estirar una goma'],'En los cambios químicos la materia se transforma.'],
 ['En el laboratorio, para ver un cambio físico puedes…','Derretir hielo o arrugar un papel',['Quemar un papel','Hacer yogur','Oxidar un clavo'],'En los cambios físicos la materia no cambia su composición.']]);
+
+/* ===================== MÁS PREGUNTAS POR NIVELES ===================== */
+/* 🟢 FÁCILES */
+LE('mat',[
+['¿Tiene masa una pelota?','Sí',['No'],'Toda la materia tiene masa.'],
+['¿Ocupa espacio el aire?','Sí',['No'],'El aire es materia: tiene masa y ocupa un volumen. Por eso infla los globos.'],
+['¿Qué aparato usas para pesarte?','Una báscula',['Una regla','Un reloj','Un imán'],'La báscula mide la masa.'],
+['¿Qué es más duro?','Un diamante',['Una esponja','Una almohada','La plastilina'],'El diamante es muy difícil de rayar.'],
+['¿De qué color es el limón del libro?','Amarillo intenso',['Azul','Verde oscuro','Negro'],'El color es una propiedad específica.'],
+['¿Qué se calienta más rápido en una olla caliente?','Una cuchara de metal',['Una cuchara de madera','Un guante de tela','Un corcho'],'El metal es conductor del calor.'],
+['¿Cuál NO es materia?','La alegría',['El agua','Una mesa','El aire'],'Los sentimientos no tienen masa ni volumen.']]);
+LE('est',[
+['¿Qué es un sólido?','Algo con forma fija, como una piedra',['Algo que se derrama','Algo invisible','Algo que flota en el aire'],'Los sólidos tienen forma fija.'],
+['¿Qué es un líquido?','Algo que toma la forma del vaso, como el agua',['Algo duro','Algo que no ocupa espacio','Un imán'],'Los líquidos se adaptan al recipiente.'],
+['¿Qué es un gas?','Algo que llena todo el espacio, como el aire',['Algo con forma fija','Algo muy pesado','Un trozo de hielo'],'Los gases ocupan todo el recipiente.'],
+['El hielo es agua en estado…','Sólido',['Líquido','Gaseoso'],'El hielo es agua sólida.'],
+['El vapor es agua en estado…','Gaseoso',['Sólido','Líquido'],'El vapor es agua en forma de gas.'],
+['¿Cuántos estados principales tiene la materia?','Tres',['Dos','Cinco','Uno'],'Sólido, líquido y gaseoso.']]);
+LE('mez',[
+['Una ensalada es…','Una mezcla',['Una sustancia pura','Un gas','Una fuerza'],'Tiene lechuga, tomate, zanahoria…'],
+['¿En cuál se ven los ingredientes?','En una macedonia de frutas',['En agua con azúcar disuelto','En un batido','En el gel de manos'],'La macedonia es heterogénea.'],
+['¿Qué le pasa al azúcar si lo remueves en agua?','Se disuelve y ya no se ve',['Se pone duro','Se convierte en hielo','Sale volando'],'Se forma una mezcla homogénea.'],
+['El oro es…','Una sustancia pura',['Una mezcla','Un líquido','Una fuerza'],'Tiene un solo componente.']]);
+LE('fis',[
+['¿Qué le pasa al hielo al sol?','Se derrite',['Se quema','Se oxida','Se hace yogur'],'Es la fusión.'],
+['¿Qué le pasa al agua en el congelador?','Se congela',['Hierve','Se evapora','Se oxida'],'Es la solidificación.'],
+['¿Qué le pasa al agua cuando hierve mucho?','Se convierte en vapor',['Se convierte en hielo','Se convierte en óxido','No le pasa nada'],'Es la vaporización.'],
+['Una goma estirada, al soltarla…','Vuelve a su forma',['Se rompe siempre','Se quema','Se derrite'],'Es un cambio reversible.'],
+['Un vaso roto…','No vuelve a estar entero',['Se arregla solo','Se convierte en agua','Vuelve a su forma'],'Es un cambio irreversible.']]);
+LE('qui',[
+['¿Qué queda al quemar un papel?','Cenizas y humo',['Papel nuevo','Agua','Hielo'],'Es una combustión.'],
+['¿Qué le sale a un clavo viejo que se moja?','Óxido',['Hielo','Yogur','Pelo'],'Es una oxidación.'],
+['¿De qué se hace el yogur?','De leche',['De agua','De zumo','De pan'],'Por fermentación.'],
+['¿Qué da el fuego?','Luz y calor',['Frío y oscuridad','Agua','Hielo'],'La combustión desprende luz y calor.']]);
+LE('fue',[
+['Si empujas un columpio, ¿qué pasa?','Se mueve',['Se derrite','Se rompe siempre','Cambia de color'],'La fuerza cambia su movimiento.'],
+['Si aprietas plastilina, ¿qué pasa?','Cambia de forma',['Se mueve sola','Se quema','Se vuelve gas'],'La fuerza cambia su forma.'],
+['¿Qué haces para parar la bici?','Frenar',['Pedalear más','Soltar el manillar','Tocar el timbre'],'El freno es una fuerza que para el movimiento.'],
+['¿Qué es empujar o tirar de algo?','Aplicar una fuerza',['Hacer una mezcla','Un cambio de estado','Un cambio químico'],'Las fuerzas son acciones.']]);
+LE('tip',[
+['¿Por qué caen las cosas al suelo?','Por la gravedad',['Por el magnetismo','Por el viento','Por la luz'],'La Tierra atrae los objetos.'],
+['¿Qué atrae un imán?','Un clip de metal',['Un lápiz de madera','Una goma de borrar','Un papel'],'Atrae el hierro y el acero.'],
+['Chutar un balón es una fuerza…','De contacto',['A distancia'],'El pie toca el balón.'],
+['La gravedad es una fuerza…','A distancia',['De contacto'],'No necesita tocar el objeto.']]);
+LE('lab',[
+['¿Qué se hace en un laboratorio?','Experimentos',['Partidos de fútbol','Fiestas','Comidas'],'Para investigar y aprender.'],
+['¿Con qué mides cuánto pesa algo?','Con una báscula',['Con una jarra','Con un imán','Con una lupa'],'La báscula mide la masa.']]);
+
+/* 🟡 NORMALES */
+L('mat',[
+['¿Qué tienen en común una piedra, el agua y el aire?','Los tres son materia: tienen masa y volumen',['Los tres son sólidos','Los tres son mezclas','Ninguno es materia'],'Aunque estén en estados distintos, todos son materia.'],
+['Un kilo de plumas y un kilo de hierro, ¿tienen la misma masa?','Sí, pero las plumas ocupan mucho más volumen',['No, el hierro tiene más masa','No, las plumas tienen más masa','No tienen masa'],'Misma masa (1 kg), distinto volumen.'],
+['¿Para qué sirven las propiedades específicas?','Para identificar y diferenciar un tipo de materia de otro',['Para medir la masa','Para saber el volumen','Para mover objetos'],'Por ejemplo, el color o la dureza.'],
+['Las asas de las ollas suelen ser de plástico o madera porque…','Son aislantes y no queman al tocarlas',['Son conductores','Son más bonitas','Pesan más'],'Los aislantes no dejan pasar el calor.']]);
+L('est',[
+['Si pasas el zumo de una jarra a un vaso, ¿qué cambia?','Su forma, pero no su volumen',['Su volumen, pero no su forma','Su forma y su volumen','Nada'],'Los líquidos tienen volumen fijo.'],
+['Si mueves un bloque de madera de sitio, ¿cambia su forma?','No, los sólidos mantienen su forma',['Sí, se adapta al sitio','Sí, se hace líquido','Depende del día'],'Lo dice la página 47.'],
+['¿Por qué el olor de un perfume llega a toda la habitación?','Porque los gases ocupan todo el espacio disponible',['Porque es un sólido','Porque es una mezcla heterogénea','Porque es un imán'],'El perfume se convierte en gas y se reparte.']]);
+L('mez',[
+['¿Cómo separarías agua y aceite?','Esperando a que se separen y quitando el aceite de arriba',['No se pueden separar','Con un imán','Congelando solo el agua'],'Es una mezcla heterogénea: el aceite flota.'],
+['¿Cómo separarías arena y agua?','Con un filtro o colador fino',['Con un imán','Soplando','Removiendo'],'La arena se queda en el filtro.'],
+['¿Cómo separarías clips de hierro mezclados con arena?','Con un imán',['Con agua','Con un colador grande','Calentándolos'],'El imán atrae el hierro.'],
+['Si dejas agua con sal al sol muchos días, ¿qué pasa?','El agua se evapora y queda la sal',['Se convierte en azúcar','No pasa nada','La sal se evapora'],'Así se obtiene la sal en las salinas.']]);
+L('fis',[
+['¿Qué ocurre con la temperatura en la condensación?','Disminuye',['Aumenta','No cambia'],'De gas a líquido al enfriarse.'],
+['¿Qué ocurre con la temperatura en la fusión?','Aumenta',['Disminuye','No cambia'],'De sólido a líquido al calentarse.'],
+['Las nubes se forman cuando el vapor de agua…','Se enfría y se condensa en gotitas',['Se calienta y se quema','Se congela de golpe','Se oxida'],'Es la condensación.'],
+['Al hervir el agua para la pasta, ¿qué cambio se produce?','Vaporización (físico)',['Combustión (químico)','Fermentación (químico)','Fusión (físico)'],'El agua pasa a vapor, sigue siendo agua.']]);
+L('qui',[
+['¿Qué necesita el hierro para oxidarse?','El oxígeno del aire (y la humedad lo acelera)',['Un imán','Mucho frío','Bacterias'],'La oxidación es la acción del oxígeno.'],
+['¿Por qué la combustión es un tipo de oxidación?','Porque también actúa el oxígeno, pero muy rápido',['Porque usa bacterias','Porque es un cambio de estado','Porque es una fuerza'],'Sin oxígeno, el fuego se apaga.'],
+['El pan sube gracias a…','La fermentación de las levaduras',['La oxidación','La gravedad','La condensación'],'Las levaduras transforman el azúcar y producen gas.']]);
+L('fue',[
+['Al chutar un balón, ¿qué cambios produce la fuerza?','Lo pone en movimiento y lo aplasta un poco',['Solo cambia su color','Lo convierte en gas','Ninguno'],'Una fuerza puede cambiar a la vez forma y movimiento.'],
+['Cuando dejas de empujar la maleta, ¿qué pasa?','Se queda quieta',['Sigue sola para siempre','Se rompe','Se eleva'],'Lo explica la página 56.']]);
+L('tip',[
+['¿Qué polos de dos imanes se atraen?','Norte con sur',['Norte con norte','Sur con sur','Ninguno'],'Polos distintos se atraen.'],
+['¿Por dónde atrae con más fuerza un imán?','Por sus polos',['Por el centro','Por igual en todas partes','No atrae'],'Los polos son las partes que atraen con más intensidad.'],
+['Una persona que salta en paracaídas cae por…','La gravedad, una fuerza a distancia',['Una fuerza de contacto','El magnetismo','La condensación'],'Ejercicio 6 de la página 59.']]);
+
+/* 🔴 DIFÍCILES */
+LH('mat',[
+['Un globo inflado y el mismo globo desinflado: ¿qué ha cambiado más?','El volumen; la masa casi no cambia',['La masa; el volumen no cambia','El color','Nada'],'El aire ocupa mucho espacio pero tiene muy poca masa.'],
+['Un vaso de agua y una piscina: ¿qué propiedad es general y cuál puede servir para diferenciar el agua de otro líquido?','Masa y volumen son generales; el color o el olor son específicas',['Masa y color son generales','Todas son específicas','Todas son generales'],'Las generales no sirven para identificar una sustancia.'],
+['¿Por qué la masa NO sirve para saber de qué material es un objeto?','Porque toda la materia tiene masa, sea del material que sea',['Porque no se puede medir','Porque solo la tienen los metales','Sí sirve siempre'],'Por eso se usan las propiedades específicas.'],
+['Quieres comprobar qué material es mejor aislante: metal, madera o plástico. ¿Qué experimento es justo?','Meter las tres cucharas a la vez en la misma agua caliente y tocar los mangos tras el mismo tiempo',['Usar agua distinta para cada una','Meterlas en días diferentes','Pesarlas'],'Un experimento justo solo cambia una cosa: el material.'],
+['Un diamante raya el vidrio, pero el vidrio no raya el diamante. ¿Qué podemos decir?','El diamante es más duro que el vidrio',['El vidrio es más duro','Tienen la misma dureza','El diamante es líquido'],'La dureza es la facilidad con que se raya un material.'],
+['¿Cuál de estas frases es correcta?','El volumen se mide en litros con recipientes graduados',['La masa se mide en litros','El volumen se mide con básculas','La dureza se mide en kilos'],'Masa: kg y báscula. Volumen: L y recipiente graduado.']]);
+LH('est',[
+['Metes aire en una jeringa y tapas la punta: puedes empujar el émbolo un poco. ¿Por qué?','Porque los gases no tienen volumen fijo y se pueden comprimir',['Porque el aire es sólido','Porque es un líquido','Porque el aire no es materia'],'Con agua no podrías: los líquidos tienen volumen fijo.'],
+['¿Qué estado tiene volumen fijo pero NO forma fija?','Líquido',['Sólido','Gaseoso','Ninguno'],'Se adapta al recipiente sin cambiar su volumen.'],
+['La arena se adapta a la forma del cubo. ¿Es un líquido?','No, cada grano es un sólido con forma fija',['Sí, es líquida','Es un gas','Es plasma'],'Muchos sólidos pequeños juntos parecen «fluir», pero cada grano es sólido.'],
+['¿Qué tienen en común un rayo y el Sol?','Están en estado de plasma',['Son sólidos','Son líquidos','Son mezclas heterogéneas'],'El plasma es el cuarto estado de la materia.'],
+['¿Por qué la mayoría de nuestros órganos son sólidos?','Para mantener su forma y hacer su función en su sitio',['Para poder evaporarse','Porque son gases','No lo son'],'Pero nuestro cuerpo también tiene mucho líquido, como la sangre.']]);
+LH('mez',[
+['Echas azúcar en agua fría y no lo remueves: se queda en el fondo. Luego lo remueves y desaparece. ¿Qué ha pasado?','Pasó de mezcla heterogénea a homogénea',['Pasó de homogénea a heterogénea','Se convirtió en sustancia pura','El azúcar desapareció de verdad'],'El azúcar sigue ahí, disuelto: por eso el agua está dulce.'],
+['¿Cómo demostrarías que el azúcar sigue en el agua aunque no se vea?','Probando el agua (está dulce) o evaporándola y viendo que queda el azúcar',['Con un imán','Pesando solo el vaso vacío','No se puede'],'Los componentes de una mezcla homogénea siguen ahí.'],
+['El latón y el gel de manos parecen una sola sustancia. ¿Por qué son mezclas?','Porque están formados por varias sustancias, aunque no se distingan',['Porque se ven sus componentes','Porque son sólidos','No son mezclas'],'Son mezclas homogéneas.'],
+['¿Qué método separa agua y sal disuelta?','Evaporar el agua',['Filtrar con un colador','Usar un imán','Dejarla en la nevera'],'La sal no se queda en el filtro porque está disuelta.'],
+['¿Es el agua del mar una sustancia pura?','No, es una mezcla homogénea de agua y sales',['Sí, es pura','Es heterogénea','Es un gas'],'No se ven las sales, pero están.']]);
+LH('fis',[
+['El agua de un charco desaparece sin hervir. ¿Qué cambio es?','Vaporización, aunque no hierva, por el calor del sol y el aire',['Condensación','Fusión','Combustión'],'El agua pasa a vapor poco a poco (evaporación).'],
+['Si sacas una lata fría de la nevera, se llena de gotitas por fuera. ¿De dónde salen?','Del vapor de agua del aire, que se condensa al enfriarse',['De dentro de la lata','De la lluvia','Del metal que se derrite'],'Es la condensación.'],
+['Ordena: hielo → agua → vapor → agua. ¿Qué cambios hay?','Fusión, vaporización y condensación',['Solidificación, fusión y condensación','Fusión, condensación y vaporización','Vaporización, fusión y solidificación'],'Sólido→líquido (fusión), líquido→gas (vaporización), gas→líquido (condensación).'],
+['¿Por qué arrugar un papel es un cambio físico, aunque no vuelva a quedar liso del todo?','Porque sigue siendo papel: no ha cambiado su composición',['Porque se convierte en otra sustancia','Porque hay fuego','Porque cambia de estado'],'Puede ser irreversible y seguir siendo físico.'],
+['Un cambio físico irreversible y uno químico se parecen en que…','No se recupera la forma original, pero solo en el químico cambia la sustancia',['En los dos cambia la sustancia','En ninguno cambia nada','Los dos son cambios de estado'],'La clave es si la materia sigue siendo la misma.']]);
+LH('qui',[
+['¿Por qué freír un huevo es un cambio químico y derretir chocolate no?','El huevo se transforma y no vuelve a ser crudo; el chocolate se puede volver a solidificar',['Los dos son químicos','Los dos son físicos','El chocolate es químico'],'En el químico cambia la composición.'],
+['Si tapas una vela encendida con un vaso, se apaga. ¿Por qué?','Se acaba el oxígeno que necesita la combustión',['Porque hace frío','Por la gravedad','Por el magnetismo'],'La combustión es una oxidación: necesita oxígeno.'],
+['¿Cómo protegerías una bici de hierro de la oxidación?','Pintándola o guardándola en un sitio seco',['Dejándola bajo la lluvia','Calentándola','Acercándole imanes'],'Así el hierro no está en contacto con el oxígeno y la humedad.'],
+['Una manzana cortada se pone marrón. ¿Qué tipo de cambio es?','Químico: se oxida con el aire',['Físico: cambio de estado','Fuerza a distancia','Mezcla homogénea'],'Por eso se le echa limón, para que tarde más.'],
+['¿Cuál de estos es un cambio químico?','Hacer un bizcocho en el horno',['Congelar zumo','Cortar papel','Derretir mantequilla'],'Los ingredientes se transforman en otra cosa.']]);
+LH('fue',[
+['Atrapas una pelota que viene hacia ti. ¿Qué hace tu fuerza?','Detiene su movimiento',['La pone en movimiento','Cambia su color','Nada'],'Una fuerza también puede parar un objeto.'],
+['En un partido, un portero desvía el balón con la mano. ¿Qué cambia?','La dirección de su movimiento',['Su masa','Su estado (líquido)','Su composición'],'Cambiar la dirección también es cambiar el estado de movimiento.'],
+['¿Qué experimento muestra que una fuerza cambia la forma pero se puede recuperar?','Apretar una pelota de goma y soltarla',['Romper un huevo','Quemar un papel','Aplastar plastilina'],'La goma recupera su forma.'],
+['¿Qué experimento muestra que una fuerza cambia la forma y NO se recupera?','Aplastar plastilina',['Estirar un muelle','Apretar una esponja','Estirar una goma'],'La plastilina se queda deformada.']]);
+LH('tip',[
+['Pones un papel entre un imán y un clip, y el clip se mueve. ¿Qué demuestra?','Que el magnetismo actúa a distancia, sin tocar',['Que es una fuerza de contacto','Que el papel es un imán','Que el clip es de madera'],'Ejercicio 10 de la página 59.'],
+['¿Por qué un astronauta en el espacio, lejos de la Tierra, flota?','Porque la gravedad de la Tierra se hace muy débil tan lejos',['Porque es un gas','Porque tiene imanes','Porque pesa más'],'La gravedad disminuye con la distancia.'],
+['Acercas el polo norte de un imán al polo norte de otro. ¿Qué fuerza aparece?','Repulsión',['Atracción','Gravedad','Contacto'],'Polos iguales se repelen.'],
+['Un tren de levitación magnética no toca las vías. ¿Qué fuerza lo sostiene?','El magnetismo (fuerza a distancia)',['Una fuerza de contacto','La gravedad','El viento'],'Los imanes empujan sin tocar.'],
+['Una manzana cae del árbol: ¿qué tipo de fuerza y qué cambio produce?','A distancia (gravedad) y cambia su estado de movimiento',['De contacto y cambia su forma','Magnética y cambia su color','No hay fuerza'],'Estaba quieta y empieza a moverse.']]);
+LH('lab',[
+['En un experimento, ¿por qué hay que cambiar solo una cosa cada vez?','Para saber qué es lo que provoca el resultado',['Para tardar más','Porque es más divertido','No hace falta'],'Si cambias muchas cosas, no sabes cuál ha influido.'],
+['¿Qué es una hipótesis?','Lo que crees que va a pasar antes de comprobarlo',['El resultado final','Un instrumento de medida','Un tipo de mezcla'],'La experimentación sirve para comprobar si es cierta.'],
+['Para tu Día de la Ciencia quieres mostrar las dos clases de fuerzas a distancia. ¿Qué preparas?','Un imán con clips y un objeto que se deja caer',['Una goma y plastilina','Hielo y una vela','Agua y aceite'],'Magnetismo y gravedad.'],
+['¿Por qué hay que citar las fuentes de información del laboratorio?','Para que se sepa de dónde sale y se pueda comprobar',['Para alargar el trabajo','No hace falta','Para copiar mejor'],'Fuentes de confianza: libros, webs fiables, personas expertas.']]);
+
+LH('mat',[
+['¿Qué ocupa más volumen: 1 kg de algodón o 1 kg de hierro?','El algodón',['El hierro','Los dos igual','Ninguno tiene volumen'],'Tienen la misma masa, pero el algodón ocupa mucho más espacio.'],
+['Mides 1 L de agua y 1 L de aceite. ¿Tienen el mismo volumen?','Sí, el mismo volumen, aunque su masa puede ser distinta',['No, el aceite tiene más volumen','No, el agua tiene más volumen','No tienen volumen'],'Mismo volumen no quiere decir misma masa.'],
+['¿Qué propiedad usarías para distinguir sal de azúcar sin probarlas?','Ninguna general: hay que fijarse en propiedades específicas (forma del grano, brillo…)',['La masa','El volumen','La gravedad'],'Las generales las tienen todas las sustancias.'],
+['¿Por qué los cables eléctricos de cobre van forrados de plástico, y las ollas tienen mangos de plástico?','Porque el plástico es aislante',['Porque el plástico es conductor','Porque pesa más','Por el color'],'El plástico aísla del calor (y de la electricidad).']]);
+LH('est',[
+['Echas 1 L de agua en una botella alta y luego en un plato hondo. ¿Qué cambia y qué no?','Cambia la forma, el volumen sigue siendo 1 L',['Cambia el volumen','No cambia nada','Cambian forma y volumen'],'Los líquidos tienen volumen fijo.'],
+['Abres una botella de colonia en un rincón y al rato huele en toda la habitación. ¿Qué propiedad de los gases lo explica?','Que no tienen volumen fijo y ocupan todo el espacio',['Que tienen forma fija','Que son sólidos','Que son pesados'],'El gas se extiende por todo el espacio disponible.'],
+['¿Puede una misma sustancia ser sólida, líquida y gaseosa?','Sí, depende de la temperatura, como el agua',['No, nunca','Solo los metales','Solo el aire'],'El agua: hielo, agua y vapor.']]);
+LH('mez',[
+['Haces un batido de fresa: al principio ves trozos y, después de batir, no. ¿Qué ha pasado?','Pasó de heterogénea a homogénea',['Pasó a ser sustancia pura','Hubo un cambio químico','Se convirtió en gas'],'Sus componentes ya no se distinguen.'],
+['¿Cuál de estas es una sustancia pura?','El oxígeno',['El aire','El agua del mar','El granito'],'El oxígeno tiene un solo componente; los demás son mezclas.'],
+['¿Qué orden de pasos separa una mezcla de arena, sal y agua?','Filtrar para quitar la arena y luego evaporar el agua para obtener la sal',['Evaporar y luego usar un imán','Solo filtrar','Solo usar un imán'],'Cada método sirve para un componente.']]);
+LH('fis',[
+['¿Qué dos cambios de estado necesitan que se ENFRÍE la materia?','Condensación y solidificación',['Fusión y vaporización','Fusión y condensación','Vaporización y solidificación'],'Bajan la temperatura (↓T).'],
+['Tu aliento forma vaho en un cristal frío en invierno. ¿Qué cambio de estado es?','Condensación',['Vaporización','Fusión','Solidificación'],'El vapor de tu aliento se enfría y pasa a líquido.'],
+['¿Por qué al congelar y descongelar agua sigue siendo agua?','Porque los cambios de estado son cambios físicos: no cambia su composición',['Porque es un cambio químico','Porque el agua es una mezcla','No sigue siendo agua'],'Ejercicio 2 de la página 54.'],
+['¿Cuál es un cambio físico irreversible?','Cortar una hoja de papel en trozos',['Estirar una goma','Derretir hielo','Congelar agua'],'Sigue siendo papel, pero no vuelve a estar entero.']]);
+LH('qui',[
+['¿Qué tienen en común oxidación, combustión y fermentación?','En las tres la materia se transforma en otra distinta',['Las tres son cambios de estado','Las tres necesitan imanes','Las tres son reversibles'],'Son cambios químicos.'],
+['Las cenizas pesan menos que el trozo de madera que se quemó. ¿Adónde fue el resto?','Al aire, en forma de humo y gases',['Desapareció de la nada','Se convirtió en hielo','Se quedó en la mano'],'La materia no desaparece: se transforma.'],
+['¿Por qué el yogur no puede volver a ser leche?','Porque la fermentación es un cambio químico',['Porque se ha congelado','Porque es un sólido','Sí puede, calentándolo'],'Las bacterias han transformado la leche.'],
+['¿Cuál de estos NO es un cambio químico?','Hervir agua',['Encender una cerilla','Oxidarse una verja','Hacer pan con levadura'],'Hervir agua es vaporización: un cambio físico.']]);
+LH('fue',[
+['¿Puede una fuerza cambiar a la vez la forma y el movimiento de un objeto?','Sí, como al golpear una pelota de tenis con la raqueta',['No, solo una cosa cada vez','Solo si es magnética','Solo en el agua'],'La pelota se aplasta y sale disparada.'],
+['¿Qué pasaría con una pelota chutada si no existiera ninguna fuerza que la frenara ni la hiciera caer?','Seguiría moviéndose sin parar',['Se pararía sola enseguida','Volvería al pie','Se derretiría'],'Son las fuerzas (el roce, la gravedad) las que la frenan y la hacen caer.'],
+['Pedalear, frenar y girar el manillar de una bici son…','Fuerzas que cambian el estado de movimiento',['Cambios químicos','Cambios de estado','Mezclas'],'Ponen en marcha, paran y cambian la dirección.']]);
+LH('tip',[
+['¿Qué tienen en común la gravedad y el magnetismo?','Las dos son fuerzas a distancia',['Las dos son de contacto','Las dos solo atraen hierro','Ninguna'],'Actúan sin tocar el objeto.'],
+['¿Atraería un imán una moneda de cobre o una lata de aluminio?','No, solo atrae hierro o acero',['Sí, atrae todos los metales','Solo la de cobre','Solo la de aluminio'],'No todos los metales son atraídos por los imanes.'],
+['Lanzas una pelota hacia arriba. ¿Qué fuerzas actúan?','Primero tu mano (contacto) y después la gravedad (a distancia) la hace caer',['Solo el magnetismo','Solo una fuerza de contacto','Ninguna'],'Por eso la pelota sube y luego baja.'],
+['¿Por qué en la cima de una montaña muy alta la gravedad es un poquito menor?','Porque estás más lejos del centro de la Tierra',['Porque hace frío','Porque hay menos árboles','Es mayor'],'Ejercicio 9 de la página 59.']]);
+LH('lab',[
+['Quieres demostrar un cambio físico y otro químico con un papel. ¿Qué haces?','Arrugarlo (físico) y quemarlo con un adulto (químico)',['Mojarlo y secarlo','Pesarlo dos veces','Pintarlo de dos colores'],'Al arrugarlo sigue siendo papel; al quemarlo, ya no.'],
+['En tu tabla del laboratorio, el experimento «imán y clips a través de un papel» trabaja la fuerza…','A distancia (magnetismo)',['De contacto','Gravedad','Química'],'El imán no toca los clips.']]);
 })();
 var PARTS=[['mat','⚖️','La materia y sus propiedades','Págs. 46, 48-49'],['est','🧊','Los estados de la materia','Págs. 47-49'],['mez','🥗','Clasificar la materia: sustancias puras y mezclas','Págs. 50-51'],['fis','💧','Cambios físicos y cambios de estado','Págs. 52, 54-55'],['qui','🔥','Cambios químicos','Págs. 53-55'],['fue','💪','Las fuerzas y sus efectos','Págs. 56, 58-59'],['tip','🧲','Tipos de fuerzas: contacto y a distancia','Págs. 57-59'],['lab','🔬','Proyecto: Mi primer laboratorio','Págs. 42-45 y 61']];
 
 
 function qhash(t){var h=0;for(var i=0;i<t.length;i++)h=(h*31+t.charCodeAt(i))|0;return (h>>>0).toString(36);}
-var Q=[], QX=[], QK=[], QIDX={};
-Q3.forEach(function(r){var ok=r[2][r[3]];var k=qhash(r[1]+'|'+ok);if(QIDX[k]!==undefined)return;QIDX[k]=Q.length;QK.push(k);QX.push(r[4]||'');
+var Q=[], QX=[], QK=[], QIDX={}, QD=[];
+Q3.forEach(function(r){var ok=r[2][r[3]];var k=qhash(r[1]+'|'+ok);if(QIDX[k]!==undefined)return;QIDX[k]=Q.length;QK.push(k);QX.push(r[4]||'');QD.push(r[5]||2);
   Q.push([r[0],r[1],ok].concat(r[2].filter(function(o,j){return j!==r[3];}).slice(0,3)));});
 function mathQ(){
   var t = rnd(4), a, b, ans, txt;
@@ -1486,7 +1653,7 @@ function prizeHow(cat, id){
 
 /* ---------- preguntas ---------- */
 var curQ = null, answered = false, quizMood = null, lastKey = '';
-function staticQ(i){ var r = Q[i]; return r ? {key:'q' + QK[i], cat:r[0], q:r[1], ok:r[2], opts:shuffle(r.slice(2, 6)), fact:QX[i]} : null; }
+function staticQ(i){ var r = Q[i]; if (!r) return null; var o = r.slice(2, 6); if ((S.nivel || 0) === 1 && o.length > 3) o = o.slice(0, 3); return {key:'q' + QK[i], cat:r[0], q:r[1], ok:r[2], opts:shuffle(o), fact:QX[i], lv:QD[i]}; }
 function customQ(c){ return c ? {key:'c' + c.id, cat:'mias', q:c.q, ok:c.ok, opts:shuffle([c.ok].concat(c.w))} : null; }
 function keyQ(k){
   if (k[0] === 'q') { var ix = QIDX[k.slice(1)]; return ix === undefined ? null : staticQ(ix); }
@@ -1495,6 +1662,7 @@ function keyQ(k){
 }
 function cleanWrong(){ S.wrong = S.wrong.filter(function(k){ return !!keyQ(k); }); }
 function chActive(){ return !!(S.ch && S.ch.d === today() && S.ch.started && !S.ch.done); }
+function hasLv(part){ for (var i = 0; i < Q.length; i++) if (Q[i][0] === part && QD[i] === S.nivel) return true; return false; }
 function pickQ(cat){
   if (chActive()) cat = 'todas';
   if (cat === 'repaso') { cleanWrong(); if (!S.wrong.length) return null; var rq = keyQ(pick(S.wrong)); rq.review = true; return rq; }
@@ -1512,6 +1680,7 @@ function pickQ(cat){
   if (!S.seen) S.seen = {};
   for (var i = 0; i < Q.length; i++) {
     if (Q[i][0] !== part || QK[i] === lastKey.slice(1)) continue;
+    if (S.nivel && QD[i] !== S.nivel && hasLv(part)) continue;
     var n = S.seen[QK[i]] || 0;
     if (n < min) { min = n; best = [i]; } else if (n === min) best.push(i);
   }
@@ -1537,7 +1706,7 @@ function nextQuestion(){
   curQ = q; lastKey = q.key || '';
   var catName = QCATS.filter(function(c){ return c[0] === q.cat; })[0];
   var tagx = q.review ? '📝 Repaso · ' : (chActive() ? '🎯 Reto ' + (S.ch.n + 1) + '/5 · ' : '');
-  $('qtext').innerHTML = '<small>' + tagx + (catName ? catName[1] : '') + ' · ' + (S.pet ? S.pet.name : '') + ' pregunta:</small>' + (q.big ? '<span class="bige">' + q.big + '</span>' : '') + q.q;
+  $('qtext').innerHTML = '<small>' + tagx + (catName ? catName[1] : '') + ' · ' + (S.pet ? S.pet.name : '') + ' pregunta' + (q.lv ? ' · ' + ['', '🟢 Fácil', '🟡 Normal', '🔴 Difícil'][q.lv] : '') + ':</small>' + (q.big ? '<span class="bige">' + q.big + '</span>' : '') + q.q;
   $('qopts').innerHTML = q.opts.map(function(o, i){ return '<button class="opt" data-o="' + i + '"><span>' + 'ABCD'[i] + '</span>' + o + '</button>'; }).join('');
   $('qnext').style.visibility = 'hidden';
   renderQInfo(); renderPetViews(); save();
@@ -1562,7 +1731,7 @@ function answer(i){
     S.stats.correct++; S.stats.streak++; S.stats.best = Math.max(S.stats.best, S.stats.streak);
     S.catOk[q.cat] = (S.catOk[q.cat] || 0) + 1;
     if (inWrong >= 0) { S.wrong.splice(inWrong, 1); S.reviewsCleared++; }
-    var bonus = S.stats.streak % 5 === 0 ? 15 : 0, earn = 10 + bonus;
+    var bonus = S.stats.streak % 5 === 0 ? 15 : 0, earn = (q.lv === 3 ? 15 : q.lv === 1 ? 7 : 10) + bonus;
     quizMood = 'celebra';
     var praise = q.review && inWrong >= 0 ? '¡Esta antes la fallaste y ahora la sabes! 💪' : pick(['¡Muy bien!', '¡Correcto!', '¡Genial!', '¡Eres un crack!', '¡Lo sabías!']);
     var msg = praise + ' +' + earn + ' 🪙' + (bonus ? ' (¡racha de ' + S.stats.streak + '!)' : '');
@@ -1595,6 +1764,7 @@ function renderQInfo(){
 }
 function renderQCats(){
   cleanWrong();
+  $('qlv').innerHTML = [[0, '🌈 Todos'], [1, '🟢 Fácil'], [2, '🟡 Normal'], [3, '🔴 Difícil']].map(function(l){ return '<button class="chip' + ((S.nivel || 0) === l[0] ? ' on' : '') + '" data-lv="' + l[0] + '">' + l[1] + '</button>'; }).join('');
   $('qcats').innerHTML = QCATS.map(function(c){
     var lbl = c[1] + (c[0] === 'repaso' ? ' (' + S.wrong.length + ')' : '') + (c[0] === 'mias' ? ' (' + S.custom.length + ')' : '');
     return '<button class="chip' + (S.qcat === c[0] ? ' on' : '') + '" data-c="' + c[0] + '">' + lbl + '</button>';
@@ -2208,6 +2378,7 @@ function bind(){
   document.addEventListener('visibilitychange', function(){ if (document.hidden) pauseAll(); else resumeAll(); });
   $('qopts').addEventListener('click', function(e){ var b = e.target.closest('.opt'); if (b) answer(+b.dataset.o); });
   $('qnext').onclick = nextQuestion;
+  $('qlv').addEventListener('click', function(e){ var b = e.target.closest('[data-lv]'); if (!b) return; S.nivel = +b.dataset.lv; save(); renderQCats(); nextQuestion(); toast(['🌈 Todos los niveles', '🟢 Fácil (+7 🪙)', '🟡 Normal (+10 🪙)', '🔴 Difícil (+15 🪙)'][S.nivel]); });
   $('qcats').addEventListener('click', function(e){ var b = e.target.closest('.chip'); if (!b) return; S.qcat = b.dataset.c; save(); renderQCats(); nextQuestion(); });
   $('avcats').addEventListener('click', function(e){ var b = e.target.closest('.chip'); if (!b) return; avCat = b.dataset.c; trying = null; renderAv(); });
   $('avgrid').addEventListener('click', function(e){ var b = e.target.closest('.item'); if (b) tapItem(b.dataset.i); });
