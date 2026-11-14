@@ -74,6 +74,9 @@ class MainActivity : Activity() {
         button("💬 Comentarios automáticos (guion)") {
             startActivity(Intent(ctx, CommentActivity::class.java))
         }
+        button("🔍 Comprobar si se ven mis comentarios") {
+            startActivity(Intent(ctx, ComprobarActivity::class.java))
+        }
 
         button("1. Activar servicio de accesibilidad") {
             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))

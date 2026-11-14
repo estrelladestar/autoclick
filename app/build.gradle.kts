@@ -14,7 +14,11 @@ android {
         versionCode = runNumber
         versionName = "1.$runNumber"
         ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }  // 64 y 32 bits (p. ej. Redmi 8A)
+        // Clave de Apify (para el «Comprobador de comentarios»): secreto APIFY_TOKEN de GitHub
+        val apify = (System.getenv("APIFY_TOKEN") ?: "").trim().filter { it.isLetterOrDigit() || it == '_' || it == '-' }
+        buildConfigField("String", "APIFY_TOKEN", "\"$apify\"")
     }
+    buildFeatures { buildConfig = true }
     // Dos apps con el mismo código: «Star App» y «Star App Historias» (que además puede subir la publicación a la historia)
     flavorDimensions += "tipo"
     productFlavors {

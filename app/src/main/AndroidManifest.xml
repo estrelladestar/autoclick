@@ -26,6 +26,11 @@
             android:exported="false"
             android:label="Etiquetador de sorteos"
             android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ComprobarActivity"
+            android:exported="false"
+            android:label="Comprobador de comentarios"
+            android:windowSoftInputMode="adjustResize" />
         <service
             android:name=".ScreenCaptureService"
             android:exported="false"
