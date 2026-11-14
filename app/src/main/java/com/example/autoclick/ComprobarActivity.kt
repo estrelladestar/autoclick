@@ -79,8 +79,20 @@ class ComprobarActivity : Activity() {
             root.addView(this)
         }
 
+        Button(ctx).apply {
+            text = "▶ Comprobar gratis en Instagram"
+            setOnClickListener { startFree() }
+            root.addView(this)
+        }
+        label(
+            "Se abre la publicación en Instagram. Abre los comentarios y pulsa «Empezar» en el cuadro morado: " +
+                "la app baja sola y los va leyendo. Puedes pulsar «Terminar» cuando quieras.\n" +
+                "⚠️ Mira con una cuenta que NO esté en la lista: Instagram te enseña tus propios comentarios aunque a los demás se los oculte.",
+            13f
+        )
+        label("O con Apify (con el plan gratis de Apify solo carga 15 comentarios):", 13f)
         goBtn = Button(ctx).apply {
-            text = "▶ Comprobar ahora"
+            text = "Comprobar con Apify"
             setOnClickListener { if (running) cancel() else start() }
             root.addView(this)
         }
@@ -96,6 +108,34 @@ class ComprobarActivity : Activity() {
         setContentView(ScrollView(ctx).apply { addView(root) })
         StarColors.watch(root)
         if (!Apify.hasToken()) status.text = "⚠️ Falta la clave de Apify (secreto APIFY_TOKEN en GitHub). Sin ella no se puede comprobar."
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val r = Lector.result
+        if (r != null) {
+            Lector.result = null
+            results.removeAllViews()
+            showResult(linkBox.text.toString().trim(), parseAccounts(), r, Int.MAX_VALUE, fromApp = true)
+        }
+    }
+
+    override fun onNewIntent(intent: android.content.Intent?) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+    }
+
+    private fun startFree() {
+        val link = linkBox.text.toString().trim()
+        val accounts = parseAccounts()
+        if (!link.startsWith("http")) { toast("Pega el enlace de la publicación"); return }
+        if (accounts.isEmpty()) { toast("Escribe al menos una cuenta"); return }
+        if (ClickService.instance == null) { toast("Primero activa el servicio de accesibilidad de Star App"); return }
+        getSharedPreferences("cfg", Context.MODE_PRIVATE).edit()
+            .putString("comprobar_enlace", link)
+            .putString("comprobar_cuentas", accountsBox.text.toString().trim()).apply()
+        status.text = "Leyendo en Instagram…"
+        Lector.begin(this, link, accounts)
     }
 
     override fun onDestroy() {
@@ -156,7 +196,7 @@ class ComprobarActivity : Activity() {
             } catch (e: Exception) {
                 main.post { running = false; status.text = if (e.message == "Cancelado") "Parado." else "❌ ${e.message}" }
             } finally {
-                main.post { running = false; goBtn.text = "▶ Comprobar ahora" }
+                main.post { running = false; goBtn.text = "Comprobar con Apify" }
             }
         }.start()
     }
@@ -167,7 +207,7 @@ class ComprobarActivity : Activity() {
         status.text = "Parando…"
     }
 
-    private fun showResult(link: String, accounts: List<String>, all: JSONArray, max: Int) {
+    private fun showResult(link: String, accounts: List<String>, all: JSONArray, max: Int, fromApp: Boolean = false) {
         // Cuántos comentarios se ven de cada cuenta, y los textos
         val count = LinkedHashMap<String, Int>()
         val texts = HashMap<String, MutableList<String>>()
@@ -188,9 +228,9 @@ class ComprobarActivity : Activity() {
         saveCheck(link, all.length(), count)
 
         val mine = count.values.sum()
-        status.text = "✅ Se han cargado ${all.length()} comentarios de la publicación. De tus cuentas se ven $mine." +
+        status.text = (if (fromApp) "📱 Leído en Instagram. " else "") + "✅ Se han cargado ${all.length()} comentarios de la publicación. De tus cuentas se ven $mine." +
             (if (all.length() >= max) "\n(Has llegado al máximo de $max: puede que haya más. Sube el número si quieres verlos todos.)" else "") +
-            (if (all.length() in 1..60) "\n⚠️ Han salido pocos comentarios: si la publicación tiene muchos más, Apify no ha podido cargarlos todos y el resultado no es fiable." else "")
+            (if (!fromApp && all.length() in 1..60) "\n⚠️ Han salido pocos comentarios: si la publicación tiene muchos más, Apify no ha podido cargarlos todos y el resultado no es fiable." else "")
 
         for ((acc, n) in count) {
             val written = today?.optInt(acc, 0) ?: 0
