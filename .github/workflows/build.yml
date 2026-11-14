@@ -48,6 +48,10 @@ jobs:
           path: lengua/build/outputs/apk/debug/*.apk
       - uses: actions/upload-artifact@v4
         with:
+          name: MiMundoMates-apk
+          path: mates/build/outputs/apk/debug/*.apk
+      - uses: actions/upload-artifact@v4
+        with:
           name: MiMundoFacil-apk
           path: facil/build/outputs/apk/debug/*.apk
       - uses: actions/upload-artifact@v4
@@ -67,8 +71,8 @@ jobs:
           name: SorteosStar-apk
           path: sorteos/build/outputs/apk/debug/*.apk
       - run: cp app/build/outputs/apk/normal/debug/app-normal-debug.apk StarApp.apk && cp StarApp.apk app-debug.apk && cp app/build/outputs/apk/historias/debug/app-historias-debug.apk StarAppHistorias.apk  # Star App (también como app-debug.apk, el enlace de siempre) y Star App Historias
-      - run: cp lengua/src/main/assets/mundo.html MiMundo_Lengua_Tema3.html && cp facil/src/main/assets/mundo.html MiMundo_Facil_Tema3.html && cp ingles/src/main/assets/mundo.html MiMundo_Ingles_Unit2.html && cp sorteos/src/main/assets/sorteos.html SorteosStar.html && cp joyas/src/main/assets/joyas.html StarJoyas.html  # versiones HTML para descargar
-      - run: mkdir -p web/ingles && cp lengua/src/main/assets/mundo.html web/index.html && mkdir -p web/sorteos && cp sorteos/src/main/assets/sorteos.html web/sorteos/index.html && cp sorteosplay/privacidad.html web/sorteos/privacidad.html && cp ingles/src/main/assets/mundo.html web/ingles/index.html && mkdir -p web/joyas && cp joyas/src/main/assets/joyas.html web/joyas/index.html && touch web/.nojekyll  # páginas web de los juegos (/ = Lengua, /ingles/ = Inglés, /sorteos/ = Sorteos Star, /joyas/ = Star Joyas)
+      - run: cp lengua/src/main/assets/mundo.html MiMundo_Lengua_Tema3.html && cp facil/src/main/assets/mundo.html MiMundo_Facil_Tema3.html && cp ingles/src/main/assets/mundo.html MiMundo_Ingles_Unit2.html && cp mates/src/main/assets/mundo.html MiMundo_Mates_Tema3.html && cp sorteos/src/main/assets/sorteos.html SorteosStar.html && cp joyas/src/main/assets/joyas.html StarJoyas.html  # versiones HTML para descargar
+      - run: mkdir -p web/ingles && cp lengua/src/main/assets/mundo.html web/index.html && mkdir -p web/sorteos && cp sorteos/src/main/assets/sorteos.html web/sorteos/index.html && cp sorteosplay/privacidad.html web/sorteos/privacidad.html && cp ingles/src/main/assets/mundo.html web/ingles/index.html && mkdir -p web/mates && cp mates/src/main/assets/mundo.html web/mates/index.html && mkdir -p web/joyas && cp joyas/src/main/assets/joyas.html web/joyas/index.html && touch web/.nojekyll  # páginas web de los juegos (/ = Lengua, /ingles/ = Inglés, /sorteos/ = Sorteos Star, /joyas/ = Star Joyas)
       - uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -87,6 +91,8 @@ jobs:
             - MiMundo-debug.apk → Mi Mundo (juego: avatar, mascota y preguntas)
             - MiMundoLengua-debug.apk → Mi Mundo Lengua (el mismo juego con el Tema 3 de Lengua)
             - MiMundo_Lengua_Tema3.html → Mi Mundo Lengua para abrir en el navegador
+            - MiMundoMates-debug.apk → Mi Mundo Mates (Tema 3 de Matemáticas: la multiplicación, con pizarra para hacer cuentas)
+            - MiMundo_Mates_Tema3.html → Mi Mundo Mates para abrir en el navegador
             - MiMundoFacil-debug.apk → Mi Mundo Fácil (Tema 3 de Lengua adaptado para leer mejor: dislexia)
             - MiMundo_Facil_Tema3.html → Mi Mundo Fácil para abrir en el navegador
             - Gatidoku-debug.apk → Gatidoku (puzles de lógica con gatos)
@@ -103,6 +109,7 @@ jobs:
             StarAppHistorias.apk
             juego/build/outputs/apk/debug/*.apk
             lengua/build/outputs/apk/debug/*.apk
+            mates/build/outputs/apk/debug/*.apk
             facil/build/outputs/apk/debug/*.apk
             gatidoku/build/outputs/apk/debug/*.apk
             ingles/build/outputs/apk/debug/*.apk
@@ -110,6 +117,7 @@ jobs:
             joyas/build/outputs/apk/debug/*.apk
             StarJoyas.html
             MiMundo_Lengua_Tema3.html
+            MiMundo_Mates_Tema3.html
             MiMundo_Facil_Tema3.html
             MiMundo_Ingles_Unit2.html
             SorteosStar.html
