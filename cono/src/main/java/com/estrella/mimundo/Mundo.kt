@@ -11,6 +11,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.content.Intent
 import android.speech.tts.TextToSpeech
 import android.webkit.JavascriptInterface
 import android.webkit.PermissionRequest
@@ -26,6 +27,7 @@ object Mundo {
     /** Petición de micrófono pendiente mientras el sistema pregunta el permiso (ensayo del poema). */
     var pendingMic: PermissionRequest? = null
     const val MIC_CODE = 77
+    @Volatile var ttsStatus = "init"
 
     @SuppressLint("SetJavaScriptEnabled", "JavascriptInterface")
     fun webView(activity: Activity, mini: Boolean, say: (String, String) -> Unit, hush: () -> Unit): WebView {
@@ -74,6 +76,23 @@ object Mundo {
         @JavascriptInterface fun speak(text: String) { main.post { say(text, "es") } }
         @JavascriptInterface fun speakLang(text: String, lang: String) { main.post { say(text, lang) } }
         @JavascriptInterface fun stopSpeak() { main.post { hush() } }
+        /** Estado de la voz: ok, init, noengine, nolang */
+        @JavascriptInterface fun ttsStatus(): String = Mundo.ttsStatus
+        @JavascriptInterface fun openTtsSettings() {
+            main.post {
+                try { activity.startActivity(Intent("com.android.settings.TTS_SETTINGS").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                catch (e: Exception) { try { activity.startActivity(Intent(android.provider.Settings.ACTION_SETTINGS)) } catch (e2: Exception) {} }
+            }
+        }
+        @JavascriptInterface fun installVoice() {
+            main.post {
+                try { activity.startActivity(Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                catch (e: Exception) {
+                    try { activity.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse("market://details?id=com.google.android.tts")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                    catch (e2: Exception) { try { activity.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.tts")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } catch (e3: Exception) {} }
+                }
+            }
+        }
 
         @JavascriptInterface
         fun vibrate(ms: Int) {
@@ -92,21 +111,42 @@ class MainActivity : Activity() {
     private lateinit var web: WebView
     private var tts: TextToSpeech? = null
     private var ttsReady = false
+    private var pending: Pair<String, String>? = null
+    private var triedGoogle = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        tts = TextToSpeech(this) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                tts?.let { t ->
-                    setLang(t, "es")
-                    t.setPitch(1.6f)   // voz aguda de mascota
-                    t.setSpeechRate(1.05f)
-                    ttsReady = true
-                }
-            }
-        }
+        Mundo.ttsStatus = "init"
+        startTts(null)
         web = Mundo.webView(this, false, { text, lang -> speak(text, lang) }, { tts?.stop() })
         setContentView(web)
+    }
+
+    /** Arranca el motor de voz. Si el de por defecto falla, prueba el de Google. */
+    private fun startTts(engine: String?) {
+        val listener = TextToSpeech.OnInitListener { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                tts?.let { t ->
+                    curLang = ""
+                    val r = t.setLanguage(Locale("es", "ES"))
+                    val r2 = if (r == TextToSpeech.LANG_MISSING_DATA || r == TextToSpeech.LANG_NOT_SUPPORTED) t.setLanguage(Locale("es")) else r
+                    curLang = "es"
+                    t.setPitch(1.6f)   // voz aguda de mascota
+                    t.setSpeechRate(1.0f)
+                    ttsReady = true
+                    Mundo.ttsStatus = if (r2 == TextToSpeech.LANG_MISSING_DATA || r2 == TextToSpeech.LANG_NOT_SUPPORTED) "nolang" else "ok"
+                    pending?.let { speak(it.first, it.second) }
+                    pending = null
+                }
+            } else if (!triedGoogle) {
+                triedGoogle = true
+                try { tts?.shutdown() } catch (e: Exception) {}
+                startTts("com.google.android.tts")
+            } else {
+                Mundo.ttsStatus = "noengine"
+            }
+        }
+        tts = if (engine == null) TextToSpeech(this, listener) else TextToSpeech(this, listener, engine)
     }
 
     private var curLang = ""
@@ -124,11 +164,17 @@ class MainActivity : Activity() {
     }
 
     private fun speak(text: String, lang: String) {
-        if (!ttsReady) return
+        if (!ttsReady) { pending = Pair(text, lang); return }
         val t = tts ?: return
         setLang(t, lang)
         // Las palabras en inglés van a la cola para no cortar lo que esté diciendo en español.
-        t.speak(text, if (lang == "en") TextToSpeech.QUEUE_ADD else TextToSpeech.QUEUE_FLUSH, null, "mascota")
+        val max = try { TextToSpeech.getMaxSpeechInputLength() - 10 } catch (e: Exception) { 3900 }
+        val parts = if (text.length <= max) listOf(text) else text.chunked(max)
+        parts.forEachIndexed { i, p ->
+            val mode = if (i == 0 && lang != "en") TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD
+            val r = t.speak(p, mode, null, "mascota$i")
+            if (r == TextToSpeech.ERROR && Mundo.ttsStatus == "ok") Mundo.ttsStatus = "error"
+        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {

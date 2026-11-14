@@ -248,6 +248,7 @@ body:before{content:'🔬 ⚗️ 🧲 🌍 🧪 💧 🔥 ⚖️';position:fixed
     <div class="opts" id="qopts"></div>
     <div class="qfoot"><div class="info" id="qinfo"></div><button class="btn green" id="qnext">Siguiente ▶</button></div>
     <button class="btn blue big" style="margin-top:14px" id="myQ">✏️ Crear mis propias preguntas</button>
+    <button class="btn gray big" style="margin-top:8px" onclick="avisoVoz(true)">🔇 ¿No se oye la voz? Pulsa aquí</button>
   </section>
 
   <section id="t-apr">
@@ -1329,13 +1330,58 @@ function plain(t){ return String(t).replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27B
 function mathSay(t){
   return t.replace(/(\d) (?=\d{3}\b)/g, '$1').replace(/\s*×\s*/g, ' por ').replace(/\s*−\s*/g, ' menos ').replace(/\s+:\s+/g, ' entre ').replace(/\s*=\s*\?/g, ', ¿cuánto es?').replace(/\s*=\s*/g, ' es igual a ').replace(/□/g, 'cuánto').replace(/___/g, 'cuánto').replace(/[()]/g, ', ').replace(/ · /g, ', ');
 }
+var VOZ_ES = null, vozAvisada = false;
+function pickVoice(){
+  try {
+    var vs = speechSynthesis.getVoices() || [];
+    VOZ_ES = vs.filter(function(v){ return /^es[-_]ES/i.test(v.lang); })[0] || vs.filter(function(v){ return /^es/i.test(v.lang); })[0] || null;
+  } catch (e) {}
+}
+if (window.speechSynthesis) { pickVoice(); try { speechSynthesis.onvoiceschanged = pickVoice; } catch (e) {} }
+/* trozos cortos: Chrome en Android corta los textos largos */
+function chunks(t){
+  var out = [], parts = t.match(/[^.!?¡¿]+[.!?]*|[¡¿][^.!?]+[.!?]*/g) || [t], cur = '';
+  parts.forEach(function(p){ p = p.trim(); if (!p) return; if ((cur + ' ' + p).length > 170 && cur) { out.push(cur); cur = p; } else cur = cur ? cur + ' ' + p : p; });
+  if (cur) out.push(cur);
+  return out;
+}
+function vozProblema(){
+  if (B && B.ttsStatus) { var st = B.ttsStatus(); return st === 'ok' || st === 'init' ? '' : st; }
+  if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return 'nobrowser';
+  return '';
+}
+function avisoVoz(force){
+  var pr = vozProblema();
+  if (!pr && !force) return;
+  if (vozAvisada && !force) return; vozAvisada = true;
+  var txt = pr === 'nolang' ? 'Tu móvil tiene voz, pero le falta el <b>español</b>.' :
+            pr === 'noengine' ? 'Tu móvil no tiene ningún <b>motor de voz</b> instalado (pasa mucho en los Huawei).' :
+            pr === 'error' ? 'El motor de voz del móvil ha dado un error.' :
+            pr === 'nobrowser' ? 'Este navegador <b>no puede hablar</b>. Abre el juego con <b>Google Chrome</b>.' :
+            'Si no oyes a la mascota, revisa esto:';
+  var h = '<h3>🔇 No se oye la voz</h3><p style="font-weight:700;font-size:14px">' + txt + '</p><ol style="font-size:13.5px;font-weight:600;padding-left:18px;margin:6px 0 10px">' +
+    '<li>Sube el <b>volumen multimedia</b> del móvil (no el del timbre).</li>' +
+    '<li>Comprueba que el botón 🗣️ de arriba no está tachado.</li>' +
+    '<li>Instala <b>«Servicios de voz de Google»</b> (Speech Services by Google) desde la tienda de apps.</li>' +
+    '<li>En Ajustes → Accesibilidad → <b>Salida de texto a voz</b>, elige ese motor y descarga la voz <b>Español (España)</b>.</li></ol>';
+  if (B && B.openTtsSettings) h += '<div class="two"><button class="btn green" onclick="B.installVoice()">⬇️ Instalar voz</button><button class="btn blue" onclick="B.openTtsSettings()">⚙️ Ajustes de voz</button></div>';
+  h += '<div class="two" style="margin-top:8px"><button class="btn orange" onclick="probarVoz()">🔊 Probar otra vez</button><button class="btn gray" onclick="closeModal()">Cerrar</button></div>';
+  showModal(h);
+}
+function probarVoz(){ closeModal(); var was = S.sound; S.sound = true; speak('¡Hola! Si me oyes, la voz funciona perfectamente.'); S.sound = was || true; save(); renderHeader(); setTimeout(function(){ if (vozProblema()) { vozAvisada = false; avisoVoz(true); } }, 1500); }
 function speak(t, lang){
   if (!S.sound || MINI) return;
   var txt = mathSay(plain(t)); if (!txt) return;
   try {
-    if (B && B.speakLang) B.speakLang(txt, lang || 'es');
-    else if (B && B.speak) B.speak(txt);
-    else if (window.speechSynthesis) { speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(txt); u.lang = lang === 'en' ? 'en-GB' : 'es-ES'; u.pitch = 1.5; speechSynthesis.speak(u); }
+    if (B && B.speakLang) { B.speakLang(txt, lang || 'es'); if (vozProblema()) setTimeout(function(){ avisoVoz(false); }, 400); return; }
+    if (B && B.speak) { B.speak(txt); return; }
+    if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) { avisoVoz(false); return; }
+    speechSynthesis.cancel();
+    var list = chunks(txt);
+    setTimeout(function(){
+      list.forEach(function(c){ var u = new SpeechSynthesisUtterance(c); u.lang = lang === 'en' ? 'en-GB' : 'es-ES'; if (lang !== 'en' && VOZ_ES) u.voice = VOZ_ES; u.pitch = 1.4; u.rate = 1; speechSynthesis.speak(u); });
+      try { speechSynthesis.resume(); } catch (e) {}
+    }, 60);
   } catch (e) {}
 }
 function vibrate(ms){ try { if (B && B.vibrate) B.vibrate(ms); else if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
@@ -2747,7 +2793,8 @@ function bind(){
   });
   $('goQuiz').onclick = function(){ tab('quiz'); };
   $('editPet').onclick = function(){ openAdopt(false); };
-  $('snd').onclick = function(){ S.sound = !S.sound; save(); renderHeader(); if (!S.sound && B && B.stopSpeak) B.stopSpeak(); toast(S.sound ? '🗣️ Voz de la mascota activada' : '🗣️ Voz de la mascota quitada'); };
+  $('snd').addEventListener('contextmenu', function(e){ e.preventDefault(); avisoVoz(true); });
+  $('snd').onclick = function(){ S.sound = !S.sound; save(); renderHeader(); if (!S.sound && B && B.stopSpeak) B.stopSpeak(); toast(S.sound ? '🗣️ Voz de la mascota activada' : '🗣️ Voz de la mascota quitada'); if (S.sound) { speak('¡Hola! Ya puedo hablar.'); setTimeout(function(){ if (vozProblema()) avisoVoz(true); }, 1200); } };
   $('mus').onclick = function(){ S.music = !S.music; save(); renderHeader(); musicUpdate(); toast(S.music ? '🎵 Música activada' : '🎵 Música quitada'); };
   $('sfx').onclick = function(){ S.sfx = !S.sfx; save(); renderHeader(); sfx('coin'); toast(S.sfx ? '🔔 Sonidos activados' : '🔔 Sonidos quitados'); };
   document.addEventListener('click', function(e){ audioUnlock(); if (e.target.closest('button,.item,.chip,.opt')) sfx('tap'); }, true);
