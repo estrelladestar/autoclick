@@ -262,6 +262,7 @@ body.bg-crema{background:#FFF6E0}body.bg-azul{background:#E6F2FF}body.bg-verde{b
     <div class="opts" id="qopts"></div>
     <div class="qfoot"><div class="info" id="qinfo"></div><button class="btn green" id="qnext">Next ▶</button></div>
     <button class="btn blue big" style="margin-top:14px" id="myQ">✏️ Make my own questions</button>
+    <button class="btn gray big" style="margin-top:8px" onclick="avisoVoz(true)">🔇 ¿No se oye la voz? Pulsa aquí</button>
   </section>
 
   <section id="t-apr">
@@ -1186,13 +1187,38 @@ function moodPhrase(){
 /* ======================= voz y avisos ======================= */
 function plain(t){ return String(t).replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}]/gu, '').replace(/\s+/g, ' ').trim(); }
 /* speak(texto, idioma, cola): por defecto en INGLÉS; 'es' para las explicaciones en español. cola=true → no corta lo anterior */
+var vozAvisada = false;
+function vozProblema(){
+  if (B && B.ttsStatus) { var st = B.ttsStatus(); return st === 'ok' || st === 'init' ? '' : st; }
+  if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return 'nobrowser';
+  return '';
+}
+function avisoVoz(force){
+  var pr = vozProblema();
+  if (!pr && !force) return;
+  if (vozAvisada && !force) return; vozAvisada = true;
+  var txt = pr === 'nolang' ? 'Tu móvil tiene voz, pero le falta el <b>español</b>.' :
+            pr === 'noen' ? 'Tu móvil tiene voz, pero le falta el <b>inglés</b>.' :
+            pr === 'noengine' ? 'Tu móvil no tiene ningún <b>motor de voz</b> instalado (pasa mucho en los Huawei).' :
+            pr === 'nobrowser' ? 'Este navegador <b>no puede hablar</b>. Abre el juego con <b>Google Chrome</b>.' :
+            'Si no oyes a la mascota, revisa esto:';
+  var h = '<h3>🔇 No se oye la voz</h3><p style="font-weight:700;font-size:14px">' + txt + '</p><ol style="font-size:13.5px;font-weight:600;padding-left:18px;margin:6px 0 10px">' +
+    '<li>Sube el <b>volumen multimedia</b> del móvil (no el del timbre).</li>' +
+    '<li>Comprueba que el botón 🗣️ de arriba no está tachado.</li>' +
+    '<li>Instala <b>«Servicios de voz de Google»</b> (Speech Services by Google) desde la tienda de apps.</li>' +
+    '<li>En Ajustes → Accesibilidad → <b>Salida de texto a voz</b>, elige ese motor y descarga <b>Español (España)</b> e <b>Inglés (Reino Unido)</b>.</li></ol>';
+  if (B && B.openTtsSettings) h += '<div class="two"><button class="btn green" onclick="B.installVoice()">⬇️ Instalar voz</button><button class="btn blue" onclick="B.openTtsSettings()">⚙️ Ajustes de voz</button></div>';
+  h += '<div class="two" style="margin-top:8px"><button class="btn orange" onclick="probarVoz()">🔊 Probar otra vez</button><button class="btn gray" onclick="closeModal()">Cerrar</button></div>';
+  showModal(h);
+}
+function probarVoz(){ closeModal(); S.sound = true; save(); renderHeader(); speak('¡Hola! Si me oyes, la voz funciona.', 'es'); speak('Hello! I can speak English too.', 'en', true); setTimeout(function(){ if (vozProblema()) { vozAvisada = false; avisoVoz(true); } }, 1500); }
 function speak(t, lang, queue, slow){
   if (!S.sound || MINI) return;
   var txt = plain(t); if (!txt) return;
   lang = lang || 'en';
   var sl = lang === 'en' && (slow || S.slow);   // 🐢 más despacio (solo el inglés)
   try {
-    if (B && B.speakLang) B.speakLang(txt, lang + (sl ? '~' : '') + (queue ? '+' : ''));
+    if (B && B.speakLang) { B.speakLang(txt, lang + (sl ? '~' : '') + (queue ? '+' : '')); if (vozProblema()) setTimeout(function(){ avisoVoz(false); }, 400); }
     else if (window.speechSynthesis) { if (!queue) speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(txt); u.lang = lang === 'en' ? 'en-GB' : 'es-ES'; u.pitch = 1.5; u.rate = sl ? .6 : 1; speechSynthesis.speak(u); }
   } catch (e) {}
 }

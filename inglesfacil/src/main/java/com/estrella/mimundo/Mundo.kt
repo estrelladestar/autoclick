@@ -31,6 +31,7 @@ object Mundo {
     /** Petición de micrófono pendiente mientras el sistema pregunta el permiso (ensayo del poema). */
     var pendingMic: PermissionRequest? = null
     const val MIC_CODE = 77
+    @Volatile var ttsStatus = "init"
     const val LISTEN_CODE = 78
     /** Pronunciación: la actividad escucha al niño (reconocimiento de voz del móvil). */
     var onListen: ((String) -> Unit)? = null
@@ -83,6 +84,22 @@ object Mundo {
         @JavascriptInterface fun speak(text: String) { main.post { say(text, "es") } }
         @JavascriptInterface fun speakLang(text: String, lang: String) { main.post { say(text, lang) } }
         @JavascriptInterface fun stopSpeak() { main.post { hush() } }
+        @JavascriptInterface fun ttsStatus(): String = Mundo.ttsStatus
+        @JavascriptInterface fun openTtsSettings() {
+            main.post {
+                try { activity.startActivity(Intent("com.android.settings.TTS_SETTINGS").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                catch (e: Exception) { try { activity.startActivity(Intent(android.provider.Settings.ACTION_SETTINGS)) } catch (e2: Exception) {} }
+            }
+        }
+        @JavascriptInterface fun installVoice() {
+            main.post {
+                try { activity.startActivity(Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                catch (e: Exception) {
+                    try { activity.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse("market://details?id=com.google.android.tts")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                    catch (e2: Exception) {}
+                }
+            }
+        }
         @JavascriptInterface fun canListen(): Boolean = SpeechRecognizer.isRecognitionAvailable(activity)
         @JavascriptInterface fun listen(lang: String) { main.post { Mundo.onListen?.invoke(lang) } }
         @JavascriptInterface fun stopListen() { main.post { Mundo.onStopListen?.invoke() } }
@@ -104,19 +121,39 @@ class MainActivity : Activity() {
     private lateinit var web: WebView
     private var tts: TextToSpeech? = null
     private var ttsReady = false
+    private var pending: Pair<String, String>? = null
+    private var triedGoogle = false
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        tts = TextToSpeech(this) { status ->
+    /** Arranca el motor de voz; si falla, prueba el de Google. */
+    private fun startTts(engine: String?) {
+        val listener = TextToSpeech.OnInitListener { status ->
             if (status == TextToSpeech.SUCCESS) {
                 tts?.let { t ->
-                    setLang(t, "es")
+                    val r = t.setLanguage(Locale("es", "ES"))
+                    val r2 = if (r == TextToSpeech.LANG_MISSING_DATA || r == TextToSpeech.LANG_NOT_SUPPORTED) t.setLanguage(Locale("es")) else r
+                    val en = t.isLanguageAvailable(Locale.UK)
+                    curLang = "es"
                     t.setPitch(1.6f)   // voz aguda de mascota
                     t.setSpeechRate(1.05f)
                     ttsReady = true
+                    Mundo.ttsStatus = if (r2 == TextToSpeech.LANG_MISSING_DATA || r2 == TextToSpeech.LANG_NOT_SUPPORTED) "nolang"
+                        else if (en == TextToSpeech.LANG_MISSING_DATA || en == TextToSpeech.LANG_NOT_SUPPORTED) "noen" else "ok"
+                    pending?.let { speak(it.first, it.second) }
+                    pending = null
                 }
-            }
+            } else if (!triedGoogle) {
+                triedGoogle = true
+                try { tts?.shutdown() } catch (e: Exception) {}
+                startTts("com.google.android.tts")
+            } else Mundo.ttsStatus = "noengine"
         }
+        tts = if (engine == null) TextToSpeech(this, listener) else TextToSpeech(this, listener, engine)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        Mundo.ttsStatus = "init"
+        startTts(null)
         web = Mundo.webView(this, false, { text, lang -> speak(text, lang) }, { tts?.stop() })
         setContentView(web)
         Mundo.onListen = { lang -> startListening(lang) }
@@ -138,7 +175,7 @@ class MainActivity : Activity() {
     }
 
     private fun speak(text: String, lang: String) {
-        if (!ttsReady) return
+        if (!ttsReady) { pending = Pair(text, lang); return }
         val t = tts ?: return
         // «en+» / «es+» = a la cola (no corta lo que está diciendo); «en» / «es» = corta y habla ya.
         // «~» = más despacio (botón 🐢)
