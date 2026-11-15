@@ -175,6 +175,10 @@ details.sec[open] summary{margin-bottom:8px}
         <select id="wpos"><option value="antes">Antes de las etiquetas</option><option value="despues">Después de las etiquetas</option><option value="azar">Al azar (a veces delante, a veces detrás)</option></select>
       </div>
     </div>
+    <label for="wveces">Veces que sale cada palabra <span class="hint">(0 = sin límite; cuando todas han salido esas veces, se vuelve a empezar)</span></label>
+    <input id="wveces" type="number" min="0" max="999" value="0">
+    <p class="meta" id="wvmsg"></p>
+    <button id="wvreset" type="button" class="alt">Poner la cuenta de palabras a cero</button>
   </section>
 
   <!-- ICONOS -->
@@ -329,7 +333,7 @@ details.sec[open] summary{margin-bottom:8px}
     var phrase=getPhrase();
     var all=getWords();
     var k=Math.max(1,Math.min(10,parseInt($("wn").value,10)||1));
-    var words=(wordsOn&&all.length)?pickRandom(all,k):[];
+    var words=(wordsOn&&all.length)?pickWords(all,k):[];
     var parts=[];
     if(phrase)parts.push(phrase);
     var pos=$("wpos").value;
@@ -345,6 +349,32 @@ details.sec[open] summary{margin-bottom:8px}
     var must=$("must")?$("must").value.trim():"";
     if(must&&txt.toLowerCase().indexOf(must.toLowerCase())<0){txt=must+" "+txt}
     return txt;
+  }
+  // ----- Veces que sale cada palabra -----
+  var wUsos=loadJSON("palabrasUsos",{});
+  function wLimit(){return Math.max(0,parseInt($("wveces").value,10)||0)}
+  function pickWords(all,k){
+    var lim=wLimit();
+    if(!lim)return pickRandom(all,k);
+    var free=all.filter(function(w){return (wUsos[w.toLowerCase()]||0)<lim});
+    if(free.length<k){
+      // Ya han salido todas las veces elegidas: se vuelve a empezar la cuenta
+      if(!free.length){wUsos={};free=all.slice();wvAviso="Todas tus palabras ya salieron "+lim+" "+(lim===1?"vez":"veces")+": empiezo de nuevo la cuenta."}
+    }
+    var out=pickRandom(free,k);
+    out.forEach(function(w){var key=w.toLowerCase();wUsos[key]=(wUsos[key]||0)+1});
+    saveJSON("palabrasUsos",wUsos);updateWv();
+    return out;
+  }
+  var wvAviso="";
+  function updateWv(){
+    var el=$("wvmsg");if(!el)return;
+    var lim=wLimit(),all=getWords();
+    if(!lim){el.textContent="Sin límite: cada palabra puede salir las veces que toque al azar.";return}
+    var left=0;all.forEach(function(w){left+=Math.max(0,lim-(wUsos[w.toLowerCase()]||0))});
+    var done=all.filter(function(w){return (wUsos[w.toLowerCase()]||0)>=lim}).length;
+    el.textContent=(wvAviso?wvAviso+" ":"")+"Cada palabra sale como mucho "+lim+" "+(lim===1?"vez":"veces")+". Quedan "+left+" usos; "+done+" de "+all.length+" palabras ya están gastadas.";
+    wvAviso="";
   }
   function pickRandom(list,n){
     var a=list.slice();
@@ -644,13 +674,18 @@ details.sec[open] summary{margin-bottom:8px}
   applyIconsState();
   $("wn").value=loadJSON("palabrasN",1);
   $("wn").addEventListener("input",function(){saveJSON("palabrasN",parseInt($("wn").value,10)||1)});
+  $("wveces").value=loadJSON("palabrasVeces",0);
+  $("wveces").addEventListener("input",function(){saveJSON("palabrasVeces",wLimit());updateWv()});
+  $("wvreset").addEventListener("click",function(){wUsos={};saveJSON("palabrasUsos",wUsos);updateWv()});
+  $("words").addEventListener("input",updateWv);
+  updateWv();
   $("wpos").value=loadJSON("palabrasPos","antes");
   $("wpos").addEventListener("change",function(){saveJSON("palabrasPos",$("wpos").value)});
   function applyWordsState(){
     var b=$("wtoggle");
     b.textContent=wordsOn?"Palabras: encendidas (toca para apagar)":"Palabras: apagadas (toca para encender)";
     b.className=wordsOn?"":"alt";
-    ["words","wn","wpos"].forEach(function(id){var e=$(id);e.disabled=!wordsOn;e.style.opacity=wordsOn?"":".5"});
+    ["words","wn","wpos","wveces","wvreset"].forEach(function(id){var e=$(id);e.disabled=!wordsOn;e.style.opacity=wordsOn?"":".5"});
   }
   $("wtoggle").addEventListener("click",function(){wordsOn=!wordsOn;saveJSON("palabrasOn",wordsOn);applyWordsState()});
   applyWordsState();
