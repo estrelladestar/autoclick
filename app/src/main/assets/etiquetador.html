@@ -644,7 +644,9 @@ details.sec[open] summary{margin-bottom:8px}
   var sw=null;try{sw=localStorage.getItem("palabras")}catch(e){}
   // La lista fija antigua (300 frases) se cambia sola por la nueva de los bolsos
   if(sw&&((sw.indexOf("¡Me encanta el bolso Rafaela! Ojalá tenga suerte")===0&&sw.trim().split(/\r?\n/).length>=298)||((sw.indexOf("Paquita, es elegante y precioso")===0||sw.indexOf("Trono Paquita, es elegante y precioso")===0)&&sw.trim().split(/\r?\n/).length>=239))){sw=PALABRAS_GUARDADAS;try{localStorage.setItem("palabras",sw)}catch(e){}}
-  $("words").value=(sw!==null&&sw.trim()!=="")?sw:PALABRAS_GUARDADAS;
+  // Frases fijas: cada vez que se abre, el cuadro vuelve a tener las frases «Trono + nombre del bolso»
+  sw=PALABRAS_GUARDADAS;try{localStorage.setItem("palabras",sw)}catch(e){}
+  $("words").value=sw;
   $("wfixed").addEventListener("click",function(){
     var cur=$("words").value.trim();
     if(cur&&cur!==PALABRAS_GUARDADAS.trim()&&!confirm("¿Cambiar lo que hay ahora en el cuadro por tus frases fijas?"))return;
