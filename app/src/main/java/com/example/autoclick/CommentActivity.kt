@@ -60,6 +60,9 @@ repetir 1000"""
     private val slowScript get() = defaultScript.replace("escribir menciones 1", "escribir menciones 1 lento 5-20")
     /** Igual que el lento, pero con 2 menciones en cada comentario. */
     private val slow2Name = "⭐ Mi guion lento, 2 menciones (fijo)"
+    /** Igual que «Mi guion», pero cada comentario lleva SIEMPRE una frase y 3 menciones. */
+    private val phrase3Name = "⭐ Frase + 3 menciones (fijo)"
+    private val phrase3Script get() = defaultScript.replace("escribir menciones 1", "escribir menciones 3 frase")
     private val slow2Script get() = defaultScript.replace("escribir menciones 1", "escribir menciones 2 lento 5-20")
     /** Como el lento, pero escribiendo más rápido: la mitad de las veces tarda entre 2 y 5 segundos. */
     private val fastName = "⭐ Mi guion rápido (fijo)"
@@ -100,7 +103,7 @@ descanso 0.5-1
 cuenta siguiente
 repetir 1000"""
     /** ¿Es uno de los guiones fijos (que no se pueden borrar ni sobrescribir)? */
-    private fun isFixed(name: String) = name == fixedName || name == previousName || name == slowName || name == slow2Name || name == fastName || name == quickName
+    private fun isFixed(name: String) = name == fixedName || name == previousName || name == slowName || name == slow2Name || name == phrase3Name || name == fastName || name == quickName
 
     /** El guion fijo de antes (con la línea «cuentas» y 10 comentarios de 2 menciones). */
     private val previousName = "⭐ Guion anterior (fijo)"
@@ -404,6 +407,7 @@ repetir 8"""
                         previousName -> previousScript
                         slowName -> slowScript
                         slow2Name -> slow2Script
+                        phrase3Name -> phrase3Script
                         fastName -> fastScript
                         quickName -> quickScript
                         else -> loadScripts().optString(name, "")
@@ -433,7 +437,13 @@ repetir 8"""
         }
 
         label("TUS FRASES (opcional), una por línea. Con «escribir menciones» se elige una al azar y se junta con las menciones. Déjalo vacío para poner solo menciones:")
-        phrasesBox = multi(3, prefs.getString("phrases", "") ?: "")
+        // Si no hay frases, se ponen solas las frases fijas «Trono + bolso»
+        phrasesBox = multi(3, (prefs.getString("phrases", "") ?: "").ifBlank { Macro.fixedPhrases(ctx).joinToString("\n") })
+        Button(ctx).apply {
+            text = "Poner mis frases fijas (Trono + bolso)"
+            setOnClickListener { phrasesBox.setText(Macro.fixedPhrases(ctx).joinToString("\n")) }
+            root.addView(this)
+        }
         label("Dónde va la frase:")
         phrasePos = Spinner(ctx).apply {
             adapter = ArrayAdapter(
@@ -1073,6 +1083,7 @@ repetir 8"""
     private fun refreshSaved(select: String?) {
         val names = ArrayList<String>()
         names.add("— elegir un guion guardado —")
+        names.add(phrase3Name)
         names.add(fixedName)
         names.add(slowName)
         names.add(slow2Name)

@@ -324,6 +324,15 @@ object Macro {
         ctx.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE).edit().putString("registro", log.toString()).apply()
     }
 
+    /** Las frases fijas «Trono + bolso» del Etiquetador (las mismas que salen en su cuadro de palabras). */
+    fun fixedPhrases(ctx: android.content.Context): List<String> = try {
+        val html = ctx.assets.open("etiquetador.html").bufferedReader(Charsets.UTF_8).use { it.readText() }
+        val m = Regex("var PALABRAS_GUARDADAS=(\".*?\");\\n").find(html)
+            ?: Regex("var PALABRAS_GUARDADAS=(\"[^\\n]*\");").find(html)
+        if (m == null) emptyList()
+        else org.json.JSONArray("[" + m.groupValues[1] + "]").getString(0).lines().map { it.trim() }.filter { it.isNotEmpty() }
+    } catch (e: Exception) { emptyList() }
+
     /** Menciones hechas: {"2026-11-11": {"cuentas": {"cory_gm0": 10}, "personas": {"@ana": 3}}} (últimos 30 días). */
     fun loadMentions(ctx: android.content.Context): org.json.JSONObject = try {
         org.json.JSONObject(ctx.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE).getString("registro_menciones", "{}") ?: "{}")
@@ -1028,7 +1037,10 @@ object Macro {
                 finish("No hay menciones. Pon tus amigos en el cuadro de menciones. Guion detenido.")
                 return
             }
-            val allTokens = c.arg.trim().split(" ").filter { it.isNotEmpty() }
+            val allTokens0 = c.arg.trim().split(" ").filter { it.isNotEmpty() }
+            // «frase»: pone SIEMPRE una frase (las tuyas o, si no hay, las fijas «Trono + bolso» del Etiquetador)
+            val alwaysPhrase = allTokens0.any { it.lowercase() == "frase" || it.lowercase() == "frases" }
+            val allTokens = allTokens0.filter { it.lowercase() != "frase" && it.lowercase() != "frases" }
             // «lento 5-20»: algunas veces (la mitad, al azar) escribe poco a poco, tardando entre 5 y 20 segundos
             val slowAt = allTokens.indexOfFirst { it.lowercase() == "lento" }
             val tokens = if (slowAt < 0) allTokens else allTokens.subList(0, slowAt)
@@ -1075,8 +1087,9 @@ object Macro {
                 listOf(pool.removeAt((Math.random() * pool.size).toInt().coerceAtMost(pool.size - 1)))
             } else {
                 (prefs.getString("phrases", "") ?: "").lines().map { it.trim() }.filter { it.isNotEmpty() }
+                    .ifEmpty { if (alwaysPhrase) fixedPhrases(s) else emptyList() }
             }
-            val chance = if (withCopied) 100 else prefs.getInt("phraseChance", 100).coerceIn(0, 100)
+            val chance = if (withCopied || alwaysPhrase) 100 else prefs.getInt("phraseChance", 100).coerceIn(0, 100)
             if (phrases.isNotEmpty() && Math.random() * 100 < chance) {
                 val phrase = phrases[(Math.random() * phrases.size).toInt().coerceAtMost(phrases.size - 1)]
                 val pos = prefs.getInt("phrasePos", 0)
