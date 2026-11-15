@@ -175,10 +175,9 @@ details.sec[open] summary{margin-bottom:8px}
         <select id="wpos"><option value="antes">Antes de las etiquetas</option><option value="despues">Después de las etiquetas</option><option value="azar">Al azar (a veces delante, a veces detrás)</option></select>
       </div>
     </div>
-    <label for="wveces">Veces que sale cada palabra <span class="hint">(0 = sin límite; cuando todas han salido esas veces, se vuelve a empezar)</span></label>
-    <input id="wveces" type="number" min="0" max="999" value="0">
+    <label for="wpct">Porcentaje de comentarios con palabras <span class="hint">(0 a 100 %; fijo: con 50 salen en 1 de cada 2 comentarios, con 25 en 1 de cada 4)</span></label>
+    <input id="wpct" type="number" min="0" max="100" value="100">
     <p class="meta" id="wvmsg"></p>
-    <button id="wvreset" type="button" class="alt">Poner la cuenta de palabras a cero</button>
   </section>
 
   <!-- ICONOS -->
@@ -350,31 +349,18 @@ details.sec[open] summary{margin-bottom:8px}
     if(must&&txt.toLowerCase().indexOf(must.toLowerCase())<0){txt=must+" "+txt}
     return txt;
   }
-  // ----- Veces que sale cada palabra -----
-  var wUsos=loadJSON("palabrasUsos",{});
-  function wLimit(){return Math.max(0,parseInt($("wveces").value,10)||0)}
+  // ----- Porcentaje de comentarios con palabras -----
+  function wPct(){var v=parseInt($("wpct").value,10);return isNaN(v)?100:Math.max(0,Math.min(100,v))}
+  // Fijo (no al azar): de cada 100 comentarios, exactamente ese porcentaje lleva palabras, repartidos por igual
+  var wCont=loadJSON("palabrasCont",0);
   function pickWords(all,k){
-    var lim=wLimit();
-    if(!lim)return pickRandom(all,k);
-    var free=all.filter(function(w){return (wUsos[w.toLowerCase()]||0)<lim});
-    if(free.length<k){
-      // Ya han salido todas las veces elegidas: se vuelve a empezar la cuenta
-      if(!free.length){wUsos={};free=all.slice();wvAviso="Todas tus palabras ya salieron "+lim+" "+(lim===1?"vez":"veces")+": empiezo de nuevo la cuenta."}
-    }
-    var out=pickRandom(free,k);
-    out.forEach(function(w){var key=w.toLowerCase();wUsos[key]=(wUsos[key]||0)+1});
-    saveJSON("palabrasUsos",wUsos);updateWv();
-    return out;
+    var p=wPct(),n=wCont%100;wCont=n+1;saveJSON("palabrasCont",wCont);
+    var toca=Math.floor((n+1)*p/100)>Math.floor(n*p/100);
+    return toca?pickRandom(all,k):[];
   }
-  var wvAviso="";
   function updateWv(){
-    var el=$("wvmsg");if(!el)return;
-    var lim=wLimit(),all=getWords();
-    if(!lim){el.textContent="Sin límite: cada palabra puede salir las veces que toque al azar.";return}
-    var left=0;all.forEach(function(w){left+=Math.max(0,lim-(wUsos[w.toLowerCase()]||0))});
-    var done=all.filter(function(w){return (wUsos[w.toLowerCase()]||0)>=lim}).length;
-    el.textContent=(wvAviso?wvAviso+" ":"")+"Cada palabra sale como mucho "+lim+" "+(lim===1?"vez":"veces")+". Quedan "+left+" usos; "+done+" de "+all.length+" palabras ya están gastadas.";
-    wvAviso="";
+    var el=$("wvmsg");if(!el)return;var p=wPct();
+    el.textContent=p>=100?"Las palabras salen en todos los comentarios.":p<=0?"Las palabras no salen en ningún comentario.":"Las palabras salen fijo en "+p+" de cada 100 comentarios, repartidas por igual.";
   }
   function pickRandom(list,n){
     var a=list.slice();
@@ -674,10 +660,8 @@ details.sec[open] summary{margin-bottom:8px}
   applyIconsState();
   $("wn").value=loadJSON("palabrasN",1);
   $("wn").addEventListener("input",function(){saveJSON("palabrasN",parseInt($("wn").value,10)||1)});
-  $("wveces").value=loadJSON("palabrasVeces",0);
-  $("wveces").addEventListener("input",function(){saveJSON("palabrasVeces",wLimit());updateWv()});
-  $("wvreset").addEventListener("click",function(){wUsos={};saveJSON("palabrasUsos",wUsos);updateWv()});
-  $("words").addEventListener("input",updateWv);
+  $("wpct").value=loadJSON("palabrasPct",100);
+  $("wpct").addEventListener("input",function(){saveJSON("palabrasPct",wPct());wCont=0;saveJSON("palabrasCont",0);updateWv()});
   updateWv();
   $("wpos").value=loadJSON("palabrasPos","antes");
   $("wpos").addEventListener("change",function(){saveJSON("palabrasPos",$("wpos").value)});
@@ -685,7 +669,7 @@ details.sec[open] summary{margin-bottom:8px}
     var b=$("wtoggle");
     b.textContent=wordsOn?"Palabras: encendidas (toca para apagar)":"Palabras: apagadas (toca para encender)";
     b.className=wordsOn?"":"alt";
-    ["words","wn","wpos","wveces","wvreset"].forEach(function(id){var e=$(id);e.disabled=!wordsOn;e.style.opacity=wordsOn?"":".5"});
+    ["words","wn","wpos","wpct"].forEach(function(id){var e=$(id);e.disabled=!wordsOn;e.style.opacity=wordsOn?"":".5"});
   }
   $("wtoggle").addEventListener("click",function(){wordsOn=!wordsOn;saveJSON("palabrasOn",wordsOn);applyWordsState()});
   applyWordsState();
