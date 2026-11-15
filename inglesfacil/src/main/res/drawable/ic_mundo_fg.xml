@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <!-- orejas -->
+    <path android:fillColor="#FFB26B" android:pathData="M33,46 L36,24 L52,36 Z"/>
+    <path android:fillColor="#FFB26B" android:pathData="M75,46 L72,24 L56,36 Z"/>
+    <path android:fillColor="#FF9FB8" android:pathData="M37,41 L38.5,30 L46,36 Z"/>
+    <path android:fillColor="#FF9FB8" android:pathData="M71,41 L69.5,30 L62,36 Z"/>
+    <!-- cara -->
+    <path android:fillColor="#FFB26B" android:strokeColor="#E8955A" android:strokeWidth="1.2"
+        android:pathData="M54,30 C72,30 82,42 82,56 C82,71 70,80 54,80 C38,80 26,71 26,56 C26,42 36,30 54,30 Z"/>
+    <path android:fillColor="#FFE7CC" android:pathData="M54,58 C64,58 68,64 68,69 C68,75 62,78 54,78 C46,78 40,75 40,69 C40,64 44,58 54,58 Z"/>
+    <!-- ojos -->
+    <path android:fillColor="#2A1A2E" android:pathData="M43,47 C46.5,47 47.5,50 47.5,53 C47.5,56 46.5,59 43,59 C39.5,59 38.5,56 38.5,53 C38.5,50 39.5,47 43,47 Z"/>
+    <path android:fillColor="#2A1A2E" android:pathData="M65,47 C68.5,47 69.5,50 69.5,53 C69.5,56 68.5,59 65,59 C61.5,59 60.5,56 60.5,53 C60.5,50 61.5,47 65,47 Z"/>
+    <path android:fillColor="#FFFFFF" android:pathData="M41.5,49 m-2,0 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0"/>
+    <path android:fillColor="#FFFFFF" android:pathData="M63.5,49 m-2,0 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0"/>
+    <!-- mejillas -->
+    <path android:fillColor="#FF8FAB" android:pathData="M34,62 m-4,0 a4,2.5 0 1,0 8,0 a4,2.5 0 1,0 -8,0"/>
+    <path android:fillColor="#FF8FAB" android:pathData="M74,62 m-4,0 a4,2.5 0 1,0 8,0 a4,2.5 0 1,0 -8,0"/>
+    <!-- nariz y boca -->
+    <path android:fillColor="#FF8FAB" android:pathData="M51.5,60 L56.5,60 L54,63 Z"/>
+    <path android:strokeColor="#2A1A2E" android:strokeWidth="1.8" android:strokeLineCap="round"
+        android:fillColor="#00000000" android:pathData="M49,65 Q51.5,68 54,65 Q56.5,68 59,65"/>
+    <!-- estrellita -->
+    <path android:fillColor="#FFE066" android:pathData="M78,26 L79.8,30.5 L84.5,30.8 L80.9,33.8 L82,38.4 L78,35.9 L74,38.4 L75.1,33.8 L71.5,30.8 L76.2,30.5 Z"/>
+</vector>

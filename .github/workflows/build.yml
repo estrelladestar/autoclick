@@ -64,6 +64,10 @@ jobs:
           path: ingles/build/outputs/apk/debug/*.apk
       - uses: actions/upload-artifact@v4
         with:
+          name: MiMundoInglesFacil-apk
+          path: inglesfacil/build/outputs/apk/debug/*.apk
+      - uses: actions/upload-artifact@v4
+        with:
           name: Gatidoku-apk
           path: gatidoku/build/outputs/apk/debug/*.apk
       - uses: actions/upload-artifact@v4
@@ -75,7 +79,7 @@ jobs:
           name: SorteosStar-apk
           path: sorteos/build/outputs/apk/debug/*.apk
       - run: cp app/build/outputs/apk/normal/debug/app-normal-debug.apk StarApp.apk && cp StarApp.apk app-debug.apk && cp app/build/outputs/apk/historias/debug/app-historias-debug.apk StarAppHistorias.apk  # Star App (también como app-debug.apk, el enlace de siempre) y Star App Historias
-      - run: cp lengua/src/main/assets/mundo.html MiMundo_Lengua_Tema3.html && cp facil/src/main/assets/mundo.html MiMundo_Facil_Tema3.html && cp ingles/src/main/assets/mundo.html MiMundo_Ingles_Unit2.html && cp mates/src/main/assets/mundo.html MiMundo_Mates_Tema3.html && cp cono/src/main/assets/mundo.html MiMundo_Cono_Tema3.html && cp sorteos/src/main/assets/sorteos.html SorteosStar.html && cp joyas/src/main/assets/joyas.html StarJoyas.html  # versiones HTML para descargar
+      - run: cp lengua/src/main/assets/mundo.html MiMundo_Lengua_Tema3.html && cp facil/src/main/assets/mundo.html MiMundo_Facil_Tema3.html && cp ingles/src/main/assets/mundo.html MiMundo_Ingles_Unit2.html && cp inglesfacil/src/main/assets/mundo.html MiMundo_InglesFacil_Unit2.html && cp mates/src/main/assets/mundo.html MiMundo_Mates_Tema3.html && cp cono/src/main/assets/mundo.html MiMundo_Cono_Tema3.html && cp sorteos/src/main/assets/sorteos.html SorteosStar.html && cp joyas/src/main/assets/joyas.html StarJoyas.html  # versiones HTML para descargar
       - run: mkdir -p web/ingles && cp lengua/src/main/assets/mundo.html web/index.html && mkdir -p web/sorteos && cp sorteos/src/main/assets/sorteos.html web/sorteos/index.html && cp sorteosplay/privacidad.html web/sorteos/privacidad.html && cp ingles/src/main/assets/mundo.html web/ingles/index.html && mkdir -p web/mates && cp mates/src/main/assets/mundo.html web/mates/index.html && mkdir -p web/cono && cp cono/src/main/assets/mundo.html web/cono/index.html && mkdir -p web/joyas && cp joyas/src/main/assets/joyas.html web/joyas/index.html && touch web/.nojekyll  # páginas web de los juegos (/ = Lengua, /ingles/ = Inglés, /sorteos/ = Sorteos Star, /joyas/ = Star Joyas)
       - uses: peaceiris/actions-gh-pages@v4
         with:
@@ -104,6 +108,8 @@ jobs:
             - Gatidoku-debug.apk → Gatidoku (puzles de lógica con gatos)
             - MiMundoIngles-debug.apk → Mi Mundo Inglés (el mismo juego con la Unit 2 de inglés «Helping at home», con voz en inglés)
             - MiMundo_Ingles_Unit2.html → Mi Mundo Inglés para abrir en el navegador
+            - MiMundoInglesFacil-debug.apk → Inglés Fácil (Unit 2 adaptada para dislexia)
+            - MiMundo_InglesFacil_Unit2.html → Inglés Fácil para abrir en el navegador
             - SorteosStar-debug.apk → Sorteos Star (sorteos de Instagram y TikTok para tiendas: pegas el enlace y recoge los comentarios)
             - SorteosStar.html → Sorteos Star para abrir en el navegador (ahí los comentarios se pegan a mano)
             - SorteosStar-GooglePlay.aab → Sorteos Star para subir a Google Play (firmado con la clave de subida)
@@ -120,6 +126,7 @@ jobs:
             facil/build/outputs/apk/debug/*.apk
             gatidoku/build/outputs/apk/debug/*.apk
             ingles/build/outputs/apk/debug/*.apk
+            inglesfacil/build/outputs/apk/debug/*.apk
             sorteos/build/outputs/apk/debug/*.apk
             joyas/build/outputs/apk/debug/*.apk
             StarJoyas.html
@@ -128,5 +135,6 @@ jobs:
             MiMundo_Cono_Tema3.html
             MiMundo_Facil_Tema3.html
             MiMundo_Ingles_Unit2.html
+            MiMundo_InglesFacil_Unit2.html
             SorteosStar.html
             SorteosStar-GooglePlay.aab
