@@ -4,8 +4,9 @@ PX = 40.0                      # px por mm
 W, H = 110.0, 116.0            # lienzo en mm
 CX, CY, R = 55.0, 68.0, 45.0   # disco principal
 OUT = sys.argv[1]
+CFG = sys.argv[2] if len(sys.argv) > 2 else 'cinco'
 FONT = '/usr/share/fonts/truetype/dejavu/DejaVuSerifCondensed-Bold.ttf'
-NAMES = ['RAFAEL', 'CINTA', 'RAFAEL', 'ALEJANDRO', 'DIEGO']
+
 LEMA = 'NUESTRA FAMILIA 2026'
 
 def new(): return Image.new('L', (int(W*PX), int(H*PX)), 0)
@@ -90,13 +91,16 @@ def text_arc_bottom(im, s, rb, cap_mm, track=0.4):
         im.paste(255, (int(x*PX-g.width/2), int(y*PX-g.height/2)), g.point(lambda v: 255 if v > 110 else 0))
 
 # ---------- bolas ----------
-BALLS = [  # x, y, radio, forma, nombre
-    (35, 50.5, 9.5, 'round', NAMES[0]),
-    (75, 50.5, 9.5, 'round', NAMES[1]),
-    (55, 62.5, 9.5, 'onion', NAMES[2]),
-    (35, 76.5, 10.5, 'round', NAMES[3]),
-    (75, 76.5, 10.5, 'round', NAMES[4]),
-]
+CONFIGS = {  # x, y, radio, forma, nombre, y donde empieza el hilo
+  'cinco': [
+    (35, 50.5, 9.5, 'round', 'RAFAEL', 36), (75, 50.5, 9.5, 'round', 'CINTA', 36),
+    (55, 62.5, 9.5, 'onion', 'RAFAEL', 30),
+    (35, 76.5, 10.5, 'round', 'ALEJANDRO', 59), (75, 76.5, 10.5, 'round', 'DIEGO', 59)],
+  'cuatro': [
+    (31, 61, 10.0, 'onion', 'JOSE', 37), (55, 50, 9.5, 'round', 'JOSE', 30),
+    (79, 61, 10.0, 'onion', 'IZAN', 37), (55, 77, 10.5, 'round', 'ESTRELLA', 58)],
+}
+BALLS = CONFIGS[CFG]
 def ball_shape(im, x, y, r, kind):
     disc(im, x, y, r)
     if kind == 'onion':
@@ -108,25 +112,23 @@ def ball_shape(im, x, y, r, kind):
 
 def balls_layer():
     im = new()
-    tops = {}
-    for x, y, r, k, n in BALLS:
-        tops[(x, y)] = ball_shape(im, x, y, r, k)
+    tops = []
+    for x, y, r, k, n, ys in BALLS:
+        tops.append(ball_shape(im, x, y, r, k))
     # banda superior (queda tapada por las ramitas)
     band = new(); disc(band, CX, CY, 40.4); disc(band, CX, CY, 36.6, 0)
     wedge = new(); ang = np.radians(np.linspace(222, 318, 60))
     poly(wedge, [(CX, CY)] + [(CX+50*math.cos(a), CY+50*math.sin(a)) for a in ang])
     band = Image.fromarray(np.minimum(np.array(band), np.array(wedge)))
     d = ImageDraw.Draw(im)
-    def string(x, y0, y1): d.rectangle([P(x-0.8, y0), P(x+0.8, y1)], fill=255)
-    string(35, 36, tops[(35, 50.5)]+0.5); string(75, 36, tops[(75, 50.5)]+0.5)
-    string(55, 30, tops[(55, 62.5)]+0.5)
-    string(35, 59, tops[(35, 76.5)]+0.5); string(75, 59, tops[(75, 76.5)]+0.5)
+    for (x, y, r, k, n, ys), t in zip(BALLS, tops):
+        d.rectangle([P(x-0.8, ys), P(x+0.8, t+0.5)], fill=255)
     return smooth(OR(im, band), 0.3)
 
 def names_engrave():
     im = new(); caps = []
     cap = 3.0
-    for x, y, r, k, n in BALLS:
+    for x, y, r, k, n, ys in BALLS:
         caps.append(text_center(im, n, x, y + (0.6 if k == 'onion' else 0), r*1.72, cap))
     return im, caps
 
