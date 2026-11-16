@@ -178,7 +178,7 @@ body.mini #mini{display:flex;align-items:center;gap:10px;margin:2px;padding:8px 
 .gsel{display:flex;gap:10px;margin:2px 0 10px}.gsel button{flex:1;border:3px solid #fff;background:#fff;border-radius:16px;padding:10px;font-weight:900;font-size:17px;color:var(--ink);box-shadow:0 3px 0 #7c4dff22}.gsel button.on{border-color:#7c4dff;background:#efe6ff}
 .extras{display:flex;gap:8px;margin:0 0 10px}.extras button{flex:1;border:0;border-radius:18px;padding:10px 4px;font-weight:900;font-size:13px;color:#fff;box-shadow:0 3px 0 #0002;line-height:1.2}.extras button b{display:block;font-size:26px}
 .extras .x1{background:linear-gradient(180deg,#5cc8ff,#2563eb)}.extras .x2{background:linear-gradient(180deg,#ffbe4d,#f57c00)}.extras .x3{background:linear-gradient(180deg,#ff7fb5,#e0307a)}.extras .x4{background:linear-gradient(180deg,#5fe0a0,#16a34a)}
-.tl3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:6px 0}.tl3>div{background:#fff;border-radius:12px;padding:6px;box-shadow:0 2px 0 #0001}.tl3 h4{margin:0 0 4px;font-size:14px;text-align:center}.tl3 .tw{display:block;width:100%;border:0;background:#f6f3ff;border-radius:8px;padding:5px 2px;margin:3px 0;font-size:13.5px;font-weight:700;color:#26203f}.tl3 .sub{font-size:11.5px;font-weight:800;color:#7a6aa8;margin:6px 0 2px;text-align:center}
+.tltabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:6px 0}.tltabs button{border:0;border-radius:12px;padding:8px 2px;font-weight:800;font-size:15px;background:#ece6ff;color:#4b3b8f}.tltabs button.on{background:#7048e8;color:#fff}.tltabs small{font-weight:600;opacity:.8}.tlq{width:100%;box-sizing:border-box;padding:9px;border-radius:12px;border:2px solid #d9d0ff;font-size:16px;margin:4px 0}.tlr{font-size:13.5px;margin:6px 2px}.sub2{font-size:13px;font-weight:800;color:#7a6aa8;margin:8px 0 3px}.tlg{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:5px}.tlg .tw{border:0;background:#f6f3ff;border-radius:8px;padding:7px 2px;font-size:14.5px;font-weight:700;color:#26203f}.tl3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:6px 0}.tl3>div{background:#fff;border-radius:12px;padding:6px;box-shadow:0 2px 0 #0001}.tl3 h4{margin:0 0 4px;font-size:14px;text-align:center}.tl3 .tw{display:block;width:100%;border:0;background:#f6f3ff;border-radius:8px;padding:5px 2px;margin:3px 0;font-size:13.5px;font-weight:700;color:#26203f}.tl3 .sub{font-size:11.5px;font-weight:800;color:#7a6aa8;margin:6px 0 2px;text-align:center}
 .ton{color:#e8590c;font-weight:900}.sylb{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:12px 0}.sylb button{border:3px solid #d6ccff;background:#fff;border-radius:14px;padding:12px 16px;font-size:26px;font-weight:900;color:#26203f;min-width:64px}.sylb button.ok{border-color:#16a34a;background:#dcfce7}.sylb button.bad{border-color:#dc2626;background:#fee2e2}.sylb.let button{min-width:40px;padding:10px 8px;font-size:28px}
 .tstep{font-weight:900;text-align:center;font-size:17px;margin:6px 0}
 .pbar{height:9px;background:#ece6fb;border-radius:6px;overflow:hidden;margin:6px 0 10px}.pbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7c4dff,#ff5fa2);transition:width .4s}
@@ -298,8 +298,8 @@ textarea.pin{min-height:150px;font-size:16px;line-height:1.5}
 </div>
 
 <div class="card lcard c4">
-<h2>📋 Lista de agudas, llanas y esdrújulas</h2>
-<p>Toca una palabra para oírla. La sílaba <b style="color:#e8590c">naranja</b> es la que suena más fuerte (sílaba tónica).</p>
+<h2>📋 Listas de agudas, llanas y esdrújulas</h2>
+<p>Elige la lista: agudas, llanas o esdrújulas. Están por orden alfabético y puedes buscar una palabra. Toca una palabra para oírla. La sílaba <b style="color:#e8590c">naranja</b> es la que suena más fuerte (sílaba tónica).</p>
 <div id="tildeLista"></div>
 <p>🎯 Practica con el juego <b>«🎯 Tildes»</b> (arriba, en Preguntas): ¿dónde suena fuerte?, ¿qué es la palabra? y ¿dónde va la tilde?</p>
 </div>
@@ -2016,12 +2016,26 @@ var TILDE_LIST = {
 var TIPOS = {aguda:'Aguda', llana:'Llana', esdrujula:'Esdrújula'};
 function tildeTipo(h){ var sy = h.split('-'), n = sy.length, ti = -1; for (var i = 0; i < n; i++) if (hasTilde(sy[i])) ti = i; if (ti < 0) { var l = stripAcc(sy.join('')).slice(-1); ti = /[aeiouns]/.test(l) ? n - 2 : n - 1; } var pos = n - ti; return {ti:ti, tipo:pos === 1 ? 'aguda' : pos === 2 ? 'llana' : 'esdrujula'}; }
 function sylMark(h){ var sy = h.split('-'), t = tildeTipo(h).ti; return sy.map(function(x, i){ return i === t ? '<span class="ton">' + x + '</span>' : x; }).join('-'); }
+var TLTAB = 'aguda', TLQ = '';
 function renderTildeLista(){
   var box = $('tildeLista'); if (!box) return;
-  var col = function(k){ var L = TILDE_LIST[k], b = function(arr){ return arr.map(function(h){ return '<button class="tw" data-tw="' + h.replace(/-/g, '') + '">' + sylMark(h) + '</button>'; }).join(''); };
-    return '<div><h4>' + TIPOS[k] + '</h4>' + '<div class="sub">✍️ con tilde</div>' + b(L.t) + (L.n.length ? '<div class="sub">sin tilde</div>' + b(L.n) : '') + '</div>'; };
-  box.innerHTML = '<div class="tl3">' + col('aguda') + col('llana') + col('esdrujula') + '</div>' +
-    '<p style="font-size:13px"><b>Aguda</b>: suena fuerte la última sílaba. Lleva tilde si acaba en <b>-n, -s o vocal</b>.<br><b>Llana</b>: suena fuerte la penúltima. Lleva tilde si <b>NO</b> acaba en -n, -s ni vocal.<br><b>Esdrújula</b>: suena fuerte la antepenúltima. <b>Siempre</b> lleva tilde.</p>';
+  var cmp = function(a, b){ return stripAcc(a.replace(/-/g, '').toLowerCase()).localeCompare(stripAcc(b.replace(/-/g, '').toLowerCase()), 'es'); };
+  var q = stripAcc(TLQ.trim().toLowerCase());
+  var b = function(arr){
+    var l = arr.slice().sort(cmp).filter(function(h){ return !q || stripAcc(h.replace(/-/g, '').toLowerCase()).indexOf(q) >= 0; });
+    return l.length ? '<div class="tlg">' + l.map(function(h){ return '<button class="tw" data-tw="' + h.replace(/-/g, '') + '">' + sylMark(h) + '</button>'; }).join('') + '</div>' : '<p style="font-size:13px;text-align:center">No hay ninguna con «' + TLQ + '».</p>';
+  };
+  var L = TILDE_LIST[TLTAB];
+  var reglas = {aguda:'Suena fuerte la <b>última</b> sílaba. Lleva tilde si acaba en <b>-n, -s o vocal</b>.', llana:'Suena fuerte la <b>penúltima</b> sílaba. Lleva tilde si <b>NO</b> acaba en -n, -s ni vocal.', esdrujula:'Suena fuerte la <b>antepenúltima</b> sílaba. <b>Siempre</b> lleva tilde.'};
+  box.innerHTML = '<div class="tltabs">' + ['aguda', 'llana', 'esdrujula'].map(function(k){
+      var n = TILDE_LIST[k].t.length + TILDE_LIST[k].n.length;
+      return '<button data-tab="' + k + '" class="' + (k === TLTAB ? 'on' : '') + '">' + TIPOS[k] + 's<br><small>' + n + '</small></button>'; }).join('') + '</div>' +
+    '<input id="tlq" class="tlq" placeholder="🔎 Buscar palabra…" value="' + TLQ.replace(/"/g, '') + '">' +
+    '<p class="tlr">' + reglas[TLTAB] + '</p>' +
+    '<div class="sub2">✍️ Con tilde (' + L.t.length + ')</div>' + b(L.t) +
+    (L.n.length ? '<div class="sub2">Sin tilde (' + L.n.length + ')</div>' + b(L.n) : '');
+  box.querySelectorAll('.tltabs button').forEach(function(x){ x.onclick = function(){ TLTAB = x.getAttribute('data-tab'); renderTildeLista(); }; });
+  var inp = $('tlq'); inp.oninput = function(){ TLQ = inp.value; var pos = inp.selectionStart; renderTildeLista(); var n = $('tlq'); n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) {} };
 }
 var TL = null;
 function startTilde(){
