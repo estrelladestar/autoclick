@@ -97,8 +97,8 @@ CONFIGS = {  # x, y, radio, forma, nombre, y donde empieza el hilo
     (55, 62.5, 9.5, 'onion', 'RAFAEL', 30),
     (35, 76.5, 10.5, 'round', 'ALEJANDRO', 59), (75, 76.5, 10.5, 'round', 'DIEGO', 59)],
   'cuatro': [
-    (31, 61, 10.0, 'onion', 'JOSE', 37), (55, 50, 9.5, 'round', 'JOSE', 30),
-    (79, 61, 10.0, 'onion', 'IZAN', 37), (55, 77, 10.5, 'round', 'ESTRELLA', 58)],
+    (31, 61, 10.0, 'onion', 'JOSE', 37), (55, 50, 9.5, 'round', 'IZAN', 30),
+    (79, 61, 10.0, 'onion', 'JOSE', 37), (55, 77, 10.5, 'round', 'ESTRELLA', 58)],
 }
 BALLS = CONFIGS[CFG]
 def ball_shape(im, x, y, r, kind):
