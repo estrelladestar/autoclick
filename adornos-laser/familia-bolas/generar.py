@@ -1,6 +1,6 @@
 import math, os, sys, numpy as np, cv2
 from PIL import Image, ImageDraw, ImageFont
-PX = 20.0                      # px por mm
+PX = 40.0                      # px por mm
 W, H = 110.0, 116.0            # lienzo en mm
 CX, CY, R = 55.0, 68.0, 45.0   # disco principal
 OUT = sys.argv[1]
@@ -180,19 +180,37 @@ lema = new(); text_arc_bottom(lema, LEMA, 38.2, 3.4)
 lf = leaves(); bw = bow()
 
 # ---------- vectorizar ----------
-def paths(im, ox=0, oy=0, minarea=0):
+def _smooth_contour(c, sigma):
+    p = c[:, 0, :].astype(np.float64)
+    n = len(p)
+    if n < 8 or sigma <= 0: return p
+    k = int(sigma*3)
+    xs = np.arange(-k, k+1); w = np.exp(-xs**2/(2*sigma**2)); w /= w.sum()
+    out = np.zeros_like(p)
+    for i, wi in zip(xs, w): out += wi*np.roll(p, -i, axis=0)
+    return out
+def _bezier_path(pts):
+    # Catmull-Rom cerrada -> curvas Bézier cúbicas (contorno suave, sin escalones)
+    n = len(pts); d = f'M{pts[0][0]:.3f},{pts[0][1]:.3f}'
+    for i in range(n):
+        p0, p1, p2, p3 = pts[i-1], pts[i], pts[(i+1) % n], pts[(i+2) % n]
+        c1 = p1 + (p2-p0)/6.0; c2 = p2 - (p3-p1)/6.0
+        d += f' C{c1[0]:.3f},{c1[1]:.3f} {c2[0]:.3f},{c2[1]:.3f} {p2[0]:.3f},{p2[1]:.3f}'
+    return d + 'Z'
+def paths(im, ox=0, oy=0, minarea=0, sigma=5.0):
     a = np.array(im)
     cs, _ = cv2.findContours(a, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
     out = []
     for c in cs:
         if cv2.contourArea(c) < minarea*PX*PX: continue
-        c = cv2.approxPolyDP(c, 0.6, True)
-        if len(c) < 3: continue
-        pts = [(p[0][0]/PX+ox, p[0][1]/PX+oy) for p in c]
-        out.append('M' + ' L'.join(f'{x:.2f},{y:.2f}' for x, y in pts) + 'Z')
+        p = _smooth_contour(c, sigma if len(c) > 60 else sigma/2)
+        p = cv2.approxPolyDP(p.astype(np.float32).reshape(-1, 1, 2), 0.35, True)[:, 0, :].astype(np.float64)
+        if len(p) < 3: continue
+        pts = p/PX + np.array([ox, oy])
+        out.append(_bezier_path(pts))
     return ' '.join(out)
 def cut(im, ox=0, oy=0): return f'<path d="{paths(im, ox, oy, 1.0)}" fill="none" stroke="#ff0000" stroke-width="0.1" fill-rule="evenodd"/>'
-def eng(im, ox=0, oy=0): return f'<path d="{paths(im, ox, oy)}" fill="#0000ff" stroke="none" fill-rule="evenodd"/>'
+def eng(im, ox=0, oy=0): return f'<path d="{paths(im, ox, oy, 0, 2.0)}" fill="#0000ff" stroke="none" fill-rule="evenodd"/>'
 def svg(body, w=W, h=H): return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w:.1f}mm" height="{h:.1f}mm" viewBox="0 0 {w:.2f} {h:.2f}">{body}</svg>'
 def bbox(im):
     ys, xs = np.nonzero(np.array(im)); return xs.min()/PX, ys.min()/PX, xs.max()/PX, ys.max()/PX
