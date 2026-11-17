@@ -70,7 +70,7 @@ repetir 1000"""
     /** Como «Mi guion» pero dando la vuelta más deprisa: esperas cortas, sin historias, paseos solo a veces y descanso corto. */
     /** Como el veloz, pero cada comentario es SOLO una frase de Chris Botti (sin menciones). */
     private val onlyPhraseName = "⚡ Rápido solo frases (fijo)"
-    private val onlyPhraseScript get() = quickScript.replace("escribir menciones 1", "escribir solo frase")
+    private val onlyPhraseScript get() = quickScript.replace("imagen 1 | 1-3\nescribir menciones 1", "imagen 1 | 1-3\nimagen 2 | 1-3\nescribir solo frase").replace("escribir menciones 1", "escribir solo frase")
     private val quickName = "⭐ Mi guion veloz (fijo)"
     private val quickScript = """enlace
 esperar 5
