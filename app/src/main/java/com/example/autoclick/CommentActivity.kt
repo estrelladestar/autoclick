@@ -68,6 +68,9 @@ repetir 1000"""
     private val fastName = "⭐ Mi guion rápido (fijo)"
     private val fastScript get() = defaultScript.replace("escribir menciones 1", "escribir menciones 1 lento 2-5")
     /** Como «Mi guion» pero dando la vuelta más deprisa: esperas cortas, sin historias, paseos solo a veces y descanso corto. */
+    /** Como el veloz, pero cada comentario es SOLO una frase de Chris Botti (sin menciones). */
+    private val onlyPhraseName = "⚡ Rápido solo frases (fijo)"
+    private val onlyPhraseScript get() = quickScript.replace("escribir menciones 1", "escribir menciones solo")
     private val quickName = "⭐ Mi guion veloz (fijo)"
     private val quickScript = """enlace
 esperar 5
@@ -103,7 +106,7 @@ descanso 0.5-1
 cuenta siguiente
 repetir 1000"""
     /** ¿Es uno de los guiones fijos (que no se pueden borrar ni sobrescribir)? */
-    private fun isFixed(name: String) = name == fixedName || name == previousName || name == slowName || name == slow2Name || name == phrase3Name || name == fastName || name == quickName
+    private fun isFixed(name: String) = name == fixedName || name == previousName || name == slowName || name == slow2Name || name == phrase3Name || name == fastName || name == quickName || name == onlyPhraseName
 
     /** El guion fijo de antes (con la línea «cuentas» y 10 comentarios de 2 menciones). */
     private val previousName = "⭐ Guion anterior (fijo)"
@@ -410,6 +413,7 @@ repetir 8"""
                         phrase3Name -> phrase3Script
                         fastName -> fastScript
                         quickName -> quickScript
+                        onlyPhraseName -> onlyPhraseScript
                         else -> loadScripts().optString(name, "")
                     }
                     if (text.isNotEmpty()) script.setText(text)
@@ -1098,6 +1102,7 @@ repetir 8"""
         names.add(slow2Name)
         names.add(fastName)
         names.add(quickName)
+        names.add(onlyPhraseName)
         names.add(previousName)
         val it = loadScripts().keys()
         while (it.hasNext()) { val n = it.next(); if (!isFixed(n)) names.add(n) }

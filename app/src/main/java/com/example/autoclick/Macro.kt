@@ -1034,7 +1034,32 @@ object Macro {
             }
         }
 
+        /** Frases de Chris Botti sin repetir hasta haber usado todas. */
+        private val soloPool = ArrayList<String>()
+
+        /** «escribir menciones solo»: escribe SOLO una frase de la lista Chris Botti, sin menciones. */
+        private fun writeOnlyPhrase(c: Cmd) {
+            if (last != 0L) {
+                val wait = last + MIN_GAP_MS - System.currentTimeMillis()
+                if (wait > 0) { later(wait); return }
+            }
+            val f = findField()
+            if (f == null) { retry("la caja de texto"); return }
+            if (soloPool.isEmpty()) soloPool.addAll(chrisBottiPhrases(s))
+            if (soloPool.isEmpty()) {
+                finish("No encuentro las frases de Chris Botti. Guion detenido.")
+                return
+            }
+            val text = soloPool.removeAt((Math.random() * soloPool.size).toInt().coerceAtMost(soloPool.size - 1))
+            if (!putText(f, text)) {
+                retry("dónde escribir: Instagram no deja escribir en la caja")
+                return
+            }
+            written(c, text, "solo:" + text, emptyList())
+        }
+
         private fun writeMentions(c: Cmd) {
+            if (c.arg.trim().split(" ").any { it.lowercase() == "solo" }) { writeOnlyPhrase(c); return }
             val prefs = s.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE)
             val friends = (prefs.getString("friends", "") ?: "").lines()
                 .map { it.trim() }.filter { it.isNotEmpty() }
