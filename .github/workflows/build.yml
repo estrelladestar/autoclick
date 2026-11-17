@@ -38,6 +38,16 @@ jobs:
         with:
           name: StarApp-apk
           path: app/build/outputs/apk/*/debug/*.apk
+      - name: Publicar los APK en la Release «ultima» (descarga directa desde el móvil)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view ultima >/dev/null 2>&1 || gh release create ultima --title "Última versión" --notes "APK de la última compilación (se sustituye en cada compilación)." --prerelease
+          for f in app/build/outputs/apk/*/debug/*.apk; do
+            flavor=$(echo "$f" | cut -d/ -f5)
+            cp "$f" "$flavor-$(basename "$f")"
+          done
+          gh release upload ultima *-*.apk --clobber
       - uses: actions/upload-artifact@v4
         with:
           name: MiMundo-juego-apk
