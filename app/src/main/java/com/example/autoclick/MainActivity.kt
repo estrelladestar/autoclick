@@ -204,6 +204,22 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        // Imágenes fijas de fábrica (1 = bocadillo, 2 = flecha de enviar): se añaden una sola vez, si no hay ninguna imagen
+        val seedPrefs = getSharedPreferences("cfg", MODE_PRIVATE)
+        if (!seedPrefs.getBoolean("seedImgs", false)) {
+            seedPrefs.edit().putBoolean("seedImgs", true).apply()
+            val all = StepStore.load(this)
+            if (all.none { it.type == "image" }) {
+                val now = System.currentTimeMillis()
+                val seeded = listOf("bocadillo.png", "flecha.jpg").mapIndexed { i, asset ->
+                    val name = "img_fija_${i}_$asset"
+                    assets.open(asset).use { inp -> File(filesDir, name).outputStream().use { inp.copyTo(it) } }
+                    Step(now + i, "image", name)
+                }
+                all.addAll(0, seeded)
+                StepStore.save(this, all)
+            }
+        }
         steps = StepStore.load(this)
         refreshList()
         // El Etiquetador puede haber cambiado los enlaces mientras esta pantalla estaba en segundo plano.
