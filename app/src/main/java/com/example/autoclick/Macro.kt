@@ -285,7 +285,7 @@ object Macro {
         main.removeCallbacksAndMessages(null)
         val s = svc
         if (s != null) {
-            s.setOverlayText("💬")
+            s.setOverlayText("▶")
             toast(s, msg)
             if (alert) buzz(s)
         }

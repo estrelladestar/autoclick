@@ -112,29 +112,13 @@ object StarColors {
     }
 
     /** Botón flotante: verde con ▶ (parado) y rojo con ■ (en marcha). */
-    /** Botón flotante: parado es solo el icono de bocadillo (sin fondo ni texto); en marcha, ■ con fondo oscuro suave. */
     fun overlay(b: Button) {
         val d = b.resources.displayMetrics.density
         val running = b.text.toString().trim().startsWith("■")
-        b.elevation = 0f
-        b.stateListAnimator = null
+        b.background = gradient(if (running) RED else GREEN, 18 * d)
+        b.setTextColor(Color.WHITE)
+        b.setTypeface(b.typeface, Typeface.BOLD)
         b.isAllCaps = false
-        if (!running) {
-            b.text = ""
-            b.background = b.context.getDrawable(com.example.autoclick.R.drawable.bocadillo)
-            b.minWidth = (56 * d).toInt(); b.minimumWidth = (56 * d).toInt()
-            b.minHeight = (56 * d).toInt(); b.minimumHeight = (56 * d).toInt()
-            b.setPadding(0, 0, 0, 0)
-            b.alpha = 0.9f
-        } else {
-            b.background = GradientDrawable().apply {
-                cornerRadius = 18 * d
-                setColor(0x66000000)
-            }
-            b.setTextColor(Color.WHITE)
-            b.setTypeface(b.typeface, Typeface.BOLD)
-            b.setPadding((10 * d).toInt(), (6 * d).toInt(), (10 * d).toInt(), (6 * d).toInt())
-            b.alpha = 0.9f
-        }
+        b.elevation = 6 * d
     }
 }
