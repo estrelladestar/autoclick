@@ -195,7 +195,7 @@ class ClickService : AccessibilityService() {
     fun showOverlay() {
         if (overlay != null) return
         val wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        val b = Button(this).apply { text = if (running) "■" else "💬" }
+        val b = Button(this).apply { text = if (running) "■" else "" }
         StarColors.overlay(b)
         val lp = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
