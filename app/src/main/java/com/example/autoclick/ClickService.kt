@@ -195,7 +195,7 @@ class ClickService : AccessibilityService() {
     fun showOverlay() {
         if (overlay != null) return
         val wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        val b = Button(this).apply { text = if (running) "■" else "▶" }
+        val b = Button(this).apply { text = if (running) "■" else "💬" }
         StarColors.overlay(b)
         val lp = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -221,9 +221,10 @@ class ClickService : AccessibilityService() {
             setPadding((10 * d).toInt(), (6 * d).toInt(), (10 * d).toInt(), (6 * d).toInt())
             background = android.graphics.drawable.GradientDrawable().apply {
                 shape = android.graphics.drawable.GradientDrawable.OVAL
-                setColor(0xCC2D1B69.toInt())
+                setColor(0x33000000)
             }
-            elevation = 6 * d
+            elevation = 0f
+            alpha = 0.6f
             setOnClickListener { hideOverlay() }
         }
         val box = android.widget.LinearLayout(this).apply {
@@ -267,7 +268,7 @@ class ClickService : AccessibilityService() {
         }
         // Más estrecho, para que tape menos pantalla (el texto baja a otra línea)
         b.maxWidth = (screenSize().first * 0.58f).toInt()
-        b.textSize = 12f
+        StarColors.overlay(b)
         wm.addView(box, lp)
         overlay = b
         overlayRoot = box
@@ -658,7 +659,7 @@ class ClickService : AccessibilityService() {
         runId++
         main.removeCallbacksAndMessages(null)
         // Si el guion de comentarios sigue en marcha, el botón no se toca (seguiría en rojo)
-        if (!Macro.running) setOverlayText("▶")
+        if (!Macro.running) setOverlayText("💬")
     }
 
     /** El último enlace abierto (para saber qué cuentas ya subieron esa publicación a su historia). */

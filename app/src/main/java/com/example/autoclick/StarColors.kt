@@ -112,13 +112,27 @@ object StarColors {
     }
 
     /** Botón flotante: verde con ▶ (parado) y rojo con ■ (en marcha). */
+    /** Botón flotante transparente: parado es solo un bocadillo 💬; en marcha, texto con un fondo muy suave. */
     fun overlay(b: Button) {
         val d = b.resources.displayMetrics.density
         val running = b.text.toString().trim().startsWith("■")
-        b.background = gradient(if (running) RED else GREEN, 18 * d)
+        b.background = android.graphics.drawable.GradientDrawable().apply {
+            cornerRadius = 18 * d
+            setColor(if (running) 0x40000000 else Color.TRANSPARENT)
+        }
         b.setTextColor(Color.WHITE)
+        b.setShadowLayer(4 * d, 0f, 0f, Color.BLACK)
         b.setTypeface(b.typeface, Typeface.BOLD)
         b.isAllCaps = false
-        b.elevation = 6 * d
+        b.elevation = 0f
+        b.stateListAnimator = null
+        b.textSize = if (running) 12f else 26f
+        b.alpha = if (running) 0.85f else 0.6f
+        if (!running) {
+            b.minWidth = 0; b.minimumWidth = 0; b.minHeight = 0; b.minimumHeight = 0
+            b.setPadding((6 * d).toInt(), (2 * d).toInt(), (6 * d).toInt(), (2 * d).toInt())
+        } else {
+            b.setPadding((10 * d).toInt(), (6 * d).toInt(), (10 * d).toInt(), (6 * d).toInt())
+        }
     }
 }
