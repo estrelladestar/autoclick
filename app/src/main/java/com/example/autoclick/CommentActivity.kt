@@ -445,7 +445,7 @@ repetir 8"""
             root.addView(this)
         }
         Button(ctx).apply {
-            text = "Poner frases Chris Botti (302)"
+            text = "Poner frases Chris Botti (402)"
             setOnClickListener {
                 val l = Macro.chrisBottiPhrases(ctx)
                 phrasesBox.setText(l.joinToString("\n"))
