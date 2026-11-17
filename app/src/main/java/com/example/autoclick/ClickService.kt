@@ -935,19 +935,52 @@ class ClickService : AccessibilityService() {
     }
 
     /** Busca en la captura la imagen del paso. Devuelve su centro o null. */
+    /** Tamaños a probar: el icono en Instagram puede salir algo más grande o más pequeño que la foto guardada. */
+    private val matchScales = doubleArrayOf(1.0, 0.8, 1.2)
+
+    /** Reduce o amplía una imagen en gris (vecino más cercano) para probar otro tamaño. */
+    private fun scaleGray(g: FastMatch.Gray, f: Double): FastMatch.Gray {
+        if (f == 1.0) return g
+        val nw = Math.max(4, Math.round(g.w * f).toInt())
+        val nh = Math.max(4, Math.round(g.h * f).toInt())
+        val out = IntArray(nw * nh)
+        for (y in 0 until nh) {
+            val sy = Math.min(g.h - 1, (y / f).toInt())
+            for (x in 0 until nw) {
+                val sx = Math.min(g.w - 1, (x / f).toInt())
+                out[y * nw + x] = g.px[sy * g.w + sx]
+            }
+        }
+        return FastMatch.Gray(out, nw, nh)
+    }
+
     private fun findSaved(bmp: Bitmap, stepId: Long): Pair<Float, Float>? {
         val g = grayTemplates[stepId]
         if (g != null) {
-            // Primero la imagen tal cual; si no aparece (Instagram en modo oscuro), la versión en negativo
+            // Imagen tal cual y en negativo, en varios tamaños
             val s = toGray(bmp) ?: return null
-            for (tpl in listOfNotNull(g, grayInv[stepId])) {
-                val r = FastMatch.find(s, tpl) ?: continue
-                if (r.score >= threshold) return Pair(r.x + tpl.w / 2f, r.y + tpl.h / 2f)
+            val inv = grayInv[stepId]
+            for (f in matchScales) {
+                for (base in listOfNotNull(g, inv)) {
+                    val tpl = scaleGray(base, f)
+                    if (tpl.w > s.w || tpl.h > s.h) continue
+                    val r = FastMatch.find(s, tpl) ?: continue
+                    if (r.score >= threshold) return Pair(r.x + tpl.w / 2f, r.y + tpl.h / 2f)
+                }
             }
             return null
         }
         val t = templates[stepId] ?: return null
-        return findImage(bmp, t) ?: templatesInv[stepId]?.let { findImage(bmp, it) }
+        val inv = templatesInv[stepId]
+        for (f in matchScales) {
+            for (base in listOfNotNull(t, inv)) {
+                val tt = if (f == 1.0) base else Mat().also {
+                    Imgproc.resize(base, it, org.opencv.core.Size(), f, f, Imgproc.INTER_AREA)
+                }
+                findImage(bmp, tt)?.let { return it }
+            }
+        }
+        return null
     }
 
     /** Pasa una imagen a gris (un número de 0 a 255 por píxel) para FastMatch. */
