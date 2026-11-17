@@ -122,6 +122,9 @@ class ClickService : AccessibilityService() {
     private val templates = HashMap<Long, Mat>()
     /** Las mismas imágenes en gris, para buscarlas sin OpenCV. */
     private val grayTemplates = HashMap<Long, FastMatch.Gray>()
+    // Versión en negativo (fondo negro de Instagram): se busca también así
+    private val grayInv = HashMap<Long, FastMatch.Gray>()
+    private val templatesInv = HashMap<Long, Mat>()
     private var threshold = 0.8
     private var delayMs = 500L
     private var repeatTotal = 1
@@ -634,6 +637,8 @@ class ClickService : AccessibilityService() {
 
         templates.clear()
         grayTemplates.clear()
+        grayInv.clear()
+        templatesInv.clear()
         for (s in steps) {
             if (s.type != "image") continue
             if (!prepareTemplate(s)) { toast("Falta una imagen: vuelve a añadirla en la app"); return }
@@ -912,7 +917,9 @@ class ClickService : AccessibilityService() {
         if (!cvOk) {
             if (grayTemplates[step.id] != null) return true
             val bmp = BitmapFactory.decodeFile(File(filesDir, step.value).path) ?: return false
-            grayTemplates[step.id] = toGray(bmp) ?: return false
+            val gg = toGray(bmp) ?: return false
+            grayTemplates[step.id] = gg
+            grayInv[step.id] = FastMatch.Gray(IntArray(gg.px.size) { 255 - gg.px[it] }, gg.w, gg.h)
             return true
         }
         if (templates[step.id] != null) return true
@@ -921,6 +928,9 @@ class ClickService : AccessibilityService() {
         Utils.bitmapToMat(bmp, m)
         Imgproc.cvtColor(m, m, Imgproc.COLOR_RGBA2GRAY)
         templates[step.id] = m
+        val inv = Mat()
+        Core.bitwise_not(m, inv)
+        templatesInv[step.id] = inv
         return true
     }
 
@@ -928,16 +938,16 @@ class ClickService : AccessibilityService() {
     private fun findSaved(bmp: Bitmap, stepId: Long): Pair<Float, Float>? {
         val g = grayTemplates[stepId]
         if (g != null) {
+            // Primero la imagen tal cual; si no aparece (Instagram en modo oscuro), la versión en negativo
             val s = toGray(bmp) ?: return null
-            val r = FastMatch.find(s, g) ?: return null
-            if (r.score < threshold) {
-                Macro.trace("  (lo más parecido a la imagen da ${"%.2f".format(r.score)}; hace falta ${"%.2f".format(threshold)})")
-                return null
+            for (tpl in listOfNotNull(g, grayInv[stepId])) {
+                val r = FastMatch.find(s, tpl) ?: continue
+                if (r.score >= threshold) return Pair(r.x + tpl.w / 2f, r.y + tpl.h / 2f)
             }
-            return Pair(r.x + g.w / 2f, r.y + g.h / 2f)
+            return null
         }
         val t = templates[stepId] ?: return null
-        return findImage(bmp, t)
+        return findImage(bmp, t) ?: templatesInv[stepId]?.let { findImage(bmp, it) }
     }
 
     /** Pasa una imagen a gris (un número de 0 a 255 por píxel) para FastMatch. */
