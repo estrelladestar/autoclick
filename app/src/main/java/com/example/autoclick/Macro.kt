@@ -974,7 +974,9 @@ object Macro {
                 finish("Falta el permiso de captura de pantalla. Abre Star App y pulsa ▶ Iniciar: te lo pedirá.")
                 return
             }
-            val n = c.arg.trim().toIntOrNull() ?: 1
+            // «imagen 1 opcional»: si no aparece, se salta y el guion sigue (p. ej. la caja ya está abierta)
+            val optional = c.arg.contains("opcional")
+            val n = c.arg.trim().split(" ")[0].toIntOrNull() ?: 1
             val myTry = stepGen
             s.locateSavedImage(n) { pos, missing ->
                 if (myTry != stepGen || id != token || !running) return@locateSavedImage
@@ -1000,6 +1002,10 @@ object Macro {
                         } else {
                             advance(c.extra())
                         }
+                    }
+                    optional -> {
+                        trace("  imagen $n no está: sigo sin ella")
+                        advance(c.extra())
                     }
                     else -> {
                         nudgeToFind(n)

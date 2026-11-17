@@ -75,43 +75,43 @@ repetir 1000"""
 esperar 5
 seguir
 esperar 1-3
-imagen 1 | 1-3
+imagen 1 opcional | 1-3
 escribir solo frase
 esperar 1-3
 imagen 2 | 1-3
-imagen 1 | 1-3
+imagen 1 opcional | 1-3
 escribir solo frase
 esperar 1-3
 imagen 2 | 1-3
-imagen 1 | 1-3
+imagen 1 opcional | 1-3
 escribir solo frase
 esperar 1-3
 imagen 2 | 1-3
-imagen 1 | 1-3
+imagen 1 opcional | 1-3
 escribir solo frase
 esperar 1-3
 imagen 2 | 1-3
-imagen 1 | 1-3
+imagen 1 opcional | 1-3
 escribir solo frase
 esperar 1-3
 imagen 2 | 1-3
-imagen 1 | 1-3
+imagen 1 opcional | 1-3
 escribir solo frase
 esperar 1-3
 imagen 2 | 1-3
-imagen 1 | 1-3
+imagen 1 opcional | 1-3
 escribir solo frase
 esperar 1-3
 imagen 2 | 1-3
-imagen 1 | 1-3
+imagen 1 opcional | 1-3
 escribir solo frase
 esperar 1-3
 imagen 2 | 1-3
-imagen 1 | 1-3
+imagen 1 opcional | 1-3
 escribir solo frase
 esperar 1-3
 imagen 2 | 1-3
-imagen 1 | 1-3
+imagen 1 opcional | 1-3
 escribir solo frase
 esperar 1-3
 imagen 2 | 1-3
