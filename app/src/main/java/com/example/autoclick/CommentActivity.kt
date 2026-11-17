@@ -70,11 +70,39 @@ repetir 1000"""
     /** Como «Mi guion» pero dando la vuelta más deprisa: esperas cortas, sin historias, paseos solo a veces y descanso corto. */
     /** Como el veloz, pero cada comentario es SOLO una frase de Chris Botti (sin menciones). */
     private val onlyPhraseName = "⚡ Rápido solo frases (fijo)"
-    /** Imagen 1 = bocadillo (abre los comentarios); imagen 2 = botón de publicar. Frase sola, sin menciones. */
+    /** Imagen 1 = bocadillo (abre los comentarios); imagen 2 = botón de publicar. 10 comentarios de frase sola por cuenta. */
     private val onlyPhraseScript = """enlace
 esperar 5
 seguir
 esperar 1-3
+imagen 1 | 1-3
+escribir solo frase
+esperar 1-3
+imagen 2 | 1-3
+imagen 1 | 1-3
+escribir solo frase
+esperar 1-3
+imagen 2 | 1-3
+imagen 1 | 1-3
+escribir solo frase
+esperar 1-3
+imagen 2 | 1-3
+imagen 1 | 1-3
+escribir solo frase
+esperar 1-3
+imagen 2 | 1-3
+imagen 1 | 1-3
+escribir solo frase
+esperar 1-3
+imagen 2 | 1-3
+imagen 1 | 1-3
+escribir solo frase
+esperar 1-3
+imagen 2 | 1-3
+imagen 1 | 1-3
+escribir solo frase
+esperar 1-3
+imagen 2 | 1-3
 imagen 1 | 1-3
 escribir solo frase
 esperar 1-3
