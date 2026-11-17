@@ -444,6 +444,15 @@ repetir 8"""
             setOnClickListener { phrasesBox.setText(Macro.fixedPhrases(ctx).joinToString("\n")) }
             root.addView(this)
         }
+        Button(ctx).apply {
+            text = "Poner frases Chris Botti (302)"
+            setOnClickListener {
+                val l = Macro.chrisBottiPhrases(ctx)
+                phrasesBox.setText(l.joinToString("\n"))
+                toast("Puestas ${l.size} frases de Chris Botti")
+            }
+            root.addView(this)
+        }
         label("Dónde va la frase:")
         phrasePos = Spinner(ctx).apply {
             adapter = ArrayAdapter(
