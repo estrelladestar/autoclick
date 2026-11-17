@@ -1037,7 +1037,7 @@ object Macro {
         /** Frases de Chris Botti sin repetir hasta haber usado todas. */
         private val soloPool = ArrayList<String>()
 
-        /** «escribir menciones solo»: escribe SOLO una frase de la lista Chris Botti, sin menciones. */
+        /** «escribir solo frase»: escribe SOLO una frase de la lista Chris Botti, sin menciones. */
         private fun writeOnlyPhrase(c: Cmd) {
             if (last != 0L) {
                 val wait = last + MIN_GAP_MS - System.currentTimeMillis()
@@ -1600,6 +1600,10 @@ object Macro {
         private fun write(c: Cmd) {
             if (overLimit()) return
             val low = c.arg.lowercase()
+            if (low.startsWith("solo frase")) {
+                writeOnlyPhrase(c)
+                return
+            }
             if (low.startsWith("menciones") || (low.startsWith("copiado") && low.contains("mencion"))) {
                 writeMentions(c)
                 return
