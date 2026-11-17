@@ -204,22 +204,21 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
-        // Imágenes fijas de fábrica (1 = bocadillo, 2 = flecha de enviar): se añaden una sola vez, si no hay ninguna imagen
-        val seedPrefs = getSharedPreferences("cfg", MODE_PRIVATE)
-        if (!seedPrefs.getBoolean("seedImgs", false)) {
-            seedPrefs.edit().putBoolean("seedImgs", true).apply()
-            val all = StepStore.load(this)
-            if (all.none { it.type == "image" }) {
-                val now = System.currentTimeMillis()
-                val seeded = listOf("bocadillo.png", "flecha.jpg").mapIndexed { i, asset ->
-                    val name = "img_fija_${i}_$asset"
-                    assets.open(asset).use { inp -> File(filesDir, name).outputStream().use { inp.copyTo(it) } }
-                    Step(now + i, "image", name)
-                }
-                all.addAll(0, seeded)
-                StepStore.save(this, all)
+        // Imágenes fijas: el bocadillo (imagen 1) y la flecha de enviar (imagen 2) siempre van las primeras de la lista
+        val fijaNombres = listOf("img_fija_0_bocadillo.png", "img_fija_1_flecha.jpg")
+        val fijaAssets = listOf("bocadillo.png", "flecha.jpg")
+        val todas = StepStore.load(this)
+        val now = System.currentTimeMillis()
+        val fijas = fijaNombres.mapIndexed { i, nombre ->
+            todas.firstOrNull { it.type == "image" && it.value == nombre } ?: run {
+                val f = File(filesDir, nombre)
+                if (!f.exists()) assets.open(fijaAssets[i]).use { inp -> f.outputStream().use { inp.copyTo(it) } }
+                Step(now + i, "image", nombre)
             }
         }
+        val resto = todas.filterNot { it.type == "image" && it.value in fijaNombres }
+        val nueva = fijas + resto
+        if (nueva != todas) StepStore.save(this, nueva)
         steps = StepStore.load(this)
         refreshList()
         // El Etiquetador puede haber cambiado los enlaces mientras esta pantalla estaba en segundo plano.
