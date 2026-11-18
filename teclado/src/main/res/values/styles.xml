@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="TecladoTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">#C2307A</item>
+        <item name="android:colorAccent">#7B3FE4</item>
+        <item name="android:statusBarColor">#B02A6F</item>
+        <item name="android:navigationBarColor">#3A1488</item>
+        <item name="android:windowBackground">@drawable/teclado_bg</item>
+    </style>
+</resources>

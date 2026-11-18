@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Un teclado blanco con teclas de colores y una estrella dorada encima, dentro de la zona segura -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#33000000" android:pathData="M30,52 H78 A5,5 0 0,1 83,57 V77 A5,5 0 0,1 78,82 H30 A5,5 0 0,1 25,77 V57 A5,5 0 0,1 30,52 Z"/>
+    <path android:fillColor="#FFFFFF" android:pathData="M30,50 H78 A5,5 0 0,1 83,55 V75 A5,5 0 0,1 78,80 H30 A5,5 0 0,1 25,75 V55 A5,5 0 0,1 30,50 Z"/>
+    <path android:fillColor="#FF4D8D" android:pathData="M30,55 h7 v6 h-7 Z M40,55 h7 v6 h-7 Z"/>
+    <path android:fillColor="#7B3FE4" android:pathData="M50,55 h7 v6 h-7 Z M60,55 h7 v6 h-7 Z"/>
+    <path android:fillColor="#3A86FF" android:pathData="M70,55 h8 v6 h-8 Z M30,64 h7 v6 h-7 Z"/>
+    <path android:fillColor="#20C997" android:pathData="M40,64 h7 v6 h-7 Z M50,64 h7 v6 h-7 Z"/>
+    <path android:fillColor="#FFB000" android:pathData="M60,64 h7 v6 h-7 Z M70,64 h8 v6 h-8 Z"/>
+    <path android:fillColor="#B9B3C9" android:pathData="M38,73 h32 v4 h-32 Z"/>
+    <path android:fillColor="#FFD60A" android:strokeColor="#B38600" android:strokeWidth="1.6" android:strokeLineJoin="round" android:pathData="M54,24 L58.1,32.3 L67.3,33.6 L60.6,40.1 L62.2,49.2 L54,44.9 L45.8,49.2 L47.4,40.1 L40.7,33.6 L49.9,32.3 Z"/>
+</vector>
