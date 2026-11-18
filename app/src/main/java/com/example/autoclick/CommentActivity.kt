@@ -119,6 +119,56 @@ inicio azar
 descanso 0.5-1
 cuenta siguiente
 repetir 1000"""
+    /** Como «Rápido solo frases», pero con 3 imágenes: 1 = bocadillo (primer comentario), 2 = caja de escribir (siguientes), 3 = publicar. */
+    private val onlyPhrase3Name = "⚡ Rápido solo frases, 3 imágenes (fijo)"
+    private val onlyPhrase3Script = """enlace
+esperar 5
+seguir
+esperar 1-3
+imagen 1 | 1-3
+escribir solo frase
+esperar 1-3
+imagen 3 | 1-3
+imagen 2 | 1-3
+escribir solo frase
+esperar 1-3
+imagen 3 | 1-3
+imagen 2 | 1-3
+escribir solo frase
+esperar 1-3
+imagen 3 | 1-3
+imagen 2 | 1-3
+escribir solo frase
+esperar 1-3
+imagen 3 | 1-3
+imagen 2 | 1-3
+escribir solo frase
+esperar 1-3
+imagen 3 | 1-3
+imagen 2 | 1-3
+escribir solo frase
+esperar 1-3
+imagen 3 | 1-3
+imagen 2 | 1-3
+escribir solo frase
+esperar 1-3
+imagen 3 | 1-3
+imagen 2 | 1-3
+escribir solo frase
+esperar 1-3
+imagen 3 | 1-3
+imagen 2 | 1-3
+escribir solo frase
+esperar 1-3
+imagen 3 | 1-3
+imagen 2 | 1-3
+escribir solo frase
+esperar 1-3
+imagen 3 | 1-3
+inicio azar
+descanso 0.5-1
+cuenta siguiente
+repetir 1000"""
     private val quickName = "⭐ Mi guion veloz (fijo)"
     private val quickScript = """enlace
 esperar 5
@@ -154,7 +204,7 @@ descanso 0.5-1
 cuenta siguiente
 repetir 1000"""
     /** ¿Es uno de los guiones fijos (que no se pueden borrar ni sobrescribir)? */
-    private fun isFixed(name: String) = name == fixedName || name == previousName || name == slowName || name == slow2Name || name == phrase3Name || name == fastName || name == quickName || name == onlyPhraseName
+    private fun isFixed(name: String) = name == fixedName || name == previousName || name == slowName || name == slow2Name || name == phrase3Name || name == fastName || name == quickName || name == onlyPhraseName || name == onlyPhrase3Name
 
     /** El guion fijo de antes (con la línea «cuentas» y 10 comentarios de 2 menciones). */
     private val previousName = "⭐ Guion anterior (fijo)"
@@ -462,6 +512,7 @@ repetir 8"""
                         fastName -> fastScript
                         quickName -> quickScript
                         onlyPhraseName -> onlyPhraseScript
+                        onlyPhrase3Name -> onlyPhrase3Script
                         else -> loadScripts().optString(name, "")
                     }
                     if (text.isNotEmpty()) script.setText(text)
@@ -1151,6 +1202,7 @@ repetir 8"""
         names.add(fastName)
         names.add(quickName)
         names.add(onlyPhraseName)
+        names.add(onlyPhrase3Name)
         names.add(previousName)
         val it = loadScripts().keys()
         while (it.hasNext()) { val n = it.next(); if (!isFixed(n)) names.add(n) }
