@@ -112,6 +112,17 @@ body{font-family:"Andika","Comic Sans MS","Chalkboard SE","Baloo 2",system-ui,sa
 #premio.on{display:flex}
 #premio .caja{background:#fff;border-radius:28px;padding:24px;text-align:center;max-width:320px;margin:20px;animation:aparece .35s}
 #premio .caja .e{font-size:90px}
+.nivelSel{display:flex;gap:8px;justify-content:center;max-width:420px;margin:8px auto 0;padding:0 14px}
+.nivelSel .bt{flex:1;padding:10px 4px;font-size:17px;color:#5b3bb0;background:#fff;line-height:1.1;border:3px solid transparent}
+.nivelSel .bt span{display:block;font-size:30px}
+.nivelSel .bt.on{color:#fff;border-color:#fff;transform:scale(1.06)}
+.nivelTxt{text-align:center;font-size:15px;color:#776;margin:6px 0 0}
+.palabraGrande{background:#fff;border-radius:24px;box-shadow:0 5px 0 rgba(0,0,0,.1);text-align:center;font-size:54px;font-weight:800;letter-spacing:2px;padding:18px 10px;margin-bottom:14px}
+.palabraGrande i{font-style:normal}
+.modelo{text-align:center;font-size:40px;font-weight:800;color:#b9aedb;letter-spacing:6px}
+.hueco.pal{min-width:60px;height:64px;font-size:24px;padding:0 10px}
+.fichas .ficha.pal{font-size:24px;height:64px;min-width:64px}
+.frase{text-align:center;font-size:30px;font-weight:800;min-height:40px;margin:8px 0;color:#6a3fd1}
 #premio .caja p{font-size:22px;margin:8px 0 16px}
 @keyframes aparece{from{transform:scale(.6);opacity:0}}
 </style>
@@ -129,10 +140,15 @@ body{font-family:"Andika","Comic Sans MS","Chalkboard SE","Baloo 2",system-ui,sa
     <h2>🐛 ¡Vamos a caminar!</h2>
     <p>Toca una letra del camino</p>
   </div>
+  <div class="nivelSel" id="nivelSel"></div>
+  <p class="nivelTxt" id="nivelTxt"></p>
   <div class="camino" id="camino"></div>
   <div class="juegos">
     <button class="bt" style="background:#ff8a3d" data-ir="palabras"><span>🧩</span>Formar palabras</button>
     <button class="bt" style="background:#2ec4b6" data-ir="dictado"><span>🎧</span>Escribe la palabra</button>
+    <button class="bt" style="background:#3a86ff" data-ir="falta"><span>❓</span>La letra que falta</button>
+    <button class="bt" style="background:#3cc46b" data-ir="leer"><span>📖</span>Lee y elige</button>
+    <button class="bt" style="background:#ff4d6d" data-ir="frase"><span>💬</span>Ordena la frase</button>
     <button class="bt" style="background:#9d4edd" data-ir="pizarra"><span>🖍️</span>Pizarra libre</button>
     <button class="bt" style="background:#ff5fa2" data-ir="album"><span>📒</span>Mi álbum</button>
   </div>
@@ -248,8 +264,36 @@ const PAL = [
   ['to-ma-te','🍅'],['pe-lo-ta','⚽'],['sol','☀️'],['pan','🍞'],['pie','🦶'],['miel','🍯'],['is-la','🏝️'],['ja-món','🍖'],
   ['pi-ja-ma','🩳'],['tien-da','⛺'],['tu-li-pán','🌷'],['sue-ño','😴'],['dien-te','🦷'],['le-ón','🦁'],['li-món','🍋'],
   ['san-dí-a','🍉'],['i-mán','🧲'],['a-jo','🧄'],['ñu','🐃'],['dos','2️⃣'],['u-no','1️⃣'],['pa-lo-ma','🕊️'],['me-lón','🍈'],
-  ['ma-le-ta','🧳'],['pa-ta-ta','🥔'],['lo-ma','⛰️'],['pe-sa','🏋️']
+  ['ma-le-ta','🧳'],['pa-ta-ta','🥔'],['lo-ma','⛰️'],['pe-sa','🏋️'],
+  ['mo-ne-da','🪙'],['se-mi-lla','🌱'],['pe-lo','💇'],['pan-ta-lón','👖'],['dia-man-te','💎'],['plá-ta-no','🍌'],
+  ['plu-ma','🪶'],['pla-to','🍽️'],['mon-ta-ña','⛰️'],['pa-tín','🛼'],['pe-pi-no','🥒'],['ma-ní','🥜'],['sal','🧂'],
+  ['pa-ta','🐾'],['pa-lo-mi-tas','🍿'],['an-te-na','📡'],['ju-dí-as','🫘'],['le-ña','🪵'],['pei-ne','🪮'],['es-pa-da','🗡️'],
+  ['dien-tes','🦷'],['pa-ño','🧽'],['la-tas','🥫'],['mo-nos','🐒'],['pa-tos','🦆'],['o-sos','🐻'],['to-ma-tes','🍅']
 ];
+/* Frases para ordenar. Solo salen si todas sus letras están activas. */
+const FRASES = [
+  ['mamá me mima','👩'],['papá toma té','☕'],['sale el sol','☀️'],['el pato nada','🦆'],['Lola pinta','🎨'],
+  ['el mono salta','🐒'],['toma la sopa','🍲'],['mira la luna','🌙'],['es un dado','🎲'],['Tito salta','🤸'],
+  ['toma una piña','🍍'],['es mi pelota','⚽'],['el sapo salta','🐸'],['Pepe toma pan','🍞'],['Dani lee','📖'],
+  ['la nena tiene sueño','😴'],['mi mamá me ama','💖'],['Tomás pinta una seta','🍄'],['Juan mete la mano','✋'],
+  ['mi papá tiene moto','🏍️'],['Lupe pela una patata','🥔'],['el delfín salta alto','🐬'],['Dani tiene un dado','🎲'],
+  ['la niña usa pijama','🩳'],['el tomate es mío','🍅'],['Pepa pide jamón','🍖'],['mamá tiene una maleta','🧳'],
+  ['Dani pinta un tomate','🍅'],['el pato nada solo','🦆'],
+  ['el oso ama la miel','🐻'],['mi mamá pela una patata','🥔'],['la luna está en lo alto','🌙'],['el sapo salta en el lodo','🐸'],
+  ['la nena se pone el pijama','🩳'],['mi papá me pinta un sol','☀️'],['Ana tiene una pelota lila','⚽'],
+  ['el niño mete un dedo en la miel','🍯'],['Tito se toma un té','☕'],['la seta está en el pino','🍄'],
+  ['el mono pela un plátano','🍌'],['mi tía no tiene sueño','😴'],['mete la pasta en la olla','🍝'],
+  ['Sami piensa en su mamá','💭'],['la paloma se posa en un pino','🕊️'],['el sapo dio un salto','🐸'],
+  ['mi tío tiene un pino','🌲'],['el ñu está en el lodo','🐃']
+];
+/* Niveles de dificultad */
+const NIVELES = [
+  {n:1, emo:'🐣', nom:'Fácil',   col:'#3cc46b', txt:'Pocas opciones, palabras cortas y muchas ayudas.'},
+  {n:2, emo:'🐥', nom:'Medio',   col:'#ffb000', txt:'Más opciones, palabras más largas y menos ayudas.'},
+  {n:3, emo:'🦅', nom:'Difícil', col:'#ff4d6d', txt:'Muchas opciones, sílabas al revés, frases largas y sin pistas.'}
+];
+const INVERSAS = ['l','n'];          // al, el, il… an, en, in…
+const PARECIDAS = {m:'n',n:'m',p:'d',d:'t',t:'d',l:'s',s:'l','ñ':'n',j:'s',a:'o',o:'a',e:'i',i:'e',u:'o'};
 const PEGATINAS = ['🐶','🐱','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐦','🦄','🐝','🦋','🐞','🐢','🐙','🐳','🐬','🦕','🦖','🌈','⭐','🌸','🍓','🍉','🍦','🧁','🎈','🚀','🚂','⚽','🎨','👑','💎'];
 
 /* Trazos de cada letra minúscula (letra de imprenta escolar). Caja: ancho 100, alto 120.
@@ -272,7 +316,7 @@ const TRAZOS = {
 };
 
 /* =================== ESTADO =================== */
-const DEF = {est:0, aciertos:0, peg:[], lt:{}, activas:ORDEN.slice(), voz:0.85, son:true, vib:true};
+const DEF = {est:0, aciertos:0, peg:[], lt:{}, activas:ORDEN.slice(), voz:0.85, son:true, vib:true, nivel:1};
 let S = cargar();
 function cargar(){
   let t = '';
@@ -285,7 +329,14 @@ function guardar(){
   try { if (B && B.save) B.save(t); else localStorage.setItem('caminandoLetras', t); } catch(e){}
 }
 const lt = L => (S.lt[L] = S.lt[L] || {});
-const estLetra = L => ['conoce','trazar','buscar','silabas'].filter(k => lt(L)[k]).length;
+const niv = () => S.nivel || 1;
+const D = (a, b, c) => [a, b, c][niv() - 1];          // valor según el nivel
+const clave = act => niv() === 1 ? act : act + niv(); // las estrellas se ganan en cada nivel
+const marcador = () => NIVELES[niv()-1].emo + ' ⭐ ' + S.est;
+const estLetra = L => ['conoce','trazar','buscar','silabas'].filter(k => lt(L)[clave(k)]).length;
+const letrasOk = t => { const a = activas(); return [...sinTilde(t.toLowerCase().replace(/[ -]/g,''))].every(c => a.indexOf(c) >= 0); };
+const nLetras = w => w.replace(/-/g,'').length;
+const conPreferencia = (lista, filtro, min) => { const f = lista.filter(filtro); return f.length >= (min || 3) ? f : lista; };
 const activas = () => ORDEN.filter(L => S.activas.indexOf(L) >= 0);
 const sinTilde = w => w.normalize('NFD').replace(/[̀-̂̄-ͯ]/g,'').normalize('NFC');
 /* sinTilde quita á é í ó ú pero deja la ñ (su tilde es U+0303) */
@@ -357,6 +408,7 @@ document.querySelectorAll('.volver').forEach(b => b.onclick = () => { sTap(); vo
 /* ---------- Inicio ---------- */
 function pintarInicio(){
   $('totEst').textContent = '⭐ ' + S.est;
+  pintarNivel();
   const c = $('camino'); c.innerHTML = '';
   const xs = [0.5, 0.78, 0.5, 0.22];
   let siguiente = null;
@@ -391,6 +443,20 @@ function pintarInicio(){
     c.appendChild(o);
   });
 }
+function pintarNivel(){
+  const c = $('nivelSel'); c.innerHTML = '';
+  NIVELES.forEach(o => {
+    const b = document.createElement('button'); const on = niv() === o.n;
+    b.className = 'bt' + (on ? ' on' : ''); if (on) b.style.background = o.col;
+    b.innerHTML = '<span>' + o.emo + '</span>' + o.nom;
+    b.onclick = () => {
+      sTap(); S.nivel = o.n; guardar(); pintarInicio();
+      hablar('Nivel ' + o.nom.toLowerCase() + '. ' + (o.n === 1 ? 'Para empezar.' : o.n === 2 ? 'Un poco más difícil.' : '¡Para expertos!'));
+    };
+    c.appendChild(b);
+  });
+  $('nivelTxt').textContent = NIVELES[niv()-1].txt;
+}
 document.querySelectorAll('[data-ir]').forEach(b => b.onclick = () => {
   sTap(); const id = b.dataset.ir;
   if (id === 'album') ir('album');
@@ -412,7 +478,7 @@ function pintarLetra(){
   $('letraGrande').innerHTML = letraSVG(L, COLOR[L], 11, true);
   $('letraInfo').innerHTML = '<b style="color:'+COLOR[L]+'">' + L.toUpperCase() + ' ' + L + '</b>' + DIB[L][0][1] + ' ' + resaltar(DIB[L][0][0], L);
   $('silTxt').textContent = vocal ? 'Escucha' : 'Sílabas';
-  document.querySelectorAll('#letra [data-act]').forEach(b => { b.querySelector('i').textContent = lt(L)[b.dataset.act] ? '⭐' : ''; });
+  document.querySelectorAll('#letra [data-act]').forEach(b => { b.querySelector('i').textContent = lt(L)[clave(b.dataset.act)] ? '⭐' : ''; });
   decirLetra(L);
 }
 function decirLetra(L){
@@ -425,7 +491,7 @@ document.querySelectorAll('#letra [data-act]').forEach(b => b.onclick = () => { 
 
 /* =================== PREMIOS =================== */
 function estrella(L, act){
-  if (L && act && !lt(L)[act]) { lt(L)[act] = 1; S.est++; guardar(); return true; }
+  if (L && act && !lt(L)[clave(act)]) { lt(L)[clave(act)] = 1; S.est++; guardar(); return true; }
   return false;
 }
 function acierto(){
@@ -436,7 +502,7 @@ function acierto(){
     if (faltan.length){ nueva = azar(faltan); S.peg.push(nueva); }
   }
   guardar();
-  $('actEst').textContent = '⭐ ' + S.est;
+  $('actEst').textContent = marcador();
   return nueva;
 }
 function fiesta(emo){
@@ -469,10 +535,10 @@ async function quizaPegatina(){
 /* =================== ACTIVIDADES =================== */
 function empezar(act){
   const L = letraAct;
-  $('actEst').textContent = '⭐ ' + S.est;
+  $('actEst').textContent = marcador();
   const z = $('actZona'); z.innerHTML = '';
   ir('act');
-  ({conoce, trazar, buscar, silabas, palabras, dictado, pizarra})[act](L, z);
+  ({conoce, trazar, buscar, silabas, palabras, dictado, pizarra, falta, leer, frase})[act](L, z);
 }
 function consigna(texto, voz){
   const d = document.createElement('div'); d.className = 'consigna';
@@ -494,7 +560,10 @@ function conoce(L, z){
   z.appendChild(g);
   if (!vocal){
     const sb = document.createElement('div'); sb.className = 'silabario';
-    [...VOCALES].forEach(v => { const b = document.createElement('button'); b.className = 'ficha'; b.textContent = L + v; b.style.color = COLOR[L]; b.onclick = () => { sTap(); hablar(L + v); }; sb.appendChild(b); });
+    const sils = [...VOCALES].map(v => L + v);
+    if (niv() >= 2 && INVERSAS.indexOf(L) >= 0) sils.push(...[...VOCALES].map(v => v + L));
+    if (niv() >= 2 && (L === 'p' || L === 'l')) sils.push(...[...VOCALES].map(v => 'pl' + v));
+    sils.forEach(v => { const b = document.createElement('button'); b.className = 'ficha'; b.textContent = v; b.style.color = COLOR[L]; b.onclick = () => { sTap(); hablar(v); }; sb.appendChild(b); });
     z.appendChild(sb);
   }
   const ps = document.createElement('div'); ps.className = 'palabras';
@@ -502,7 +571,7 @@ function conoce(L, z){
   DIB[L].forEach(([w, e]) => {
     const p = document.createElement('div'); p.className = 'palabra letraW';
     p.innerHTML = '<div class="e">'+e+'</div><div class="w">'+resaltar(w, L)+'</div>';
-    p.onclick = () => { sTap(); hablar(w); vistos.add(w); if (vistos.size >= 3 && estrella(L, 'conoce')) { sOk(); fiesta(); hablar(w + '. ¡Muy bien! Ganas una estrella.'); $('actEst').textContent = '⭐ ' + S.est; } };
+    p.onclick = () => { sTap(); hablar(w); vistos.add(w); if (vistos.size >= 3 && estrella(L, 'conoce')) { sOk(); fiesta(); hablar(w + '. ¡Muy bien! Ganas una estrella.'); $('actEst').textContent = marcador(); } };
     ps.appendChild(p);
   });
   z.appendChild(ps);
@@ -511,11 +580,12 @@ function conoce(L, z){
 /* ---------- 2. Escribir (trazar) ---------- */
 function trazar(L, z){
   $('actTit').textContent = 'Escribe la ' + L;
-  let nivel = 1, hechas = 0;
-  const META = 3;
+  let nivel = niv() === 3 ? 2 : 1, hechas = 0;
+  const META = D(3, 3, 4);
   z.appendChild(consigna('Repasa la letra con el dedo. Empieza en el punto verde.', 'Vamos a escribir ' + nombreL(L) + '. Pon el dedo en el punto verde y repasa la letra.'));
   const nv = document.createElement('div'); nv.className = 'niveles';
-  nv.innerHTML = '<button class="bt on" data-n="1">1 · Repasar</button><button class="bt" data-n="2">2 · Con puntos</button><button class="bt" data-n="3">3 · Yo solo</button>';
+  nv.innerHTML = '<button class="bt" data-n="1">1 · Repasar</button><button class="bt" data-n="2">2 · Con puntos</button><button class="bt" data-n="3">3 · Yo solo</button>';
+  nv.querySelector('[data-n="' + nivel + '"]').classList.add('on');
   z.appendChild(nv);
   const pz = document.createElement('div'); pz.innerHTML = puntos(META, 0); z.appendChild(pz);
   const caja = document.createElement('div'); caja.className = 'lienzo';
@@ -527,6 +597,7 @@ function trazar(L, z){
   const [btMira, btBorrar, btYa] = fila.querySelectorAll('button');
 
   const T = crearTrazador(cv, L);
+  T.nivel(nivel);
   nv.querySelectorAll('button').forEach(b => b.onclick = () => {
     sTap(); nivel = +b.dataset.n; nv.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
     T.nivel(nivel); msg.textContent = '';
@@ -547,8 +618,7 @@ function trazar(L, z){
         await finJuego(L, 'trazar', '¡Has escrito la ' + L + ' muy bien!');
         return;
       }
-      if (hechas === 1 && nivel === 1) nv.querySelector('[data-n="2"]').click();
-      else if (hechas === 2 && nivel === 2) nv.querySelector('[data-n="3"]').click();
+      if (nivel < 3 && hechas >= (niv() === 3 ? 1 : nivel)) nv.querySelector('[data-n="' + (nivel + 1) + '"]').click();
       T.borrar(); T.bloquear(false); msg.textContent = '';
     } else if (!auto){
       sMal();
@@ -661,8 +731,9 @@ function crearTrazador(cv, L, libre){
       const dentro = dib.filter(p => todos.some(q => (p[0]-q[0])**2 + (p[1]-q[1])**2 < (nivel === 3 ? 196 : 144))).length / dib.length;
       // cada trazo tiene que estar casi entero
       const porTrazo = muestras.map(pts => pts.filter(tapado).length / pts.length);
-      const minimo = nivel === 3 ? 0.72 : 0.8;
-      const ok = cubre >= minimo + 0.05 && porTrazo.every(x => x >= minimo) && dentro >= (nivel === 3 ? 0.7 : 0.78);
+      const ajuste = D(-0.1, 0, 0.05);   // fácil perdona más, difícil pide más precisión
+      const minimo = (nivel === 3 ? 0.72 : 0.8) + ajuste;
+      const ok = cubre >= minimo + 0.05 && porTrazo.every(x => x >= minimo) && dentro >= (nivel === 3 ? 0.7 : 0.78) + ajuste;
       return {ok, cubre, fuera: dentro < 0.78};
     },
     demo(){
@@ -690,7 +761,7 @@ function crearTrazador(cv, L, libre){
 /* ---------- 3. Buscar: ¿qué dibujo empieza por...? ---------- */
 function buscar(L, z){
   $('actTit').textContent = 'Busca la ' + L;
-  const RONDAS = 5; let ronda = 0, fallos = 0;
+  const RONDAS = D(5, 6, 8), CARTAS = D(3, 4, 6); let ronda = 0, fallos = 0;
   const empiezaPor = (w, x) => x === 'ñ' ? w.indexOf('ñ') >= 0 : sinTilde(w)[0] === x;
   const pregunta = () => L === 'ñ' ? '¿Cuál lleva la eñe?' : '¿Cuál empieza por ' + (VOCALES.indexOf(L) >= 0 ? 'la ' + L : nombreL(L)) + '?';
   const cons = consigna(pregunta().replace('la eñe','la ñ').replace(nombreL(L), 'la ' + L), pregunta());
@@ -703,7 +774,9 @@ function buscar(L, z){
   function nueva(){
     pz.innerHTML = puntos(RONDAS, ronda);
     const buena = buenas[ronda % buenas.length];
-    const malas = mezclar(otros).slice(0, 2);
+    let pool = mezclar(otros);
+    if (niv() === 3 && PARECIDAS[L]) pool = pool.filter(p => sinTilde(p[0])[0] === PARECIDAS[L]).concat(pool.filter(p => sinTilde(p[0])[0] !== PARECIDAS[L]));
+    const malas = pool.slice(0, CARTAS - 1);
     tj.innerHTML = '';
     mezclar([buena, ...malas]).forEach(p => {
       const t = document.createElement('div'); t.className = 'tarjeta letraW';
@@ -734,8 +807,20 @@ function buscar(L, z){
 function silabas(L, z){
   const vocal = VOCALES.indexOf(L) >= 0;
   $('actTit').textContent = vocal ? 'Escucha las vocales' : 'Sílabas con ' + L;
-  const RONDAS = 5; let ronda = 0;
+  const RONDAS = D(5, 6, 8), OPC = D(3, 4, 6); let ronda = 0;
   const grupo = vocal ? [...VOCALES] : [...VOCALES].map(v => L + v);
+  if (!vocal && niv() === 3){
+    if (INVERSAS.indexOf(L) >= 0) grupo.push(...[...VOCALES].map(v => v + L));
+    if ((L === 'p' || L === 'l') && activas().indexOf('p') >= 0 && activas().indexOf('l') >= 0) grupo.push(...[...VOCALES].map(v => 'pl' + v));
+  }
+  // sílabas que se confunden: misma vocal con otra consonante, o al revés
+  const parecidas = obj => {
+    if (vocal || niv() === 1) return [];
+    const v = obj.replace(/[^aeiou]/g, '').slice(-1);
+    const r = activas().filter(c => VOCALES.indexOf(c) < 0 && c !== L).map(c => c + v);
+    if (niv() === 3 && INVERSAS.indexOf(L) >= 0 && obj === L + v) r.push(v + L);
+    return r;
+  };
   z.appendChild(consigna(vocal ? 'Escucha y toca la vocal que oyes.' : 'Escucha y toca la sílaba que oyes.'));
   if (!vocal){
     const sb = document.createElement('div'); sb.className = 'silabario';
@@ -751,11 +836,15 @@ function silabas(L, z){
   function nueva(){
     pz.innerHTML = puntos(RONDAS, ronda);
     obj = orden[ronda % orden.length];
-    const opciones = mezclar([obj, ...mezclar(grupo.filter(s => s !== obj)).slice(0, 2)]);
+    const mismas = mezclar(grupo.filter(s => s !== obj)), otras = mezclar(parecidas(obj).filter(s => s !== obj && grupo.indexOf(s) < 0));
+    const mitad = niv() === 1 ? 0 : Math.ceil((OPC - 1) / 2);
+    const elegidas = [...new Set([...otras.slice(0, mitad), ...mismas, ...otras.slice(mitad)])].slice(0, OPC - 1);
+    const opciones = mezclar([obj, ...elegidas]);
     fs.innerHTML = '';
     opciones.forEach(s => {
       const b = document.createElement('button'); b.className = 'ficha'; b.textContent = s;
-      if (vocal) { b.innerHTML = letraSVG(s, COLOR[s], 12); b.style.width = '96px'; b.style.height = '110px'; b.querySelector('svg').style.cssText = 'width:70px;height:84px'; }
+      if (niv() === 3 && Math.random() < 0.4) { b.textContent = s.toUpperCase(); if (vocal) { b.style.width = '96px'; b.style.height = '110px'; b.style.fontSize = '60px'; } }
+      else if (vocal) { b.innerHTML = letraSVG(s, COLOR[s], 12); b.style.width = '96px'; b.style.height = '110px'; b.querySelector('svg').style.cssText = 'width:70px;height:84px'; }
       b.onclick = async () => {
         if (fs.dataset.fin) return;
         if (s === obj){
@@ -787,9 +876,11 @@ function palabras(L, z){
   $('actTit').textContent = 'Formar palabras';
   const lista = palabrasPosibles().filter(p => p[0].indexOf('-') > 0);
   if (!lista.length) return sinPalabras(z);
-  const RONDAS = 5; let ronda = 0;
-  const orden = mezclar(lista);
-  z.appendChild(consigna('Mira el dibujo y pon las sílabas en orden.', 'Mira el dibujo y escucha. Toca las sílabas en orden para formar la palabra.'));
+  const nSil = p => p[0].split('-').length;
+  const RONDAS = D(5, 6, 7), EXTRA = D(1, 2, 3), PISTA = D(2, 2, 99); let ronda = 0;
+  const orden = mezclar(conPreferencia(lista, niv() === 1 ? p => nSil(p) === 2 : niv() === 2 ? p => nSil(p) <= 3 : p => nSil(p) >= 3));
+  z.appendChild(niv() === 3 ? consigna('Mira el dibujo y forma la palabra. ¡Sin ayuda!', 'Mira el dibujo. Si quieres oír la palabra, tócalo. Forma la palabra con las sílabas.')
+                            : consigna('Mira el dibujo y pon las sílabas en orden.', 'Mira el dibujo y escucha. Toca las sílabas en orden para formar la palabra.'));
   const pz = document.createElement('div'); z.appendChild(pz);
   const dib = document.createElement('div'); dib.className = 'dibujo'; z.appendChild(dib);
   const hs = document.createElement('div'); hs.className = 'huecos'; z.appendChild(hs);
@@ -801,7 +892,7 @@ function palabras(L, z){
     const sil = w.split('-'), palabra = w.replace(/-/g,'');
     dib.textContent = e; dib.onclick = () => hablar(palabra);
     hs.innerHTML = sil.map(() => '<div class="hueco"></div>').join('');
-    const extra = mezclar(todasSil.filter(s => sil.indexOf(s) < 0)).slice(0, 1);
+    const extra = mezclar(todasSil.filter(s => sil.indexOf(s) < 0)).slice(0, EXTRA);
     let pos = 0, fallos = 0;
     fs.innerHTML = '';
     mezclar([...sil, ...extra]).forEach(s => {
@@ -816,28 +907,30 @@ function palabras(L, z){
             await espera(500); sOk(); vib(30); hablar(palabra + '. ¡Muy bien!'); fiesta(e);
             await quizaPegatina(); await espera(1400); ronda++;
             if (ronda >= RONDAS){ await premio('🏆', '¡Has formado 5 palabras!'); volver(); return; }
-            nueva(); setTimeout(() => hablar(orden[ronda % orden.length][0].replace(/-/g,'')), 200);
+            nueva(); if (niv() < 3) setTimeout(() => hablar(orden[ronda % orden.length][0].replace(/-/g,'')), 200);
           }
         } else {
           b.classList.remove('mal'); void b.offsetWidth; b.classList.add('mal'); sMal(); fallos++;
-          hablar('Esa es ' + s + '. Ahora va ' + sil[pos] + '.');
-          if (fallos >= 2) [...fs.children].forEach(x => { if (x.textContent === sil[pos] && !x.classList.contains('usada')) x.classList.add('pista'); });
+          hablar(niv() === 3 && fallos < 3 ? 'Esa no va ahora. Piensa otra vez.' : 'Esa es ' + s + '. Ahora va ' + sil[pos] + '.');
+          if (fallos >= PISTA) [...fs.children].forEach(x => { if (x.textContent === sil[pos] && !x.classList.contains('usada')) x.classList.add('pista'); });
         }
       };
       fs.appendChild(b);
     });
   }
-  nueva(); setTimeout(() => hablar(orden[0][0].replace(/-/g,'')), 3200);
+  nueva(); if (niv() < 3) setTimeout(() => hablar(orden[0][0].replace(/-/g,'')), 3200);
 }
 
 /* ---------- 6. Escribe la palabra (dictado con teclado de letras) ---------- */
 function dictado(L, z){
   $('actTit').textContent = 'Escribe la palabra';
-  const lista = palabrasPosibles(5);
+  const lista = palabrasPosibles(D(4, 5, 0));
   if (!lista.length) return sinPalabras(z);
-  const RONDAS = 5; let ronda = 0;
-  const orden = mezclar(lista);
-  z.appendChild(consigna('Escucha la palabra y escríbela con las letras.', 'Escucha la palabra y escríbela tocando las letras.'));
+  const RONDAS = D(5, 6, 7), PISTA = D(2, 2, 3); let ronda = 0;
+  const orden = mezclar(niv() === 3 ? conPreferencia(lista, p => nLetras(p[0]) >= 4) : lista);
+  z.appendChild(niv() === 1 ? consigna('Copia la palabra tocando las letras.', 'Mira la palabra, escúchala y cópiala tocando las letras.')
+              : niv() === 2 ? consigna('Escucha la palabra y escríbela con las letras.', 'Escucha la palabra y escríbela tocando las letras.')
+              : consigna('Escucha bien y escribe la palabra. ¡Sin dibujo!', 'Escucha bien la palabra y escríbela. Toca la oreja para oírla otra vez.'));
   const pz = document.createElement('div'); z.appendChild(pz);
   const dib = document.createElement('div'); dib.className = 'dibujo'; z.appendChild(dib);
   const hs = document.createElement('div'); hs.className = 'huecos'; z.appendChild(hs);
@@ -860,8 +953,8 @@ function dictado(L, z){
       } else {
         b.classList.remove('mal'); void b.offsetWidth; b.classList.add('mal'); sMal(); fallos++;
         const sil = orden[ronda % orden.length][0].split('-');
-        hablar(fallos >= 2 ? 'Busca ' + (VOCALES.indexOf(sinTilde(letras[pos])) >= 0 ? 'la ' + sinTilde(letras[pos]) : nombreL(sinTilde(letras[pos]))) + '.' : 'Escucha otra vez: ' + w);
-        if (fallos >= 2) tk.querySelector('[data-c="'+sinTilde(letras[pos])+'"]').classList.add('pista');
+        hablar(fallos >= PISTA ? 'Busca ' + (VOCALES.indexOf(sinTilde(letras[pos])) >= 0 ? 'la ' + sinTilde(letras[pos]) : nombreL(sinTilde(letras[pos]))) + '.' : 'Escucha otra vez: ' + w);
+        if (fallos >= PISTA) tk.querySelector('[data-c="'+sinTilde(letras[pos])+'"]').classList.add('pista');
       }
     };
     tk.appendChild(b);
@@ -870,10 +963,166 @@ function dictado(L, z){
     pz.innerHTML = puntos(RONDAS, ronda);
     const p = orden[ronda % orden.length];
     w = p[0].replace(/-/g,''); letras = [...w]; pos = 0; fallos = 0;
-    dib.textContent = p[1]; dib.onclick = () => hablar(w);
-    hs.innerHTML = letras.map(() => '<div class="hueco letra"></div>').join('');
+    dib.textContent = niv() === 3 ? '👂' : p[1]; dib.onclick = () => hablar(w);
+    hs.innerHTML = letras.map(c => '<div class="hueco letra">' + (niv() === 1 ? '<span style="color:#d8d0ee">' + c + '</span>' : '') + '</div>').join('');
   }
   nueva(); setTimeout(() => hablar(w), 2600);
+}
+
+/* ---------- 8. La letra que falta ---------- */
+function falta(L, z){
+  $('actTit').textContent = 'La letra que falta';
+  let lista = palabrasPosibles();
+  if (!lista.length) return sinPalabras(z);
+  lista = conPreferencia(lista, niv() === 1 ? p => nLetras(p[0]) <= 4 : niv() === 2 ? p => nLetras(p[0]) <= 6 : p => nLetras(p[0]) >= 4);
+  const RONDAS = D(5, 6, 7), OPC = D(3, 4, 6), PISTA = D(2, 3, 99); let ronda = 0;
+  const orden = mezclar(lista);
+  z.appendChild(consigna(niv() === 1 ? '¿Qué letra falta al principio?' : niv() === 2 ? '¿Qué letra falta?' : '¡Faltan dos letras! Búscalas.',
+                         niv() === 1 ? 'Mira el dibujo. ¿Qué letra falta al principio de la palabra?' : niv() === 2 ? 'Mira el dibujo y di la palabra. ¿Qué letra falta?' : 'Faltan dos letras. Toca el dibujo si quieres oír la palabra.'));
+  const pz = document.createElement('div'); z.appendChild(pz);
+  const dib = document.createElement('div'); dib.className = 'dibujo'; z.appendChild(dib);
+  const hs = document.createElement('div'); hs.className = 'huecos'; z.appendChild(hs);
+  const fs = document.createElement('div'); fs.className = 'fichas'; z.appendChild(fs);
+  function nueva(ret){
+    pz.innerHTML = puntos(RONDAS, ronda);
+    const p = orden[ronda % orden.length], w = p[0].replace(/-/g,''), letras = [...w];
+    let ocultas;
+    if (niv() === 1) ocultas = [0];
+    else { const idx = mezclar(letras.map((_, i) => i)); ocultas = idx.slice(0, niv() === 3 && letras.length >= 4 ? 2 : 1).sort((a, b) => a - b); }
+    let k = 0, fallos = 0;
+    dib.textContent = p[1]; dib.onclick = () => hablar(w);
+    hs.innerHTML = letras.map((c, i) => '<div class="hueco letra' + (ocultas.indexOf(i) < 0 ? ' lleno' : '') + '">' + (ocultas.indexOf(i) < 0 ? c : '') + '</div>').join('');
+    const buenas = [...new Set(ocultas.map(i => sinTilde(letras[i])))];
+    let malas = activas().filter(c => buenas.indexOf(c) < 0);
+    if (niv() >= 2) { const par = buenas.map(c => PARECIDAS[c]).filter(c => c && malas.indexOf(c) >= 0); malas = [...new Set([...par, ...mezclar(malas)])]; } else malas = mezclar(malas);
+    fs.innerHTML = '';
+    mezclar([...buenas, ...malas.slice(0, Math.max(1, OPC - buenas.length))]).forEach(c => {
+      const b = document.createElement('button'); b.className = 'tecla'; b.style.width = '72px'; b.dataset.c = c; b.innerHTML = letraSVG(c, COLOR[c], 12);
+      b.onclick = async () => {
+        if (k >= ocultas.length) return;
+        const i = ocultas[k];
+        if (c === sinTilde(letras[i])){
+          sTap(); hablar(VOCALES.indexOf(c) >= 0 ? c : NOMBRE[c]);
+          const h = hs.children[i]; h.textContent = letras[i]; h.classList.add('lleno'); k++; fallos = 0;
+          fs.querySelectorAll('.pista').forEach(x => x.classList.remove('pista'));
+          if (k === ocultas.length){
+            await espera(500); sOk(); vib(30); hablar(w + '. ¡Muy bien!'); fiesta(p[1]);
+            await quizaPegatina(); await espera(1400); ronda++;
+            if (ronda >= RONDAS){ await premio('🏆', '¡Has encontrado todas las letras!'); volver(); return; }
+            nueva();
+          }
+        } else {
+          b.classList.remove('mal'); void b.offsetWidth; b.classList.add('mal'); sMal(); fallos++;
+          hablar(fallos >= PISTA ? 'Falta ' + (VOCALES.indexOf(sinTilde(letras[i])) >= 0 ? 'la ' + sinTilde(letras[i]) : nombreL(sinTilde(letras[i]))) + '.' : 'Esa no es. Di despacio: ' + w);
+          if (fallos >= PISTA) { const t = fs.querySelector('[data-c="' + sinTilde(letras[i]) + '"]'); if (t) t.classList.add('pista'); }
+        }
+      };
+      fs.appendChild(b);
+    });
+    if (niv() < 3) setTimeout(() => hablar(w), ret || 300);
+  }
+  nueva(2600);
+}
+
+/* ---------- 9. Lee y elige el dibujo ---------- */
+function leer(L, z){
+  $('actTit').textContent = 'Lee y elige';
+  const todas = palabrasPosibles();
+  if (todas.length < 3) return sinPalabras(z);
+  const lista = conPreferencia(todas, niv() === 1 ? p => nLetras(p[0]) <= 4 : niv() === 2 ? p => nLetras(p[0]) <= 6 : p => nLetras(p[0]) >= 5);
+  const RONDAS = D(5, 6, 8), CARTAS = D(2, 3, 4); let ronda = 0;
+  const orden = mezclar(lista);
+  z.appendChild(consigna(niv() === 1 ? 'Lee la palabra (mira las sílabas) y toca su dibujo.' : 'Lee la palabra tú solo y toca su dibujo.',
+                         niv() === 1 ? 'Lee la palabra. Cada sílaba tiene un color. Luego toca su dibujo.' : 'Lee la palabra tú solo y toca su dibujo. ¡Yo no te la digo!'));
+  const pz = document.createElement('div'); z.appendChild(pz);
+  const pg = document.createElement('div'); pg.className = 'palabraGrande'; z.appendChild(pg);
+  const ay = document.createElement('div'); ay.style.cssText = 'text-align:center;margin-bottom:10px'; z.appendChild(ay);
+  const tj = document.createElement('div'); tj.className = 'tarjetas'; z.appendChild(tj);
+  const colSil = ['#ff4d6d', '#3a86ff', '#3cc46b', '#9d4edd'];
+  function nueva(){
+    pz.innerHTML = puntos(RONDAS, ronda);
+    const buena = orden[ronda % orden.length], w = buena[0].replace(/-/g,'');
+    pg.innerHTML = niv() === 1 ? buena[0].split('-').map((s, i) => '<i style="color:' + colSil[i % 4] + '">' + s + '</i>').join('<i style="color:#ddd">·</i>') : w;
+    ay.innerHTML = niv() === 1 ? '<button class="bt" style="background:#fff3c4;font-size:18px">🔊 Ayuda</button>' : '';
+    if (niv() === 1) ay.querySelector('button').onclick = () => hablar(buena[0].split('-').join(', ') + '. ' + w);
+    let pool = mezclar(todas.filter(p => p[1] !== buena[1] && p[0] !== buena[0]));
+    if (niv() === 3) { const ini = sinTilde(w)[0]; pool = pool.filter(p => sinTilde(p[0])[0] === ini).concat(pool.filter(p => sinTilde(p[0])[0] !== ini)); }
+    const vistas = new Set([buena[1]]), malas = [];
+    pool.forEach(p => { if (malas.length < CARTAS - 1 && !vistas.has(p[1])) { vistas.add(p[1]); malas.push(p); } });
+    let fallos = 0; tj.innerHTML = ''; delete tj.dataset.fin;
+    mezclar([buena, ...malas]).forEach(p => {
+      const t = document.createElement('div'); t.className = 'tarjeta'; t.innerHTML = p[1] + '<small></small>';
+      t.onclick = async () => {
+        if (tj.dataset.fin) return;
+        if (p === buena){
+          tj.dataset.fin = 1; t.classList.add('bien'); t.querySelector('small').textContent = w;
+          sOk(); vib(30); hablar(w + '. ¡Lo has leído muy bien!');
+          await quizaPegatina(); await espera(1400); ronda++;
+          if (ronda >= RONDAS){ await premio('🏆', '¡Ya sabes leer palabras!'); volver(); return; }
+          nueva();
+        } else {
+          t.classList.remove('mal'); void t.offsetWidth; t.classList.add('mal'); sMal(); fallos++;
+          hablar(niv() === 3 && fallos < 2 ? 'No es ese. Lee otra vez despacio.' : 'Ese es ' + p[0].replace(/-/g,'') + '. Lee otra vez.');
+        }
+      };
+      tj.appendChild(t);
+    });
+  }
+  nueva();
+}
+
+/* ---------- 10. Ordena la frase ---------- */
+function frase(L, z){
+  $('actTit').textContent = 'Ordena la frase';
+  const todas = FRASES.filter(([t]) => letrasOk(t));
+  if (!todas.length) return sinPalabras(z);
+  const n = t => t.split(' ').length;
+  const lista = conPreferencia(todas, niv() === 1 ? p => n(p[0]) <= 3 : niv() === 2 ? p => n(p[0]) >= 3 && n(p[0]) <= 5 : p => n(p[0]) >= 5, 2);
+  const RONDAS = D(4, 5, 6), PISTA = D(2, 3, 99); let ronda = 0;
+  const orden = mezclar(lista);
+  z.appendChild(niv() === 3 ? consigna('Lee las palabras y ordénalas. ¡Sobra una!', 'Lee las palabras y ponlas en orden para formar la frase. Cuidado, sobra una palabra.')
+                            : consigna('Escucha la frase y pon las palabras en orden.', 'Escucha la frase y toca las palabras en orden.'));
+  const pz = document.createElement('div'); z.appendChild(pz);
+  const dib = document.createElement('div'); dib.className = 'dibujo'; z.appendChild(dib);
+  const hs = document.createElement('div'); hs.className = 'huecos'; z.appendChild(hs);
+  const fr = document.createElement('div'); fr.className = 'frase'; z.appendChild(fr);
+  const fs = document.createElement('div'); fs.className = 'fichas'; z.appendChild(fs);
+  const todasPal = [...new Set([].concat(...todas.map(p => p[0].split(' '))))];
+  function nueva(ret){
+    pz.innerHTML = puntos(RONDAS, ronda);
+    const [t, e] = orden[ronda % orden.length], ws = t.split(' ');
+    const bonita = t[0].toUpperCase() + t.slice(1) + '.';
+    dib.textContent = e; dib.onclick = () => hablar(bonita);
+    fr.textContent = '';
+    hs.innerHTML = ws.map(() => '<div class="hueco pal"></div>').join('');
+    const extra = niv() === 3 ? mezclar(todasPal.filter(x => ws.indexOf(x) < 0)).slice(0, 1) : [];
+    let pos = 0, fallos = 0; fs.innerHTML = '';
+    mezclar([...ws, ...extra]).forEach(x => {
+      const b = document.createElement('button'); b.className = 'ficha pal'; b.textContent = x;
+      b.onclick = async () => {
+        if (b.classList.contains('usada') || pos >= ws.length) return;
+        if (x === ws[pos]){
+          sTap(); hablar(x); b.classList.add('usada');
+          const h = hs.children[pos]; h.textContent = pos === 0 ? x[0].toUpperCase() + x.slice(1) : x; h.classList.add('lleno'); pos++; fallos = 0;
+          fs.querySelectorAll('.pista').forEach(y => y.classList.remove('pista'));
+          if (pos === ws.length){
+            fr.textContent = bonita;
+            await espera(400); sOk(); vib(30); hablar(bonita + ' ¡Muy bien!'); fiesta(e);
+            await quizaPegatina(); await espera(2000); ronda++;
+            if (ronda >= RONDAS){ await premio('🏆', '¡Has ordenado todas las frases!'); volver(); return; }
+            nueva();
+          }
+        } else {
+          b.classList.remove('mal'); void b.offsetWidth; b.classList.add('mal'); sMal(); fallos++;
+          hablar(fallos >= PISTA ? 'Ahora va: ' + ws[pos] : 'Esa no va ahora. ' + (niv() < 3 ? 'Escucha: ' + bonita : 'Lee otra vez.'));
+          if (fallos >= PISTA) [...fs.children].forEach(y => { if (y.textContent === ws[pos] && !y.classList.contains('usada')) y.classList.add('pista'); });
+        }
+      };
+      fs.appendChild(b);
+    });
+    if (niv() < 3) setTimeout(() => hablar(bonita), ret || 300);
+  }
+  nueva(3000);
 }
 
 /* ---------- 7. Pizarra libre ---------- */
@@ -922,10 +1171,10 @@ function pintarPadres(){
     b.onclick = () => { S[k] = !S[k]; guardar(); pintarPadres(); };
     cs.appendChild(b);
   });
-  const hechas = ORDEN.map(L => L + ': ' + estLetra(L) + '/4').join(' · ');
+  const hechas = 'Nivel ' + NIVELES[niv()-1].nom.toLowerCase() + ' → ' + ORDEN.map(L => L + ': ' + estLetra(L) + '/4').join(' · ');
   $('resumen').innerHTML = '⭐ ' + S.est + ' estrellas · ' + S.aciertos + ' aciertos · ' + S.peg.length + ' pegatinas<br><small>' + hechas + '</small>';
   $('btBorrar').onclick = () => {
-    if ($('btBorrar').dataset.seguro){ const a = S.activas, v = S.voz; S = JSON.parse(JSON.stringify(DEF)); S.activas = a; S.voz = v; guardar(); delete $('btBorrar').dataset.seguro; $('btBorrar').textContent = 'Borrar todo el progreso'; pintarPadres(); }
+    if ($('btBorrar').dataset.seguro){ const a = S.activas, v = S.voz, nv = S.nivel; S = JSON.parse(JSON.stringify(DEF)); S.activas = a; S.voz = v; S.nivel = nv; guardar(); delete $('btBorrar').dataset.seguro; $('btBorrar').textContent = 'Borrar todo el progreso'; pintarPadres(); }
     else { $('btBorrar').dataset.seguro = 1; $('btBorrar').textContent = 'Pulsa otra vez para borrarlo'; }
   };
 }
