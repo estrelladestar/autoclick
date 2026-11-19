@@ -980,8 +980,10 @@ object Macro {
             val optional = c.arg.contains("opcional")
             val n = c.arg.trim().split(" ")[0].toIntOrNull() ?: 1
             val myTry = stepGen
-            s.locateSavedImage(n) { pos, missing ->
+            s.locateSavedImage(n) { pos0, missing ->
                 if (myTry != stepGen || id != token || !running) return@locateSavedImage
+                // Si la foto no coincide (por ejemplo por el fondo), el bocadillo y la flecha se buscan también por lo que son
+                val pos = pos0 ?: if (missing) null else buttonFor(n)
                 when {
                     missing -> finish("No encuentro la imagen $n. Añádela en la app. Guion detenido.")
                     pos != null -> {
@@ -1015,6 +1017,26 @@ object Macro {
                     }
                 }
             }
+        }
+
+        /**
+         * Para las imágenes fijas: el bocadillo 💬 (abrir comentarios) y la flecha ➤ (publicar el comentario).
+         * Si la foto no se reconoce en la pantalla, busca el botón de Instagram por su nombre o descripción.
+         */
+        private fun buttonFor(n: Int): Pair<Float, Float>? {
+            val file = StepStore.load(s).filter { it.type == "image" }.getOrNull(n - 1)?.value?.lowercase() ?: return null
+            val (_, h) = s.screenSize()
+            val r = when {
+                "bocadillo" in file -> findIg { t, _, node ->
+                    node.viewIdResourceName?.let { it.endsWith("row_feed_button_comment") || it.endsWith("comment_button") } == true ||
+                        t == "comentar" || t == "comment" || t == "comentarios" || t == "comments" }
+                "flecha" in file -> findIg { t, rr, node ->
+                    (node.viewIdResourceName?.let { "post_button" in it || it.endsWith("send_button") } == true ||
+                        t == "publicar" || t == "post" || t == "enviar" || t == "send") && rr.exactCenterY() > h * 0.3f }
+                else -> null
+            } ?: return null
+            trace("  imagen $n reconocida por su botón de Instagram")
+            return Pair(r.exactCenterX(), r.exactCenterY())
         }
 
         /**
