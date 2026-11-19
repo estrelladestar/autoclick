@@ -208,6 +208,28 @@ body.bg-crema{background:#FFF6E0}body.bg-azul{background:#E6F2FF}body.bg-verde{b
 .lecopt{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 14px}.lecopt button{border:3px solid #eee;background:#fff;border-radius:12px;padding:9px 12px;font-weight:800;font-size:15px;color:#26203f}.lecopt button.on{border-color:#7c4dff;background:#efe6ff}
 .lech{font-weight:900;font-size:16px;margin-top:4px}
 /* ---- Mi Mundo Letras ---- */
+/* menú de inicio */
+body.inhome nav{display:none}
+nav{align-items:center}
+nav button.inicio{flex:none;padding:6px 16px;font-size:14px;background:linear-gradient(180deg,#ff8ab5,#ff4f8b) !important;outline:none !important;transform:none !important}
+nav button.inicio b{font-size:22px}
+.navtit{flex:1;text-align:center;font-weight:900;font-size:19px;color:#5b3bb0}
+.hhero{position:relative;height:210px;border-radius:28px;margin:4px 0 14px;background:linear-gradient(180deg,#bfe9ff,#fff3c4 70%,#c8f5c4);box-shadow:0 5px 0 #7c4dff22;overflow:hidden}
+.hav{position:absolute;left:4px;bottom:0;width:120px;height:205px}.hav svg{width:100%;height:100%}
+.hpet{position:absolute;left:112px;bottom:4px;width:112px;height:112px}.hpet svg{width:100%;height:100%}
+.hbub{position:absolute;right:10px;top:16px;width:44%;background:#fff;border-radius:18px;padding:10px 12px;font-weight:900;font-size:16px;box-shadow:0 3px 0 #0001}
+.hgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.hk{border:0;border-radius:26px;padding:16px 6px;color:#fff;font-weight:900;font-size:17px;line-height:1.2;box-shadow:0 6px 0 #0002;text-shadow:0 1px 2px #0003;transition:transform .1s}
+.hk b{display:block;font-size:44px;margin-bottom:4px;animation:hbaila 2.6s ease-in-out infinite}
+.hk:nth-child(2n) b{animation-delay:.6s}.hk:nth-child(3n) b{animation-delay:1.2s}
+.hk:active{transform:scale(.94)}
+.hk.ancho{grid-column:1 / -1;font-size:20px}.hk.ancho b{font-size:52px}
+@keyframes hbaila{0%,100%{transform:rotate(0)}25%{transform:rotate(-8deg) scale(1.06)}75%{transform:rotate(8deg) scale(1.06)}}
+.k1{background:linear-gradient(160deg,#ff9ac1,#ff4f8b)}.k2{background:linear-gradient(160deg,#ffd166,#ff9800)}
+.k3{background:linear-gradient(160deg,#7ee08a,#16a34a)}.k4{background:linear-gradient(160deg,#6fd3ff,#1e90ff)}
+.k5{background:linear-gradient(160deg,#ffa07a,#ff5722)}.k6{background:linear-gradient(160deg,#c49bff,#7c3aed)}
+.k7{background:linear-gradient(160deg,#5eead4,#0d9488)}.k8{background:linear-gradient(160deg,#f9a8d4,#db2777)}
+.k9{background:linear-gradient(160deg,#fde047,#eab308)}.k10{background:linear-gradient(160deg,#93c5fd,#6366f1)}
 /* menú sencillo y de colores */
 nav{gap:5px}
 nav button{color:#fff;font-size:11.5px;font-weight:900;padding:7px 1px;box-shadow:0 3px 0 #0002;text-shadow:0 1px 1px #0003}
@@ -278,15 +300,29 @@ nav button b{font-size:24px}
     <button class="icon" id="lecBtn" title="Ajustes de lectura">👓</button><button class="icon" id="mus" title="Música">🎵</button><button class="icon" id="sfx" title="Sonidos">🔔</button><button class="icon" id="snd" title="Voz">🗣️</button>
   </header>
   <nav>
-    <button data-t="pet" class="on"><b>🐾</b>Mascota</button>
-    <button data-t="quiz"><b>❓</b>Jugar</button>
-    <button data-t="apr"><b>🔤</b>Letras</button>
-    <button data-t="av"><b>👧</b>Muñeco</button>
-    <button data-t="shop"><b>🛍️</b>Tienda</button>
-    <button data-t="logros"><b>🏅</b>Premios</button>
+    <button data-t="home" class="inicio"><b>🏠</b>Inicio</button><span class="navtit" id="navTit"></span>
   </nav>
 
-  <section id="t-pet" class="on">
+  <section id="t-home" class="on">
+    <div class="hhero" id="hHero">
+      <div class="hav" id="hAv"></div><div class="hpet" id="hPet"></div>
+      <div class="hbub" id="hBub">¡Hola! ¿A qué jugamos?</div>
+    </div>
+    <div class="hgrid" id="hGrid">
+      <button class="hk k1" data-go="pet"><b>🐾</b>Mi mascota</button>
+      <button class="hk k2" data-go="quiz"><b>❓</b>Preguntas</button>
+      <button class="hk k3 ancho" data-go="leer"><b>🎤</b>Leer frases en voz alta</button>
+      <button class="hk k4" data-go="falta"><b>🔤</b>Letra que falta</button>
+      <button class="hk k5" data-go="trazar"><b>✏️</b>Escribir letras</button>
+      <button class="hk k6" data-go="formar"><b>🧩</b>Formar palabras</button>
+      <button class="hk k7" data-go="apr"><b>📚</b>Las letras</button>
+      <button class="hk k8" data-go="av"><b>👧</b>Mi muñeco</button>
+      <button class="hk k9" data-go="shop"><b>🛍️</b>Tienda</button>
+      <button class="hk k10 ancho" data-go="logros"><b>🏅</b>Mis premios</button>
+    </div>
+  </section>
+
+  <section id="t-pet">
     <div class="scene" id="scene">
       <div class="moon">🌙</div>
       <div class="bgsvg" id="sceneBg"></div>
@@ -1222,7 +1258,7 @@ function petMood(){
   return 'normal';
 }
 var PHRASES = {
-  normal: ['¡Hola! ¿Jugamos a preguntas? ¡Así ganas monedas! 🪙', '¡Qué bien me lo paso contigo! 💜', '¿Te pruebas ropa nueva? ¡Mira en Avatar! 👗', '¡Me encanta tu look de hoy! ✨', 'Si aciertas 5 seguidas te doy un premio extra 🎁', '¿Sabes mucho? ¡Demuéstramelo! 🤓'],
+  normal: ['¡Hola! ¿Jugamos a preguntas? ¡Así ganas monedas! 🪙', '¡Qué bien me lo paso contigo! 💜', '¿Te pruebas ropa nueva? ¡Mira en Mi muñeco! 👗', '¡Me encanta tu look de hoy! ✨', 'Si aciertas 5 seguidas te doy un premio extra 🎁', '¿Sabes mucho? ¡Demuéstramelo! 🤓'],
   hambre: ['¡Tengo hambre! ¿Me das algo de comer? 🍎', 'Mi tripita hace ruido… 🍪'],
   sucio: ['Uy, estoy un poco sucio… ¿me bañas? 🛁', '¡Qué peste! ¿Limpias un poquito? 🧹'],
   cansado: ['Tengo mucho sueño… ¿me acuestas? 💤'],
@@ -1497,18 +1533,16 @@ function mathQ(){
   return {cat:'mates', q:txt, ok:String(ans), opts:shuffle([String(ans)].concat(opts))};
 }
 var FACTS = {
- a:'las palabras esdrújulas siempre llevan tilde, como «pájaro» o «lágrima».',
- b:'las agudas llevan tilde si terminan en -n, -s o vocal, como «camión», «compás» o «sofá».',
- c:'las llanas llevan tilde si terminan en consonante que no sea -n ni -s, como «árbol» o «lápiz».',
- d:'un verso de 8 sílabas o menos es de arte menor, y de más de 8 es de arte mayor.',
- e:'en la rima consonante se repiten vocales y consonantes, y en la asonante solo las vocales.',
- f:'la comparación usa «como», y la metáfora dice que una cosa ES otra.',
- g:'la personificación da a animales u objetos cualidades de personas, como «las olas cansadas».',
- h:'el superlativo se forma con «muy» o con -ísimo, como «altísimo».',
- i:'los adjetivos concuerdan con el nombre en género y número: «flores amarillas».',
- j:'en un correo, el asunto te dice de qué trata sin leerlo entero.',
- k:'«Re:» en el asunto significa que el correo es una respuesta.',
- l:'las palabras polisémicas tienen varios significados, como «sierra» o «hoja».'
+ a:'«mamá» empieza por la m de mono? 🐒',
+ b:'la m y la a juntas dicen «ma»? 🎵',
+ c:'«pato» y «pala» empiezan igual, por «pa»? 🦆',
+ d:'la ñ lleva un gorrito ondulado encima? 〰️',
+ e:'las vocales son cinco: a, e, i, o, u? 🖐️',
+ f:'«sol» tiene solo una sílaba? ☀️',
+ g:'si lees despacito, te sale mejor? 🐢',
+ h:'la d tiene la barriga a la izquierda? 🫃',
+ i:'la i y la j llevan un puntito arriba? ⚫',
+ j:'«luna» se lee lu-na? 🌙'
 };
 var STK = {
   falta:{e:'🔤', n:'La letra que falta', prize:['hand','libro']},
@@ -1951,7 +1985,7 @@ function adopt(first){
 /* ======================= modal y pestañas ======================= */
 function showModal(h){ $('modalBox').innerHTML = h; $('modal').classList.add('on'); }
 function closeModal(){ $('modal').classList.remove('on'); }
-var curTab = 'pet';
+var curTab = 'home';
 /* ======================= juegos de letras (letra que falta, escribir, formar palabras) ======================= */
 var TRAZOS = {
   a:['M63.6,51 A18,20 0 1 0 63.6,69','M66,40 L66,80'],
@@ -2329,6 +2363,24 @@ function jLeer(){
   };
 }
 
+function renderHome(){
+  try { $('hAv').innerHTML = avatarSVG(S.eq, {bg:false, anim:true, vb:'20 -20 160 360'}); } catch (e) { $('hAv').innerHTML = ''; }
+  $('hPet').innerHTML = S.pet ? petSVG(S.pet, 'celebra', S.pet.acc) : '<div style="font-size:70px;text-align:center">🐣</div>';
+  var nom = S.pet ? S.pet.name : 'tu mascota';
+  $('hBub').textContent = pick(['¡Hola! ¿A qué jugamos? 🎈', '¿Leemos frases juntos? 🎤', '¡Gana monedas y cómprame cosas! 🪙', '¡Elige un juego! 🌈']);
+}
+function initHome(){
+  document.body.classList.add('inhome');
+  $('hGrid').addEventListener('click', function(e){
+    var b = e.target.closest('.hk'); if (!b) return;
+    var g = b.dataset.go;
+    if (g === 'leer') { if ((S.leerNivel || 1) < 2) S.leerNivel = 2; jStart('leer'); }
+    else if (g === 'falta' || g === 'trazar' || g === 'formar') jStart(g);
+    else tab(g);
+  });
+  $('hHero').onclick = function(){ if (S.pet) { sfx('squeak'); speak($('hBub').textContent); } };
+  renderHome();
+}
 function initLetras(){
   var as = document.querySelectorAll('.aletras');
   for (var i = 0; i < as.length; i++) as[i].innerHTML = Array.from(as[i].dataset.grupo).map(function(L){
@@ -2343,11 +2395,15 @@ function tab(t){
   curTab = t;
   var bs = document.querySelectorAll('nav button');
   for (var i = 0; i < bs.length; i++) bs[i].classList.toggle('on', bs[i].dataset.t === t);
-  ['pet', 'quiz', 'apr', 'av', 'shop', 'logros', 'dict', 'exam', 'poema', 'juego'].forEach(function(x){ $('t-' + x).classList.toggle('on', x === t); });
+  ['home', 'pet', 'quiz', 'apr', 'av', 'shop', 'logros', 'dict', 'exam', 'poema', 'juego'].forEach(function(x){ $('t-' + x).classList.toggle('on', x === t); });
   if (t !== 'juego') { try { if (B && B.stopListen) B.stopListen(); else if (lRec) lRec.abort(); } catch (e) {} }
   if (t !== 'juego' && J.parar) { try { J.parar(); } catch (e) {} J.parar = null; }
   if (t !== 'av') trying = null;
   window.scrollTo(0, 0);
+  document.body.classList.toggle('inhome', t === 'home');
+  var TIT = {pet:'🐾 Mi mascota', quiz:'❓ Preguntas', apr:'📚 Las letras', av:'👧 Mi muñeco', shop:'🛍️ Tienda', logros:'🏅 Mis premios', juego:'🎮 Juegos'};
+  if ($('navTit')) $('navTit').textContent = TIT[t] || '';
+  if (t === 'home') renderHome();
   if (t === 'pet') { renderPet(); say(moodPhrase()); }
   if (t === 'quiz') { renderQCats(); renderChal(); if (!curQ || answered) nextQuestion(); else renderPetViews(); }
   if (t === 'logros') renderLogros();
@@ -2356,14 +2412,14 @@ function tab(t){
   if (t === 'shop') renderShop();
   renderBuyBar();
 }
-function renderAll(){ renderHeader(); renderPet(); if (curTab === 'av') renderAv(); if (curTab === 'shop') renderShop(); }
+function renderAll(){ renderHeader(); renderPet(); if (curTab === 'home' && window.renderHome) renderHome(); if (curTab === 'av') renderAv(); if (curTab === 'shop') renderShop(); }
 
 /* ======================= extras: dictado, examen y taller de poemas ======================= */
 var UNACC = {'á':'a','é':'e','í':'i','ó':'o','ú':'u'};
 function stripAcc(t){ return String(t).replace(/[áéíóú]/g, function(c){ return UNACC[c]; }); }
 function hasTilde(t){ return /[áéíóú]/.test(t); }
 function petMiniSVG(mood){ return S.pet ? petSVG(S.pet, mood || 'pensar', S.pet.acc) : '<div style="font-size:60px;text-align:center">🐣</div>'; }
-function backBtn(){ return '<button class="btn" style="background:#ddd;color:#333;padding:8px 14px;font-size:13px;margin-bottom:6px" onclick="tab(\'quiz\')">⬅ Volver a preguntas</button>'; }
+function backBtn(){ return ''; }
 function wordRule(h){
   var sy = h.split('-'), w = sy.join('').toLowerCase(), n = sy.length, ti = -1;
   for (var i = 0; i < n; i++) if (hasTilde(sy[i])) ti = i;
@@ -2795,7 +2851,7 @@ function bind(){
   $('paccGrid').addEventListener('click', function(e){ var b = e.target.closest('.item'); if (b) tapPacc(b.dataset.p); });
   $('modalBox').addEventListener('click', function(e){ var b = e.target.closest('#spGrid button'); if (!b) return; var old = SPECIES[chooseSp].name, inp = $('petNameIn'); chooseSp = b.dataset.s; if (inp && (!inp.value.trim() || inp.value.trim() === old)) inp.value = SPECIES[chooseSp].name; renderSp(); });
   $('mini').addEventListener('click', openFull);
-  initApr(); initLetras();
+  initApr(); initLetras(); initHome();
   $('extras2').addEventListener('click', function(e){ var b = e.target.closest('button'); if (b && b.dataset.x) jStart(b.dataset.x); });
   bindExtras();
   ['dback', 'eback', 'pback'].forEach(function(id){ $(id).innerHTML = backBtn(); });
