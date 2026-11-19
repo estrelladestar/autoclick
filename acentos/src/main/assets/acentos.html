@@ -20,7 +20,7 @@ header h1{flex:1;margin:0;font-size:20px;text-align:center;text-shadow:0 2px 0 r
 .hbt{border:none;border-radius:16px;background:#fff;font-size:24px;padding:4px 10px;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.2)}
 .bolsa{background:#FFF3BF;color:#5c3c00;border-radius:16px;padding:6px 12px;font-weight:800;font-size:18px;white-space:nowrap}
 .mini{display:flex;background:#fff;border:none;border-radius:14px;padding:2px 4px;cursor:pointer}
-.mini svg{width:40px;height:40px}
+.mini svg{width:34px;height:44px}
 main{position:relative;z-index:1;max-width:620px;margin:0 auto;padding:12px}
 .pant{display:none}.pant.on{display:block;animation:entra .3s}
 @keyframes entra{from{opacity:0;transform:translateY(8px)}}
@@ -31,7 +31,7 @@ h2{text-align:center;font-size:clamp(22px,5.5vw,30px);margin:8px 0 12px}
 .b-rojo{background:var(--rojo)}.b-verde{background:var(--verde)}.b-oro{background:var(--oro)}.b-azul{background:var(--azul)}.b-gris{background:#868E96}
 /* escena de inicio */
 .escena{position:relative;border-radius:26px;overflow:hidden;border:5px solid #fff;box-shadow:0 6px 0 #c3d9ee;background:linear-gradient(#20306b 0%,#3b5bdb 55%,#e7f5ff 55%,#fff 100%);height:clamp(220px,58vw,300px)}
-.escena .santa{position:absolute;left:2%;bottom:2%;width:46%;height:92%}
+.escena .santa{position:absolute;left:0;bottom:1%;width:50%;height:97%}
 .escena .arbol{position:absolute;right:2%;bottom:1%;width:50%;height:98%}
 .escena svg{width:100%;height:100%}
 .escena .luna{position:absolute;top:10px;left:46%;font-size:28px}
@@ -407,7 +407,7 @@ function ir(p){
 function atras(){ if (actual === 'inicio') return 0; ir('inicio'); return 1; }
 function pintaInicio(){
   $('nMon').textContent = E.monedas; pintaNivel();
-  $('escenaSanta').innerHTML = santaSVG(E.av); $('escenaArbol').innerHTML = arbolSVG(false); $('miniSanta').innerHTML = santaSVG(E.av, '20 -1 80 80');
+  $('escenaSanta').innerHTML = santaSVG(E.av, null, true); $('escenaArbol').innerHTML = arbolSVG(false); $('miniSanta').innerHTML = santaSVG(E.av, null, true);
 }
 function finPartida(gano, texto){
   $('finEmo').textContent = gano ? '🏆' : '⏰';
@@ -715,7 +715,7 @@ const SANTA = {
 };
 const CATS = [['estilo','🎭 Estilos'],['traje','🧥 Color del traje'],['gorro','🎩 Gorros'],['barba','🧔 Barba'],['colorBarba','🎨 Color barba'],['ojos','👀 Ojos'],['nariz','👃 Nariz'],
   ['mejillas','😊 Mejillas'],['gafas','👓 Gafas'],['bufanda','🧣 Cuello'],['mano','🎁 En la mano'],['fondo','🖼️ Fondo']];
-const ZOOM = {ojos:'34.5 26 51 42.5',nariz:'34.5 29.5 51 42.5',mejillas:'34.5 29.5 51 42.5',gafas:'31 24 58 48',barba:'24 26 72 72',colorBarba:'24 26 72 72',gorro:'14 -1 92 77',bufanda:'20 62 80 80',mano:'48 66 72 104'};
+const ZOOM = {ojos:'34.5 26 51 42.5',nariz:'34.5 29.5 51 42.5',mejillas:'34.5 29.5 51 42.5',gafas:'31 24 58 48',barba:'24 26 72 72',colorBarba:'24 26 72 72',gorro:'14 -1 92 77'};
 const colorDe = (cat, id) => (SANTA[cat].find(o => o.id === id) || SANTA[cat][0]).c;
 
 /* =========== PAPÁ NOEL: DIBUJO =========== */
@@ -858,10 +858,10 @@ function estiloS(t, c){
   }
 }
 let UID = 0;
-function santaSVG(a, vb){
+function santaSVG(a, vb, sinFondo){
   const c = colorDe('traje', a.traje), cb = colorDe('colorBarba', a.colorBarba), id = 'sb' + (UID++);
   const st = estiloS(a.estilo, c), tr = st.traje, dtr = osc(tr, .75);
-  let s = `<g transform="translate(-25 0) scale(1.4167)">${fondoS(a.fondo)}</g>`;
+  let s = sinFondo ? '' : `<g transform="translate(-25 0) scale(1.4167)">${fondoS(a.fondo)}</g>`;
   // saco a la espalda
   s += '<g transform="translate(6 22) scale(.9)">';
   if (a.mano === 'saco') s += `<g transform="translate(-2 32)"><path d="M6 82 Q4 60 22 56 Q38 56 36 82 Q36 108 20 108 Q4 108 6 82Z" fill="#A0672F" stroke="#6B3410" stroke-width="2"/><path d="M14 58 Q22 50 30 58" stroke="#6B3410" stroke-width="3" fill="none"/><rect x="12" y="46" width="10" height="10" fill="#E03131"/><rect x="22" y="44" width="9" height="12" fill="#2F9E44"/><path d="M17 46 V56 M26.5 44 V56" stroke="#FCC419" stroke-width="2"/></g>`;
@@ -953,7 +953,7 @@ function pintaSanta(){
   $('catsSanta').innerHTML = CATS.map(([k, n]) => `<button class="${k === cat ? 'sel' : ''}" onclick="cat='${k}';pintaSanta()">${n}</button>`).join('');
   $('tiendaSanta').innerHTML = SANTA[cat].map(o => { const own = tiene(cat, o), puesto = E.av[cat] === o.id;
     return `<button class="it ${puesto ? 'puesto' : ''} ${!own && E.monedas < o.p ? 'caro' : ''}" onclick="eligeSanta('${cat}','${o.id}',this)" title="${o.n}">${santaSVG(Object.assign({}, E.av, {[cat]:o.id}), ZOOM[cat])}${own ? '' : `<span class="precio">🪙${o.p}</span>`}</button>`; }).join('');
-  $('miniSanta').innerHTML = santaSVG(E.av, '20 -1 80 80'); $('nMon').textContent = E.monedas;
+  $('miniSanta').innerHTML = santaSVG(E.av, null, true); $('nMon').textContent = E.monedas;
 }
 function eligeSanta(c, id, b){
   const o = SANTA[c].find(x => x.id === id);
