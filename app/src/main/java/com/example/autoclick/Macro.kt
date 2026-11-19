@@ -427,6 +427,8 @@ object Macro {
         private var shareOwner = ""
         /** Texto que se escribe en la historia: la frase, la cuenta y las menciones («historia frase menciones 3»). */
         private var storyText = ""
+        /** En la historia: false = escribiendo la etiqueta de la tienda; true = escribiendo la frase y las menciones (otro texto). */
+        private var storyPaso2 = false
         /** Cuenta que se acaba de tocar en la lista y dónde (para comprobar que de verdad se cambió). */
         private var pendingSwitch: Triple<String, Float, Float>? = null
         private var switchChecks = 0
@@ -2052,6 +2054,7 @@ object Macro {
                         }
                     }
                     storyText = storyTextFor(wantPhrase, nMen)
+                    storyPaso2 = shareOwner.isEmpty()
                     val share = findIg { t, r, n ->
                         n.viewIdResourceName?.endsWith("row_feed_button_share") == true ||
                             (r.exactCenterX() < w * 0.5f && t in setOf("compartir", "enviar publicación", "enviar", "share", "send post", "send"))
@@ -2077,7 +2080,8 @@ object Macro {
                     if (shareOwner.isEmpty() && storyText.isEmpty()) { sharePhase = 5; later(500L); return }
                     // Abrir el texto: el botón «Aa» o, si no se ve, tocar arriba en un hueco de la pantalla
                     val aa = findIg { t, r, _ -> r.exactCenterY() < h * 0.2f && (t == "aa" || t == "texto" || t == "text" || t == "añadir texto" || t == "add text") }
-                    if (aa != null) tap(aa) else s.tapAt(w * 0.5f, h * 0.22f)
+                    // Para el segundo texto, si no se ve «Aa», se toca más arriba para no tocar la etiqueta de la tienda
+                    if (aa != null) tap(aa) else s.tapAt(w * 0.5f, if (storyPaso2) h * 0.13f else h * 0.22f)
                     sharePhase = 3
                     later(2000L)
                 }
@@ -2087,11 +2091,12 @@ object Macro {
                         if (tries < 2) { tries++; sharePhase = 2; later(1000L) } else storyGiveUp(c, "dónde escribir el texto")
                         return
                     }
-                    // Primero la frase, luego la cuenta de la publicación y tus menciones
+                    // Primero la etiqueta de la tienda (sola, para tocar su nombre y que quede etiquetada de verdad);
+                    // después, en otro texto, la frase y tus menciones
                     val parts = storyText.split("|")
-                    val full = listOf(parts.getOrElse(0) { "" }, if (shareOwner.isNotEmpty()) "@$shareOwner" else "", parts.getOrElse(1) { "" })
-                        .filter { it.isNotBlank() }.joinToString(" ")
-                    trace("  escribo en la historia: $full")
+                    val full = if (!storyPaso2) "@$shareOwner"
+                        else listOf(parts.getOrElse(0) { "" }, parts.getOrElse(1) { "" }).filter { it.isNotBlank() }.joinToString(" ")
+                    trace(if (!storyPaso2) "  etiqueto a la tienda en la historia: $full" else "  escribo en la historia: $full")
                     putText(f, full)
                     sharePhase = 4
                     tries = 0
@@ -2100,7 +2105,8 @@ object Macro {
                 4 -> {
                     // Tocar la sugerencia con ese nombre (así queda como etiqueta de verdad) y luego «Listo»
                     val sug = findIg { t, r, n -> !n.isEditable && t == shareOwner.lowercase() && r.exactCenterY() > h * 0.3f }
-                    if (sug != null && tries == 0 && storyText.isEmpty()) {
+                    if (sug != null && tries == 0 && !storyPaso2) {
+                        trace("  toco @$shareOwner en la lista para que quede etiquetada")
                         tap(sug)
                         tries = 1
                         later(1500L)
@@ -2108,6 +2114,15 @@ object Macro {
                     }
                     val ok = findIg { t, _, _ -> t == "listo" || t == "hecho" || t == "done" }
                     if (ok != null) tap(ok) else s.tapAt(w * 0.5f, h * 0.1f)
+                    val falta = !storyPaso2 && storyText.replace("|", "").isNotBlank()
+                    if (falta) {
+                        // Ya está la etiqueta de la tienda: ahora otro texto con la frase y las menciones
+                        storyPaso2 = true
+                        sharePhase = 2
+                        tries = 0
+                        later(2500L)
+                        return
+                    }
                     sharePhase = 5
                     tries = 0
                     later(2500L)
