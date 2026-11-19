@@ -31,8 +31,8 @@ h2{text-align:center;font-size:clamp(22px,5.5vw,30px);margin:8px 0 12px}
 .b-rojo{background:var(--rojo)}.b-verde{background:var(--verde)}.b-oro{background:var(--oro)}.b-azul{background:var(--azul)}.b-gris{background:#868E96}
 /* escena de inicio */
 .escena{position:relative;border-radius:26px;overflow:hidden;border:5px solid #fff;box-shadow:0 6px 0 #c3d9ee;background:linear-gradient(#20306b 0%,#3b5bdb 55%,#e7f5ff 55%,#fff 100%);height:clamp(220px,58vw,300px)}
-.escena .santa{position:absolute;left:0;bottom:1%;width:50%;height:97%}
-.escena .arbol{position:absolute;right:2%;bottom:1%;width:50%;height:98%}
+.escena .santa{position:absolute;left:2%;bottom:1%;width:34%;height:80%}
+.escena .arbol{position:absolute;inset:0}
 .escena svg{width:100%;height:100%}
 .escena .luna{position:absolute;top:10px;left:46%;font-size:28px}
 .bocadillo{background:#fff;border-radius:16px;margin:10px 0 6px;padding:8px 12px;font-size:19px;font-weight:700;text-align:center}
@@ -132,7 +132,9 @@ h2{text-align:center;font-size:clamp(22px,5.5vw,30px);margin:8px 0 12px}
 .precio{position:absolute;bottom:-12px;left:50%;transform:translateX(-50%);background:#FFD43B;border-radius:12px;padding:1px 7px;font-size:13px;font-weight:700;white-space:nowrap;color:#5c3c00}
 .cuantos{position:absolute;top:-8px;right:-8px;background:#2F9E44;color:#fff;border-radius:12px;min-width:24px;height:24px;font-size:14px;font-weight:800;display:grid;place-items:center}
 /* árbol */
-.arbol-grande{position:relative;width:min(88vw,380px);margin:0 auto;border-radius:24px;overflow:hidden;background:linear-gradient(#20306b,#3b5bdb 70%,#dbe4ff 70%,#fff);border:5px solid #fff;box-shadow:0 6px 0 #c3d9ee}
+.arbol-grande{position:relative;width:min(92vw,560px);margin:0 auto;border-radius:20px;overflow:hidden;border:5px solid #fff;box-shadow:0 6px 0 #c3d9ee}
+.fuego{animation:fuego .5s infinite alternate}
+@keyframes fuego{from{transform:scaleY(.9)}to{transform:scaleY(1.08)}}
 .arbol-grande svg{width:100%;display:block;touch-action:manipulation}
 .luz{animation:parpadea 1.2s infinite alternate}
 @keyframes parpadea{from{opacity:.25}to{opacity:1}}
@@ -157,11 +159,11 @@ h2{text-align:center;font-size:clamp(22px,5.5vw,30px);margin:8px 0 12px}
 <main>
 <!-- ================= INICIO ================= -->
 <section class="pant on" id="p-inicio">
-  <div class="escena" id="escena"><div class="luna">🌙</div><div class="santa" id="escenaSanta"></div><div class="arbol" id="escenaArbol"></div></div>
-  <div class="bocadillo" id="saludo">🎅 ¡Jo, jo, jo! Gana monedas jugando y adorna tu árbol</div>
+  <div class="escena" id="escena"><div class="arbol" id="escenaArbol"></div><div class="santa" id="escenaSanta"></div></div>
+  <div class="bocadillo" id="saludo">🎅 ¡Jo, jo, jo! Gana monedas jugando y decora tu casa y tu árbol</div>
   <div style="text-align:center">
     <button class="btn b-rojo" onclick="abreTienda('santa')">🎅 Vestir a Papá Noel</button>
-    <button class="btn b-verde" onclick="abreTienda('arbol')">🎄 Adornar el árbol</button>
+    <button class="btn b-verde" onclick="abreTienda('arbol')">🏠 Decorar la casa y el árbol</button>
   </div>
   <div class="niveles" id="niveles"></div>
   <p class="nivel-txt" id="nivelTxt"></p>
@@ -239,7 +241,7 @@ h2{text-align:center;font-size:clamp(22px,5.5vw,30px);margin:8px 0 12px}
 <section class="pant" id="p-tienda">
   <div class="pestanas">
     <button id="tabSanta" onclick="pestana('santa')">🎅 Papá Noel</button>
-    <button id="tabArbol" onclick="pestana('arbol')">🎄 Mi árbol</button>
+    <button id="tabArbol" onclick="pestana('arbol')">🏠 Mi casa</button>
   </div>
   <div id="panelSanta" class="caja">
     <div class="grande" id="santaGrande"></div>
@@ -247,13 +249,14 @@ h2{text-align:center;font-size:clamp(22px,5.5vw,30px);margin:8px 0 12px}
     <div class="tienda" id="tiendaSanta"></div>
   </div>
   <div id="panelArbol" class="caja" style="display:none">
-    <div class="arbol-grande"><svg id="arbolSVG" viewBox="0 0 200 240"></svg></div>
-    <div class="consejo" id="consejo">Elige un adorno y toca el árbol para colgarlo</div>
+    <div class="arbol-grande"><svg id="arbolSVG" viewBox="0 0 320 240"></svg></div>
+    <div class="consejo" id="consejo">Decora el árbol y la casa con lo que ganas jugando</div>
     <div style="text-align:center">
       <button class="btn b-oro" id="btnLuces" onclick="luces()">💡 Luces</button>
       <button class="btn b-gris" onclick="quitaTodo()">🧹 Quitar adornos</button>
     </div>
-    <div class="tienda" id="tiendaArbol" style="margin-top:14px"></div>
+    <div class="cats" id="catsCasa"></div>
+    <div class="tienda" id="tiendaArbol" style="margin-top:6px"></div>
   </div>
 </section>
 
@@ -264,7 +267,7 @@ h2{text-align:center;font-size:clamp(22px,5.5vw,30px);margin:8px 0 12px}
     <h2 id="finTit">¡Muy bien!</h2>
     <p style="font-size:22px" id="finTxt"></p>
     <div style="width:150px;height:150px;margin:0 auto" id="finSanta"></div>
-    <button class="btn b-verde" onclick="abreTienda('arbol')">🎄 Adornar el árbol</button>
+    <button class="btn b-verde" onclick="abreTienda('arbol')">🏠 Decorar la casa</button>
     <button class="btn b-rojo" onclick="abreTienda('santa')">🎅 Vestir a Papá Noel</button><br>
     <button class="btn b-oro" id="btnOtra">🔁 Otra vez</button>
     <button class="btn b-azul" onclick="ir('inicio')">🏠 Inicio</button>
@@ -339,10 +342,11 @@ function porQue(p){
 
 /* =========== ESTADO =========== */
 let E = {v:2, monedas:5, nivel:1, av:{traje:'rojo',estilo:'clasico',gorro:'clasico',barba:'larga',colorBarba:'blanca',ojos:'normal',nariz:'roja',mejillas:'rosa',gafas:'ninguna',bufanda:'ninguna',mano:'saco',fondo:'nieve'},
-  comprados:[], inv:{}, arbol:[], extras:{}, lucesOn:true, aciertos:0};
+  comprados:[], inv:{}, arbol:[], extras:{}, lucesOn:true, aciertos:0, casa:{pared:'crema', suelo:'madera', items:{ventana:true}}, trenes:{}, casaV:1};
 (function carga(){
   try { const raw = B && B.load ? B.load() : localStorage.getItem('acentos'); if (!raw) return; const o = JSON.parse(raw);
-    if (o.v === 2) E = Object.assign(E, o, {av:Object.assign(E.av, o.av || {}), extras:o.extras || {}, inv:o.inv || {}});
+    if (o.v === 2) { E = Object.assign(E, o, {av:Object.assign(E.av, o.av || {}), extras:o.extras || {}, inv:o.inv || {}, casa:o.casa || E.casa, trenes:o.trenes || {}});
+      if (!o.casaV) { E.arbol.forEach(a => a.x += 100); E.casaV = 1; } }
     else if (typeof o.stars === 'number') E.monedas += o.stars;   // estrellas de la versión anterior
   } catch(e){}
 })();
@@ -407,7 +411,7 @@ function ir(p){
 function atras(){ if (actual === 'inicio') return 0; ir('inicio'); return 1; }
 function pintaInicio(){
   $('nMon').textContent = E.monedas; pintaNivel();
-  $('escenaSanta').innerHTML = santaSVG(E.av, null, true); $('escenaArbol').innerHTML = arbolSVG(false); $('miniSanta').innerHTML = santaSVG(E.av, null, true);
+  $('escenaSanta').innerHTML = santaSVG(E.av, null, true); $('escenaArbol').innerHTML = arbolSVG().replace('<svg ', '<svg preserveAspectRatio="xMidYMax slice" '); $('miniSanta').innerHTML = santaSVG(E.av, null, true);
 }
 function finPartida(gano, texto){
   $('finEmo').textContent = gano ? '🏆' : '⏰';
@@ -897,30 +901,127 @@ function santaSVG(a, vb, sinFondo){
   return `<svg viewBox="${vb || '0 0 120 170'}" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">${s}</svg>`;
 }
 
-/* =========== ÁRBOL =========== */
-const BOLA = c => ({tipo:'bola', c});
+/* =========== ÁRBOL Y CASA =========== */
+// Escena de la casa: lienzo 320 x 240. Pared hasta y=172 y suelo debajo. El árbol está desplazado 100 a la derecha.
+const BOLA = (c, r, l) => ({tipo:'bola', c, r, l});
 const ADORNOS = [
   {id:'b-roja',n:'bola roja',p:2,...BOLA('#E03131')},{id:'b-azul',n:'bola azul',p:2,...BOLA('#1C7ED6')},{id:'b-oro',n:'bola dorada',p:3,...BOLA('#FCC419')},
   {id:'b-plata',n:'bola plateada',p:3,...BOLA('#CED4DA')},{id:'b-rosa',n:'bola rosa',p:2,...BOLA('#F06595')},{id:'b-morada',n:'bola morada',p:2,...BOLA('#845EF7')},
-  {id:'campana',n:'campana',e:'🔔',p:3},{id:'baston',n:'bastón de caramelo',e:'🍬',p:3},{id:'calcetin',n:'calcetín',e:'🧦',p:4},{id:'lazo',n:'lazo',e:'🎀',p:3},
+  {id:'b-verde',n:'bola verde',p:2,...BOLA('#37B24D')},{id:'b-turq',n:'bola turquesa',p:2,...BOLA('#15AABF')},{id:'b-naranja',n:'bola naranja',p:2,...BOLA('#FD7E14')},
+  {id:'b-rayas',n:'bola de rayas',p:3,...BOLA('#E03131','#fff')},{id:'b-rayasaz',n:'bola de rayas azul',p:3,...BOLA('#1C7ED6','#FCC419')},
+  {id:'b-lunares',n:'bola de lunares',p:3,...BOLA('#2F9E44',null,'#fff')},{id:'b-lunrosa',n:'bola de lunares rosa',p:3,...BOLA('#F06595',null,'#FFF3BF')},
+  {id:'campana',n:'campana',e:'🔔',p:3},{id:'baston',n:'caramelo',e:'🍬',p:3},{id:'calcetin',n:'calcetín',e:'🧦',p:4},{id:'lazo',n:'lazo',e:'🎀',p:3},
   {id:'copo',n:'copo de nieve',e:'❄️',p:2},{id:'galleta',n:'galleta',e:'🍪',p:3},{id:'corazon',n:'corazón',e:'❤️',p:2},{id:'estrellita',n:'estrellita',e:'⭐',p:3},
-  {id:'angel',n:'ángel',e:'👼',p:8},{id:'reno',n:'reno',e:'🦌',p:8},{id:'muneco',n:'muñeco de nieve',e:'⛄',p:6},{id:'oso',n:'osito',e:'🧸',p:5},
-  {id:'pajaro',n:'pajarito',e:'🐦',p:5},{id:'pina',n:'piña',e:'🌰',p:3},{id:'regalo',n:'regalo',e:'🎁',p:4},{id:'tren',n:'trenecito',e:'🚂',p:6},
-  {id:'vela',n:'vela',e:'🕯️',p:4},{id:'cascabel',n:'cascabel',e:'🛎️',p:4}
+  {id:'brillante',n:'estrella brillante',e:'🌟',p:4},{id:'brillos',n:'brillitos',e:'✨',p:2},{id:'luna',n:'luna',e:'🌙',p:3},
+  {id:'angel',n:'ángel',e:'👼',p:8},{id:'reno',n:'reno',e:'🦌',p:8},{id:'muneco',n:'muñeco de nieve',e:'⛄',p:6},{id:'muneco2',n:'muñeco con nieve',e:'☃️',p:6},
+  {id:'oso',n:'osito',e:'🧸',p:5},{id:'pajaro',n:'pajarito',e:'🐦',p:5},{id:'pinguino',n:'pingüino',e:'🐧',p:6},{id:'buho',n:'búho',e:'🦉',p:6},
+  {id:'ardilla',n:'ardilla',e:'🐿️',p:6},{id:'zorro',n:'zorrito',e:'🦊',p:6},{id:'conejo',n:'conejito',e:'🐰',p:5},{id:'gatito',n:'gatito',e:'🐱',p:5},
+  {id:'perrito',n:'perrito',e:'🐶',p:5},{id:'unicornio',n:'unicornio',e:'🦄',p:8},{id:'santa',n:'Papá Noel',e:'🎅',p:8},{id:'mama',n:'Mamá Noel',e:'🤶',p:8},
+  {id:'elfo',n:'elfo',e:'🧝',p:7},{id:'corona',n:'corona',e:'👑',p:7},{id:'diamante',n:'diamante',e:'💎',p:8},{id:'nota',n:'nota musical',e:'🎵',p:3},
+  {id:'tambor',n:'tambor',e:'🥁',p:5},{id:'trompeta',n:'trompeta',e:'🎺',p:5},{id:'violin',n:'violín',e:'🎻',p:5},{id:'pajarita',n:'paloma',e:'🕊️',p:6},
+  {id:'pina',n:'piña',e:'🌰',p:3},{id:'seta',n:'seta',e:'🍄',p:3},{id:'regalo',n:'regalo',e:'🎁',p:4},{id:'tren',n:'trenecito',e:'🚂',p:6},
+  {id:'coche',n:'cochecito',e:'🚗',p:5},{id:'avion',n:'avión',e:'✈️',p:5},{id:'cohete',n:'cohete',e:'🚀',p:6},{id:'trineo',n:'trineo',e:'🛷',p:6},
+  {id:'pelota',n:'pelota',e:'⚽',p:4},{id:'cometa',n:'cometa',e:'🪁',p:4},{id:'globo',n:'globo',e:'🎈',p:3},{id:'fiesta',n:'confeti',e:'🎉',p:3},
+  {id:'piruleta',n:'piruleta',e:'🍭',p:3},{id:'chocolate',n:'chocolate',e:'🍫',p:3},{id:'donut',n:'donut',e:'🍩',p:3},{id:'magdalena',n:'magdalena',e:'🧁',p:4},
+  {id:'manzana',n:'manzana',e:'🍎',p:2},{id:'naranja',n:'naranja',e:'🍊',p:2},{id:'cerezas',n:'cerezas',e:'🍒',p:2},{id:'fresa',n:'fresa',e:'🍓',p:2},
+  {id:'flor',n:'flor',e:'🌸',p:2},{id:'rosa',n:'rosa',e:'🌹',p:3},{id:'girasol',n:'girasol',e:'🌻',p:3},{id:'guantes',n:'guantes',e:'🧤',p:3},
+  {id:'bufanda',n:'bufanda',e:'🧣',p:3},{id:'vela',n:'vela',e:'🕯️',p:4},{id:'cascabel',n:'cascabel',e:'🛎️',p:4},{id:'patin',n:'patín de hielo',e:'⛸️',p:5},
+  {id:'arbolito',n:'arbolito',e:'🎄',p:5},{id:'casita',n:'casita',e:'🏠',p:5}
 ];
 const ESPECIALES = [
   {id:'estrella',n:'estrella de la punta',p:10,ic:'🌟'},{id:'luces',n:'luces de colores',p:12,ic:'💡'},{id:'guirnalda',n:'guirnalda dorada',p:8,ic:'〰️'},
-  {id:'nieve',n:'nieve en las ramas',p:6,ic:'🌨️'},{id:'regalos',n:'montón de regalos',p:10,ic:'🎁'},{id:'maceta',n:'maceta dorada',p:5,ic:'🪴'}
+  {id:'espumillon',n:'espumillón rojo',p:8,ic:'🎗️'},{id:'nieve',n:'nieve en las ramas',p:6,ic:'🌨️'},{id:'regalos',n:'montón de regalos',p:10,ic:'🎁'},{id:'maceta',n:'maceta dorada',p:5,ic:'🪴'}
+];
+const TRENES = [
+  {id:'vapor',n:'tren de vapor',p:10,v:['🚂','🚃','🚃','🚃']},{id:'regalos',n:'tren de regalos',p:12,v:['🚂','🎁','🎁','🎁']},
+  {id:'caramelos',n:'tren de caramelos',p:12,v:['🚂','🍭','🍬','🍫','🍩']},{id:'ositos',n:'tren de ositos',p:12,v:['🚂','🧸','🧸','🧸']},
+  {id:'animales',n:'tren de animales',p:14,v:['🚂','🐧','🐰','🦊','🐱']},{id:'renos',n:'trineo con renos',p:16,v:['🦌','🦌','🦌','🛷']},
+  {id:'rapido',n:'tren rápido',p:14,v:['🚄','🚅','🚅']},{id:'tranvia',n:'tranvía',p:10,v:['🚋','🚋','🚋']},{id:'munecos',n:'tren de muñecos de nieve',p:14,v:['🚂','⛄','⛄','☃️']}
+];
+const PAREDES = [{id:'crema',n:'pared crema',c:'#FFF1D6',p:0},{id:'azul',n:'pared azul',c:'#D0EBFF',p:3},{id:'rosa',n:'pared rosa',c:'#FFDEEB',p:3},{id:'verde',n:'pared verde',c:'#D3F9D8',p:3},
+  {id:'lila',n:'pared lila',c:'#E5DBFF',p:3},{id:'rayas',n:'papel de rayas',c:'#FFF1D6',p:6},{id:'estrellas',n:'papel de estrellas',c:'#22337a',p:8},{id:'copos',n:'papel de copos',c:'#A5D8FF',p:8},
+  {id:'ladrillo',n:'pared de ladrillo',c:'#E8956B',p:6},{id:'madera',n:'pared de madera',c:'#C99060',p:6},{id:'caramelo',n:'papel de caramelo',c:'#fff',p:8}];
+const SUELOS = [{id:'madera',n:'suelo de madera',c:'#C47A3A',p:0},{id:'oscura',n:'madera oscura',c:'#7A4A22',p:3},{id:'baldosas',n:'baldosas',c:'#E9ECEF',p:4},
+  {id:'moqueta',n:'moqueta roja',c:'#C92A2A',p:5},{id:'verde',n:'moqueta verde',c:'#2B8A3E',p:5},{id:'nieve',n:'suelo de nieve',c:'#F8F9FA',p:6}];
+const CASA = [
+  {id:'ventana',n:'ventana con nieve',p:0,ic:'🪟'},{id:'cortinas',n:'cortinas',p:4,ic:'🎭'},{id:'estrellaVentana',n:'estrella en la ventana',p:4,ic:'⭐'},
+  {id:'chimenea',n:'chimenea con fuego',p:12,ic:'🔥'},{id:'calcetines',n:'calcetines colgados',p:5,ic:'🧦'},{id:'velas',n:'velas',p:4,ic:'🕯️'},
+  {id:'belen',n:'belén',p:10,ic:'⭐'},{id:'cuadro',n:'cuadro de un reno',p:5,ic:'🖼️'},{id:'reloj',n:'reloj de pared',p:5,ic:'🕰️'},
+  {id:'banderines',n:'banderines',p:6,ic:'🚩'},{id:'lucesTecho',n:'luces en el techo',p:8,ic:'💡'},{id:'muerdago',n:'muérdago',p:4,ic:'🌿'},
+  {id:'coronaPared',n:'corona de Navidad',p:6,ic:'🎍'},{id:'sofa',n:'sofá',p:10,ic:'🛋️'},{id:'sillon',n:'sillón',p:8,ic:'🪑'},
+  {id:'alfombra',n:'alfombra',p:5,ic:'🟥'},{id:'lampara',n:'lámpara',p:6,ic:'💡'},{id:'mesa',n:'leche y galletas para Papá Noel',p:6,ic:'🥛'},
+  {id:'gato',n:'gato dormido',p:8,ic:'🐈'},{id:'perro',n:'perro',p:8,ic:'🐕'},{id:'osoGrande',n:'oso de peluche grande',p:8,ic:'🧸'},{id:'munecoNieve',n:'muñeco de nieve en la calle',p:6,ic:'⛄'}
 ];
 const adorno = id => ADORNOS.find(a => a.id === id);
 function adornoSVG(a, x, y, i){
   const k = i === undefined ? '' : ` data-k="${i}"`;
-  if (a.tipo === 'bola') return `<g${k}><circle cx="${x}" cy="${y}" r="7.5" fill="${a.c}" stroke="${osc(a.c, .7)}" stroke-width="1"/><circle cx="${x-2.5}" cy="${y-2.5}" r="2" fill="#fff" opacity=".7"/><rect x="${x-2.5}" y="${y-10}" width="5" height="3" fill="#ADB5BD"/></g>`;
+  if (a.tipo === 'bola'){
+    let extra = '';
+    if (a.r) extra = `<path d="M${x-7} ${y-2.5} H${x+7} M${x-7} ${y+2.5} H${x+7}" stroke="${a.r}" stroke-width="2"/>`;
+    if (a.l) extra = [[-3,-2],[3,-3],[0,3],[-4,3],[4,2]].map(p => `<circle cx="${x+p[0]}" cy="${y+p[1]}" r="1.2" fill="${a.l}"/>`).join('');
+    return `<g${k}><circle cx="${x}" cy="${y}" r="7.5" fill="${a.c}" stroke="${osc(a.c, .7)}" stroke-width="1"/>${extra}<circle cx="${x-2.5}" cy="${y-2.5}" r="2" fill="#fff" opacity=".7"/><rect x="${x-2.5}" y="${y-10}" width="5" height="3" fill="#ADB5BD"/></g>`;
+  }
   return `<text${k} x="${x}" y="${y}" font-size="15" text-anchor="middle" dominant-baseline="middle">${a.e}</text>`;
 }
-function arbolSVG(conFondo){
+function paredSVG(){
+  const pd = PAREDES.find(o => o.id === E.casa.pared) || PAREDES[0], sl = SUELOS.find(o => o.id === E.casa.suelo) || SUELOS[0];
+  let s = `<rect width="320" height="172" fill="${pd.c}"/>`;
+  if (pd.id === 'rayas') for (let x = 8; x < 320; x += 22) s += `<rect x="${x}" y="0" width="8" height="172" fill="#FFC9C9"/>`;
+  if (pd.id === 'caramelo') for (let x = -160; x < 320; x += 24) s += `<path d="M${x} 172 L${x+172} 0" stroke="#FFA8A8" stroke-width="9"/>`;
+  if (pd.id === 'estrellas') for (let i = 0; i < 26; i++) s += estrellaP((i*53) % 316 + 6, (i*37) % 160 + 8, 3, '#FFE066');
+  if (pd.id === 'copos') for (let i = 0; i < 22; i++) s += `<text x="${(i*61) % 312 + 6}" y="${(i*43) % 160 + 14}" font-size="9" fill="#fff">❄</text>`;
+  if (pd.id === 'ladrillo') for (let y = 0; y < 172; y += 12) for (let x = (y/12) % 2 ? -12 : 0; x < 320; x += 24) s += `<rect x="${x+1}" y="${y+1}" width="22" height="10" rx="1.5" fill="#D9774E"/>`;
+  if (pd.id === 'madera') for (let x = 0; x < 320; x += 20) s += `<path d="M${x} 0 V172" stroke="#A8743F" stroke-width="2"/>`;
+  s += `<rect y="172" width="320" height="68" fill="${sl.c}"/>`;
+  if (sl.id === 'madera' || sl.id === 'oscura') for (let y = 182; y < 240; y += 12) s += `<path d="M0 ${y} H320" stroke="${osc(sl.c, .8)}" stroke-width="1.5"/>`;
+  if (sl.id === 'baldosas') for (let x = 0; x < 320; x += 24) for (let y = 172; y < 240; y += 24) s += `<rect x="${x}" y="${y}" width="24" height="24" fill="${(x/24 + (y-172)/24) % 2 ? '#CED4DA' : '#F8F9FA'}"/>`;
+  if (sl.id === 'nieve') for (let i = 0; i < 18; i++) s += `<circle cx="${(i*47) % 316}" cy="${178 + (i*13) % 58}" r="1.5" fill="#D0EBFF"/>`;
+  s += `<rect y="168" width="320" height="6" fill="#fff" opacity=".7"/>`;
+  return s;
+}
+function casaDecoSVG(){
+  const C = E.casa.items, enc = E.lucesOn; let s = '';
+  if (C.banderines){ let p = ''; const cols = ['#E03131','#2F9E44','#FCC419','#1C7ED6'];
+    for (let i = 0; i < 16; i++) p += `<path d="M${i*20} 4 L${i*20+20} 4 L${i*20+10} 18Z" fill="${cols[i % 4]}"/>`; s += `<path d="M0 4 H320" stroke="#868E96" stroke-width="1"/>` + p; }
+  if (C.lucesTecho){ const cols = ['#FF6B6B','#FFD43B','#74C0FC','#8CE99A','#F783AC']; s += `<path d="M0 10 Q40 22 80 10 T160 10 T240 10 T320 10" stroke="#495057" stroke-width="1" fill="none"/>`;
+    for (let i = 0; i < 16; i++){ const x = i*20 + 10, y = 10 + 8*Math.abs(Math.sin(i*Math.PI/4)); s += `<circle cx="${x}" cy="${y+3}" r="3" fill="${cols[i % 5]}" ${enc ? `class="luz" style="animation-delay:${(i % 4)*.3}s"` : ''}/>`; } }
+  if (C.muerdago) s += `<path d="M252 0 V24" stroke="#C92A2A" stroke-width="2"/><ellipse cx="246" cy="28" rx="7" ry="4" fill="#2F9E44" transform="rotate(-30 246 28)"/><ellipse cx="258" cy="28" rx="7" ry="4" fill="#2F9E44" transform="rotate(30 258 28)"/><circle cx="252" cy="30" r="2.5" fill="#fff"/><circle cx="249" cy="32" r="2.2" fill="#fff"/><circle cx="255" cy="32" r="2.2" fill="#fff"/>`;
+  if (C.ventana){
+    s += `<rect x="102" y="24" width="62" height="62" rx="4" fill="#1b2a5c" stroke="#fff" stroke-width="5"/><circle cx="148" cy="38" r="7" fill="#FFF3BF"/><circle cx="151" cy="36" r="6" fill="#1b2a5c"/>`;
+    for (let i = 0; i < 10; i++) s += `<circle cx="${106 + (i*17) % 56}" cy="${30 + (i*11) % 44}" r="1.4" fill="#fff"/>`;
+    s += `<path d="M104 78 Q120 70 134 78 T162 76 V84 H104Z" fill="#fff"/>` + (C.munecoNieve ? `<text x="116" y="78" font-size="14" text-anchor="middle">⛄</text>` : '');
+    s += `<path d="M133 24 V86 M102 55 H164" stroke="#fff" stroke-width="3"/><rect x="98" y="84" width="70" height="6" rx="2" fill="#fff"/>`;
+    if (C.estrellaVentana) s += `<path d="M133 24 V40" stroke="#FCC419" stroke-width="1.5"/>` + estrellaP(133, 46, 7, '#FCC419', enc ? 'class="luz"' : '');
+    if (C.cortinas) s += `<path d="M94 18 H112 Q106 50 112 92 H94Z" fill="#C92A2A"/><path d="M172 18 H154 Q160 50 154 92 H172Z" fill="#C92A2A"/><rect x="92" y="16" width="82" height="5" rx="2.5" fill="#FCC419"/>`;
+  }
+  if (C.cuadro) s += `<rect x="24" y="26" width="50" height="40" rx="3" fill="#FFF3BF" stroke="#C47A3A" stroke-width="4"/><text x="49" y="52" font-size="20" text-anchor="middle">🦌</text>`;
+  if (C.reloj) s += `<circle cx="296" cy="40" r="15" fill="#fff" stroke="#8B5A2B" stroke-width="4"/><path d="M296 40 V30 M296 40 L303 44" stroke="#212529" stroke-width="2"/><circle cx="296" cy="40" r="1.8" fill="#212529"/>`;
+  if (C.coronaPared) s += `<circle cx="296" cy="96" r="15" fill="none" stroke="#2F9E44" stroke-width="8"/>` + [0,60,120,180,240,300].map(a => `<circle cx="${296 + 15*Math.cos(a*Math.PI/180)}" cy="${96 + 15*Math.sin(a*Math.PI/180)}" r="2.6" fill="#E03131"/>`).join('') + `<path d="M296 110 L290 120 M296 110 L302 120" stroke="#E03131" stroke-width="3"/>`;
+  if (C.chimenea){
+    s += `<rect x="6" y="92" width="92" height="80" fill="#B5502E"/>` + [100,112,124,136,148,160].map((y, i) => `<path d="M6 ${y} H98" stroke="#8C3A20" stroke-width="1.2"/>`).join('');
+    s += `<rect x="0" y="86" width="104" height="9" rx="2" fill="#6B3410"/><path d="M26 172 V124 Q52 104 78 124 V172Z" fill="#212529"/>`;
+    s += `<g class="fuego" style="transform-origin:52px 170px"><path d="M36 170 Q34 148 46 138 Q44 152 52 156 Q50 136 62 126 Q60 146 70 150 Q72 160 68 170Z" fill="#FF922B"/><path d="M44 170 Q44 156 52 150 Q52 160 58 160 Q60 154 62 152 Q66 162 62 170Z" fill="#FFE066"/></g><rect x="32" y="166" width="40" height="5" rx="2" fill="#6B3410"/>`;
+  }
+  if (C.calcetines) s += [22,52,82].map((x, i) => `<path d="M${x} 95 V106" stroke="#868E96" stroke-width="1"/><path d="M${x-5} 104 H${x+5} V118 Q${x+5} 124 ${x+11} 124 Q${x+13} 130 ${x+5} 130 H${x-1} Q${x-5} 130 ${x-5} 124Z" fill="${['#E03131','#2F9E44','#1C7ED6'][i]}"/><rect x="${x-6}" y="102" width="12" height="5" rx="2" fill="#fff"/>`).join('');
+  if (C.velas) s += [12,92].map(x => `<rect x="${x-3}" y="72" width="6" height="14" fill="#fff" stroke="#DEE2E6"/><path d="M${x} 72 Q${x-3} 66 ${x} 62 Q${x+3} 66 ${x} 72Z" fill="#FCC419" ${enc ? 'class="luz"' : ''}/>`).join('');
+  if (C.belen) s += `<path d="M30 86 L52 70 L74 86Z" fill="#A0672F"/><text x="52" y="82" font-size="9" text-anchor="middle">👶</text><text x="38" y="85" font-size="8" text-anchor="middle">🐑</text><text x="66" y="85" font-size="8" text-anchor="middle">🐂</text>` + estrellaP(52, 64, 4, '#FCC419');
+  if (C.lampara) s += `<rect x="309" y="112" width="3" height="60" fill="#495057"/><rect x="302" y="168" width="17" height="4" rx="2" fill="#495057"/><path d="M298 112 L304 94 H317 L323 112Z" fill="#FFE066" stroke="#E67700" stroke-width="1.5"/><ellipse cx="310" cy="114" rx="16" ry="6" fill="#FFE066" opacity=".3"/>`;
+  if (C.alfombra) s += `<ellipse cx="150" cy="216" rx="70" ry="16" fill="#C92A2A"/><ellipse cx="150" cy="216" rx="58" ry="11" fill="none" stroke="#FCC419" stroke-width="2" stroke-dasharray="4 3"/>`;
+  return s;
+}
+function casaFrenteSVG(){
+  const C = E.casa.items; let s = '';
+  if (C.mesa) s += `<rect x="88" y="186" width="30" height="5" rx="2" fill="#8B5A2B"/><path d="M92 191 V206 M114 191 V206" stroke="#8B5A2B" stroke-width="3"/><text x="96" y="185" font-size="9" text-anchor="middle">🥛</text><text x="109" y="185" font-size="9" text-anchor="middle">🍪</text>`;
+  if (C.sofa) s += `<rect x="4" y="186" width="74" height="30" rx="8" fill="#1C7ED6"/><rect x="0" y="196" width="14" height="28" rx="6" fill="#1864AB"/><rect x="68" y="196" width="14" height="28" rx="6" fill="#1864AB"/><rect x="12" y="206" width="58" height="16" rx="5" fill="#339AF0"/><path d="M8 224 V232 M74 224 V232" stroke="#495057" stroke-width="3"/><rect x="18" y="194" width="16" height="12" rx="3" fill="#E03131"/><rect x="48" y="194" width="16" height="12" rx="3" fill="#2F9E44"/>`;
+  if (C.sillon) s += `<rect x="272" y="190" width="44" height="26" rx="8" fill="#2F9E44"/><rect x="268" y="200" width="12" height="24" rx="5" fill="#2B8A3E"/><rect x="308" y="200" width="12" height="24" rx="5" fill="#2B8A3E"/><rect x="278" y="208" width="34" height="14" rx="4" fill="#40C057"/>`;
+  if (C.gato) s += `<text x="${C.sofa ? 42 : 60}" y="${C.sofa ? 210 : 226}" font-size="16" text-anchor="middle">🐈</text>`;
+  if (C.perro) s += `<text x="${C.sillon ? 294 : 112}" y="${C.sillon ? 214 : 232}" font-size="18" text-anchor="middle">🐕</text>`;
+  if (C.osoGrande) s += `<text x="250" y="232" font-size="24" text-anchor="middle">🧸</text>`;
+  return s;
+}
+function arbolSoloSVG(){
   const X = E.extras, enc = E.lucesOn;
-  let s = conFondo ? '' : '';
+  let s = '';
   if (X.regalos) s += `<rect x="28" y="198" width="26" height="22" rx="2" fill="#E03131"/><path d="M41 198 V220 M28 209 H54" stroke="#FCC419" stroke-width="3"/><rect x="146" y="202" width="24" height="18" rx="2" fill="#1C7ED6"/><path d="M158 202 V220 M146 211 H170" stroke="#fff" stroke-width="3"/><rect x="58" y="206" width="18" height="14" rx="2" fill="#2F9E44"/><path d="M67 206 V220" stroke="#FCC419" stroke-width="2.5"/>`;
   s += `<rect x="90" y="186" width="20" height="22" fill="#8B5A2B"/>`;
   s += X.maceta ? `<path d="M74 204 H126 L120 232 H80Z" fill="#FCC419" stroke="#E67700" stroke-width="2"/>` : `<path d="M74 204 H126 L120 232 H80Z" fill="#C92A2A" stroke="#8f1d1d" stroke-width="2"/><path d="M76 212 H124" stroke="#fff" stroke-width="2"/>`;
@@ -928,19 +1029,35 @@ function arbolSVG(conFondo){
   capas.forEach(([cx, top, xl, bot]) => { s += `<path d="M${cx} ${top} L${xl} ${bot} Q${cx} ${bot+8} ${200-xl} ${bot}Z" fill="#2F9E44" stroke="#2B8A3E" stroke-width="2.5"/>`; });
   capas.forEach(([cx, top, xl, bot]) => { s += `<path d="M${xl+8} ${bot-4} Q${cx} ${bot+2} ${200-xl-8} ${bot-4}" stroke="#37B24D" stroke-width="3" fill="none"/>`; });
   if (X.nieve) capas.forEach(([cx, top, xl, bot]) => { s += `<path d="M${xl} ${bot} Q${xl+12} ${bot-6} ${xl+22} ${bot+2} Q${cx-20} ${bot-4} ${cx} ${bot+5} Q${cx+20} ${bot-4} ${200-xl-22} ${bot+2} Q${200-xl-12} ${bot-6} ${200-xl} ${bot}" stroke="#fff" stroke-width="4" fill="none"/><path d="M${cx-8} ${top+10} Q${cx} ${top+4} ${cx+8} ${top+10}" stroke="#fff" stroke-width="4" fill="none"/>`; });
-  const guir = [['M72 70 Q100 86 130 66'],['M58 112 Q100 132 144 108'],['M44 160 Q100 182 158 154']];
-  if (X.guirnalda) guir.forEach(g => { s += `<path d="${g[0]}" stroke="#FCC419" stroke-width="3.5" fill="none" stroke-dasharray="1 5"/><path d="${g[0]}" stroke="#FFE066" stroke-width="1.5" fill="none"/>`; });
+  const guir = ['M72 70 Q100 86 130 66', 'M58 112 Q100 132 144 108', 'M44 160 Q100 182 158 154'];
+  if (X.espumillon) ['M66 80 Q100 96 136 76', 'M50 130 Q100 150 152 124', 'M36 176 Q100 196 166 170'].forEach(g => { s += `<path d="${g}" stroke="#E03131" stroke-width="5" fill="none" stroke-dasharray="2 2"/><path d="${g}" stroke="#FF8787" stroke-width="2" fill="none"/>`; });
+  if (X.guirnalda) guir.forEach(g => { s += `<path d="${g}" stroke="#FCC419" stroke-width="3.5" fill="none" stroke-dasharray="1 5"/><path d="${g}" stroke="#FFE066" stroke-width="1.5" fill="none"/>`; });
   if (X.luces){ const cols = ['#FF6B6B','#FFD43B','#74C0FC','#8CE99A','#F783AC'];
     const pts = [[78,74],[92,79],[106,79],[120,72],[64,116],[80,122],[96,125],[112,124],[128,119],[140,112],[50,163],[66,170],[82,174],[98,176],[114,175],[130,170],[146,162]];
-    s += `<path d="M72 70 Q100 86 130 66 M58 112 Q100 132 144 108 M44 160 Q100 182 158 154" stroke="#495057" stroke-width="1" fill="none"/>`;
+    s += `<path d="${guir.join(' ')}" stroke="#495057" stroke-width="1" fill="none"/>`;
     pts.forEach((p, i) => { s += `<circle cx="${p[0]}" cy="${p[1]}" r="3.5" fill="${cols[i % 5]}" ${enc ? `class="luz" style="animation-delay:${(i % 4)*.3}s"` : 'opacity=".45"'}/>` + (enc ? `<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="${cols[i % 5]}" opacity=".25"/>` : ''); }); }
-  E.arbol.forEach((o, i) => { const a = adorno(o.id); if (a) s += adornoSVG(a, o.x, o.y, i); });
   if (X.estrella) s += estrellaP(100, 16, 14, '#FCC419', 'stroke="#E67700" stroke-width="2"') + (enc ? `<circle cx="100" cy="16" r="20" fill="#FFE066" opacity=".25" class="luz"/>` : '');
-  return `<svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">${s}</svg>`;
+  return s;
+}
+function trenesSVG(){
+  const on = TRENES.filter(t => E.trenes[t.id]); if (!on.length) return '';
+  const cx = 200, cy = 222, rx = 84, ry = 12, dur = 16;
+  const camino = `M${cx+rx} ${cy} A${rx} ${ry} 0 1 1 ${cx-rx} ${cy} A${rx} ${ry} 0 1 1 ${cx+rx} ${cy}`;
+  let s = `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="#8B5A2B" stroke-width="7" stroke-dasharray="2 4"/><ellipse cx="${cx}" cy="${cy}" rx="${rx+3}" ry="${ry+2}" fill="none" stroke="#868E96" stroke-width="1.5"/><ellipse cx="${cx}" cy="${cy}" rx="${rx-3}" ry="${ry-2}" fill="none" stroke="#868E96" stroke-width="1.5"/>`;
+  on.forEach((t, k) => { const base = k*dur/on.length;
+    t.v.forEach((car, j) => { const off = base + (t.v.length - j)*0.55;
+      s += `<g><text x="0" y="-4" font-size="15" text-anchor="middle" dominant-baseline="middle">${car}</text><animateMotion dur="${dur}s" repeatCount="indefinite" begin="-${off.toFixed(2)}s" path="${camino}"/></g>`; }); });
+  return s;
+}
+function arbolSVG(){
+  let s = paredSVG() + casaDecoSVG() + `<g transform="translate(100 0)">${arbolSoloSVG()}</g>` + trenesSVG();
+  E.arbol.forEach((o, i) => { const a = adorno(o.id); if (a) s += adornoSVG(a, o.x, o.y, i); });
+  s += casaFrenteSVG();
+  return `<svg viewBox="0 0 320 240" xmlns="http://www.w3.org/2000/svg">${s}</svg>`;
 }
 
 /* =========== TIENDA =========== */
-let tab = 'santa', cat = 'estilo', elegido = null;
+let tab = 'santa', cat = 'estilo', elegido = null, catCasa = 'arbol';
 function abreTienda(t){ ir('tienda'); pestana(t); }
 function pestana(t){
   tab = t; $('tabSanta').classList.toggle('sel', t === 'santa'); $('tabArbol').classList.toggle('sel', t === 'arbol');
@@ -963,40 +1080,67 @@ function eligeSanta(c, id, b){
   } else habla(o.n);
   E.av[c] = id; guarda(); pintaSanta();
 }
+const CATS_CASA = [['arbol','🎄 Árbol'],['adornos','🔴 Adornos'],['trenes','🚂 Trenes'],['casa','🏠 Casa'],['pared','🎨 Pared'],['suelo','🪵 Suelo']];
+function caro(b, p){ b.classList.remove('agita'); void b.offsetWidth; b.classList.add('agita'); sMal(); habla('Necesitas ' + p + ' monedas. ¡Juega para ganar más!'); }
+function itemHTML(on, p, ic, click, n, extra){ return `<button class="it ${on ? 'puesto' : ''} ${!on && !extra && E.monedas < p ? 'caro' : ''}" onclick="${click}" title="${n}">${ic}${on || extra ? '' : `<span class="precio">🪙${p}</span>`}</button>`; }
 function pintaArbol(){
-  $('arbolSVG').innerHTML = arbolSVG(true).replace(/^<svg[^>]*>|<\/svg>$/g, '');
-  $('btnLuces').style.display = E.extras.luces ? '' : 'none'; $('btnLuces').textContent = E.lucesOn ? '💡 Apagar luces' : '💡 Encender luces';
-  const esp = ESPECIALES.map(o => { const own = !!E.extras[o.id];
-    return `<button class="it ${own ? 'puesto' : ''} ${!own && E.monedas < o.p ? 'caro' : ''}" onclick="especial('${o.id}',this)" title="${o.n}">${o.ic}${own ? '' : `<span class="precio">🪙${o.p}</span>`}</button>`; }).join('');
-  const ads = ADORNOS.map(o => { const n = E.inv[o.id] || 0;
-    return `<button class="it ${elegido === o.id ? 'elegido' : ''} ${!n && E.monedas < o.p ? 'caro' : ''}" onclick="eligeAdorno('${o.id}',this)" title="${o.n}">${o.tipo === 'bola' ? `<svg viewBox="80 80 40 40">${adornoSVG(o, 100, 102)}</svg>` : o.e}${n ? `<span class="cuantos">${n}</span>` : ''}<span class="precio">🪙${o.p}</span></button>`; }).join('');
-  $('tiendaArbol').innerHTML = `<div style="width:100%;text-align:center;font-weight:800">✨ Para el árbol</div>` + esp + `<div style="width:100%;text-align:center;font-weight:800;margin-top:6px">🎄 Adornos para colgar</div>` + ads;
+  $('arbolSVG').innerHTML = arbolSVG().replace(/^<svg[^>]*>|<\/svg>$/g, '');
+  const hayLuces = E.extras.luces || E.casa.items.lucesTecho || E.casa.items.velas || E.casa.items.estrellaVentana;
+  $('btnLuces').style.display = hayLuces ? '' : 'none'; $('btnLuces').textContent = E.lucesOn ? '💡 Apagar luces' : '💡 Encender luces';
+  $('catsCasa').innerHTML = CATS_CASA.map(([k, n]) => `<button class="${k === catCasa ? 'sel' : ''}" onclick="catCasa='${k}';pintaArbol()">${n}</button>`).join('');
+  let h = '';
+  if (catCasa === 'arbol') h = ESPECIALES.map(o => itemHTML(!!E.extras[o.id], o.p, o.ic, `especial('${o.id}',this)`, o.n)).join('');
+  if (catCasa === 'trenes') h = `<div style="width:100%;text-align:center;font-size:15px">Los trenes dan vueltas al pie del árbol. Toca uno que ya tengas para ponerlo o quitarlo.</div>` +
+    TRENES.map(o => { const own = E.trenes[o.id] !== undefined, on = !!E.trenes[o.id];
+      return `<button class="it ${on ? 'puesto' : ''} ${!own && E.monedas < o.p ? 'caro' : ''}" style="width:100px;font-size:18px" onclick="tren('${o.id}',this)" title="${o.n}">${o.v.slice(0, 3).join('')}${own ? '' : `<span class="precio">🪙${o.p}</span>`}</button>`; }).join('');
+  if (catCasa === 'casa') h = `<div style="width:100%;text-align:center;font-size:15px">Toca para ponerlo. Si ya lo tienes, tócalo otra vez para quitarlo.</div>` +
+    CASA.map(o => { const own = o.p === 0 || E.comprados.includes('casa:' + o.id), on = !!E.casa.items[o.id];
+      return `<button class="it ${on ? 'puesto' : ''} ${!own && E.monedas < o.p ? 'caro' : ''}" onclick="mueble('${o.id}',this)" title="${o.n}">${o.ic}${own ? '' : `<span class="precio">🪙${o.p}</span>`}</button>`; }).join('');
+  if (catCasa === 'pared') h = PAREDES.map(o => itemHTML(E.casa.pared === o.id, o.p, `<svg viewBox="0 0 40 40"><rect width="40" height="40" rx="8" fill="${o.c}"/>${o.id === 'rayas' ? '<rect x="8" width="8" height="40" fill="#FFC9C9"/><rect x="26" width="8" height="40" fill="#FFC9C9"/>' : o.id === 'estrellas' ? estrellaP(20, 20, 9, '#FFE066') : o.id === 'copos' ? '<text x="20" y="27" font-size="20" text-anchor="middle" fill="#fff">❄</text>' : o.id === 'caramelo' ? '<path d="M0 40 L40 0 M-14 40 L26 0 M14 40 L54 0" stroke="#FFA8A8" stroke-width="7"/>' : o.id === 'ladrillo' ? '<rect x="2" y="4" width="16" height="9" fill="#D9774E"/><rect x="22" y="4" width="16" height="9" fill="#D9774E"/><rect x="12" y="17" width="16" height="9" fill="#D9774E"/>' : ''}</svg>`, `pared('${o.id}',this)`, o.n, E.comprados.includes('pared:' + o.id) || o.p === 0)).join('');
+  if (catCasa === 'suelo') h = SUELOS.map(o => itemHTML(E.casa.suelo === o.id, o.p, `<svg viewBox="0 0 40 40"><rect width="40" height="40" rx="8" fill="${o.c}"/>${o.id === 'baldosas' ? '<rect width="20" height="20" fill="#CED4DA"/><rect x="20" y="20" width="20" height="20" fill="#CED4DA"/>' : ''}</svg>`, `suelo('${o.id}',this)`, o.n, E.comprados.includes('suelo:' + o.id) || o.p === 0)).join('');
+  if (catCasa === 'adornos') h = `<div style="width:100%;text-align:center;font-size:15px">Elige uno y toca el árbol o la casa para ponerlo. Si tocas uno puesto, vuelve a la caja.</div>` +
+    ADORNOS.map(o => { const n = E.inv[o.id] || 0;
+      return `<button class="it ${elegido === o.id ? 'elegido' : ''} ${!n && E.monedas < o.p ? 'caro' : ''}" onclick="eligeAdorno('${o.id}',this)" title="${o.n}">${o.tipo === 'bola' ? `<svg viewBox="80 80 40 40">${adornoSVG(o, 100, 102)}</svg>` : o.e}${n ? `<span class="cuantos">${n}</span>` : ''}<span class="precio">🪙${o.p}</span></button>`; }).join('');
+  $('tiendaArbol').innerHTML = h;
   $('nMon').textContent = E.monedas;
 }
 function especial(id, b){
   const o = ESPECIALES.find(x => x.id === id);
   if (E.extras[id]) { habla(o.n); return; }
-  if (!gasta(o.p)) { b.classList.remove('agita'); void b.offsetWidth; b.classList.add('agita'); sMal(); habla('Necesitas ' + o.p + ' monedas'); return; }
+  if (!gasta(o.p)) return caro(b, o.p);
   E.extras[id] = true; if (id === 'luces') E.lucesOn = true; guarda(); sCampana(); confeti(30); habla('¡Qué bonito! ' + o.n); pintaArbol();
 }
+function tren(id, b){
+  const o = TRENES.find(x => x.id === id);
+  if (E.trenes[id] === undefined){ if (!gasta(o.p)) return caro(b, o.p); E.trenes[id] = true; sCampana(); confeti(30); habla('¡Chu, chu! ' + o.n); }
+  else { E.trenes[id] = !E.trenes[id]; tono(E.trenes[id] ? [523, 784] : [400], .1); if (E.trenes[id]) habla('¡Chu, chu!'); }
+  guarda(); pintaArbol();
+}
+function mueble(id, b){
+  const o = CASA.find(x => x.id === id), own = o.p === 0 || E.comprados.includes('casa:' + id);
+  if (!own){ if (!gasta(o.p)) return caro(b, o.p); E.comprados.push('casa:' + id); E.casa.items[id] = true; sCampana(); confeti(25); habla('¡Qué bonito! ' + o.n); }
+  else { E.casa.items[id] = !E.casa.items[id]; tono([700], .06); }
+  guarda(); pintaArbol();
+}
+function pared(id, b){ const o = PAREDES.find(x => x.id === id); if (o.p && !E.comprados.includes('pared:' + id)) { if (!gasta(o.p)) return caro(b, o.p); E.comprados.push('pared:' + id); sCampana(); }
+  E.casa.pared = id; habla(o.n); guarda(); pintaArbol(); }
+function suelo(id, b){ const o = SUELOS.find(x => x.id === id); if (o.p && !E.comprados.includes('suelo:' + id)) { if (!gasta(o.p)) return caro(b, o.p); E.comprados.push('suelo:' + id); sCampana(); }
+  E.casa.suelo = id; habla(o.n); guarda(); pintaArbol(); }
 function eligeAdorno(id, b){
   const o = adorno(id);
-  if (!(E.inv[id] > 0)){
-    if (!gasta(o.p)) { b.classList.remove('agita'); void b.offsetWidth; b.classList.add('agita'); sMal(); habla('Necesitas ' + o.p + ' monedas. ¡Juega para ganar más!'); return; }
-    E.inv[id] = 1; guarda(); tono([1046, 1318], .08);
-  }
-  elegido = id; $('consejo').textContent = '👆 Toca el árbol para colgar: ' + o.n; habla('Toca el árbol para colgar ' + o.n); pintaArbol();
+  if (!(E.inv[id] > 0)){ if (!gasta(o.p)) return caro(b, o.p); E.inv[id] = 1; guarda(); tono([1046, 1318], .08); }
+  elegido = id; $('consejo').textContent = '👆 Toca el árbol o la casa para poner: ' + o.n; habla('Toca donde quieras poner ' + o.n); pintaArbol();
 }
 $('arbolSVG').addEventListener('pointerdown', e => {
   const svg = $('arbolSVG');
   const k = e.target.closest('[data-k]');
   if (k && !elegido){ // quitar un adorno: vuelve a la caja
     const o = E.arbol.splice(+k.dataset.k, 1)[0]; E.inv[o.id] = (E.inv[o.id] || 0) + 1; guarda(); tono([500], .06); $('consejo').textContent = '📦 Lo has guardado en la caja'; pintaArbol(); return; }
-  if (!elegido) { $('consejo').textContent = 'Elige primero un adorno de abajo 👇'; habla('Elige primero un adorno'); return; }
+  if (!elegido) { $('consejo').textContent = 'Elige primero un adorno en «🔴 Adornos» 👇'; habla('Elige primero un adorno'); return; }
   const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const q = pt.matrixTransform(svg.getScreenCTM().inverse());
-  if (q.x < 8 || q.x > 192 || q.y < 20 || q.y > 228) return;
+  if (q.x < 6 || q.x > 314 || q.y < 8 || q.y > 234) return;
   E.arbol.push({id:elegido, x:Math.round(q.x), y:Math.round(q.y)}); E.inv[elegido]--; tono([1568, 2093], .07);
-  if (!(E.inv[elegido] > 0)) { elegido = null; $('consejo').textContent = '¡Qué bonito! Elige otro adorno. Si tocas uno del árbol, vuelve a la caja.'; }
+  if (!(E.inv[elegido] > 0)) { elegido = null; $('consejo').textContent = '¡Qué bonito! Elige otro adorno. Si tocas uno puesto, vuelve a la caja.'; }
   guarda(); pintaArbol();
 });
 function luces(){ E.lucesOn = !E.lucesOn; guarda(); pintaArbol(); if (E.lucesOn) sCampana(); }
