@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Llanas y Agudas</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;padding:0}
+html{background:linear-gradient(180deg,#e0f2ff 0%,#fff7e0 60%,#ffe8f3 100%) fixed;min-height:100%}
+body{font-family:"Andika","Comic Sans MS","Chalkboard SE","Baloo 2",system-ui,sans-serif;color:#3b2a5a;min-height:100vh;overflow-x:hidden}
+.pant{display:none;padding:0 0 30px;min-height:100vh}
+.pant.on{display:block}
+.barra{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(255,255,255,.9);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.barra h1{flex:1;margin:0;font-size:21px;text-align:center}
+.bt{border:none;border-radius:18px;padding:12px 16px;font-size:20px;font-family:inherit;font-weight:700;cursor:pointer;color:#3b2a5a;box-shadow:0 4px 0 rgba(0,0,0,.15);transition:transform .08s}
+.bt:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.15)}
+.redondo{width:52px;height:52px;padding:0;border-radius:50%;font-size:24px;background:#fff}
+.estrellas{background:#fff3c4;border-radius:16px;padding:6px 12px;font-weight:800;font-size:18px;white-space:nowrap}
+.wrap{max-width:460px;margin:0 auto;padding:14px}
+.card{background:#fff;border-radius:22px;padding:16px;margin:12px 0;box-shadow:0 4px 12px rgba(0,0,0,.07)}
+.menu{display:grid;gap:14px;margin-top:18px}
+.menu button{font-size:24px;padding:20px;border-radius:24px;color:#fff;text-align:left;display:flex;align-items:center;gap:14px}
+.menu button small{display:block;font-size:15px;font-weight:600;opacity:.95}
+.m1{background:#ff7eb6}.m2{background:#4dabf7}.m3{background:#51cf66}.m4{background:#ffa94d}
+.regla{display:flex;gap:12px;align-items:center;border-radius:20px;padding:12px;margin:10px 0;color:#fff;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.12)}
+.regla .big{font-size:34px;font-weight:900;min-width:56px;text-align:center}
+.regla b{font-size:21px;display:block}
+.regla span{font-size:15px;font-weight:600}
+.sil{display:inline-flex;gap:0;font-weight:900;font-size:44px;letter-spacing:1px}
+.sil i{font-style:normal;padding:0 2px}
+.sil .fuerte{color:#e03131;text-decoration:underline;text-decoration-thickness:5px;text-underline-offset:6px}
+.pal{font-size:60px;font-weight:900;text-align:center;margin:10px 0;color:#6a3fd1}
+.chips{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:16px 0}
+.chip{border:none;border-radius:18px;padding:14px 18px;font-size:24px;font-weight:800;font-family:inherit;color:#fff;box-shadow:0 4px 0 rgba(0,0,0,.15);cursor:pointer}
+.chip:active{transform:translateY(3px)}
+.sy{font-size:44px;font-weight:900;padding:14px 18px;border-radius:20px;background:#fff;border:4px solid #d0c3f5;cursor:pointer;color:#3b2a5a;box-shadow:0 4px 0 rgba(0,0,0,.12)}
+.sy.ok{background:#b2f2bb;border-color:#2f9e44}
+.sy.mal{background:#ffc9c9;border-color:#e03131}
+.msg{font-size:22px;font-weight:800;text-align:center;min-height:60px;margin:6px 0}
+.ok-t{color:#2f9e44}.mal-t{color:#e03131}
+.opt{font-size:21px;font-weight:800;padding:16px 10px;border-radius:20px;color:#fff;border:none;font-family:inherit;box-shadow:0 5px 0 rgba(0,0,0,.18);cursor:pointer;width:100%}
+.opt:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(0,0,0,.18)}
+.opt.bien{outline:6px solid #2f9e44}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fila{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:10px 0}
+.filtro{border:3px solid #d0c3f5;background:#fff;border-radius:16px;padding:8px 12px;font-family:inherit;font-weight:800;font-size:16px;color:#3b2a5a;cursor:pointer}
+.filtro.on{background:#6a3fd1;color:#fff;border-color:#6a3fd1}
+.nota{font-size:15px;text-align:center;opacity:.8;margin:8px 0}
+.escudo{font-size:70px;text-align:center}
+</style>
+</head>
+<body>
+
+<!-- INICIO -->
+<section class="pant on" id="p-inicio">
+  <div class="barra"><h1>🔤 Llanas y Agudas</h1><div class="estrellas">⭐ <span id="stars">0</span></div></div>
+  <div class="wrap">
+    <div class="card" style="text-align:center">
+      <div class="escudo">🐧</div>
+      <p style="margin:6px 0;font-size:20px;font-weight:800">¿En qué sílaba suena más fuerte la palabra?</p>
+      <p class="nota">Aprende cuatro tipos de palabras y juega con ellas.</p>
+    </div>
+    <div class="menu">
+      <button class="m1" onclick="ir('aprender')">📚 Aprender<small>Monosílabas, agudas, llanas y esdrújulas</small></button>
+      <button class="m2" onclick="ir('tipo')">🎯 ¿Qué tipo es?<small>Mira la palabra y elige su tipo</small></button>
+      <button class="m3" onclick="ir('silaba')">👆 Pulsa la sílaba fuerte<small>Toca la sílaba que suena más</small></button>
+    </div>
+  </div>
+</section>
+
+<!-- APRENDER -->
+<section class="pant" id="p-aprender">
+  <div class="barra"><button class="bt redondo" onclick="ir('inicio')">🏠</button><h1>📚 Aprender</h1><span style="width:52px"></span></div>
+  <div class="wrap">
+    <p class="nota">Toca una palabra para escucharla. La sílaba roja es la que suena más.</p>
+    <div id="reglas"></div>
+  </div>
+</section>
+
+<!-- ¿QUÉ TIPO ES? -->
+<section class="pant" id="p-tipo">
+  <div class="barra"><button class="bt redondo" onclick="ir('inicio')">🏠</button><h1>🎯 ¿Qué tipo es?</h1><div class="estrellas">⭐ <span id="stars2">0</span></div></div>
+  <div class="wrap">
+    <div class="fila" id="filtrosT"></div>
+    <div class="card" style="text-align:center">
+      <div class="pal" id="palT">—</div>
+      <div class="sil" id="silT"></div>
+      <div class="msg" id="msgT"></div>
+    </div>
+    <div class="grid2" id="optsT"></div>
+    <div class="fila" style="margin-top:16px"><button class="bt" style="background:#fff" onclick="oirT()">🔊 Escuchar</button><button class="bt" style="background:#ffe066" onclick="siguienteT()">Siguiente ➡️</button></div>
+  </div>
+</section>
+
+<!-- PULSA LA SÍLABA FUERTE -->
+<section class="pant" id="p-silaba">
+  <div class="barra"><button class="bt redondo" onclick="ir('inicio')">🏠</button><h1>👆 Sílaba fuerte</h1><div class="estrellas">⭐ <span id="stars3">0</span></div></div>
+  <div class="wrap">
+    <div class="fila" id="filtrosS"></div>
+    <div class="card" style="text-align:center">
+      <div class="pal" id="palS">—</div>
+      <div class="fila" id="sylS"></div>
+      <div class="msg" id="msgS"></div>
+    </div>
+    <div class="fila" style="margin-top:16px"><button class="bt" style="background:#fff" onclick="oirS()">🔊 Escuchar</button><button class="bt" style="background:#ffe066" onclick="siguienteS()">Siguiente ➡️</button></div>
+    <p class="nota">Las palabras de una sola sílaba no se juegan aquí.</p>
+  </div>
+</section>
+
+<script>
+/* ===== puente con la app Android (si existe) y voz del navegador ===== */
+const B = window.Acentos || null;
+function say(t){
+  if (B && B.speak) { B.speak(t, 0.8); return; }
+  if (window.speechSynthesis) { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang = 'es-ES'; u.rate = .8; speechSynthesis.speak(u); }
+}
+function pausarTodo(){ if (window.speechSynthesis) speechSynthesis.cancel(); }
+function vibra(ms){ try { if (B && B.vibrate) B.vibrate(ms); else if (navigator.vibrate) navigator.vibrate(ms); } catch(e){} }
+
+/* ===== datos: sílabas y tónica (índice de la sílaba fuerte, empezando en 0) ===== */
+const PAL = [
+  /* monosílabas */
+  {w:'sol',s:['sol'],t:0},{w:'pan',s:['pan'],t:0},{w:'luz',s:['luz'],t:0},{w:'pie',s:['pie'],t:0},
+  {w:'mar',s:['mar'],t:0},{w:'flor',s:['flor'],t:0},{w:'pez',s:['pez'],t:0},{w:'mes',s:['mes'],t:0},
+  {w:'tren',s:['tren'],t:0},{w:'sal',s:['sal'],t:0},{w:'dos',s:['dos'],t:0},
+  /* agudas: la última sílaba suena más */
+  {w:'canción',s:['can','ción'],t:1},{w:'sofá',s:['so','fá'],t:1},{w:'reloj',s:['re','loj'],t:1},
+  {w:'ratón',s:['ra','tón'],t:1},{w:'camión',s:['ca','mión'],t:1},{w:'nariz',s:['na','riz'],t:1},
+  {w:'papel',s:['pa','pel'],t:1},{w:'azul',s:['a','zul'],t:1},{w:'color',s:['co','lor'],t:1},
+  {w:'feliz',s:['fe','liz'],t:1},{w:'pared',s:['pa','red'],t:1},{w:'ciudad',s:['ciu','dad'],t:1},
+  {w:'avión',s:['a','vión'],t:1},{w:'balcón',s:['bal','cón'],t:1},{w:'corazón',s:['co','ra','zón'],t:2},
+  /* llanas: la penúltima sílaba suena más */
+  {w:'casa',s:['ca','sa'],t:0},{w:'mesa',s:['me','sa'],t:0},{w:'perro',s:['pe','rro'],t:0},
+  {w:'libro',s:['li','bro'],t:0},{w:'árbol',s:['ár','bol'],t:0},{w:'lápiz',s:['lá','piz'],t:0},
+  {w:'rana',s:['ra','na'],t:0},{w:'puerta',s:['puer','ta'],t:0},{w:'bolsa',s:['bol','sa'],t:0},
+  {w:'ventana',s:['ven','ta','na'],t:1},{w:'cuaderno',s:['cua','der','no'],t:1},
+  {w:'mochila',s:['mo','chi','la'],t:1},{w:'pelota',s:['pe','lo','ta'],t:1},
+  {w:'camisa',s:['ca','mi','sa'],t:1},{w:'tortuga',s:['tor','tu','ga'],t:1},
+  {w:'jirafa',s:['ji','ra','fa'],t:1},{w:'escuela',s:['es','cue','la'],t:1},
+  /* esdrújulas: la antepenúltima sílaba suena más */
+  {w:'música',s:['mú','si','ca'],t:0},{w:'pájaro',s:['pá','ja','ro'],t:0},{w:'plátano',s:['plá','ta','no'],t:0},
+  {w:'lámpara',s:['lám','pa','ra'],t:0},{w:'rápido',s:['rá','pi','do'],t:0},{w:'médico',s:['mé','di','co'],t:0},
+  {w:'cámara',s:['cá','ma','ra'],t:0},{w:'sílaba',s:['sí','la','ba'],t:0},{w:'sábado',s:['sá','ba','do'],t:0},
+  {w:'teléfono',s:['te','lé','fo','no'],t:1},{w:'murciélago',s:['mur','cié','la','go'],t:1},
+  {w:'helicóptero',s:['he','li','cóp','te','ro'],t:2}
+];
+const TIPOS = {
+  mono:{n:'Monosílaba',e:'1️⃣',c:'#ff7eb6',regla:'Tiene una sola sílaba. Como solo hay una, es la que suena.',ej:['sol','pan','flor']},
+  aguda:{n:'Aguda',e:'⬇️',c:'#4dabf7',regla:'La última sílaba suena más fuerte.',ej:['canción','sofá','reloj']},
+  llana:{n:'Llana',e:'➖',c:'#51cf66',regla:'La penúltima sílaba suena más fuerte.',ej:['casa','mesa','lápiz']},
+  esdrujula:{n:'Esdrújula',e:'⬆️',c:'#ffa94d',regla:'La antepenúltima sílaba suena más fuerte.',ej:['música','pájaro','plátano']}
+};
+/* tipo a partir de la posición de la sílaba fuerte contando desde el final */
+function tipoDe(p){
+  const n = p.s.length;
+  if (n === 1) return 'mono';
+  const desde = n - 1 - p.t;
+  return desde === 0 ? 'aguda' : desde === 1 ? 'llana' : 'esdrujula';
+}
+PAL.forEach(p => p.tipo = tipoDe(p));
+
+/* ===== estado ===== */
+let st = {stars:0, tipoBien:0, silBien:0};
+(function cargar(){
+  try { const raw = B && B.load ? B.load() : localStorage.getItem('acentos'); if (raw) Object.assign(st, JSON.parse(raw)); } catch(e){}
+})();
+function guardar(){
+  const j = JSON.stringify(st);
+  try { if (B && B.save) B.save(j); else localStorage.setItem('acentos', j); } catch(e){}
+}
+function sumar(n){ st.stars += n; guardar(); pintarEstrellas(); }
+function pintarEstrellas(){ ['stars','stars2','stars3'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = st.stars; }); }
+
+/* ===== navegación ===== */
+let actual = 'inicio';
+function ir(p){
+  actual = p;
+  document.querySelectorAll('.pant').forEach(s => s.classList.remove('on'));
+  document.getElementById('p-' + p).classList.add('on');
+  pausarTodo();
+  if (p === 'aprender') pintarReglas();
+  if (p === 'tipo') { pintarFiltros('filtrosT', filtT, v => { filtT = v; }); siguienteT(); }
+  if (p === 'silaba') { pintarFiltros('filtrosS', filtS, v => { filtS = v; }); siguienteS(); }
+  window.scrollTo(0, 0);
+}
+function atras(){ if (actual === 'inicio') return 0; ir('inicio'); return 1; }
+
+/* ===== filtros: qué tipos entran en el juego ===== */
+let filtT = ['mono','aguda','llana','esdrujula'];
+let filtS = ['aguda','llana','esdrujula'];
+function pintarFiltros(id, lista, guardarFn){
+  const cont = document.getElementById(id);
+  const todos = ['mono','aguda','llana','esdrujula'];
+  cont.innerHTML = todos.map(k => `<button class="filtro ${lista.includes(k) ? 'on' : ''}" data-k="${k}">${TIPOS[k].e} ${TIPOS[k].n}</button>`).join('');
+  cont.onclick = e => {
+    const b = e.target.closest('.filtro'); if (!b) return;
+    let v = lista.includes(b.dataset.k) ? lista.filter(x => x !== b.dataset.k) : lista.concat(b.dataset.k);
+    if (!v.length) v = [b.dataset.k];
+    guardarFn(v);
+    pintarFiltros(id, v, guardarFn);
+    if (id === 'filtrosT') siguienteT(); else siguienteS();
+  };
+}
+function elegir(lista, filtro){
+  const pool = PAL.filter(p => filtro.includes(p.tipo) && lista(p));
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+/* ===== APRENDER ===== */
+function silHTML(p, marcar){
+  return p.s.map((x, i) => `<i class="${marcar && i === p.t ? 'fuerte' : ''}">${x}</i>`).join('');
+}
+function pintarReglas(){
+  const cont = document.getElementById('reglas');
+  cont.innerHTML = Object.keys(TIPOS).map(k => {
+    const t = TIPOS[k];
+    const ejemplos = t.ej.map(w => {
+      const p = PAL.find(x => x.w === w);
+      return `<div class="card" style="margin:8px 0;padding:10px;text-align:center;cursor:pointer" onclick="say('${w}')"><div class="sil" style="font-size:34px">${silHTML(p, true)}</div><div style="font-size:14px;opacity:.7">🔊 toca para oír</div></div>`;
+    }).join('');
+    return `<div class="regla" style="background:${t.c}" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='block'?'none':'block'"><div class="big">${t.e}</div><div><b>${t.n}</b><span>${t.regla}</span></div></div><div style="display:none">${ejemplos}</div>`;
+  }).join('');
+}
+
+/* ===== ¿QUÉ TIPO ES? ===== */
+let pT = null, respondidoT = false;
+function siguienteT(){
+  pT = elegir(() => true, filtT);
+  respondidoT = false;
+  document.getElementById('palT').textContent = pT.w;
+  document.getElementById('silT').innerHTML = pT.s.length > 1 ? silHTML(pT, false) : '';
+  document.getElementById('msgT').innerHTML = '<span style="font-size:18px;opacity:.7">¿Qué tipo de palabra es?</span>';
+  const orden = filtT.slice().sort(() => Math.random() - .5);
+  document.getElementById('optsT').innerHTML = orden.map(k => `<button class="opt" style="background:${TIPOS[k].c}" data-k="${k}">${TIPOS[k].e} ${TIPOS[k].n}</button>`).join('');
+  document.getElementById('optsT').onclick = e => {
+    const b = e.target.closest('.opt'); if (!b || respondidoT) return;
+    responderT(b.dataset.k, b);
+  };
+  say(pT.w);
+}
+function responderT(k, boton){
+  respondidoT = true;
+  const bien = k === pT.tipo;
+  document.querySelectorAll('#optsT .opt').forEach(o => { if (o.dataset.k === pT.tipo) o.classList.add('bien'); });
+  const msg = document.getElementById('msgT');
+  if (bien) {
+    sumar(1); vibra(30);
+    msg.innerHTML = `<span class="ok-t">¡Muy bien! ⭐</span><br><span style="font-size:18px">${TIPOS[pT.tipo].regla}</span>`;
+    say('¡Muy bien!');
+  } else {
+    vibra(150);
+    msg.innerHTML = `<span class="mal-t">Casi. Es ${TIPOS[pT.tipo].n.toLowerCase()}.</span><br><span style="font-size:18px">${TIPOS[pT.tipo].regla}</span>`;
+    say(TIPOS[pT.tipo].n + '. ' + TIPOS[pT.tipo].regla);
+  }
+  boton.style.opacity = bien ? '1' : '.6';
+}
+function oirT(){ if (pT) say(pT.w); }
+
+/* ===== PULSA LA SÍLABA FUERTE ===== */
+let pS = null, respondidoS = false;
+function siguienteS(){
+  pS = elegir(p => p.s.length > 1, filtS);
+  if (!pS) { pS = PAL.find(p => p.s.length > 1); }
+  respondidoS = false;
+  document.getElementById('palS').textContent = pS.w;
+  document.getElementById('msgS').innerHTML = '<span style="font-size:18px;opacity:.7">Toca la sílaba que suena más fuerte</span>';
+  const orden = pS.s.map((x, i) => i).sort(() => Math.random() - .5);
+  document.getElementById('sylS').innerHTML = orden.map(i => `<button class="sy" data-i="${i}">${pS.s[i]}</button>`).join('');
+  document.getElementById('sylS').onclick = e => {
+    const b = e.target.closest('.sy'); if (!b || respondidoS) return;
+    responderS(parseInt(b.dataset.i, 10), b);
+  };
+  say(pS.w);
+}
+function responderS(i, boton){
+  respondidoS = true;
+  const bien = i === pS.t;
+  document.querySelectorAll('#sylS .sy').forEach(b => { if (parseInt(b.dataset.i, 10) === pS.t) b.classList.add('ok'); });
+  if (!bien) boton.classList.add('mal');
+  const msg = document.getElementById('msgS');
+  const tipo = TIPOS[pS.tipo];
+  if (bien) {
+    sumar(1); vibra(30);
+    msg.innerHTML = `<span class="ok-t">¡Eso es! ⭐</span><br><span style="font-size:18px">Es ${tipo.n.toLowerCase()}: ${tipo.regla}</span>`;
+    say('¡Eso es! ' + pS.s[i]);
+  } else {
+    vibra(150);
+    msg.innerHTML = `<span class="mal-t">La fuerte es <b>${pS.s[pS.t]}</b>.</span><br><span style="font-size:18px">Es ${tipo.n.toLowerCase()}: ${tipo.regla}</span>`;
+    say('La fuerte es ' + pS.s[pS.t]);
+  }
+}
+function oirS(){ if (pS) say(pS.w); }
+
+/* arranque */
+pintarEstrellas();
+</script>
+</body>
+</html>
