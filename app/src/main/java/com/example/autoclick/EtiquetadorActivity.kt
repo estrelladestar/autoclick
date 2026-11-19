@@ -90,8 +90,11 @@ class EtiquetadorActivity : Activity() {
         /** Guarda el cuadro de menciones de la página para que el guion pueda usarlo. */
         @JavascriptInterface
         fun saveFriends(text: String) {
-            getSharedPreferences("cfg", Context.MODE_PRIVATE).edit()
-                .putString("friends", text).apply()
+            val p = getSharedPreferences("cfg", Context.MODE_PRIVATE)
+            val e = p.edit().putString("friends", text)
+            // Si tienes menciones fijas, lo que cambias aquí también pasa a ser tu lista fija
+            if (p.getBoolean("menciones_fijas_on", true) && text.isNotBlank()) e.putString("menciones_fijas", text)
+            e.apply()
         }
 
         /**
@@ -122,6 +125,13 @@ class EtiquetadorActivity : Activity() {
                 .putString("frases_fijas", modo).putString("phrases", text)
             if (modo == "mias") e.putString("mis_frases_fijas", text)
             e.apply()
+        }
+
+        /** Tus menciones fijas de la app (vacío si no hay o están desactivadas). */
+        @JavascriptInterface
+        fun getFixedFriends(): String {
+            val p = getSharedPreferences("cfg", Context.MODE_PRIVATE)
+            return if (p.getBoolean("menciones_fijas_on", true)) (p.getString("menciones_fijas", "") ?: "") else ""
         }
 
         /** Qué frases tiene puestas la app: {"modo": "mias|botti|trono", "texto": "..."} */

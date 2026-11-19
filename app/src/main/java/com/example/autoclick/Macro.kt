@@ -325,6 +325,13 @@ object Macro {
     }
 
     /** Las frases fijas «Trono + bolso» del Etiquetador (las mismas que salen en su cuadro de palabras). */
+    /** Tus menciones: las fijas (si están activadas y guardadas) o, si no, las del cuadro «TUS MENCIONES». */
+    fun misMenciones(ctx: android.content.Context): String {
+        val p = ctx.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE)
+        val fijas = p.getString("menciones_fijas", "") ?: ""
+        return if (p.getBoolean("menciones_fijas_on", true) && fijas.isNotBlank()) fijas else (p.getString("friends", "") ?: "")
+    }
+
     fun fixedPhrases(ctx: android.content.Context): List<String> = try {
         val html = ctx.assets.open("etiquetador.html").bufferedReader(Charsets.UTF_8).use { it.readText() }
         val m = Regex("var PALABRAS_GUARDADAS=(\".*?\");\\n").find(html)
@@ -1094,8 +1101,9 @@ object Macro {
         private fun writeMentions(c: Cmd) {
             if (c.arg.trim().split(" ").any { it.lowercase() == "solo" }) { writeOnlyPhrase(c); return }
             val prefs = s.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE)
-            val friends = (prefs.getString("friends", "") ?: "").lines()
+            val friends = misMenciones(s).lines()
                 .map { it.trim() }.filter { it.isNotEmpty() }
+                .filter { it.removePrefix("@").lowercase() !in saltar }
                 .map { if (it.startsWith("@")) it else "@$it" }.distinct()
             if (friends.isEmpty()) {
                 finish("No hay menciones. Pon tus amigos en el cuadro de menciones. Guion detenido.")
@@ -1390,12 +1398,22 @@ object Macro {
             later(1500L)
         }
 
+        /** Menciones que no dejan mencionarlas: se saltan durante este guion (las menciones fijas no se borran). */
+        private val saltar = HashSet<String>()
+
         /** Quita personas de la lista de menciones (y las apunta en «no_mencionar»). */
         private fun removeMentions(handles: List<String>) {
             val prefs = s.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE)
             val bad = handles.map { it.removePrefix("@").lowercase() }.toSet()
             val keep = (prefs.getString("friends", "") ?: "").lines()
                 .filter { it.trim().removePrefix("@").lowercase() !in bad }
+            // Con las menciones fijas no se borra a nadie de tu lista: solo se salta mientras dure el guion
+            if (prefs.getBoolean("menciones_fijas_on", true) && !(prefs.getString("menciones_fijas", "") ?: "").isBlank()) {
+                saltar.addAll(bad)
+                toast(s, "Salto a ${handles.joinToString(" ")} en esta vuelta (no deja que la mencionen). Tus menciones fijas no cambian.")
+                trace("  salto en esta vuelta: ${handles.joinToString(" ")} (tus menciones fijas no se tocan)")
+                return
+            }
             val old = (prefs.getString("no_mencionar", "") ?: "").lines().filter { it.isNotBlank() }
             prefs.edit()
                 .putString("friends", keep.joinToString("\n"))
@@ -1974,7 +1992,7 @@ object Macro {
             val phrase = if (!wantPhrase) "" else
                 (prefs.getString("phrases", "") ?: "").lines().map { it.trim() }.filter { it.isNotEmpty() }
                     .ifEmpty { fixedPhrases(s) }.randomOrNull() ?: ""
-            val friends = (prefs.getString("friends", "") ?: "").lines().map { it.trim() }.filter { it.isNotEmpty() }
+            val friends = misMenciones(s).lines().map { it.trim() }.filter { it.isNotEmpty() }
                 .map { if (it.startsWith("@")) it else "@$it" }.distinct()
                 .filter { it.removePrefix("@").lowercase() != shareOwner.lowercase() }
             val men = friends.shuffled().take(nMen).joinToString(" ")

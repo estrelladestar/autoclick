@@ -612,7 +612,24 @@ repetir 8"""
         box = multi(6, prefs.getString("comments", "") ?: "")
 
         label("TUS MENCIONES, una por línea (se rellenan solas desde el cuadro «Menciones» del Etiquetador; también puedes escribirlas aquí):")
-        friendsBox = multi(4, prefs.getString("friends", "") ?: "")
+        friendsBox = multi(4, Macro.misMenciones(ctx))
+        // 📌 Menciones fijas: se guardan aparte y no se borran ni cambian solas (ni el Etiquetador ni el guion)
+        CheckBox(ctx).apply {
+            text = "📌 Menciones fijas (no se borran ni cambian solas)"
+            textSize = 15f
+            isChecked = prefs.getBoolean("menciones_fijas_on", true)
+            setOnCheckedChangeListener { _, on ->
+                prefs.edit().putBoolean("menciones_fijas_on", on).apply()
+                if (on) guardarMencionesFijas()
+                toast(if (on) "📌 Menciones fijas activadas" else "Menciones fijas desactivadas")
+            }
+            root.addView(this)
+        }
+        Button(ctx).apply {
+            text = "📌 Guardar estas como mis menciones fijas"
+            setOnClickListener { guardarMencionesFijas(); toast("Guardadas ${friendsBox.text.lines().count { it.isNotBlank() }} menciones fijas") }
+            root.addView(this)
+        }
 
         label("Menciones por comentario (1 a 5), para «escribir menciones»:")
         mentionsN = Spinner(ctx).apply {
@@ -701,13 +718,22 @@ repetir 8"""
         // El Etiquetador puede haber cambiado los comentarios o las menciones mientras esta pantalla estaba en segundo plano.
         val c = prefs.getString("comments", "") ?: ""
         if (box.text.toString() != c) box.setText(c)
-        val f = prefs.getString("friends", "") ?: ""
+        val f = Macro.misMenciones(this)
         if (friendsBox.text.toString() != f) friendsBox.setText(f)
         refreshImages()
         refreshStatus()
     }
 
+    /** Guarda el cuadro «TUS MENCIONES» como menciones fijas. */
+    private fun guardarMencionesFijas() {
+        val t = friendsBox.text.toString().trim()
+        if (t.isEmpty()) return
+        prefs.edit().putString("menciones_fijas", t).putString("friends", t).apply()
+    }
+
     private fun saveAll() {
+        // Con las menciones fijas activadas, lo que escribas tú en el cuadro pasa a ser tu lista fija
+        if (prefs.getBoolean("menciones_fijas_on", true) && friendsBox.text.isNotBlank()) guardarMencionesFijas()
         // Si has cambiado a mano «TUS FRASES», se quedan como tus frases fijas (no se ponen otra vez las de Chris Botti)
         val ahora = phrasesBox.text.toString().trim()
         val modo = prefs.getString("frases_fijas", "mias")

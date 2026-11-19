@@ -704,6 +704,8 @@ details.sec[open] summary{margin-bottom:8px}
   applyWordsState();
   var sv=null;try{sv=localStorage.getItem("amigos")}catch(e){}
   $("friends").value=sv?sv:LISTA_GUARDADA;
+  // 📌 Si en la app tienes menciones fijas, el cuadro se rellena con ellas
+  try{if(window.AutoClickApp&&AutoClickApp.getFixedFriends){var ff=AutoClickApp.getFixedFriends();if(ff&&ff.trim()){$("friends").value=ff;localStorage.setItem("amigos",ff)}}}catch(e){}
   $("restore").addEventListener("click",function(){
     $("friends").value=LISTA_GUARDADA;
     try{localStorage.setItem("amigos",LISTA_GUARDADA)}catch(e){}
