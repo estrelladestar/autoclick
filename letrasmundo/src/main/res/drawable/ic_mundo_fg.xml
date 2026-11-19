@@ -2,27 +2,37 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp"
     android:viewportWidth="108" android:viewportHeight="108">
-    <!-- orejas -->
-    <path android:fillColor="#FFB26B" android:pathData="M33,46 L36,24 L52,36 Z"/>
-    <path android:fillColor="#FFB26B" android:pathData="M75,46 L72,24 L56,36 Z"/>
-    <path android:fillColor="#FF9FB8" android:pathData="M37,41 L38.5,30 L46,36 Z"/>
-    <path android:fillColor="#FF9FB8" android:pathData="M71,41 L69.5,30 L62,36 Z"/>
-    <!-- cara -->
-    <path android:fillColor="#FFB26B" android:strokeColor="#E8955A" android:strokeWidth="1.2"
-        android:pathData="M54,30 C72,30 82,42 82,56 C82,71 70,80 54,80 C38,80 26,71 26,56 C26,42 36,30 54,30 Z"/>
-    <path android:fillColor="#FFE7CC" android:pathData="M54,58 C64,58 68,64 68,69 C68,75 62,78 54,78 C46,78 40,75 40,69 C40,64 44,58 54,58 Z"/>
+    <!-- pingüino de colores -->
+    <!-- aletas -->
+    <path android:fillColor="#7C4DFF" android:pathData="M33,58 C25,64 24,74 28,79 C32,74 35,68 37,62 Z"/>
+    <path android:fillColor="#7C4DFF" android:pathData="M75,58 C83,64 84,74 80,79 C76,74 73,68 71,62 Z"/>
+    <!-- cuerpo -->
+    <path android:fillColor="#3A3FB8" android:pathData="M54,24 C70,24 77,38 77,54 C77,72 69,84 54,84 C39,84 31,72 31,54 C31,38 38,24 54,24 Z"/>
+    <!-- barriga -->
+    <path android:fillColor="#FFFFFF" android:pathData="M54,44 C64,44 69,54 69,64 C69,75 63,81 54,81 C45,81 39,75 39,64 C39,54 44,44 54,44 Z"/>
+    <!-- cara blanca -->
+    <path android:fillColor="#FFFFFF" android:pathData="M54,32 C61,32 66,36 66,42 C66,48 61,52 54,52 C47,52 42,48 42,42 C42,36 47,32 54,32 Z"/>
     <!-- ojos -->
-    <path android:fillColor="#2A1A2E" android:pathData="M43,47 C46.5,47 47.5,50 47.5,53 C47.5,56 46.5,59 43,59 C39.5,59 38.5,56 38.5,53 C38.5,50 39.5,47 43,47 Z"/>
-    <path android:fillColor="#2A1A2E" android:pathData="M65,47 C68.5,47 69.5,50 69.5,53 C69.5,56 68.5,59 65,59 C61.5,59 60.5,56 60.5,53 C60.5,50 61.5,47 65,47 Z"/>
-    <path android:fillColor="#FFFFFF" android:pathData="M41.5,49 m-2,0 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0"/>
-    <path android:fillColor="#FFFFFF" android:pathData="M63.5,49 m-2,0 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0"/>
-    <!-- mejillas -->
-    <path android:fillColor="#FF8FAB" android:pathData="M34,62 m-4,0 a4,2.5 0 1,0 8,0 a4,2.5 0 1,0 -8,0"/>
-    <path android:fillColor="#FF8FAB" android:pathData="M74,62 m-4,0 a4,2.5 0 1,0 8,0 a4,2.5 0 1,0 -8,0"/>
-    <!-- nariz y boca -->
-    <path android:fillColor="#FF8FAB" android:pathData="M51.5,60 L56.5,60 L54,63 Z"/>
-    <path android:strokeColor="#2A1A2E" android:strokeWidth="1.8" android:strokeLineCap="round"
-        android:fillColor="#00000000" android:pathData="M49,65 Q51.5,68 54,65 Q56.5,68 59,65"/>
-    <!-- estrellita -->
-    <path android:fillColor="#FFE066" android:pathData="M78,26 L79.8,30.5 L84.5,30.8 L80.9,33.8 L82,38.4 L78,35.9 L74,38.4 L75.1,33.8 L71.5,30.8 L76.2,30.5 Z"/>
+    <path android:fillColor="#1E1B3A" android:pathData="M48.5,40 m-3,0 a3,3.4 0 1,0 6,0 a3,3.4 0 1,0 -6,0"/>
+    <path android:fillColor="#1E1B3A" android:pathData="M59.5,40 m-3,0 a3,3.4 0 1,0 6,0 a3,3.4 0 1,0 -6,0"/>
+    <path android:fillColor="#FFFFFF" android:pathData="M49.3,38.8 m-1,0 a1,1 0 1,0 2,0 a1,1 0 1,0 -2,0"/>
+    <path android:fillColor="#FFFFFF" android:pathData="M60.3,38.8 m-1,0 a1,1 0 1,0 2,0 a1,1 0 1,0 -2,0"/>
+    <!-- mofletes -->
+    <path android:fillColor="#FF8FB8" android:pathData="M45,46 m-2.5,0 a2.5,1.6 0 1,0 5,0 a2.5,1.6 0 1,0 -5,0"/>
+    <path android:fillColor="#FF8FB8" android:pathData="M63,46 m-2.5,0 a2.5,1.6 0 1,0 5,0 a2.5,1.6 0 1,0 -5,0"/>
+    <!-- pico -->
+    <path android:fillColor="#FF9800" android:pathData="M50,45 L58,45 L54,50 Z"/>
+    <!-- bufanda de colores -->
+    <path android:fillColor="#FF4D6D" android:pathData="M37,52 L71,52 L71,56 L37,56 Z"/>
+    <path android:fillColor="#FFC83D" android:pathData="M37,56 L71,56 L71,59 L37,59 Z"/>
+    <path android:fillColor="#3CC46B" android:pathData="M37,59 L71,59 L71,62 L37,62 Z"/>
+    <path android:fillColor="#FF4D6D" android:pathData="M62,59 L68,59 L69,72 L63,72 Z"/>
+    <path android:fillColor="#2EC4B6" android:pathData="M62.3,63 L68.3,63 L68.5,66 L62.6,66 Z"/>
+    <!-- gorro de colores -->
+    <path android:fillColor="#FF5FA2" android:pathData="M38,32 C40,18 68,18 70,32 Z"/>
+    <path android:fillColor="#FFC83D" android:pathData="M36,30 L72,30 L72,35 L36,35 Z"/>
+    <path android:fillColor="#4FC3F7" android:pathData="M54,15 m-4.5,0 a4.5,4.5 0 1,0 9,0 a4.5,4.5 0 1,0 -9,0"/>
+    <!-- patas -->
+    <path android:fillColor="#FF9800" android:pathData="M42,82 C42,87 50,88 51,83 Z"/>
+    <path android:fillColor="#FF9800" android:pathData="M57,83 C58,88 66,87 66,82 Z"/>
 </vector>
