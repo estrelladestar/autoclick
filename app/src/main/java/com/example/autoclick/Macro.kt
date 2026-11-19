@@ -434,6 +434,8 @@ object Macro {
         private var storyText = ""
         /** En la historia: false = escribiendo la etiqueta de la tienda; true = escribiendo la frase y las menciones (otro texto). */
         private var storyPaso2 = false
+        /** true cuando ya se ha tocado la sugerencia de la tienda (para que quede etiquetada). */
+        private var storyTagged = false
         /** Cuenta que se acaba de tocar en la lista y dónde (para comprobar que de verdad se cambió). */
         private var pendingSwitch: Triple<String, Float, Float>? = null
         private var switchChecks = 0
@@ -2061,6 +2063,7 @@ object Macro {
                     }
                     storyText = storyTextFor(wantPhrase, nMen)
                     storyPaso2 = shareOwner.isEmpty()
+                    storyTagged = false
                     val share = findIg { t, r, n ->
                         n.viewIdResourceName?.endsWith("row_feed_button_share") == true ||
                             (r.exactCenterX() < w * 0.5f && t in setOf("compartir", "enviar publicación", "enviar", "share", "send post", "send"))
@@ -2109,12 +2112,27 @@ object Macro {
                     later(2500L)
                 }
                 4 -> {
-                    // Tocar la sugerencia con ese nombre (así queda como etiqueta de verdad) y luego «Listo»
-                    val sug = findIg { t, r, n -> !n.isEditable && t == shareOwner.lowercase() && r.exactCenterY() > h * 0.3f }
-                    if (sug != null && tries == 0 && !storyPaso2) {
+                    // Tocar la sugerencia con ese nombre (así queda como etiqueta de verdad) y luego «Listo».
+                    // Sin tocarla la tienda no queda etiquetada: se espera a que salga la lista; si no sale, no se publica sin etiqueta.
+                    val owner = shareOwner.lowercase()
+                    if (!storyPaso2 && owner.isNotEmpty() && !storyTagged) {
+                        val sug = findIg { t, r, n ->
+                            !n.isEditable && r.exactCenterY() > h * 0.3f && (t == owner || t == "@$owner" || t.startsWith("$owner\n") || t.startsWith("$owner "))
+                        }
+                        if (sug == null) {
+                            if (tries < 4) {
+                                tries++
+                                trace("  esperando la lista para etiquetar a @$shareOwner ($tries)")
+                                later(1500L)
+                            } else {
+                                storyGiveUp(c, "no aparece @$shareOwner en la lista de sugerencias")
+                            }
+                            return
+                        }
                         trace("  toco @$shareOwner en la lista para que quede etiquetada")
                         tap(sug)
-                        tries = 1
+                        storyTagged = true
+                        tries = 0
                         later(1500L)
                         return
                     }
