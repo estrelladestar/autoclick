@@ -62,7 +62,9 @@ repetir 1000"""
     private val slow2Name = "⭐ Mi guion lento, 2 menciones (fijo)"
     /** Igual que «Mi guion», pero cada comentario lleva SIEMPRE una frase y 3 menciones. */
     private val phrase3Name = "⭐ Frase + 3 menciones (fijo)"
-    private val phrase3Script get() = defaultScript.replace("escribir menciones 1", "escribir menciones 3 frase").let {
+    /** Usa las 2 imágenes que ya vienen puestas: imagen 1 = bocadillo 💬 (abre los comentarios), imagen 2 = flecha de enviar. */
+    private val phrase3Script get() = defaultScript.replace("escribir menciones 1", "escribir menciones 3 frase")
+        .replace("imagen 3 |", "IMGPUB").replace("imagen 2 |", "imagen 1 opcional |").replace("imagen 1 |", "imagen 1 opcional |").replace("IMGPUB", "imagen 2 |").let {
         if (packageName.endsWith(".historias")) it.replaceFirst("seguir\n", "seguir\nesperar 1-3\nhistoria frase menciones 3\nesperar 3-5\n") else it }
     private val slow2Script get() = defaultScript.replace("escribir menciones 1", "escribir menciones 2 lento 5-20")
     /** Como el lento, pero escribiendo más rápido: la mitad de las veces tarda entre 2 y 5 segundos. */
@@ -1209,6 +1211,7 @@ repetir 8"""
             .setMessage((if (packageName.endsWith(".historias"))
                 "Cada comentario llevará una frase y 3 menciones.\n\nY al abrir cada publicación la subirá a tu historia escribiendo una frase, la cuenta de la tienda y 3 menciones (una vez por cuenta y enlace)."
             else "Cada comentario llevará una frase y 3 menciones de tu lista.") +
+                "\n\n🖼 Imágenes: imagen 1 = el bocadillo 💬 y imagen 2 = la flecha de enviar (ya vienen puestas)." +
                 "\n\nLas frases salen de «TUS FRASES» (están puestas las de siempre). Pulsa ▶ Iniciar." + faltan)
             .setPositiveButton("Vale", null)
             .show()
