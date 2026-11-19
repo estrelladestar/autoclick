@@ -266,6 +266,9 @@ repetir 8"""
     private lateinit var mentionsN: Spinner
     private lateinit var phrasesBox: EditText
     private lateinit var frasesFijas: Spinner
+    private lateinit var panelMenciones: Spinner
+    private lateinit var panelFrase: Spinner
+    private lateinit var panelResumen: TextView
     private lateinit var phrasePos: Spinner
     private lateinit var phraseChance: EditText
     private lateinit var savedSpinner: Spinner
@@ -318,16 +321,57 @@ repetir 8"""
             setOnClickListener { startBtn.performClick() }
             root.addView(this)
         }
-        // Un toque: guion con frase + 3 menciones (y en Star App Historias, también la historia con frase y 3 menciones)
-        Button(ctx).apply {
-            text = if (packageName.endsWith(".historias")) "⭐ FRASE + 3 MENCIONES (comentarios e historia)" else "⭐ FRASE + 3 MENCIONES"
-            textSize = 17f
-            setOnClickListener { ponerFrase3() }
+        // ---------- 🎯 PANEL FÁCIL: eliges y el guion se hace solo ----------
+        TextView(ctx).apply {
+            text = "🎯 ¿CÓMO QUIERES LOS COMENTARIOS?"
+            textSize = 19f; setTypeface(null, Typeface.BOLD); setPadding(0, 28, 0, 4)
             root.addView(this)
         }
-        // 📌 Todo fijo: cada vez que se abre, queda puesto el guion frase + 3 menciones, 3 menciones y las frases
+        label("1️⃣ ¿Cuántas menciones?")
+        panelMenciones = Spinner(ctx).apply {
+            adapter = ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item,
+                listOf("Sin menciones (solo frase)", "1 mención", "2 menciones", "3 menciones", "4 menciones", "5 menciones"))
+            setSelection(prefs.getInt("p_menciones", 3).coerceIn(0, 5))
+            root.addView(this)
+        }
+        label("2️⃣ ¿Con frase?")
+        panelFrase = Spinner(ctx).apply {
+            adapter = ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, listOf("✅ Con frase", "🚫 Sin frase (solo menciones)"))
+            setSelection(if (prefs.getBoolean("p_frase", true)) 0 else 1)
+            root.addView(this)
+        }
+        // 📌 Qué frases quedan fijas al abrir (con «Todo fijo»)
+        label("3️⃣ ¿Qué frases?")
+        val fijasOps = listOf("Trono + bolso", "Chris Botti", "Las mías (las que elijo yo)")
+        val fijasIds = listOf("trono", "botti", "mias")
+        frasesFijas = Spinner(ctx).apply {
+            adapter = ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, fijasOps)
+            setSelection(fijasIds.indexOf(prefs.getString("frases_fijas", "mias")).coerceAtLeast(0))
+            var primera = true
+            onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(p: AdapterView<*>?, v: View?, pos: Int, id: Long) {
+                    if (primera) { primera = false; return }
+                    prefs.edit().putString("frases_fijas", fijasIds[pos]).apply()
+                    ponerFrasesFijas()
+                    aplicarPanel(true)
+                }
+                override fun onNothingSelected(p: AdapterView<*>?) {}
+            }
+            root.addView(this)
+        }
+        Button(ctx).apply {
+            text = "✔ Elegir mis frases fijas una a una"
+            setOnClickListener { elegirFrases() }
+            root.addView(this)
+        }
+        panelResumen = TextView(ctx).apply {
+            textSize = 16f; setPadding(16, 16, 16, 16)
+            setBackgroundColor(android.graphics.Color.parseColor("#FFF3BF"))
+            root.addView(this)
+        }
+        // 📌 Fijo: al abrir se pone solo lo que hayas elegido aquí
         CheckBox(ctx).apply {
-            text = "📌 Todo fijo: abrir siempre con frase + 3 menciones e imágenes bocadillo y flecha"
+            text = "📌 Dejarlo fijo (al abrir la app se pone solo así)"
             textSize = 15f
             isChecked = prefs.getBoolean("todo_fijo", true)
             setOnCheckedChangeListener { _, on ->
@@ -335,6 +379,16 @@ repetir 8"""
                 if (on) ponerFijo(true)
             }
             root.addView(this)
+        }
+        listOf(panelMenciones, panelFrase).forEach { sp ->
+            var primera = true
+            sp.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(p: AdapterView<*>?, v: View?, pos: Int, id: Long) {
+                    if (primera) { primera = false; return }
+                    aplicarPanel(true)
+                }
+                override fun onNothingSelected(p: AdapterView<*>?) {}
+            }
         }
         if (isXiaomi()) {
             // En Xiaomi / Redmi / POCO el móvil para la app si no se le dan estos permisos
@@ -584,30 +638,6 @@ repetir 8"""
             }
             root.addView(this)
         }
-        // 📌 Qué frases quedan fijas al abrir (con «Todo fijo»)
-        label("📌 FRASES FIJAS (las que se ponen solas al abrir):")
-        val fijasOps = listOf("Trono + bolso", "Chris Botti", "Las mías (las que elijo yo)")
-        val fijasIds = listOf("trono", "botti", "mias")
-        frasesFijas = Spinner(ctx).apply {
-            adapter = ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, fijasOps)
-            setSelection(fijasIds.indexOf(prefs.getString("frases_fijas", "mias")).coerceAtLeast(0))
-            var primera = true
-            onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(p: AdapterView<*>?, v: View?, pos: Int, id: Long) {
-                    if (primera) { primera = false; return }
-                    prefs.edit().putString("frases_fijas", fijasIds[pos]).apply()
-                    ponerFrasesFijas()
-                    toast("Frases fijas: " + fijasOps[pos])
-                }
-                override fun onNothingSelected(p: AdapterView<*>?) {}
-            }
-            root.addView(this)
-        }
-        Button(ctx).apply {
-            text = "✔ Elegir mis frases fijas una a una"
-            setOnClickListener { elegirFrases() }
-            root.addView(this)
-        }
         label("Dónde va la frase:")
         phrasePos = Spinner(ctx).apply {
             adapter = ArrayAdapter(
@@ -658,6 +688,7 @@ repetir 8"""
         setContentView(ScrollView(ctx).apply { addView(root) })
         StarColors.watch(root)
         if (prefs.getBoolean("todo_fijo", true)) ponerFijo(false)
+        else panelResumen.text = "👆 Elige cuántas menciones y si lleva frase: el guion se pone solo."
     }
 
     override fun onPause() {
@@ -1261,12 +1292,41 @@ repetir 8"""
 
     /** «Todo fijo»: guion frase + 3 menciones, 3 menciones y frases (las de siempre si no hay); las imágenes fijas ya van siempre las primeras. */
     private fun ponerFijo(avisar: Boolean) {
-        script.setText(phrase3Script)
-        mentionsN.setSelection(2)
         ponerFrasesFijas()
-        refreshSaved(phrase3Name)
-        prefs.edit().putString("script", phrase3Script).putInt("mentionsN", 3).apply()
-        if (avisar) toast("📌 Todo fijo: frase + 3 menciones")
+        aplicarPanel(avisar)
+    }
+
+    /** El guion según el panel: cuántas menciones y si lleva frase. Usa las 2 imágenes fijas (bocadillo y flecha). */
+    private fun guionElegido(n: Int, frase: Boolean): String {
+        val linea = when { n == 0 -> "escribir solo frase"; frase -> "escribir menciones $n frase"; else -> "escribir menciones $n sinfrase" }
+        var g = defaultScript.replace("escribir menciones 1", linea)
+            .replace("imagen 3 |", "IMGPUB").replace("imagen 2 |", "imagen 1 opcional |").replace("imagen 1 |", "imagen 1 opcional |").replace("IMGPUB", "imagen 2 |")
+        if (packageName.endsWith(".historias")) {
+            val h = "historia" + (if (frase) " frase" else "") + (if (n > 0) " menciones $n" else "")
+            g = g.replaceFirst("seguir\n", "seguir\nesperar 1-3\n$h\nesperar 3-5\n")
+        }
+        return g
+    }
+
+    /** Lee el panel fácil, pone el guion que toca y enseña cómo quedará cada comentario. */
+    private fun aplicarPanel(avisar: Boolean) {
+        val n = panelMenciones.selectedItemPosition
+        var frase = panelFrase.selectedItemPosition == 0
+        if (n == 0 && !frase) { frase = true; panelFrase.setSelection(0); toast("Sin menciones tiene que llevar frase") }
+        val g = guionElegido(n, frase)
+        script.setText(g)
+        if (n > 0) mentionsN.setSelection(n - 1)
+        prefs.edit().putInt("p_menciones", n).putBoolean("p_frase", frase).putString("script", g).apply()
+        if (n > 0) prefs.edit().putInt("mentionsN", n).apply()
+        val quien = listOf("@amiga1", "@amiga2", "@amiga3", "@amiga4", "@amiga5").take(n).joinToString(" ")
+        val qf = listOf("Trono + bolso", "Chris Botti", "tus frases")[frasesFijas.selectedItemPosition.coerceIn(0, 2)]
+        val ejemplo = when { n == 0 -> "«frase»"; frase -> "«frase» $quien"; else -> quien }
+        panelResumen.text = "✏️ Cada comentario será: $ejemplo" +
+            (if (frase) "\n💬 Frases: $qf" else "") +
+            (if (n > 0) "\n👥 Menciones de tu lista «TUS MENCIONES»" else "") +
+            (if (packageName.endsWith(".historias")) "\n📸 La historia: " + listOfNotNull(if (frase) "frase" else null, "@tienda", if (n > 0) "$n menciones" else null).joinToString(" + ") else "") +
+            "\n🖼 Imagen 1 = bocadillo · Imagen 2 = flecha\n👉 Pulsa ▶ Iniciar"
+        if (avisar) toast("Listo: " + when { n == 0 -> "solo frase"; frase -> "frase + $n " + (if (n == 1) "mención" else "menciones"); else -> "$n " + (if (n == 1) "mención" else "menciones") + " sin frase" })
     }
 
     /** Pone en «TUS FRASES» las frases fijas elegidas: Trono + bolso, Chris Botti o las mías. */

@@ -1104,7 +1104,9 @@ object Macro {
             val allTokens0 = c.arg.trim().split(" ").filter { it.isNotEmpty() }
             // «frase»: pone SIEMPRE una frase (las tuyas o, si no hay, las fijas «Trono + bolso» del Etiquetador)
             val alwaysPhrase = allTokens0.any { it.lowercase() == "frase" || it.lowercase() == "frases" }
-            val allTokens = allTokens0.filter { it.lowercase() != "frase" && it.lowercase() != "frases" }
+            // «sinfrase»: solo menciones, nunca frase
+            val noPhrase = allTokens0.any { it.lowercase() == "sinfrase" }
+            val allTokens = allTokens0.filter { it.lowercase() != "frase" && it.lowercase() != "frases" && it.lowercase() != "sinfrase" }
             // «lento 5-20»: algunas veces (la mitad, al azar) escribe poco a poco, tardando entre 5 y 20 segundos
             val slowAt = allTokens.indexOfFirst { it.lowercase() == "lento" }
             val tokens = if (slowAt < 0) allTokens else allTokens.subList(0, slowAt)
@@ -1154,7 +1156,7 @@ object Macro {
                     .ifEmpty { if (alwaysPhrase) fixedPhrases(s) else emptyList() }
             }
             val chance = if (withCopied || alwaysPhrase) 100 else prefs.getInt("phraseChance", 100).coerceIn(0, 100)
-            if (phrases.isNotEmpty() && Math.random() * 100 < chance) {
+            if (!noPhrase && phrases.isNotEmpty() && Math.random() * 100 < chance) {
                 val phrase = phrases[(Math.random() * phrases.size).toInt().coerceAtMost(phrases.size - 1)]
                 val pos = prefs.getInt("phrasePos", 0)
                 val before = if (pos == 2) Math.random() < 0.5 else pos == 0
