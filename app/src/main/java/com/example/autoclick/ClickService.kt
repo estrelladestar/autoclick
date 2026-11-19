@@ -913,17 +913,27 @@ class ClickService : AccessibilityService() {
     }
 
     /** Prepara la imagen guardada de un paso para buscarla (con OpenCV o sin él). false si falta el archivo. */
+    /** Las imágenes PNG con fondo transparente: lo transparente se pone blanco (y en negativo, negro) para buscarlas. */
+    private fun sobreBlanco(b: Bitmap): Bitmap {
+        if (!b.hasAlpha()) return b
+        val out = Bitmap.createBitmap(b.width, b.height, Bitmap.Config.ARGB_8888)
+        val c = android.graphics.Canvas(out)
+        c.drawColor(android.graphics.Color.WHITE)
+        c.drawBitmap(b, 0f, 0f, null)
+        return out
+    }
+
     private fun prepareTemplate(step: Step): Boolean {
         if (!cvOk) {
             if (grayTemplates[step.id] != null) return true
-            val bmp = BitmapFactory.decodeFile(File(filesDir, step.value).path) ?: return false
+            val bmp = sobreBlanco(BitmapFactory.decodeFile(File(filesDir, step.value).path) ?: return false)
             val gg = toGray(bmp) ?: return false
             grayTemplates[step.id] = gg
             grayInv[step.id] = FastMatch.Gray(IntArray(gg.px.size) { 255 - gg.px[it] }, gg.w, gg.h)
             return true
         }
         if (templates[step.id] != null) return true
-        val bmp = BitmapFactory.decodeFile(File(filesDir, step.value).path) ?: return false
+        val bmp = sobreBlanco(BitmapFactory.decodeFile(File(filesDir, step.value).path) ?: return false)
         val m = Mat()
         Utils.bitmapToMat(bmp, m)
         Imgproc.cvtColor(m, m, Imgproc.COLOR_RGBA2GRAY)
