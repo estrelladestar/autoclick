@@ -65,7 +65,7 @@ repetir 1000"""
     /** Usa las 2 imágenes que ya vienen puestas: imagen 1 = bocadillo 💬 (abre los comentarios), imagen 2 = flecha de enviar. */
     private val phrase3Script get() = defaultScript.replace("escribir menciones 1", "escribir menciones 3 frase")
         .replace("imagen 3 |", "IMGPUB").replace("imagen 2 |", "imagen 1 opcional |").replace("imagen 1 |", "imagen 1 opcional |").replace("IMGPUB", "imagen 2 |").let {
-        if (packageName.endsWith(".historias")) it.replaceFirst("seguir\n", "seguir\nesperar 1-3\nhistoria menciones 3\nesperar 3-5\n") else it }
+        if (packageName.endsWith(".historias")) it.replaceFirst("seguir\n", "seguir\nesperar 1-3\nhistoria\nesperar 3-5\n") else it }
     private val slow2Script get() = defaultScript.replace("escribir menciones 1", "escribir menciones 2 lento 5-20")
     /** Como el lento, pero escribiendo más rápido: la mitad de las veces tarda entre 2 y 5 segundos. */
     private val fastName = "⭐ Mi guion rápido (fijo)"
@@ -548,7 +548,7 @@ repetir 8"""
             "• megusta → en la publicación abierta da me gusta, solo si el corazón no está rojo (si ya está rojo no lo toca)\n" +
             "• seguir → si junto al nombre de la cuenta pone «Seguir», la sigue; si ya pone «Siguiendo», no hace nada\n" +
             "• comprobar → con los comentarios abiertos, mira desde la cuenta nueva si se ve el último comentario de la cuenta anterior (en «Los más recientes») y lo apunta en 📊 Registro\n" +
-            "• historia → (solo en Star App Historias) sube la publicación a tu historia y etiqueta a la cuenta que la publicó; «historia @cuenta» etiqueta a esa; «historia frase menciones 3» escribe además una frase y 3 menciones. Cada cuenta tuya lo hace una sola vez por enlace\n" +
+            "• historia → (solo en Star App Historias) sube la publicación a tu historia y etiqueta a la cuenta que la publicó; «historia @cuenta» etiqueta a esa; Cada cuenta tuya lo hace una sola vez por enlace\n" +
             "• inicio → sale a la pantalla principal y baja y sube por las publicaciones (con «inicio azar», solo a veces); después pon «enlace»\n" +
             "• limite 20 → cada cuenta hace como mucho 20 comentarios al día; luego pasa a la siguiente\n" +
             "• hora 21:30 → espera hasta esa hora para seguir (deja el móvil encendido)\n" +
@@ -1345,9 +1345,8 @@ repetir 8"""
         var g = defaultScript.replace("escribir menciones 1", linea).replace("\nseguir\n", "\nseguir\n$extra")
             .replace("imagen 3 |", "IMGPUB").replace("imagen 2 |", "imagen 1 opcional |").replace("imagen 1 |", "imagen 1 opcional |").replace("IMGPUB", "imagen 2 |")
         if (packageName.endsWith(".historias")) {
-            // En la historia: la tienda etiquetada y tus menciones, sin frase
-            val h = "historia" + (if (n > 0) " menciones $n" else "")
-            g = g.replaceFirst("seguir\n", "seguir\nesperar 1-3\n$h\nesperar 3-5\n")
+            // En la historia: solo la tienda etiquetada (sin frase ni menciones)
+            g = g.replaceFirst("seguir\n", "seguir\nesperar 1-3\nhistoria\nesperar 3-5\n")
         }
         return g
     }
@@ -1368,7 +1367,7 @@ repetir 8"""
         panelResumen.text = "✏️ Cada comentario será: $ejemplo" +
             (if (frase) "\n💬 Frases: $qf" else "") +
             (if (n > 0) "\n👥 Menciones de tu lista «TUS MENCIONES»" else "") +
-            (if (packageName.endsWith(".historias")) "\n📸 La historia: " + listOfNotNull("@tienda etiquetada", if (n > 0) "$n menciones" else null).joinToString(" + ") else "") +
+            (if (packageName.endsWith(".historias")) "\n📸 La historia: " + "@tienda etiquetada" else "") +
             (if (prefs.getBoolean("p_megusta", true)) "\n❤️ Me gusta si el corazón está vacío" else "") +
             (if (prefs.getBoolean("p_seguirdesc", true)) "\n➕ Sigue a las cuentas de la descripción que no sigues" else "") +
             "\n🖼 Imagen 1 = bocadillo · Imagen 2 = flecha\n👉 Pulsa ▶ Iniciar"
@@ -1419,7 +1418,7 @@ repetir 8"""
         AlertDialog.Builder(this)
             .setTitle("⭐ Listo: frase + 3 menciones")
             .setMessage((if (packageName.endsWith(".historias"))
-                "Cada comentario llevará una frase y 3 menciones.\n\nY al abrir cada publicación la subirá a tu historia escribiendo una frase, la cuenta de la tienda y 3 menciones (una vez por cuenta y enlace)."
+                "Cada comentario llevará una frase y 3 menciones.\n\nY al abrir cada publicación la subirá a tu historia etiquetando solo a la tienda (una vez por cuenta y enlace)."
             else "Cada comentario llevará una frase y 3 menciones de tu lista.") +
                 "\n\n🖼 Imágenes: imagen 1 = el bocadillo 💬 y imagen 2 = la flecha de enviar (ya vienen puestas)." +
                 "\n\nLas frases salen de «TUS FRASES» (están puestas las de siempre). Pulsa ▶ Iniciar." + faltan)

@@ -1995,20 +1995,6 @@ object Macro {
             p.edit().putString("historias_hechas", (old + storyKey()).distinct().takeLast(500).joinToString("\n")).apply()
         }
 
-        /** «frase|@men1 @men2 @men3» para la historia (frase de tu cuadro de frases o las fijas; menciones de tu lista). */
-        private fun storyTextFor(wantPhrase: Boolean, nMen: Int): String {
-            if (!wantPhrase && nMen == 0) return ""
-            val prefs = s.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE)
-            val phrase = if (!wantPhrase) "" else
-                (prefs.getString("phrases", "") ?: "").lines().map { it.trim() }.filter { it.isNotEmpty() }
-                    .ifEmpty { fixedPhrases(s) }.randomOrNull() ?: ""
-            val friends = misMenciones(s).lines().map { it.trim() }.filter { it.isNotEmpty() }
-                .map { if (it.startsWith("@")) it else "@$it" }.distinct()
-                .filter { it.removePrefix("@").lowercase() != shareOwner.lowercase() }
-            val men = friends.shuffled().take(nMen).joinToString(" ")
-            return "$phrase|$men"
-        }
-
         /** Algo ha fallado al subir la historia: vuelve a abrir la publicación y sigue con el guion. */
         private fun storyGiveUp(c: Cmd, why: String) {
             trace("  ⚠ no he podido subir la historia: $why. Vuelvo a la publicación y sigo")
@@ -2047,9 +2033,6 @@ object Macro {
                     // «historia frase menciones 3»: además escribe una frase y 3 menciones de tu lista
                     val toks = c.arg.trim().split(" ").filter { it.isNotEmpty() }
                     val kw = setOf("frase", "frases", "menciones", "mencion", "mención")
-                    val wantPhrase = toks.any { it.lowercase() == "frase" || it.lowercase() == "frases" }
-                    val mi = toks.indexOfFirst { it.lowercase().startsWith("mencion") || it.lowercase() == "mención" }
-                    val nMen = if (mi < 0) 0 else (toks.getOrNull(mi + 1)?.toIntOrNull() ?: 3).coerceIn(1, 5)
                     shareOwner = toks.firstOrNull { it.lowercase() !in kw && it.toIntOrNull() == null }?.removePrefix("@") ?: ""
                     if (shareOwner.isEmpty()) {
                         val nameRect = findIg { _, _, n -> n.viewIdResourceName?.endsWith("row_feed_photo_profile_name") == true }
@@ -2061,7 +2044,8 @@ object Macro {
                             }
                         }
                     }
-                    storyText = storyTextFor(wantPhrase, nMen)
+                    // La historia solo lleva la etiqueta de la tienda (la frase y las menciones van en el comentario)
+                    storyText = ""
                     storyPaso2 = shareOwner.isEmpty()
                     storyTagged = false
                     val share = findIg { t, r, n ->
