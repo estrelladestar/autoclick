@@ -265,6 +265,7 @@ repetir 8"""
     private lateinit var friendsBox: EditText
     private lateinit var mentionsN: Spinner
     private lateinit var phrasesBox: EditText
+    private lateinit var frasesFijas: Spinner
     private lateinit var phrasePos: Spinner
     private lateinit var phraseChance: EditText
     private lateinit var savedSpinner: Spinner
@@ -581,6 +582,30 @@ repetir 8"""
                 phrasesBox.setText(l.joinToString("\n"))
                 toast("Puestas ${l.size} frases de Chris Botti")
             }
+            root.addView(this)
+        }
+        // 📌 Qué frases quedan fijas al abrir (con «Todo fijo»)
+        label("📌 FRASES FIJAS (las que se ponen solas al abrir):")
+        val fijasOps = listOf("Trono + bolso", "Chris Botti", "Las mías (las que elijo yo)")
+        val fijasIds = listOf("trono", "botti", "mias")
+        frasesFijas = Spinner(ctx).apply {
+            adapter = ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, fijasOps)
+            setSelection(fijasIds.indexOf(prefs.getString("frases_fijas", "mias")).coerceAtLeast(0))
+            var primera = true
+            onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(p: AdapterView<*>?, v: View?, pos: Int, id: Long) {
+                    if (primera) { primera = false; return }
+                    prefs.edit().putString("frases_fijas", fijasIds[pos]).apply()
+                    ponerFrasesFijas()
+                    toast("Frases fijas: " + fijasOps[pos])
+                }
+                override fun onNothingSelected(p: AdapterView<*>?) {}
+            }
+            root.addView(this)
+        }
+        Button(ctx).apply {
+            text = "✔ Elegir mis frases fijas una a una"
+            setOnClickListener { elegirFrases() }
             root.addView(this)
         }
         label("Dónde va la frase:")
@@ -1230,10 +1255,43 @@ repetir 8"""
     private fun ponerFijo(avisar: Boolean) {
         script.setText(phrase3Script)
         mentionsN.setSelection(2)
-        if (phrasesBox.text.isBlank()) phrasesBox.setText(Macro.fixedPhrases(this).joinToString("\n"))
+        ponerFrasesFijas()
         refreshSaved(phrase3Name)
-        prefs.edit().putString("script", phrase3Script).putInt("mentionsN", 3).putString("phrases", phrasesBox.text.toString()).apply()
+        prefs.edit().putString("script", phrase3Script).putInt("mentionsN", 3).apply()
         if (avisar) toast("📌 Todo fijo: frase + 3 menciones")
+    }
+
+    /** Pone en «TUS FRASES» las frases fijas elegidas: Trono + bolso, Chris Botti o las mías. */
+    private fun ponerFrasesFijas() {
+        val l = when (prefs.getString("frases_fijas", "mias")) {
+            "trono" -> Macro.fixedPhrases(this)
+            "botti" -> Macro.chrisBottiPhrases(this)
+            else -> (prefs.getString("mis_frases_fijas", null) ?: phrasesBox.text.toString()).lines().map { it.trim() }.filter { it.isNotEmpty() }
+                .ifEmpty { Macro.fixedPhrases(this) }
+        }
+        phrasesBox.setText(l.joinToString("\n"))
+        prefs.edit().putString("phrases", phrasesBox.text.toString()).apply()
+    }
+
+    /** Lista con casillas de todas las frases (Trono + bolso, Chris Botti y las tuyas) para elegir las fijas. */
+    private fun elegirFrases(vacio: Boolean = false) {
+        val actuales = phrasesBox.text.toString().lines().map { it.trim() }.filter { it.isNotEmpty() }
+        val todas = (actuales + Macro.fixedPhrases(this) + Macro.chrisBottiPhrases(this)).distinct()
+        val marcadas = BooleanArray(todas.size) { !vacio && todas[it] in actuales }
+        AlertDialog.Builder(this)
+            .setTitle(if (vacio) "Elige tus frases fijas" else "Elige tus frases fijas (${actuales.size} marcadas)")
+            .setMultiChoiceItems(todas.toTypedArray(), marcadas) { _, i, on -> marcadas[i] = on }
+            .setPositiveButton("Guardar") { _, _ ->
+                val elegidas = todas.filterIndexed { i, _ -> marcadas[i] }
+                if (elegidas.isEmpty()) { toast("No has marcado ninguna frase"); return@setPositiveButton }
+                prefs.edit().putString("mis_frases_fijas", elegidas.joinToString("\n")).putString("frases_fijas", "mias").apply()
+                frasesFijas.setSelection(2)
+                ponerFrasesFijas()
+                toast("Guardadas ${elegidas.size} frases fijas")
+            }
+            .setNeutralButton("Desmarcar todas") { _, _ -> elegirFrases(true) }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
     /** Pone el guion «Frase + 3 menciones», 3 menciones y las frases de siempre si no hay ninguna. */
