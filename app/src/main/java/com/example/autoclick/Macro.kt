@@ -1067,7 +1067,7 @@ object Macro {
         /** Frases de Chris Botti sin repetir hasta haber usado todas. */
         private val soloPool = ArrayList<String>()
 
-        /** «escribir solo frase»: escribe SOLO una frase de la lista Chris Botti, sin menciones. */
+        /** «escribir solo frase»: escribe SOLO una frase (de tus frases; si no hay, de Chris Botti), sin menciones. */
         private fun writeOnlyPhrase(c: Cmd) {
             if (last != 0L) {
                 val wait = last + MIN_GAP_MS - System.currentTimeMillis()
@@ -1075,7 +1075,10 @@ object Macro {
             }
             val f = findField()
             if (f == null) { retry("la caja de texto"); return }
-            if (soloPool.isEmpty()) soloPool.addAll(chrisBottiPhrases(s))
+            // Tus frases (las de «TUS FRASES» o las del Etiquetador); si no hay ninguna, las de Chris Botti
+            if (soloPool.isEmpty()) soloPool.addAll(
+                (s.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE).getString("phrases", "") ?: "")
+                    .lines().map { it.trim() }.filter { it.isNotEmpty() }.ifEmpty { chrisBottiPhrases(s) })
             if (soloPool.isEmpty()) {
                 finish("No encuentro las frases de Chris Botti. Guion detenido.")
                 return

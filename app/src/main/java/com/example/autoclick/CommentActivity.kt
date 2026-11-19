@@ -677,6 +677,14 @@ repetir 8"""
     }
 
     private fun saveAll() {
+        // Si has cambiado a mano «TUS FRASES», se quedan como tus frases fijas (no se ponen otra vez las de Chris Botti)
+        val ahora = phrasesBox.text.toString().trim()
+        val modo = prefs.getString("frases_fijas", "mias")
+        val deLista = when (modo) { "trono" -> Macro.fixedPhrases(this); "botti" -> Macro.chrisBottiPhrases(this); else -> null }
+        if (ahora.isNotEmpty() && (deLista == null || ahora != deLista.joinToString("\n").trim())) {
+            prefs.edit().putString("frases_fijas", "mias").putString("mis_frases_fijas", ahora).apply()
+            if (modo != "mias") frasesFijas.setSelection(2)
+        }
         prefs.edit()
             .putString("script", script.text.toString())
             .putString("comments", box.text.toString())

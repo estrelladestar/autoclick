@@ -112,6 +112,27 @@ class EtiquetadorActivity : Activity() {
             e.apply()
         }
 
+        /**
+         * Las frases del cuadro «Mis palabras o frases»: modo «mias» (las que escribes), «botti» o «trono».
+         * Se guardan también como frases de la app, así el guion usa las mismas.
+         */
+        @JavascriptInterface
+        fun savePhrases(modo: String, text: String) {
+            val e = getSharedPreferences("cfg", Context.MODE_PRIVATE).edit()
+                .putString("frases_fijas", modo).putString("phrases", text)
+            if (modo == "mias") e.putString("mis_frases_fijas", text)
+            e.apply()
+        }
+
+        /** Qué frases tiene puestas la app: {"modo": "mias|botti|trono", "texto": "..."} */
+        @JavascriptInterface
+        fun getPhrases(): String {
+            val p = getSharedPreferences("cfg", Context.MODE_PRIVATE)
+            val modo = p.getString("frases_fijas", "") ?: ""
+            val texto = if (modo == "mias") (p.getString("mis_frases_fijas", null) ?: p.getString("phrases", "") ?: "") else ""
+            return org.json.JSONObject().put("modo", modo).put("texto", texto).toString()
+        }
+
         /** Guarda los comentarios generados en la lista de la página («TUS COMENTARIOS» del guion). */
         @JavascriptInterface
         fun saveComments(text: String) {
