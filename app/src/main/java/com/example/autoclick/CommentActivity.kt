@@ -435,9 +435,15 @@ repetir 8"""
             root.addView(this)
         }
         Button(ctx).apply {
-            text = "+ Añadir imagen"
+            text = "📁 MIS FOTOS GUARDADAS (elegir o guardar muchas)"
+            setOnClickListener { Galeria.mostrar(this@CommentActivity, null, "📁 Mis fotos") { refreshImages(); refreshStatus() } }
+            root.addView(this)
+        }
+        Button(ctx).apply {
+            text = "+ Añadir imagen (PNG o JPG)"
             setOnClickListener {
-                startActivityForResult(Intent(Intent.ACTION_GET_CONTENT).apply { type = "image/*" }, pickCode)
+                try { startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).apply { addCategory(Intent.CATEGORY_OPENABLE); type = "image/*"; putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/png", "image/jpeg", "image/webp", "image/*")) }, pickCode) }
+                catch (e: Exception) { startActivityForResult(Intent(Intent.ACTION_GET_CONTENT).apply { type = "image/*" }, pickCode) }
             }
             root.addView(this)
         }
@@ -692,6 +698,10 @@ repetir 8"""
         if (requestCode == pickCode && resultCode == RESULT_OK) {
             val uri = data?.data ?: return
             addImage(uri)
+            Galeria.guardar(this, uri)   // también queda guardada en «Mis fotos»
+        }
+        if (requestCode == Galeria.PEDIR && resultCode == RESULT_OK) {
+            Galeria.recibir(this, data) { refreshImages(); refreshStatus() }
         }
         if (requestCode == exportCode && resultCode == RESULT_OK) {
             val uri = data?.data ?: return
@@ -1089,6 +1099,12 @@ repetir 8"""
                 },
                 LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
             )
+            row.addView(Button(this).apply {
+                text = "🔄"
+                setOnClickListener {
+                    Galeria.mostrar(this@CommentActivity, st.id, "Elige la nueva imagen ${n + 1}") { refreshImages(); refreshStatus() }
+                }
+            })
             row.addView(Button(this).apply {
                 text = "✕"
                 setOnClickListener { confirmDeleteImage(st, n + 1) }

@@ -102,10 +102,12 @@ class MainActivity : Activity() {
             orientation = LinearLayout.VERTICAL
             root.addView(this)
         }
-        button("+ Añadir imagen") {
-            startActivityForResult(
-                Intent(Intent.ACTION_GET_CONTENT).apply { type = "image/*" }, pickCode
-            )
+        button("📁 Mis fotos guardadas (elegir o guardar muchas)") {
+            Galeria.mostrar(this, null, "📁 Mis fotos") { steps = StepStore.load(this); refreshList() }
+        }
+        button("+ Añadir imagen (PNG o JPG)") {
+            try { startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).apply { addCategory(Intent.CATEGORY_OPENABLE); type = "image/*"; putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/png", "image/jpeg", "image/webp", "image/*")) }, pickCode) }
+            catch (e: Exception) { startActivityForResult(Intent(Intent.ACTION_GET_CONTENT).apply { type = "image/*" }, pickCode) }
         }
         button("+ Añadir palabra") { askWord() }
         button("+ Añadir punto (tú eliges dónde pulsar)") {
@@ -379,8 +381,13 @@ class MainActivity : Activity() {
             }
             return
         }
+        if (requestCode == Galeria.PEDIR && resultCode == RESULT_OK) {
+            Galeria.recibir(this, data) { steps = StepStore.load(this); refreshList() }
+            return
+        }
         if (requestCode != pickCode || resultCode != RESULT_OK) return
         val uri = data?.data ?: return
+        Galeria.guardar(this, uri)   // también queda guardada en «Mis fotos»
         val id = System.currentTimeMillis()
         val name = "img_" + id + ".png"
         contentResolver.openInputStream(uri)?.use { input ->
