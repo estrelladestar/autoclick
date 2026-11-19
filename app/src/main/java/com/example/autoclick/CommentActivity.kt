@@ -320,8 +320,10 @@ repetir 8"""
             root.addView(this)
         }
         Button(ctx).apply {
-            text = "▶ Iniciar"
-            setOnClickListener { startBtn.performClick() }
+            text = "🚀 EMPEZAR TODO AUTOMÁTICO"
+            textSize = 17f
+            // Hace el guion solo con lo que hay elegido en el panel y lo empieza: no hay que escribir nada
+            setOnClickListener { aplicarPanel(false); startBtn.performClick() }
             root.addView(this)
         }
         // ---------- 🎯 PANEL FÁCIL: eliges y el guion se hace solo ----------
@@ -330,6 +332,7 @@ repetir 8"""
             textSize = 19f; setTypeface(null, Typeface.BOLD); setPadding(0, 28, 0, 4)
             root.addView(this)
         }
+        label("No tienes que escribir ningún guion: la app lo hace sola con lo que elijas aquí. Cuando esté todo, pulsa 🚀.")
         label("1️⃣ ¿Cuántas menciones?")
         panelMenciones = Spinner(ctx).apply {
             adapter = ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item,
@@ -727,7 +730,7 @@ repetir 8"""
         )
 
         startBtn = Button(ctx).apply {
-            text = "Iniciar"
+            text = "▶ Iniciar el guion de abajo (solo si lo editas a mano)"
             setOnClickListener {
                 val list = box.text.toString().lines().map { it.trim() }.filter { it.isNotEmpty() }
                 val s = ClickService.instance
