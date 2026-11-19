@@ -62,7 +62,8 @@ repetir 1000"""
     private val slow2Name = "⭐ Mi guion lento, 2 menciones (fijo)"
     /** Igual que «Mi guion», pero cada comentario lleva SIEMPRE una frase y 3 menciones. */
     private val phrase3Name = "⭐ Frase + 3 menciones (fijo)"
-    private val phrase3Script get() = defaultScript.replace("escribir menciones 1", "escribir menciones 3 frase")
+    private val phrase3Script get() = defaultScript.replace("escribir menciones 1", "escribir menciones 3 frase").let {
+        if (packageName.endsWith(".historias")) it.replaceFirst("seguir\n", "seguir\nesperar 1-3\nhistoria frase menciones 3\nesperar 3-5\n") else it }
     private val slow2Script get() = defaultScript.replace("escribir menciones 1", "escribir menciones 2 lento 5-20")
     /** Como el lento, pero escribiendo más rápido: la mitad de las veces tarda entre 2 y 5 segundos. */
     private val fastName = "⭐ Mi guion rápido (fijo)"
@@ -314,6 +315,13 @@ repetir 8"""
             setOnClickListener { startBtn.performClick() }
             root.addView(this)
         }
+        // Un toque: guion con frase + 3 menciones (y en Star App Historias, también la historia con frase y 3 menciones)
+        Button(ctx).apply {
+            text = if (packageName.endsWith(".historias")) "⭐ FRASE + 3 MENCIONES (comentarios e historia)" else "⭐ FRASE + 3 MENCIONES"
+            textSize = 17f
+            setOnClickListener { ponerFrase3() }
+            root.addView(this)
+        }
         if (isXiaomi()) {
             // En Xiaomi / Redmi / POCO el móvil para la app si no se le dan estos permisos
             val xBar = LinearLayout(ctx).apply {
@@ -451,7 +459,7 @@ repetir 8"""
             "• megusta → en la publicación abierta da me gusta, solo si el corazón no está rojo (si ya está rojo no lo toca)\n" +
             "• seguir → si junto al nombre de la cuenta pone «Seguir», la sigue; si ya pone «Siguiendo», no hace nada\n" +
             "• comprobar → con los comentarios abiertos, mira desde la cuenta nueva si se ve el último comentario de la cuenta anterior (en «Los más recientes») y lo apunta en 📊 Registro\n" +
-            "• historia → (solo en Star App Historias) sube la publicación a tu historia y etiqueta a la cuenta que la publicó; «historia @cuenta» etiqueta a esa. Cada cuenta tuya lo hace una sola vez por enlace\n" +
+            "• historia → (solo en Star App Historias) sube la publicación a tu historia y etiqueta a la cuenta que la publicó; «historia @cuenta» etiqueta a esa; «historia frase menciones 3» escribe además una frase y 3 menciones. Cada cuenta tuya lo hace una sola vez por enlace\n" +
             "• inicio → sale a la pantalla principal y baja y sube por las publicaciones (con «inicio azar», solo a veces); después pon «enlace»\n" +
             "• limite 20 → cada cuenta hace como mucho 20 comentarios al día; luego pasa a la siguiente\n" +
             "• hora 21:30 → espera hasta esa hora para seguir (deja el móvil encendido)\n" +
@@ -493,7 +501,7 @@ repetir 8"""
             gravity = Gravity.TOP
             typeface = Typeface.MONOSPACE
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
-            setText(prefs.getString("script", defaultScript))
+            setText(prefs.getString("script", null) ?: phrase3Script)
             root.addView(this)
         }
         // El selector carga el guion elegido (se ignora la primera llamada automática)
@@ -1185,6 +1193,24 @@ repetir 8"""
                 toast("Guion puesto. Comprueba tus comentarios y menciones y pulsa Iniciar.")
             }
             .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    /** Pone el guion «Frase + 3 menciones», 3 menciones y las frases de siempre si no hay ninguna. */
+    private fun ponerFrase3() {
+        script.setText(phrase3Script)
+        mentionsN.setSelection(2)
+        if (phrasesBox.text.isBlank()) phrasesBox.setText(Macro.fixedPhrases(this).joinToString("\n"))
+        refreshSaved(phrase3Name)
+        prefs.edit().putString("script", phrase3Script).putInt("mentionsN", 3).putString("phrases", phrasesBox.text.toString()).apply()
+        val faltan = if (friendsBox.text.isBlank()) "\n\n⚠ Todavía no tienes menciones: ponlas en «TUS MENCIONES» o en el cuadro «Menciones» del Etiquetador." else ""
+        AlertDialog.Builder(this)
+            .setTitle("⭐ Listo: frase + 3 menciones")
+            .setMessage((if (packageName.endsWith(".historias"))
+                "Cada comentario llevará una frase y 3 menciones.\n\nY al abrir cada publicación la subirá a tu historia escribiendo una frase, la cuenta de la tienda y 3 menciones (una vez por cuenta y enlace)."
+            else "Cada comentario llevará una frase y 3 menciones de tu lista.") +
+                "\n\nLas frases salen de «TUS FRASES» (están puestas las de siempre). Pulsa ▶ Iniciar." + faltan)
+            .setPositiveButton("Vale", null)
             .show()
     }
 

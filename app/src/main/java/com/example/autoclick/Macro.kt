@@ -418,6 +418,8 @@ object Macro {
         private var postedUrl = ""
         private var visPhase = 0
         private var shareOwner = ""
+        /** Texto que se escribe en la historia: la frase, la cuenta y las menciones («historia frase menciones 3»). */
+        private var storyText = ""
         /** Cuenta que se acaba de tocar en la lista y dónde (para comprobar que de verdad se cambió). */
         private var pendingSwitch: Triple<String, Float, Float>? = null
         private var switchChecks = 0
@@ -1938,6 +1940,20 @@ object Macro {
             p.edit().putString("historias_hechas", (old + storyKey()).distinct().takeLast(500).joinToString("\n")).apply()
         }
 
+        /** «frase|@men1 @men2 @men3» para la historia (frase de tu cuadro de frases o las fijas; menciones de tu lista). */
+        private fun storyTextFor(wantPhrase: Boolean, nMen: Int): String {
+            if (!wantPhrase && nMen == 0) return ""
+            val prefs = s.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE)
+            val phrase = if (!wantPhrase) "" else
+                (prefs.getString("phrases", "") ?: "").lines().map { it.trim() }.filter { it.isNotEmpty() }
+                    .ifEmpty { fixedPhrases(s) }.randomOrNull() ?: ""
+            val friends = (prefs.getString("friends", "") ?: "").lines().map { it.trim() }.filter { it.isNotEmpty() }
+                .map { if (it.startsWith("@")) it else "@$it" }.distinct()
+                .filter { it.removePrefix("@").lowercase() != shareOwner.lowercase() }
+            val men = friends.shuffled().take(nMen).joinToString(" ")
+            return "$phrase|$men"
+        }
+
         /** Algo ha fallado al subir la historia: vuelve a abrir la publicación y sigue con el guion. */
         private fun storyGiveUp(c: Cmd, why: String) {
             trace("  ⚠ no he podido subir la historia: $why. Vuelvo a la publicación y sigo")
@@ -1973,7 +1989,13 @@ object Macro {
                         return
                     }
                     // A quién etiquetar: la cuenta que pongas o la que publicó (el nombre de arriba de la publicación)
-                    shareOwner = c.arg.trim().removePrefix("@")
+                    // «historia frase menciones 3»: además escribe una frase y 3 menciones de tu lista
+                    val toks = c.arg.trim().split(" ").filter { it.isNotEmpty() }
+                    val kw = setOf("frase", "frases", "menciones", "mencion", "mención")
+                    val wantPhrase = toks.any { it.lowercase() == "frase" || it.lowercase() == "frases" }
+                    val mi = toks.indexOfFirst { it.lowercase().startsWith("mencion") || it.lowercase() == "mención" }
+                    val nMen = if (mi < 0) 0 else (toks.getOrNull(mi + 1)?.toIntOrNull() ?: 3).coerceIn(1, 5)
+                    shareOwner = toks.firstOrNull { it.lowercase() !in kw && it.toIntOrNull() == null }?.removePrefix("@") ?: ""
                     if (shareOwner.isEmpty()) {
                         val nameRect = findIg { _, _, n -> n.viewIdResourceName?.endsWith("row_feed_photo_profile_name") == true }
                         if (nameRect != null) {
@@ -1984,6 +2006,7 @@ object Macro {
                             }
                         }
                     }
+                    storyText = storyTextFor(wantPhrase, nMen)
                     val share = findIg { t, r, n ->
                         n.viewIdResourceName?.endsWith("row_feed_button_share") == true ||
                             (r.exactCenterX() < w * 0.5f && t in setOf("compartir", "enviar publicación", "enviar", "share", "send post", "send"))
@@ -2006,7 +2029,7 @@ object Macro {
                     later(4000L)
                 }
                 2 -> {
-                    if (shareOwner.isEmpty()) { sharePhase = 5; later(500L); return }
+                    if (shareOwner.isEmpty() && storyText.isEmpty()) { sharePhase = 5; later(500L); return }
                     // Abrir el texto: el botón «Aa» o, si no se ve, tocar arriba en un hueco de la pantalla
                     val aa = findIg { t, r, _ -> r.exactCenterY() < h * 0.2f && (t == "aa" || t == "texto" || t == "text" || t == "añadir texto" || t == "add text") }
                     if (aa != null) tap(aa) else s.tapAt(w * 0.5f, h * 0.22f)
@@ -2019,7 +2042,12 @@ object Macro {
                         if (tries < 2) { tries++; sharePhase = 2; later(1000L) } else storyGiveUp(c, "dónde escribir el texto")
                         return
                     }
-                    putText(f, "@$shareOwner")
+                    // Primero la frase, luego la cuenta de la publicación y tus menciones
+                    val parts = storyText.split("|")
+                    val full = listOf(parts.getOrElse(0) { "" }, if (shareOwner.isNotEmpty()) "@$shareOwner" else "", parts.getOrElse(1) { "" })
+                        .filter { it.isNotBlank() }.joinToString(" ")
+                    trace("  escribo en la historia: $full")
+                    putText(f, full)
                     sharePhase = 4
                     tries = 0
                     later(2500L)
@@ -2027,7 +2055,7 @@ object Macro {
                 4 -> {
                     // Tocar la sugerencia con ese nombre (así queda como etiqueta de verdad) y luego «Listo»
                     val sug = findIg { t, r, n -> !n.isEditable && t == shareOwner.lowercase() && r.exactCenterY() > h * 0.3f }
-                    if (sug != null && tries == 0) {
+                    if (sug != null && tries == 0 && storyText.isEmpty()) {
                         tap(sug)
                         tries = 1
                         later(1500L)
