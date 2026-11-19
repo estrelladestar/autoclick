@@ -268,6 +268,9 @@ repetir 8"""
     private lateinit var frasesFijas: Spinner
     private lateinit var panelMenciones: Spinner
     private lateinit var panelFrase: Spinner
+    private lateinit var panelSeguidos: EditText
+    private lateinit var panelHistMin: EditText
+    private lateinit var panelCuentas: EditText
     private lateinit var panelResumen: TextView
     private lateinit var phrasePos: Spinner
     private lateinit var phraseChance: EditText
@@ -377,6 +380,37 @@ repetir 8"""
             textSize = 15f
             isChecked = prefs.getBoolean("p_seguirdesc", true)
             setOnCheckedChangeListener { _, on -> prefs.edit().putBoolean("p_seguirdesc", on).apply(); aplicarPanel(true) }
+            root.addView(this)
+        }
+        // 5️⃣ Ciclo completo: en cada cuenta comenta seguido, mira historias, cambia de cuenta y vuelve a empezar
+        label("5️⃣ Ciclo completo (se repite solo, para con ■):")
+        CheckBox(ctx).apply {
+            text = "🔁 Comentar seguido, mirar historias, cambiar de cuenta y repetir todo"
+            textSize = 15f
+            isChecked = prefs.getBoolean("p_ciclo", true)
+            setOnCheckedChangeListener { _, on -> prefs.edit().putBoolean("p_ciclo", on).apply(); aplicarPanel(true) }
+            root.addView(this)
+        }
+        label("¿Cuántos comentarios seguidos en cada publicación?")
+        panelSeguidos = EditText(ctx).apply {
+            inputType = InputType.TYPE_CLASS_NUMBER
+            setText(prefs.getInt("p_seguidos", 10).toString())
+            setOnFocusChangeListener { _, f -> if (!f) { prefs.edit().putInt("p_seguidos", text.toString().toIntOrNull()?.coerceIn(1, 50) ?: 10).apply(); aplicarPanel(false) } }
+            root.addView(this)
+        }
+        label("¿Cuántos minutos mirar historias? (entre dos números, ej. 1-2)")
+        panelHistMin = EditText(ctx).apply {
+            inputType = InputType.TYPE_CLASS_TEXT
+            setText(prefs.getString("p_hist_min", "1-2"))
+            setOnFocusChangeListener { _, f -> if (!f) { prefs.edit().putString("p_hist_min", text.toString().trim().ifEmpty { "1-2" }).apply(); aplicarPanel(false) } }
+            root.addView(this)
+        }
+        label("¿Qué cuentas usar y en qué orden? (separadas por espacio; vacío = todas las de Instagram)")
+        panelCuentas = EditText(ctx).apply {
+            inputType = InputType.TYPE_CLASS_TEXT
+            hint = "cory_gm0 nuberosa56 del_mar190 …"
+            setText(prefs.getString("p_cuentas", "") ?: "")
+            setOnFocusChangeListener { _, f -> if (!f) { prefs.edit().putString("p_cuentas", text.toString().trim()).apply(); aplicarPanel(false) } }
             root.addView(this)
         }
         panelResumen = TextView(ctx).apply {
@@ -543,6 +577,7 @@ repetir 8"""
             "• cuenta siguiente (sin línea «cuentas») → va pasando por TODAS las cuentas que tengas en Instagram\n" +
             "• cuenta doble → doble toque en tu foto de perfil (Instagram solo salta entre tus 2 últimas cuentas)\n" +
             "• descanso 10-20 → pausa al azar de 10 a 20 minutos\n" +
+            "• historias 1-2 min → abre las historias de arriba y las mira entre 1 y 2 minutos\n" +
             "• historias 3-5 → abre las historias de arriba y ve entre 3 y 5 pasándolas (con «historias azar», solo a veces); después pon «enlace»\n" +
             "• escribir menciones 1 lento 5-20 → la mitad de las veces (al azar) escribe poco a poco, tardando entre 5 y 20 segundos; las demás, de golpe\n" +
             "• megusta → en la publicación abierta da me gusta, solo si el corazón no está rojo (si ya está rojo no lo toca)\n" +
@@ -1351,12 +1386,37 @@ repetir 8"""
         return g
     }
 
+    /**
+     * Ciclo completo: en cada cuenta sigue a la tienda, da me gusta, sigue las cuentas de la descripción,
+     * escribe N comentarios seguidos (cada uno con sus menciones y frase), mira historias unos minutos
+     * y cambia a la siguiente cuenta. Se repite con «repetir» hasta que lo pares con ■.
+     */
+    private fun cicloElegido(n: Int, frase: Boolean): String {
+        val linea = when { n == 0 -> "escribir solo frase"; frase -> "escribir menciones $n frase"; else -> "escribir menciones $n sinfrase" }
+        val seguidos = prefs.getInt("p_seguidos", 10).coerceIn(1, 50)
+        val minutos = (prefs.getString("p_hist_min", "1-2") ?: "1-2").trim().ifEmpty { "1-2" }
+        val cuentas = (prefs.getString("p_cuentas", "") ?: "").trim().split(Regex("[\\s,;]+")).map { it.removePrefix("@") }.filter { it.isNotEmpty() }
+        val sb = StringBuilder()
+        if (cuentas.size >= 2) sb.append("cuentas ${cuentas.joinToString(" ")}\n")
+        sb.append("enlace\nesperar 8\nseguir\nesperar 1-3\n")
+        if (packageName.endsWith(".historias")) sb.append("historia\nesperar 3-5\n")
+        if (prefs.getBoolean("p_megusta", true)) sb.append("megusta\nesperar 1-2\n")
+        if (prefs.getBoolean("p_seguirdesc", true)) sb.append("seguir descripcion\nesperar 2-4\n")
+        for (k in 1..seguidos) {
+            if (k > 1) sb.append("mirar azar\n")
+            sb.append("imagen 1 opcional | 3-8\n$linea\nesperar 3-8\nimagen 2 | 3-8\n")
+        }
+        sb.append("historias $minutos min\ncuenta siguiente\nrepetir 1000")
+        return sb.toString()
+    }
+
     /** Lee el panel fácil, pone el guion que toca y enseña cómo quedará cada comentario. */
     private fun aplicarPanel(avisar: Boolean) {
         val n = panelMenciones.selectedItemPosition
         var frase = panelFrase.selectedItemPosition == 0
         if (n == 0 && !frase) { frase = true; panelFrase.setSelection(0); toast("Sin menciones tiene que llevar frase") }
-        val g = guionElegido(n, frase)
+        val ciclo = prefs.getBoolean("p_ciclo", true)
+        val g = if (ciclo) cicloElegido(n, frase) else guionElegido(n, frase)
         script.setText(g)
         if (n > 0) mentionsN.setSelection(n - 1)
         prefs.edit().putInt("p_menciones", n).putBoolean("p_frase", frase).putString("script", g).apply()
@@ -1370,6 +1430,7 @@ repetir 8"""
             (if (packageName.endsWith(".historias")) "\n📸 La historia: " + "@tienda etiquetada" else "") +
             (if (prefs.getBoolean("p_megusta", true)) "\n❤️ Me gusta si el corazón está vacío" else "") +
             (if (prefs.getBoolean("p_seguirdesc", true)) "\n➕ Sigue a las cuentas de la descripción que no sigues" else "") +
+            (if (ciclo) "\n🔁 Ciclo: ${prefs.getInt("p_seguidos", 10).coerceIn(1, 50)} comentarios seguidos en cada publicación, historias ${prefs.getString("p_hist_min", "1-2")} min, cambia de cuenta y repite (para con ■)" else "") +
             "\n🖼 Imagen 1 = bocadillo · Imagen 2 = flecha\n👉 Pulsa ▶ Iniciar"
         if (avisar) toast("Listo: " + when { n == 0 -> "solo frase"; frase -> "frase + $n " + (if (n == 1) "mención" else "menciones"); else -> "$n " + (if (n == 1) "mención" else "menciones") + " sin frase" })
     }

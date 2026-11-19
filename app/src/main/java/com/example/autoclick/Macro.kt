@@ -417,6 +417,8 @@ object Macro {
         /** Para «historias»: en qué parte va y cuántas quedan por ver. */
         private var storyPhase = 0
         private var storiesLeft = 0
+        /** «historias 1-2 min»: hasta cuándo se miran las historias (0 = se cuentan por número). */
+        private var storyEnd = 0L
         /** «historia»: en qué paso va al subir la publicación a la historia y a quién etiqueta. */
         private var sharePhase = 0
         /** «seguir descripcion»: en qué parte va, las cuentas mencionadas en la descripción y cuál toca. */
@@ -2430,14 +2432,25 @@ object Macro {
                     if (inStoryViewer()) {
                         // «historias 3» = 3; «historias 3-5» = entre 3 y 5 al azar
                         val m = Regex("(\\d+)\\s*-\\s*(\\d+)").find(a)
-                        storiesLeft = if (m != null) {
-                            val lo = m.groupValues[1].toInt()
-                            val hi = maxOf(lo, m.groupValues[2].toInt())
-                            lo + (Math.random() * (hi - lo + 1)).toInt()
+                        if (a.contains("min")) {
+                            // «historias 1-2 min» = mirarlas entre 1 y 2 minutos (al azar)
+                            val lo = (m?.groupValues?.get(1)?.toIntOrNull() ?: Regex("\\d+").find(a)?.value?.toIntOrNull() ?: 1).coerceIn(1, 10)
+                            val hi = maxOf(lo, m?.groupValues?.get(2)?.toIntOrNull() ?: lo).coerceIn(lo, 10)
+                            val mins = lo + (Math.random() * (hi - lo + 1)).toInt()
+                            storyEnd = System.currentTimeMillis() + mins * 60_000L
+                            storiesLeft = 999
+                            trace("  viendo historias durante $mins min")
                         } else {
-                            Regex("\\d+").find(a)?.value?.toIntOrNull() ?: 3
-                        }.coerceIn(1, 20)
-                        trace("  viendo historias ($storiesLeft)")
+                            storyEnd = 0L
+                            storiesLeft = if (m != null) {
+                                val lo = m.groupValues[1].toInt()
+                                val hi = maxOf(lo, m.groupValues[2].toInt())
+                                lo + (Math.random() * (hi - lo + 1)).toInt()
+                            } else {
+                                Regex("\\d+").find(a)?.value?.toIntOrNull() ?: 3
+                            }.coerceIn(1, 20)
+                            trace("  viendo historias ($storiesLeft)")
+                        }
                         storyPhase = 3
                         later(3000L + (Math.random() * 3000).toLong())
                     } else if (tries < 2) {
@@ -2452,7 +2465,7 @@ object Macro {
                 }
                 3 -> {
                     storiesLeft--
-                    if (storiesLeft <= 0 || !inStoryViewer()) {
+                    if (storiesLeft <= 0 || !inStoryViewer() || (storyEnd > 0L && System.currentTimeMillis() >= storyEnd)) {
                         storyPhase = 4
                         tries = 0
                         later(300L)
@@ -2466,6 +2479,7 @@ object Macro {
                 }
                 else -> {
                     // Cerrar las historias
+                    storyEnd = 0L
                     if (inStoryViewer() && tries < 3) {
                         tries++
                         trace("  cierro las historias")
