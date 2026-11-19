@@ -207,9 +207,12 @@ class MainActivity : Activity() {
     override fun onResume() {
         super.onResume()
         // Imágenes fijas: el bocadillo (imagen 1) y la flecha de enviar (imagen 2) siempre van las primeras de la lista
-        val fijaNombres = listOf("img_fija_0_bocadillo.png", "img_fija_1_flecha.jpg")
-        val fijaAssets = listOf("bocadillo.png", "flecha.jpg")
-        val todas = StepStore.load(this)
+        // El bocadillo es ahora el negro con fondo transparente (el del fondo gris ya no se usa)
+        val fijaNombres = listOf("img_fija_0_bocadillo_t.png", "img_fija_1_flecha.jpg")
+        val fijaAssets = listOf("bocadillo_t.png", "flecha.jpg")
+        val viejas = listOf("img_fija_0_bocadillo.png")
+        val todas = StepStore.load(this).filterNot { it.type == "image" && it.value in viejas }.toMutableList()
+        viejas.forEach { File(filesDir, it).delete() }
         val now = System.currentTimeMillis()
         val fijas = fijaNombres.mapIndexed { i, nombre ->
             todas.firstOrNull { it.type == "image" && it.value == nombre } ?: run {
@@ -220,7 +223,7 @@ class MainActivity : Activity() {
         }
         val resto = todas.filterNot { it.type == "image" && it.value in fijaNombres }
         val nueva = fijas + resto
-        if (nueva != todas) StepStore.save(this, nueva)
+        if (nueva != StepStore.load(this)) StepStore.save(this, nueva)
         steps = StepStore.load(this)
         refreshList()
         // El Etiquetador puede haber cambiado los enlaces mientras esta pantalla estaba en segundo plano.
