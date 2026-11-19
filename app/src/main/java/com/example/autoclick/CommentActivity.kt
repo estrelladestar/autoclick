@@ -65,7 +65,7 @@ repetir 1000"""
     /** Usa las 2 imágenes que ya vienen puestas: imagen 1 = bocadillo 💬 (abre los comentarios), imagen 2 = flecha de enviar. */
     private val phrase3Script get() = defaultScript.replace("escribir menciones 1", "escribir menciones 3 frase")
         .replace("imagen 3 |", "IMGPUB").replace("imagen 2 |", "imagen 1 opcional |").replace("imagen 1 |", "imagen 1 opcional |").replace("IMGPUB", "imagen 2 |").let {
-        if (packageName.endsWith(".historias")) it.replaceFirst("seguir\n", "seguir\nesperar 1-3\nhistoria frase menciones 3\nesperar 3-5\n") else it }
+        if (packageName.endsWith(".historias")) it.replaceFirst("seguir\n", "seguir\nesperar 1-3\nhistoria menciones 3\nesperar 3-5\n") else it }
     private val slow2Script get() = defaultScript.replace("escribir menciones 1", "escribir menciones 2 lento 5-20")
     /** Como el lento, pero escribiendo más rápido: la mitad de las veces tarda entre 2 y 5 segundos. */
     private val fastName = "⭐ Mi guion rápido (fijo)"
@@ -1328,7 +1328,8 @@ repetir 8"""
         var g = defaultScript.replace("escribir menciones 1", linea)
             .replace("imagen 3 |", "IMGPUB").replace("imagen 2 |", "imagen 1 opcional |").replace("imagen 1 |", "imagen 1 opcional |").replace("IMGPUB", "imagen 2 |")
         if (packageName.endsWith(".historias")) {
-            val h = "historia" + (if (frase) " frase" else "") + (if (n > 0) " menciones $n" else "")
+            // En la historia: la tienda etiquetada y tus menciones, sin frase
+            val h = "historia" + (if (n > 0) " menciones $n" else "")
             g = g.replaceFirst("seguir\n", "seguir\nesperar 1-3\n$h\nesperar 3-5\n")
         }
         return g
@@ -1350,7 +1351,7 @@ repetir 8"""
         panelResumen.text = "✏️ Cada comentario será: $ejemplo" +
             (if (frase) "\n💬 Frases: $qf" else "") +
             (if (n > 0) "\n👥 Menciones de tu lista «TUS MENCIONES»" else "") +
-            (if (packageName.endsWith(".historias")) "\n📸 La historia: " + listOfNotNull(if (frase) "frase" else null, "@tienda", if (n > 0) "$n menciones" else null).joinToString(" + ") else "") +
+            (if (packageName.endsWith(".historias")) "\n📸 La historia: " + listOfNotNull("@tienda etiquetada", if (n > 0) "$n menciones" else null).joinToString(" + ") else "") +
             "\n🖼 Imagen 1 = bocadillo · Imagen 2 = flecha\n👉 Pulsa ▶ Iniciar"
         if (avisar) toast("Listo: " + when { n == 0 -> "solo frase"; frase -> "frase + $n " + (if (n == 1) "mención" else "menciones"); else -> "$n " + (if (n == 1) "mención" else "menciones") + " sin frase" })
     }
