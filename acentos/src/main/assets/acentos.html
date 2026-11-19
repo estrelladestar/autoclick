@@ -338,7 +338,7 @@ function porQue(p){
 }
 
 /* =========== ESTADO =========== */
-let E = {v:2, monedas:5, nivel:1, av:{traje:'rojo',estilo:'clasico',gorro:'clasico',barba:'larga',colorBarba:'blanca',ojos:'normal',nariz:'normal',mejillas:'rosa',gafas:'redondas',bufanda:'ninguna',mano:'saco',fondo:'nieve'},
+let E = {v:2, monedas:5, nivel:1, av:{traje:'rojo',estilo:'clasico',gorro:'clasico',barba:'larga',colorBarba:'blanca',ojos:'normal',nariz:'roja',mejillas:'rosa',gafas:'ninguna',bufanda:'ninguna',mano:'saco',fondo:'nieve'},
   comprados:[], inv:{}, arbol:[], extras:{}, lucesOn:true, aciertos:0};
 (function carga(){
   try { const raw = B && B.load ? B.load() : localStorage.getItem('acentos'); if (!raw) return; const o = JSON.parse(raw);
@@ -407,7 +407,7 @@ function ir(p){
 function atras(){ if (actual === 'inicio') return 0; ir('inicio'); return 1; }
 function pintaInicio(){
   $('nMon').textContent = E.monedas; pintaNivel();
-  $('escenaSanta').innerHTML = santaSVG(E.av); $('escenaArbol').innerHTML = arbolSVG(false); $('miniSanta').innerHTML = santaSVG(E.av, '20 14 80 80');
+  $('escenaSanta').innerHTML = santaSVG(E.av); $('escenaArbol').innerHTML = arbolSVG(false); $('miniSanta').innerHTML = santaSVG(E.av, '20 -1 80 80');
 }
 function finPartida(gano, texto){
   $('finEmo').textContent = gano ? '🏆' : '⏰';
@@ -715,7 +715,7 @@ const SANTA = {
 };
 const CATS = [['estilo','🎭 Estilos'],['traje','🧥 Color del traje'],['gorro','🎩 Gorros'],['barba','🧔 Barba'],['colorBarba','🎨 Color barba'],['ojos','👀 Ojos'],['nariz','👃 Nariz'],
   ['mejillas','😊 Mejillas'],['gafas','👓 Gafas'],['bufanda','🧣 Cuello'],['mano','🎁 En la mano'],['fondo','🖼️ Fondo']];
-const ZOOM = {ojos:'30 26 60 50',nariz:'30 30 60 50',mejillas:'30 30 60 50',gafas:'26 24 68 56',barba:'18 26 84 84',colorBarba:'18 26 84 84',gorro:'6 -6 108 90'};
+const ZOOM = {ojos:'34.5 26 51 42.5',nariz:'34.5 29.5 51 42.5',mejillas:'34.5 29.5 51 42.5',gafas:'31 24 58 48',barba:'24 26 72 72',colorBarba:'24 26 72 72',gorro:'14 -1 92 77',bufanda:'20 62 80 80',mano:'48 66 72 104'};
 const colorDe = (cat, id) => (SANTA[cat].find(o => o.id === id) || SANTA[cat][0]).c;
 
 /* =========== PAPÁ NOEL: DIBUJO =========== */
@@ -736,11 +736,11 @@ function fondoS(f){
 function ojoS(t, x, y, lado){
   switch (t){
     case 'felices': return `<path d="M${x-4} ${y+1} Q${x} ${y-5} ${x+4} ${y+1}" stroke="#333" stroke-width="2.6" fill="none"/>`;
-    case 'guino': return lado ? `<path d="M${x-4} ${y+1} Q${x} ${y-5} ${x+4} ${y+1}" stroke="#333" stroke-width="2.6" fill="none"/>` : `<circle cx="${x}" cy="${y}" r="3.4" fill="#333"/><circle cx="${x+1.3}" cy="${y-1.3}" r="1.1" fill="#fff"/>`;
+    case 'guino': return lado ? `<path d="M${x-4} ${y+1} Q${x} ${y-5} ${x+4} ${y+1}" stroke="#333" stroke-width="2.6" fill="none"/>` : `<ellipse cx="${x}" cy="${y}" rx="4.6" ry="5.4" fill="#2b2140"/><circle cx="${x+1.6}" cy="${y-2}" r="1.9" fill="#fff"/>`;
     case 'sorpresa': return `<circle cx="${x}" cy="${y}" r="5" fill="#fff" stroke="#333" stroke-width="1.8"/><circle cx="${x}" cy="${y}" r="1.8" fill="#333"/>`;
     case 'estrellas': return estrellaP(x, y, 6, '#FCC419', 'stroke="#E67700" stroke-width="1"');
     case 'corazones': return corazonP(x, y, 4.6, '#F03E3E');
-    default: return `<circle cx="${x}" cy="${y}" r="3.4" fill="#333"/><circle cx="${x+1.3}" cy="${y-1.3}" r="1.1" fill="#fff"/>`;
+    default: return `<ellipse cx="${x}" cy="${y}" rx="4.6" ry="5.4" fill="#2b2140"/><circle cx="${x+1.6}" cy="${y-2}" r="1.9" fill="#fff"/><circle cx="${x-1.6}" cy="${y+2}" r="0.9" fill="#fff"/>`;
   }
 }
 function barbaS(t, c){
@@ -790,7 +790,7 @@ function mejillasS(t){
   if (t === 'mucho') return `<ellipse cx="45" cy="58" rx="6.5" ry="5" fill="#FF6B6B" opacity=".45"/><ellipse cx="75" cy="58" rx="6.5" ry="5" fill="#FF6B6B" opacity=".45"/>`;
   if (t === 'estrellas') return estrellaP(45, 58, 3.6, '#FCC419') + estrellaP(75, 58, 3.6, '#FCC419');
   if (t === 'corazones') return corazonP(45, 58, 2.8, '#F06595') + corazonP(75, 58, 2.8, '#F06595');
-  return `<circle cx="45" cy="58" r="4.5" fill="#FF8787" opacity=".5"/><circle cx="75" cy="58" r="4.5" fill="#FF8787" opacity=".5"/>`;
+  return `<ellipse cx="44" cy="59" rx="6" ry="4.5" fill="#FF8FA3" opacity=".7"/><ellipse cx="76" cy="59" rx="6" ry="4.5" fill="#FF8FA3" opacity=".7"/>`;
 }
 function bufandaS(t){
   const b = (c1, c2) => `<rect x="38" y="78" width="44" height="10" rx="5" fill="${c1}"/><rect x="66" y="82" width="10" height="24" rx="3" fill="${c1}"/>` + (c2 ? `<path d="M46 78 V88 M56 78 V88 M66 90 H76 M66 98 H76" stroke="${c2}" stroke-width="3"/>` : '');
@@ -816,44 +816,85 @@ function manoS(t){
     default: return '';
   }
 }
-function estiloS(t, c, d){
-  // devuelve [detrás, encima del traje, extra cabeza]
+/* Estilos de cuerpo entero. Coordenadas del cuerpo: lienzo 120 x 170, barriga centrada en (60,100). */
+const PIEL = '#FFE0BD';
+function estiloS(t, c){
+  const panzaR = (x, y) => `<text x="${x}" y="${y}" font-size="9">🌺</text>`;
+  const base = {traje:c, manga:c, piernas:c, botas:'#212529', guantes:'#F8F9FA', pelo:true, cinturon:'#212529', hebilla:'#FCC419', ribete:true, panza:'', detras:'', cabeza:'', pies:''};
   switch (t){
-    case 'deportista': return ['', `<rect x="54" y="82" width="12" height="38" fill="#fff" opacity=".9"/><text x="60" y="110" font-size="14" font-weight="bold" text-anchor="middle" fill="${d}" font-family="Arial">10</text>`, `<rect x="36" y="40" width="48" height="6" rx="3" fill="#fff"/><path d="M36 43 H84" stroke="${c}" stroke-width="2"/>`];
-    case 'surfero': return ['', `<path d="M22 120 Q22 86 60 84 Q98 86 98 120Z" fill="#FFE066"/>` + [[36,98],[52,110],[70,96],[86,108],[60,116]].map(p => `<text x="${p[0]}" y="${p[1]}" font-size="9">🌺</text>`).join(''), ''];
-    case 'rockero': return ['', `<path d="M22 120 Q22 86 60 84 Q98 86 98 120Z" fill="#343A40"/><path d="M60 84 L50 120 M60 84 L70 120" stroke="#868E96" stroke-width="2"/><path d="M62 96 L56 106 H62 L58 116 L68 102 H62 L66 96Z" fill="#FCC419"/>` + [40,80].map(x => `<circle cx="${x}" cy="96" r="2" fill="#CED4DA"/>`).join(''), ''];
-    case 'astronauta': return [`<rect x="24" y="80" width="72" height="44" rx="12" fill="#DEE2E6" stroke="#868E96" stroke-width="2"/>`, `<path d="M22 120 Q22 86 60 84 Q98 86 98 120Z" fill="#F8F9FA" stroke="#ADB5BD" stroke-width="2"/><rect x="48" y="96" width="24" height="14" rx="3" fill="#74C0FC"/><circle cx="54" cy="103" r="2" fill="#E03131"/><circle cx="62" cy="103" r="2" fill="#FCC419"/>`, `<circle cx="60" cy="50" r="34" fill="#E7F5FF" fill-opacity=".25" stroke="#868E96" stroke-width="4"/>`];
-    case 'superheroe': return [`<path d="M34 84 L14 122 H106 L86 84Z" fill="${c}"/>`, `<path d="M22 120 Q22 86 60 84 Q98 86 98 120Z" fill="#1C7ED6"/><path d="M50 92 L60 104 L70 92Z" fill="${c}"/><text x="60" y="102" font-size="9" font-weight="bold" text-anchor="middle" fill="#fff" font-family="Arial">N</text>`, `<path d="M42 46 Q60 40 78 46 Q80 54 70 54 Q60 50 50 54 Q40 54 42 46Z" fill="${c}" opacity=".9"/>`];
-    case 'pijama': return ['', `<path d="M22 120 Q22 86 60 84 Q98 86 98 120Z" fill="#B197FC"/>` + [[38,96],[56,106],[76,94],[88,110],[46,114]].map(p => estrellaP(p[0], p[1], 3.5, '#FFE066')).join(''), ''];
-    case 'chef': return ['', `<path d="M22 120 Q22 86 60 84 Q98 86 98 120Z" fill="#fff" stroke="#DEE2E6" stroke-width="2"/>` + [92,102,112].map(y => `<circle cx="54" cy="${y}" r="2" fill="#ADB5BD"/><circle cx="66" cy="${y}" r="2" fill="#ADB5BD"/>`).join(''), ''];
-    case 'pirata': return ['', `<path d="M22 120 Q22 86 60 84 Q98 86 98 120Z" fill="#F8F9FA"/>` + [92,100,108,116].map(y => `<path d="M30 ${y} H90" stroke="#E03131" stroke-width="3"/>`).join('') + `<path d="M40 86 L60 120 L80 86" fill="#343A40"/>`, `<path d="M38 50 Q60 42 82 50" stroke="#212529" stroke-width="2" fill="none"/><ellipse cx="69" cy="50" rx="6" ry="5" fill="#212529"/>`];
-    case 'mago': return [`<path d="M30 86 L16 122 H104 L90 86Z" fill="#5F3DC4"/>`, `<path d="M22 120 Q22 86 60 84 Q98 86 98 120Z" fill="#7048E8"/>` + [[40,100],[64,110],[82,96]].map(p => estrellaP(p[0], p[1], 4, '#FFE066')).join('') + `<path d="M50 104 a5 5 0 1 0 6 -6 a4 4 0 1 1 -6 6Z" fill="#FFE066"/>`, ''];
-    case 'esquiador': return ['', `<path d="M22 120 Q22 86 60 84 Q98 86 98 120Z" fill="${c}"/><path d="M26 100 H94 M26 108 H94" stroke="#fff" stroke-width="3"/>` + [36,48,60,72,84].map(x => `<path d="M${x} 102 l3 3 l3 -3" stroke="#fff" stroke-width="1.5" fill="none"/>`).join(''), ''];
-    case 'elegante': return ['', `<path d="M22 120 Q22 86 60 84 Q98 86 98 120Z" fill="#212529"/><path d="M50 84 L60 108 L70 84Z" fill="#fff"/><path d="M60 84 L56 90 L60 94 L64 90Z" fill="${c}"/><circle cx="60" cy="100" r="1.5" fill="#212529"/><circle cx="60" cy="106" r="1.5" fill="#212529"/><path d="M80 96 L86 94 L84 100Z" fill="${c}"/>`, ''];
-    default: return ['', '', ''];
+    case 'deportista': return {...base, cinturon:null, ribete:false, guantes:PIEL, botas:'#F8F9FA',
+      panza:`<path d="M22 84 H98 M22 90 H98" stroke="#fff" stroke-width="3"/><text x="60" y="118" font-size="22" font-weight="bold" text-anchor="middle" fill="#fff" font-family="Arial">10</text>`,
+      pies:`<path d="M38 157 H58 M62 157 H82" stroke="${c}" stroke-width="2.5"/>`, cabeza:`<rect x="36" y="40" width="48" height="6" rx="3" fill="#fff"/><path d="M36 43 H84" stroke="${c}" stroke-width="2"/>`};
+    case 'surfero': return {...base, traje:'#FFE066', manga:PIEL, piernas:PIEL, botas:'#1C7ED6', guantes:PIEL, cinturon:null, ribete:false,
+      panza:[[30,84],[50,96],[72,82],[86,100],[40,118],[66,124],[84,120],[56,110]].map(p => panzaR(p[0], p[1])).join(''),
+      pies:`<rect x="38" y="122" width="44" height="12" rx="4" fill="${c}"/>`, cabeza:''};
+    case 'rockero': return {...base, traje:'#343A40', manga:'#343A40', piernas:'#364FC7', guantes:'#212529', cinturon:null, ribete:false,
+      panza:`<path d="M60 64 V136" stroke="#868E96" stroke-width="2"/><path d="M50 66 L42 100 M70 66 L78 100" stroke="#495057" stroke-width="3"/><path d="M62 92 L54 106 H62 L56 120 L70 100 H62 L68 92Z" fill="#FCC419"/><circle cx="36" cy="96" r="2" fill="#CED4DA"/><circle cx="84" cy="96" r="2" fill="#CED4DA"/>`};
+    case 'astronauta': return {...base, traje:'#F8F9FA', manga:'#F1F3F5', piernas:'#E9ECEF', botas:'#868E96', guantes:'#ADB5BD', cinturon:'#868E96', hebilla:'#74C0FC', ribete:false,
+      detras:`<rect x="20" y="66" width="80" height="56" rx="14" fill="#DEE2E6" stroke="#868E96" stroke-width="2"/>`,
+      panza:`<rect x="46" y="80" width="28" height="16" rx="3" fill="#74C0FC"/><circle cx="53" cy="88" r="2.5" fill="#E03131"/><circle cx="61" cy="88" r="2.5" fill="#FCC419"/><circle cx="69" cy="88" r="2.5" fill="#2F9E44"/><text x="60" y="128" font-size="10" text-anchor="middle">🚀</text>`,
+      cabeza:`<circle cx="60" cy="50" r="36" fill="#E7F5FF" fill-opacity=".25" stroke="#868E96" stroke-width="4"/><path d="M36 30 Q44 20 54 18" stroke="#fff" stroke-width="4" fill="none"/>`};
+    case 'superheroe': return {...base, traje:'#1C7ED6', manga:'#1C7ED6', piernas:'#1C7ED6', botas:c, guantes:c, cinturon:'#FCC419', hebilla:'#E67700', ribete:false,
+      detras:`<path d="M30 70 L8 156 H112 L90 70Z" fill="${c}" stroke="${osc(c, .75)}" stroke-width="2"/>`,
+      panza:`<path d="M44 76 H76 L60 98Z" fill="${c}" stroke="#FCC419" stroke-width="2"/><text x="60" y="88" font-size="11" font-weight="bold" text-anchor="middle" fill="#fff" font-family="Arial">N</text>`,
+      cabeza:`<path d="M42 46 Q60 40 78 46 Q80 54 70 54 Q60 50 50 54 Q40 54 42 46Z" fill="${c}" opacity=".9"/>`};
+    case 'pijama': return {...base, traje:'#B197FC', manga:'#B197FC', piernas:'#B197FC', botas:'#FCC2D7', guantes:PIEL, cinturon:null, ribete:false,
+      panza:[[34,82],[54,92],[78,80],[88,106],[44,112],[64,124],[80,128],[30,104]].map(p => estrellaP(p[0], p[1], 3.5, '#FFE066')).join('') + `<circle cx="60" cy="74" r="2" fill="#fff"/><circle cx="60" cy="84" r="2" fill="#fff"/>`,
+      pies:`<circle cx="40" cy="152" r="4" fill="#fff"/><circle cx="80" cy="152" r="4" fill="#fff"/>`};
+    case 'chef': return {...base, traje:'#F8F9FA', manga:'#F8F9FA', piernas:'#495057', guantes:PIEL, cinturon:null, ribete:false,
+      panza:[78,90,102].map(y => `<circle cx="52" cy="${y}" r="2.2" fill="#ADB5BD"/><circle cx="68" cy="${y}" r="2.2" fill="#ADB5BD"/>`).join('') + `<path d="M36 108 H84 L80 136 H40Z" fill="${c}"/><text x="60" y="126" font-size="11" text-anchor="middle">🍪</text>`};
+    case 'pirata': return {...base, traje:'#F8F9FA', manga:'#F8F9FA', piernas:'#343A40', botas:'#6B3410', guantes:PIEL, cinturon:'#6B3410', hebilla:'#FCC419', ribete:false,
+      panza:[72,80,88,96,116,124,132].map(y => `<path d="M20 ${y} H100" stroke="#E03131" stroke-width="3.5"/>`).join('') + `<path d="M28 70 L48 68 L52 136 L26 120Z M92 70 L72 68 L68 136 L94 120Z" fill="#343A40"/>`,
+      cabeza:`<path d="M38 50 Q60 42 82 50" stroke="#212529" stroke-width="2" fill="none"/><ellipse cx="69" cy="50" rx="6" ry="5" fill="#212529"/>`};
+    case 'mago': return {...base, traje:'#7048E8', manga:'#7048E8', piernas:'#5F3DC4', botas:'#5F3DC4', guantes:'#FCC419', cinturon:'#FCC419', hebilla:'#E67700', ribete:false,
+      detras:`<path d="M28 70 L10 158 H110 L92 70Z" fill="#5F3DC4"/>`,
+      panza:[[38,84],[78,90],[50,124],[84,118]].map(p => estrellaP(p[0], p[1], 4.5, '#FFE066')).join('') + `<path d="M56 86 a6 6 0 1 0 7 -7 a5 5 0 1 1 -7 7Z" fill="#FFE066"/>`};
+    case 'esquiador': return {...base, guantes:'#1C7ED6', botas:'#1C7ED6', cinturon:null, ribete:false,
+      panza:`<path d="M24 92 H96 M24 112 H96" stroke="#fff" stroke-width="4"/>` + [32,44,56,68,80,92].map(x => `<path d="M${x-4} 100 l4 4 l4 -4" stroke="#fff" stroke-width="2" fill="none"/>`).join(''),
+      pies:`<rect x="20" y="161" width="44" height="4" rx="2" fill="#E03131"/><rect x="58" y="161" width="44" height="4" rx="2" fill="#E03131"/>`};
+    case 'elegante': return {...base, traje:'#212529', manga:'#212529', piernas:'#212529', botas:'#000', guantes:'#F8F9FA', cinturon:null, ribete:false,
+      panza:`<path d="M46 66 L60 112 L74 66Z" fill="#fff"/><path d="M60 70 L52 66 L52 75Z M60 70 L68 66 L68 75Z" fill="${c}"/><circle cx="60" cy="88" r="1.8" fill="#212529"/><circle cx="60" cy="98" r="1.8" fill="#212529"/><path d="M80 84 L87 82 L85 89Z" fill="${c}"/>`};
+    default: return base;
   }
 }
 let UID = 0;
 function santaSVG(a, vb){
-  const c = colorDe('traje', a.traje), d = osc(c, .72), cb = colorDe('colorBarba', a.colorBarba), piel = '#FFE0BD';
-  const [detras, encima, cabezaExtra] = estiloS(a.estilo, c, d);
-  let s = fondoS(a.fondo);
-  if (a.mano === 'saco') s += `<path d="M6 82 Q4 60 22 56 Q38 56 36 82 Q36 108 20 108 Q4 108 6 82Z" fill="#A0672F" stroke="#6B3410" stroke-width="2"/><path d="M14 58 Q22 50 30 58" stroke="#6B3410" stroke-width="3" fill="none"/><rect x="12" y="46" width="10" height="10" fill="#E03131"/><rect x="22" y="44" width="9" height="12" fill="#2F9E44"/><path d="M17 46 V56 M26.5 44 V56" stroke="#FCC419" stroke-width="2"/>`;
-  s += detras;
-  // traje clásico
-  s += `<path d="M22 120 Q22 86 60 84 Q98 86 98 120Z" fill="${c}" stroke="${d}" stroke-width="2"/><rect x="55" y="86" width="10" height="34" fill="#fff"/><rect x="24" y="104" width="72" height="8" fill="#212529"/><rect x="54" y="102" width="12" height="12" rx="2" fill="none" stroke="#FCC419" stroke-width="2.5"/>`;
-  s += encima;
-  s += bufandaS(a.bufanda);
-  // cabeza
-  s += `<circle cx="37" cy="50" r="6" fill="${piel}" stroke="#E8A87C" stroke-width="1.5"/><circle cx="83" cy="50" r="6" fill="${piel}" stroke="#E8A87C" stroke-width="1.5"/><circle cx="60" cy="50" r="24" fill="${piel}" stroke="#E8A87C" stroke-width="1.5"/>`;
-  s += `<circle cx="36" cy="42" r="7" fill="${cb}"/><circle cx="84" cy="42" r="7" fill="${cb}"/>`;
-  s += mejillasS(a.mejillas) + ojoS(a.ojos, 51, 50, 0) + ojoS(a.ojos, 69, 50, 1);
-  s += `<path d="M45 43 Q51 39 56 43 M64 43 Q69 39 75 43" stroke="${cb}" stroke-width="3.5" fill="none" stroke-linecap="round"/>`;
-  s += barbaS(a.barba, cb);
-  s += `<path d="M60 62 Q52 56 43 63 Q50 68 60 64 Q70 68 77 63 Q68 56 60 62Z" fill="${cb}" stroke="${osc(cb, .85)}" stroke-width="1"/>`;
-  s += `<path d="M55 68 Q60 73 65 68" stroke="#C92A2A" stroke-width="2.5" fill="none"/>`;
-  s += narizS(a.nariz) + gafasS(a.gafas) + cabezaExtra + gorroS(a.gorro, c) + manoS(a.mano);
-  return `<svg viewBox="${vb || '0 0 120 120'}" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">${s}</svg>`;
+  const c = colorDe('traje', a.traje), cb = colorDe('colorBarba', a.colorBarba), id = 'sb' + (UID++);
+  const st = estiloS(a.estilo, c), tr = st.traje, dtr = osc(tr, .75);
+  let s = `<g transform="translate(-25 0) scale(1.4167)">${fondoS(a.fondo)}</g>`;
+  // saco a la espalda
+  s += '<g transform="translate(6 22) scale(.9)">';
+  if (a.mano === 'saco') s += `<g transform="translate(-2 32)"><path d="M6 82 Q4 60 22 56 Q38 56 36 82 Q36 108 20 108 Q4 108 6 82Z" fill="#A0672F" stroke="#6B3410" stroke-width="2"/><path d="M14 58 Q22 50 30 58" stroke="#6B3410" stroke-width="3" fill="none"/><rect x="12" y="46" width="10" height="10" fill="#E03131"/><rect x="22" y="44" width="9" height="12" fill="#2F9E44"/><path d="M17 46 V56 M26.5 44 V56" stroke="#FCC419" stroke-width="2"/></g>`;
+  s += st.detras;
+  // piernas y botas
+  s += `<rect x="40" y="122" width="17" height="32" rx="6" fill="${st.piernas}" stroke="${osc(st.piernas, .8)}" stroke-width="1.5"/><rect x="63" y="122" width="17" height="32" rx="6" fill="${st.piernas}" stroke="${osc(st.piernas, .8)}" stroke-width="1.5"/>`;
+  if (st.ribete) s += `<rect x="38" y="144" width="21" height="7" rx="3.5" fill="#fff"/><rect x="61" y="144" width="21" height="7" rx="3.5" fill="#fff"/>`;
+  s += `<path d="M36 160 Q36 150 44 149 H57 V160Z" fill="${st.botas}" stroke="${osc(st.botas, .7)}" stroke-width="1.5"/><path d="M84 160 Q84 150 76 149 H63 V160Z" fill="${st.botas}" stroke="${osc(st.botas, .7)}" stroke-width="1.5"/><rect x="34" y="158" width="24" height="4" rx="2" fill="${osc(st.botas, .6)}"/><rect x="62" y="158" width="24" height="4" rx="2" fill="${osc(st.botas, .6)}"/>`;
+  s += st.pies;
+  // brazos (detrás de la barriga)
+  const brazo = (x1, y1, x2, y2) => `<path d="M${x1} ${y1} Q${(x1+x2)/2 + (x2 < 60 ? -8 : 8)} ${(y1+y2)/2} ${x2} ${y2}" stroke="${osc(st.manga, .78)}" stroke-width="17" fill="none"/><path d="M${x1} ${y1} Q${(x1+x2)/2 + (x2 < 60 ? -8 : 8)} ${(y1+y2)/2} ${x2} ${y2}" stroke="${st.manga}" stroke-width="14" fill="none"/>`;
+  s += brazo(36, 74, 18, 108) + brazo(84, 74, 102, 108);
+  s += (st.ribete ? `<ellipse cx="18" cy="110" rx="9" ry="5" fill="#fff" transform="rotate(-20 18 110)"/><ellipse cx="102" cy="110" rx="9" ry="5" fill="#fff" transform="rotate(20 102 110)"/>` : '');
+  s += `<circle cx="16" cy="118" r="7" fill="${st.guantes}" stroke="${osc(st.guantes, .8)}" stroke-width="1.5"/><circle cx="104" cy="118" r="7" fill="${st.guantes}" stroke="${osc(st.guantes, .8)}" stroke-width="1.5"/>`;
+  // barriga redonda
+  const panza = 'M60 60 C100 60 106 98 102 114 C98 134 82 140 60 140 C38 140 22 134 18 114 C14 98 20 60 60 60Z';
+  s += `<clipPath id="${id}"><path d="${panza}"/></clipPath><path d="${panza}" fill="${tr}" stroke="${dtr}" stroke-width="3"/><g clip-path="url(#${id})">`;
+  if (st.ribete) s += `<rect x="55" y="60" width="10" height="80" fill="#fff"/><path d="M18 134 Q60 128 102 134 V142 H18Z" fill="#fff"/>`;
+  s += st.panza;
+  if (st.cinturon) s += `<rect x="16" y="104" width="88" height="10" fill="${st.cinturon}"/><rect x="52" y="101" width="16" height="16" rx="3" fill="none" stroke="${st.hebilla}" stroke-width="3"/>`;
+  s += `<ellipse cx="44" cy="84" rx="12" ry="8" fill="#fff" opacity=".14"/></g>`;
+  s += `<g transform="translate(0 -14)">${bufandaS(a.bufanda)}</g></g>`;
+  // cabeza (dibujada en su caja de 120 y reducida)
+  let h = `<circle cx="36" cy="52" r="6" fill="${PIEL}" stroke="#D9A07A" stroke-width="2.2"/><circle cx="84" cy="52" r="6" fill="${PIEL}" stroke="#D9A07A" stroke-width="2.2"/><ellipse cx="60" cy="51" rx="25" ry="24" fill="${PIEL}" stroke="#D9A07A" stroke-width="2.2"/>`;
+  h += `<circle cx="36" cy="42" r="7" fill="${cb}"/><circle cx="84" cy="42" r="7" fill="${cb}"/>`;
+  h += mejillasS(a.mejillas) + ojoS(a.ojos, 51, 50, 0) + ojoS(a.ojos, 69, 50, 1);
+  h += `<path d="M45 43 Q51 39 56 43 M64 43 Q69 39 75 43" stroke="${cb}" stroke-width="3.5" fill="none" stroke-linecap="round"/>`;
+  h += barbaS(a.barba, cb);
+  h += `<path d="M60 62 Q52 56 43 63 Q50 68 60 64 Q70 68 77 63 Q68 56 60 62Z" fill="${cb}" stroke="${osc(cb, .85)}" stroke-width="1"/><path d="M53.5 66.5 Q60 77 66.5 66.5Z" fill="#C92A2A" stroke="#8f1d1d" stroke-width="1.2"/><path d="M56.5 71.5 Q60 74.5 63.5 71.5 Q60 69.5 56.5 71.5Z" fill="#FF8787"/>`;
+  h += narizS(a.nariz) + gafasS(a.gafas) + st.cabeza + gorroS(a.gorro, c);
+  s += `<g transform="translate(9 4) scale(.85)">${h}</g>`;
+  s += `<g transform="translate(6 22) scale(.9)"><g transform="translate(6 20)">${manoS(a.mano)}</g></g>`;
+  return `<svg viewBox="${vb || '0 0 120 170'}" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">${s}</svg>`;
 }
 
 /* =========== ÁRBOL =========== */
@@ -912,7 +953,7 @@ function pintaSanta(){
   $('catsSanta').innerHTML = CATS.map(([k, n]) => `<button class="${k === cat ? 'sel' : ''}" onclick="cat='${k}';pintaSanta()">${n}</button>`).join('');
   $('tiendaSanta').innerHTML = SANTA[cat].map(o => { const own = tiene(cat, o), puesto = E.av[cat] === o.id;
     return `<button class="it ${puesto ? 'puesto' : ''} ${!own && E.monedas < o.p ? 'caro' : ''}" onclick="eligeSanta('${cat}','${o.id}',this)" title="${o.n}">${santaSVG(Object.assign({}, E.av, {[cat]:o.id}), ZOOM[cat])}${own ? '' : `<span class="precio">🪙${o.p}</span>`}</button>`; }).join('');
-  $('miniSanta').innerHTML = santaSVG(E.av, '20 14 80 80'); $('nMon').textContent = E.monedas;
+  $('miniSanta').innerHTML = santaSVG(E.av, '20 -1 80 80'); $('nMon').textContent = E.monedas;
 }
 function eligeSanta(c, id, b){
   const o = SANTA[c].find(x => x.id === id);
