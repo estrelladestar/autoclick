@@ -324,6 +324,17 @@ repetir 8"""
             setOnClickListener { ponerFrase3() }
             root.addView(this)
         }
+        // 📌 Todo fijo: cada vez que se abre, queda puesto el guion frase + 3 menciones, 3 menciones y las frases
+        CheckBox(ctx).apply {
+            text = "📌 Todo fijo: abrir siempre con frase + 3 menciones e imágenes bocadillo y flecha"
+            textSize = 15f
+            isChecked = prefs.getBoolean("todo_fijo", true)
+            setOnCheckedChangeListener { _, on ->
+                prefs.edit().putBoolean("todo_fijo", on).apply()
+                if (on) ponerFijo(true)
+            }
+            root.addView(this)
+        }
         if (isXiaomi()) {
             // En Xiaomi / Redmi / POCO el móvil para la app si no se le dan estos permisos
             val xBar = LinearLayout(ctx).apply {
@@ -621,6 +632,7 @@ repetir 8"""
         refreshStatus()
         setContentView(ScrollView(ctx).apply { addView(root) })
         StarColors.watch(root)
+        if (prefs.getBoolean("todo_fijo", true)) ponerFijo(false)
     }
 
     override fun onPause() {
@@ -1212,6 +1224,16 @@ repetir 8"""
             }
             .setNegativeButton("Cancelar", null)
             .show()
+    }
+
+    /** «Todo fijo»: guion frase + 3 menciones, 3 menciones y frases (las de siempre si no hay); las imágenes fijas ya van siempre las primeras. */
+    private fun ponerFijo(avisar: Boolean) {
+        script.setText(phrase3Script)
+        mentionsN.setSelection(2)
+        if (phrasesBox.text.isBlank()) phrasesBox.setText(Macro.fixedPhrases(this).joinToString("\n"))
+        refreshSaved(phrase3Name)
+        prefs.edit().putString("script", phrase3Script).putInt("mentionsN", 3).putString("phrases", phrasesBox.text.toString()).apply()
+        if (avisar) toast("📌 Todo fijo: frase + 3 menciones")
     }
 
     /** Pone el guion «Frase + 3 menciones», 3 menciones y las frases de siempre si no hay ninguna. */
