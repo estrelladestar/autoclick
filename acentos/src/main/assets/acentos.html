@@ -94,6 +94,26 @@ h2{text-align:center;font-size:clamp(22px,5.5vw,30px);margin:8px 0 12px}
 .regla span{font-size:15px;font-weight:600}
 .ejs{display:none;background:#fff;border-radius:18px;padding:8px;margin-bottom:8px}
 .ejs div{padding:6px;border-bottom:1px dashed #dee2e6;cursor:pointer;text-align:center}
+/* juegos nuevos */
+.letras-sep{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;margin:10px 0}
+.letras-sep b{font-size:clamp(30px,8.5vw,44px);font-weight:900;color:#C92A2A;padding:0 1px}
+.corte{width:clamp(20px,5.5vw,28px);height:clamp(44px,12vw,56px);border:none;background:transparent;cursor:pointer;position:relative;padding:0}
+.corte:before{content:'';position:absolute;left:50%;top:8%;bottom:8%;width:3px;margin-left:-1.5px;background:#dee2e6;border-radius:2px}
+.corte.on:before{background:#1C7ED6;width:6px;margin-left:-3px}
+.corte.bien:before{background:#2F9E44;width:6px;margin-left:-3px}
+.corte.malc:before{background:#E03131;width:6px;margin-left:-3px}
+.huecos{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:10px 0}
+.hueco{min-width:64px;height:60px;border:4px dashed #ced4da;border-radius:16px;font-size:clamp(24px,7vw,34px);font-weight:800;display:grid;place-items:center;padding:0 8px}
+.hueco.lleno{border-style:solid;border-color:#2F9E44;background:#EBFBEE}
+.altavoz{font-size:52px;background:#1C7ED6;border:none;border-radius:50%;width:110px;height:110px;cursor:pointer;box-shadow:0 6px 0 #1864ab;display:block;margin:6px auto}
+.pasos{display:flex;gap:6px;justify-content:center;margin:6px 0}
+.pasos span{background:#e9ecef;border-radius:12px;padding:3px 10px;font-weight:800;font-size:15px}
+.pasos span.on{background:#FCC419}.pasos span.ok{background:#8CE99A}
+.frase-v{font-size:clamp(22px,6vw,30px);font-weight:800;text-align:center;background:#FFF9DB;border-radius:18px;padding:12px;margin:8px 0}
+.pista{position:relative;background:linear-gradient(#fff,#E7F5FF);border-radius:18px;border:3px solid #D0EBFF;padding:6px 8px 4px;margin-bottom:8px}
+.carril{position:relative;height:40px;border-bottom:3px dashed #A5D8FF}
+.carril .q{position:absolute;top:0;font-size:30px;transition:left .5s;transform:translateX(-50%)}
+.carril .meta{position:absolute;right:2px;top:4px;font-size:24px}
 /* tienda */
 .pestanas{display:flex;gap:8px;justify-content:center;margin-bottom:10px}
 .pestanas button{font-family:inherit;font-size:19px;font-weight:700;padding:9px 16px;border-radius:16px;border:none;background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 4px 0 #dbe7f3}
@@ -156,6 +176,16 @@ h2{text-align:center;font-size:clamp(22px,5.5vw,30px);margin:8px 0 12px}
     <button class="tarjeta" style="background:linear-gradient(135deg,#C92A2A,#F59F00)" onclick="ir('regalos')"><span class="ico">🎁</span>Reparte regalos<small>¡Contrarreloj!</small></button>
     <button class="tarjeta" style="background:linear-gradient(135deg,#1b2a5c,#3b5bdb)" onclick="ir('nieve')"><span class="ico">❄️</span>Nieve de palabras<small>Atrapa los copos</small></button>
     <button class="tarjeta" style="background:linear-gradient(135deg,#E03131,#2F9E44)" onclick="juega('mezcla')"><span class="ico">🎲</span>Reto sorpresa<small>Un poco de todo</small></button>
+    <button class="tarjeta" style="background:#D6336C" onclick="juega('separa')"><span class="ico">✂️</span>Separa en sílabas<small>Corta la palabra</small></button>
+    <button class="tarjeta" style="background:#1098AD" onclick="juega('cuantas')"><span class="ico">🔢</span>¿Cuántas sílabas?<small>Cuenta con palmadas</small></button>
+    <button class="tarjeta" style="background:#5F3DC4" onclick="juega('ordena')"><span class="ico">🧱</span>Ordena las sílabas<small>Forma la palabra</small></button>
+    <button class="tarjeta" style="background:#E8590C" onclick="juega('intrusa')"><span class="ico">🕵️</span>La intrusa<small>¿Cuál es diferente?</small></button>
+    <button class="tarjeta" style="background:#2B8A3E" onclick="juega('cual')"><span class="ico">🔍</span>¿Cuál es…?<small>Busca la aguda, la llana…</small></button>
+    <button class="tarjeta" style="background:#C2255C" onclick="juega('escrita')"><span class="ico">📝</span>¿Cuál está bien escrita?<small>Fíjate en la tilde</small></button>
+    <button class="tarjeta" style="background:#1864AB" onclick="juega('escucha')"><span class="ico">🎧</span>Escucha y elige<small>Sin ver la palabra</small></button>
+    <button class="tarjeta" style="background:#862E9C" onclick="juega('verdad')"><span class="ico">⚖️</span>¿Verdad o mentira?<small>Piensa bien</small></button>
+    <button class="tarjeta" style="background:#E67700" onclick="juega('paso')"><span class="ico">🪜</span>Paso a paso<small>Como en el examen</small></button>
+    <button class="tarjeta" style="background:linear-gradient(135deg,#1C7ED6,#7048E8)" onclick="juega('carrera')"><span class="ico">🛷</span>Carrera de trineos<small>¡Gana al elfo!</small></button>
   </div>
 </section>
 
@@ -169,7 +199,11 @@ h2{text-align:center;font-size:clamp(22px,5.5vw,30px);margin:8px 0 12px}
 <!-- ================= PREGUNTAS ================= -->
 <section class="pant" id="p-quiz">
   <div class="caja">
-    <div class="progreso"><div id="progQ"></div></div>
+    <div class="progreso" id="barraQ"><div id="progQ"></div></div>
+    <div class="pista" id="pistaC" style="display:none">
+      <div class="carril"><span class="q" id="yoC">🎅🛷</span><span class="meta">🏁</span></div>
+      <div class="carril" style="border:none"><span class="q" id="elfoC">🧝</span><span class="meta">🏁</span></div>
+    </div>
     <h2 style="margin-top:0" id="titQ"></h2>
     <div id="promptQ"></div>
     <div id="opsQ"></div>
@@ -255,7 +289,7 @@ function habla(t, rate){
     if (speechSynthesis.speaking || speechSynthesis.pending) { speechSynthesis.cancel(); setTimeout(go, 120); } else go();
   } catch(e){}
 }
-function pausarTodo(){ try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch(e){} paraNieve(); paraRegalos(); }
+function pausarTodo(){ try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch(e){} paraNieve(); paraRegalos(); paraCarrera(); }
 function vibra(ms){ try { if (B && B.vibrate) B.vibrate(ms); else if (navigator.vibrate) navigator.vibrate(ms); } catch(e){} }
 let actx = null;
 function tono(fs, dur){ dur = dur || .12; try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume();
@@ -361,7 +395,7 @@ function premia(){ const n = bonus(); monPartida += n; ganaMonedas(n); }
 let actual = 'inicio', ultimoJuego = null;
 function ir(p){
   try { if (window.speechSynthesis && !B) speechSynthesis.cancel(); } catch(e){}
-  paraNieve(); paraRegalos(); clearTimeout(qTimer);
+  paraNieve(); paraRegalos(); paraCarrera(); clearTimeout(qTimer);
   actual = p;
   document.querySelectorAll('.pant').forEach(s => s.classList.remove('on'));
   $('p-' + p).classList.add('on'); window.scrollTo(0, 0);
@@ -397,8 +431,27 @@ function pintaReglas(){
 
 /* =========== PREGUNTAS (motor común) =========== */
 let qModo = 'tipo', qRonda = 0, qRondas = 8, qAct = null, qTimer = null, qResp = false;
-const TITULOS = {tipo:'🎯 ¿Qué tipo es?', silaba:'👆 Toca la sílaba fuerte', lleva:'✏️ ¿Lleva tilde?', ponla:'📍 Ponle la tilde', porque:'🤔 ¿Por qué?', mezcla:'🎲 Reto sorpresa'};
-function juega(m){ qModo = m; ultimoJuego = () => juega(m); ir('quiz'); qRonda = 0; monPartida = 0; qRondas = D(6, 8, 10, 12); siguienteQ(); }
+const TITULOS = {tipo:'🎯 ¿Qué tipo es?', silaba:'👆 Toca la sílaba fuerte', lleva:'✏️ ¿Lleva tilde?', ponla:'📍 Ponle la tilde', porque:'🤔 ¿Por qué?', mezcla:'🎲 Reto sorpresa',
+  separa:'✂️ Separa en sílabas', cuantas:'🔢 ¿Cuántas sílabas?', ordena:'🧱 Ordena las sílabas', intrusa:'🕵️ La intrusa', cual:'🔍 ¿Cuál es…?', escrita:'📝 ¿Cuál está bien escrita?',
+  escucha:'🎧 Escucha y elige', verdad:'⚖️ ¿Verdad o mentira?', paso:'🪜 Paso a paso', carrera:'🛷 Carrera de trineos'};
+const MEZCLA1 = ['tipo','silaba','lleva','ponla','cuantas','cual','intrusa','separa','ordena','verdad'];
+const MEZCLA2 = MEZCLA1.concat(['porque','escrita','escucha','paso']);
+function juega(m){ qModo = m; ultimoJuego = () => juega(m); ir('quiz'); qRonda = 0; monPartida = 0; qRondas = D(6, 8, 10, 12);
+  $('pistaC').style.display = m === 'carrera' ? '' : 'none'; $('barraQ').style.display = m === 'carrera' ? 'none' : '';
+  if (m === 'carrera') empiezaCarrera();
+  siguienteQ(); }
+/* ---------- carrera de trineos ---------- */
+let cYo = 0, cElfo = 0, cMeta = 8, cTimer = null;
+function paraCarrera(){ if (cTimer) { clearInterval(cTimer); cTimer = null; } }
+function empiezaCarrera(){
+  paraCarrera(); cYo = 0; cElfo = 0; cMeta = D(6, 8, 10, 12); qRondas = 999;
+  const total = D(110, 95, 85, 75) * 1000, paso = 500;
+  pintaCarrera(); habla('¡Responde bien para que tu trineo llegue antes que el elfo!');
+  setTimeout(() => { if (actual !== 'quiz' || qModo !== 'carrera') return;
+    cTimer = setInterval(() => { cElfo += paso / total; pintaCarrera();
+      if (cElfo >= 1) { paraCarrera(); clearTimeout(qTimer); finPartida(false, '¡El elfo ha llegado antes! Has avanzado ' + cYo + ' de ' + cMeta + '.'); } }, paso); }, 2500);
+}
+function pintaCarrera(){ $('yoC').style.left = (6 + Math.min(1, cYo/cMeta)*84) + '%'; $('elfoC').style.left = (6 + Math.min(1, cElfo)*84) + '%'; }
 const botonTipo = (k, ok) => ({html:TIPOS[k].e + ' ' + TIPOS[k].n, ok, estilo:'background:' + TIPOS[k].c});
 function generaQ(m){
   if (m === 'tipo'){
@@ -442,12 +495,115 @@ function generaQ(m){
     return {p, prompt:`<div class="pal">${p.w}</div>` + (NV() <= 2 ? silHTML(p, true) : ''), preg:'¿Por qué se escribe así?', clase:'una', ops, decir:p.w + '. ¿Por qué se escribe así?', bien:porQue(p)};
   }
 }
+function variantes(p){
+  // formas mal escritas: sin tilde, con la tilde en otra vocal, o con tilde de más
+  const L = [...quita(p.w)], vs = new Set();
+  const conTilde = i => L.map((c, k) => k === i ? ({a:'á',e:'é',i:'í',o:'ó',u:'ú'})[c] || c : c).join('');
+  if (p.tilde) vs.add(quita(p.w));
+  L.forEach((c, i) => { if (/[aeiou]/.test(c)) { const v = conTilde(i); if (v !== p.w) vs.add(v); } });
+  return mezcla([...vs]);
+}
+const nombreTipo = k => TIPOS[k].n.toLowerCase();
+function generaQ2(m){
+  if (m === 'cuantas'){
+    const max = D(3, 4, 5, 5), p = saca(x => x.s.length <= max);
+    return {p, prompt:`<div class="pal">${p.w}</div>`, preg:'¿Cuántas sílabas tiene? (da palmadas)', clase:'fila',
+      ops:Array.from({length:max}, (_, i) => ({html:(i+1) + '<br><small style="font-size:13px">' + '👏'.repeat(i+1) + '</small>', ok:i+1 === p.s.length, estilo:'background:' + ['#E64980','#1C7ED6','#2F9E44','#F08C00','#7048E8'][i] + ';min-width:64px'})),
+      decir:p.w, bien:p.s.join(' - ') + ': tiene ' + (p.s.length === 1 ? 'una sílaba' : p.s.length + ' sílabas') + '.'};
+  }
+  if (m === 'intrusa'){
+    const tipos = tiposNivel().filter(k => k !== 'mono' || NV() >= 4), X = azar(tipos), n = D(3, 4, 4, 5);
+    const iguales = []; let k = 0; while (iguales.length < n-1 && k++ < 60) { const q = saca(x => x.tipo === X); if (!iguales.includes(q)) iguales.push(q); }
+    const p = saca(x => x.tipo !== X && tiposNivel().includes(x.tipo));
+    return {p, prompt:'', preg:`¿Cuál NO es ${nombreTipo(X)}?`, clase:n > 3 ? '' : 'una',
+      ops:mezcla([...iguales.map(q => ({html:q.w, ok:false})), {html:p.w, ok:true}]).map((o, i) => ({...o, estilo:'background:' + ['#1C7ED6','#2F9E44','#F08C00','#E64980','#7048E8'][i]})),
+      decir:'¿Cuál no es ' + nombreTipo(X) + '?', bien:p.w + ' es ' + nombreTipo(p.tipo) + ' (' + p.s.join('-') + '). Las demás son ' + nombreTipo(X) + 's.'};
+  }
+  if (m === 'cual'){
+    const tipos = tiposNivel(), X = azar(tipos.filter(k => k !== 'mono' || NV() >= 3)), p = saca(x => x.tipo === X), n = D(3, 4, 4, 5);
+    const otras = []; let k = 0; while (otras.length < n-1 && k++ < 60) { const q = saca(x => x.tipo !== X && tipos.includes(x.tipo)); if (!otras.includes(q)) otras.push(q); }
+    return {p, prompt:'', preg:`¿Cuál es ${X === 'mono' ? 'monosílaba' : nombreTipo(X)}?`, clase:n > 3 ? '' : 'una',
+      ops:mezcla([{html:p.w, ok:true}, ...otras.map(q => ({html:q.w, ok:false}))]).map((o, i) => ({...o, estilo:'background:' + ['#2B8A3E','#1C7ED6','#C2255C','#E67700','#5F3DC4'][i]})),
+      decir:'¿Cuál es ' + nombreTipo(X) + '?', bien:p.w + ' (' + p.s.join('-') + ') es ' + nombreTipo(X) + '. ' + TIPOS[X].regla};
+  }
+  if (m === 'escrita' || m === 'escucha'){
+    const p = saca(x => x.tipo !== 'mono');
+    const malas = variantes(p).slice(0, D(2, 2, 3, 4));
+    const ops = mezcla([{html:p.w, ok:true}, ...malas.map(v => ({html:v, ok:false}))]).map((o, i) => ({...o, estilo:'background:' + ['#C2255C','#1864AB','#2B8A3E','#E67700','#5F3DC4'][i] + ';font-size:26px'}));
+    return {p, prompt:m === 'escucha' ? `<button class="altavoz" onclick="habla(qAct.p.w,.75)">🔊</button>` : (NV() === 1 ? `<div class="regalo">🎁</div>` : ''),
+      preg:m === 'escucha' ? 'Escucha la palabra. ¿Cómo se escribe?' : '¿Cuál está bien escrita?', clase:ops.length > 3 ? '' : 'una', ops,
+      decir:m === 'escucha' ? p.w : '¿Cuál está bien escrita?', bien:'Se escribe ' + p.w + '. ' + porQue(p)};
+  }
+  if (m === 'verdad'){
+    const p = saca(x => x.tipo !== 'mono' || NV() >= 3);
+    const tipo = Math.random() < .5 ? p.tipo : azar(tiposNivel().filter(k => k !== p.tipo));
+    const clases = NV() === 1 ? ['tipo','fuerte'] : ['tipo','fuerte','cuantas','tilde'];
+    const c = azar(clases); let frase, cierto, bien;
+    if (c === 'tipo'){ frase = `«${p.w}» es ${tipo === 'mono' ? 'monosílaba' : nombreTipo(tipo)}`; cierto = tipo === p.tipo; bien = p.w + ' es ' + nombreTipo(p.tipo) + ' (' + p.s.join('-') + ').'; }
+    else if (c === 'fuerte'){ const i = Math.random() < .5 || p.s.length === 1 ? p.t : azar(p.s.map((_, k) => k).filter(k => k !== p.t)); frase = `En «${p.w}» la sílaba más fuerte es «${quita(p.s[i])}»`; cierto = i === p.t; bien = 'La sílaba fuerte de ' + p.w + ' es ' + p.s[p.t] + '.'; }
+    else if (c === 'cuantas'){ const n = Math.random() < .5 ? p.s.length : Math.max(1, p.s.length + azar([-1, 1])); frase = `«${p.w}» tiene ${n} ${n === 1 ? 'sílaba' : 'sílabas'}`; cierto = n === p.s.length; bien = p.s.join('-') + ': ' + p.s.length + (p.s.length === 1 ? ' sílaba.' : ' sílabas.'); }
+    else { frase = `«${quita(p.w)}» se escribe con tilde`; cierto = p.tilde; bien = porQue(p); }
+    return {p, prompt:`<div class="frase-v">${frase}</div>`, preg:'¿Es verdad o mentira?',
+      ops:[{html:'👍 Verdad', ok:cierto, estilo:'background:#2F9E44'}, {html:'👎 Mentira', ok:!cierto, estilo:'background:#E03131'}], decir:frase.replace(/[«»]/g, '') + '. ¿Verdad o mentira?', bien};
+  }
+  return null;
+}
+/* juegos con varios toques: separar, ordenar y paso a paso */
+function montaEspecial(m){
+  if (m === 'separa'){
+    const p = saca(x => x.s.length >= 2 && (NV() > 1 || x.s.length <= 3)), L = [...p.w];
+    const cortes = []; let acc = 0; p.s.slice(0, -1).forEach(x => { acc += [...x].length; cortes.push(acc); });
+    qAct = {p, decir:p.w, bien:'Se separa así: ' + p.s.join(' - ')};
+    $('promptQ').innerHTML = `<p class="preg">Toca entre las letras para cortar la palabra en sílabas</p><div class="letras-sep" id="sepL">` + L.map((c, i) => `<b>${c}</b>` + (i < L.length-1 ? `<button class="corte" data-i="${i+1}"></button>` : '')).join('') + '</div>';
+    $('opsQ').innerHTML = `<div style="text-align:center"><button class="btn b-verde" id="btnComp">✅ Comprobar</button></div>`;
+    $('sepL').querySelectorAll('.corte').forEach(b => b.onclick = () => { if (qResp) return; b.classList.toggle('on'); tono([700], .05); });
+    $('btnComp').onclick = () => { if (qResp) return;
+      const puestos = [...$('sepL').querySelectorAll('.corte.on')].map(b => +b.dataset.i);
+      $('sepL').querySelectorAll('.corte').forEach(b => { const i = +b.dataset.i, debe = cortes.includes(i), esta = b.classList.contains('on'); b.classList.remove('on'); if (debe) b.classList.add(esta ? 'bien' : 'malc'); else if (esta) b.classList.add('malc'); });
+      terminaQ(puestos.length === cortes.length && puestos.every(i => cortes.includes(i))); $('btnComp').disabled = true; };
+    return;
+  }
+  if (m === 'ordena'){
+    const p = saca(x => x.s.length >= (NV() >= 3 ? 3 : 2) && (NV() > 1 || x.s.length <= 3));
+    let orden = mezcla(p.s.map((_, i) => i)); if (orden.every((v, i) => v === i)) orden.reverse();
+    const sobra = NV() >= 3 ? [azar(PAL.filter(x => x.s.length > 1)).s[0]].filter(x => !p.s.includes(x)) : [];
+    qAct = {p, decir:NV() <= 2 ? p.w : 'Ordena las sílabas', bien:p.s.join(' - ') + ': ' + p.w + '. Es ' + nombreTipo(p.tipo) + '.'};
+    let paso = 0, fallos = 0;
+    $('promptQ').innerHTML = `<p class="preg">Toca las sílabas en orden${sobra.length ? ' (¡sobra una!)' : ''}</p><div class="huecos" id="huecosO">` + p.s.map(() => '<div class="hueco"></div>').join('') + '</div>';
+    $('opsQ').innerHTML = `<div class="ops fila">` + mezcla([...orden.map(i => ({t:p.s[i], i})), ...sobra.map(t => ({t, i:-1}))]).map(o => `<button class="op sy" data-i="${o.i}">${o.t}</button>`).join('') + '</div>';
+    $('opsQ').querySelectorAll('.op').forEach(b => b.onclick = () => { if (qResp) return;
+      if (+b.dataset.i === paso){ const h = $('huecosO').children[paso]; h.textContent = p.s[paso]; h.classList.add('lleno'); b.style.visibility = 'hidden'; tono([880 + paso*100], .06); paso++;
+        if (paso === p.s.length) terminaQ(fallos <= D(2, 1, 0, 0)); }
+      else { fallos++; b.classList.remove('agita'); void b.offsetWidth; b.classList.add('agita'); sMal(); } });
+    return;
+  }
+  if (m === 'paso'){
+    const p = saca(x => x.s.length >= 2);
+    qAct = {p, decir:p.w, bien:porQue(p)};
+    let paso = 1;
+    const pinta = () => {
+      $('promptQ').innerHTML = `<div class="pasos"><span class="${paso === 1 ? 'on' : 'ok'}">1 Sílaba fuerte</span><span class="${paso === 2 ? 'on' : paso > 2 ? 'ok' : ''}">2 Tipo</span><span class="${paso === 3 ? 'on' : ''}">3 Tilde</span></div><div class="pal">${quita(p.w)}</div>` +
+        (paso > 1 ? silHTML({s:p.s.map(quita), t:p.t}, true) : '') + `<p class="preg">${['', '¿Qué sílaba suena más fuerte?', '¿Qué tipo de palabra es?', '¿Lleva tilde?'][paso]}</p>`;
+      let ops;
+      if (paso === 1) ops = p.s.map((x, i) => ({html:quita(x), ok:i === p.t, cls:'sy'}));
+      else if (paso === 2) ops = ['aguda','llana','esdrujula'].map(k => botonTipo(k, k === p.tipo));
+      else ops = [{html:'✅ Sí, lleva tilde', ok:p.tilde, estilo:'background:#2F9E44'}, {html:'❌ No lleva', ok:!p.tilde, estilo:'background:#E03131'}];
+      $('opsQ').innerHTML = `<div class="ops ${paso === 1 ? 'fila' : ''}">` + ops.map((o, i) => `<button class="op ${o.cls || ''}" style="${o.estilo || ''}" data-i="${i}">${o.html}</button>`).join('') + '</div>';
+      $('opsQ').querySelectorAll('.op').forEach(b => b.onclick = () => { if (qResp) return; const o = ops[+b.dataset.i];
+        if (!o.ok){ b.classList.add('agita'); $('opsQ').querySelectorAll('.op').forEach(x => { if (ops[+x.dataset.i].ok) x.classList.add('bien'); x.disabled = true; });
+          qAct.bien = ['', 'La sílaba fuerte es ' + p.s[p.t] + '. ', 'Es ' + nombreTipo(p.tipo) + ' porque la fuerte es ' + p.s[p.t] + '. ', ''][paso] + porQue(p); terminaQ(false); return; }
+        tono([880, 1175], .08); paso++; if (paso > 3) { $('promptQ').querySelector('.pal').textContent = p.w; terminaQ(true); } else pinta(); });
+    };
+    pinta(); return;
+  }
+}
 function siguienteQ(){
   clearTimeout(qTimer); qResp = false;
   if (qRonda >= qRondas) { finPartida(true); return; }
-  const m = qModo === 'mezcla' ? azar(NV() === 1 ? ['tipo','silaba','lleva','ponla'] : ['tipo','silaba','lleva','ponla','porque']) : qModo;
-  qAct = generaQ(m);
-  $('titQ').textContent = TITULOS[m]; $('progQ').style.width = (qRonda/qRondas*100) + '%';
+  const m = (qModo === 'mezcla' || qModo === 'carrera') ? azar(qModo === 'carrera' ? ['tipo','lleva','cual','verdad','cuantas'].concat(NV() > 1 ? ['escrita','silaba'] : []) : NV() === 1 ? MEZCLA1 : MEZCLA2) : qModo;
+  $('titQ').textContent = TITULOS[m]; $('progQ').style.width = (qRonda/qRondas*100) + '%'; $('msgQ').innerHTML = '';
+  if (['separa','ordena','paso'].includes(m)) { montaEspecial(m); setTimeout(() => habla(qAct.decir), 250); return; }
+  qAct = generaQ(m) || generaQ2(m);
   $('promptQ').innerHTML = qAct.prompt + `<p class="preg">${qAct.preg}</p>`;
   $('opsQ').innerHTML = `<div class="ops ${qAct.clase || ''}">` + qAct.ops.map((o, i) => `<button class="op ${o.cls || ''}" style="${o.estilo || ''}" data-i="${i}">${o.html}</button>`).join('') + '</div>';
   $('msgQ').innerHTML = '';
@@ -458,9 +614,20 @@ function respondeQ(b){
   if (qResp) return; qResp = true;
   const o = qAct.ops[+b.dataset.i];
   $('opsQ').querySelectorAll('.op').forEach(x => { const oo = qAct.ops[+x.dataset.i]; if (oo.ok) x.classList.add('bien'); else if (x !== b) x.classList.add('mal'); x.disabled = true; });
-  qRonda++; $('progQ').style.width = (qRonda/qRondas*100) + '%';
-  if (o.ok){ b.classList.add('salta'); sOk(); vibra(30); premia(); $('msgQ').innerHTML = `<span class="ok-t">${azar(['¡Muy bien! 🎄','¡Jo, jo, jo! ¡Correcto! 🎅','¡Genial! ⭐','¡Eso es! 🎁'])}</span><br><span style="font-size:17px;color:#495057">${qAct.bien}</span>`; habla('¡Muy bien! ' + qAct.bien); qTimer = setTimeout(siguienteQ, 2600); }
-  else { b.classList.add('agita'); sMal(); vibra(150); $('msgQ').innerHTML = `<span class="mal-t">¡Casi! 🙈</span><br><span style="font-size:17px;color:#495057">${qAct.bien}</span>`; habla(qAct.bien); qTimer = setTimeout(siguienteQ, 4200); }
+  if (o.ok) b.classList.add('salta'); else b.classList.add('agita');
+  terminaQ(o.ok);
+}
+function terminaQ(ok){
+  qResp = true; qRonda++; $('progQ').style.width = Math.min(100, qRonda/qRondas*100) + '%';
+  if (qModo === 'carrera'){
+    if (ok) { cYo++; pintaCarrera(); }
+    if (cYo >= cMeta) { paraCarrera(); sOk(); premia(); setTimeout(() => finPartida(true, '¡Tu trineo ha ganado la carrera! 🏁'), 900); return; }
+    if (ok) { sOk(); premia(); $('msgQ').innerHTML = `<span class="ok-t">¡Bien! ¡Tu trineo avanza! 🛷</span>`; qTimer = setTimeout(siguienteQ, 1100); }
+    else { sMal(); $('msgQ').innerHTML = `<span class="mal-t">¡Uy!</span><br><span style="font-size:16px;color:#495057">${qAct.bien}</span>`; habla(qAct.bien); qTimer = setTimeout(siguienteQ, 3200); }
+    return;
+  }
+  if (ok){ sOk(); vibra(30); premia(); $('msgQ').innerHTML = `<span class="ok-t">${azar(['¡Muy bien! 🎄','¡Jo, jo, jo! ¡Correcto! 🎅','¡Genial! ⭐','¡Eso es! 🎁'])}</span><br><span style="font-size:17px;color:#495057">${qAct.bien}</span>`; habla('¡Muy bien! ' + qAct.bien); qTimer = setTimeout(siguienteQ, 2600); }
+  else { sMal(); vibra(150); $('msgQ').innerHTML = `<span class="mal-t">¡Casi! 🙈</span><br><span style="font-size:17px;color:#495057">${qAct.bien}</span>`; habla(qAct.bien); qTimer = setTimeout(siguienteQ, 4200); }
 }
 function oirQ(){ if (qAct) habla(qAct.p.w); }
 
