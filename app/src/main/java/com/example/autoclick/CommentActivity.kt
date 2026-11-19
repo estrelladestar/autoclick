@@ -364,6 +364,21 @@ repetir 8"""
             setOnClickListener { elegirFrases() }
             root.addView(this)
         }
+        label("4️⃣ En cada publicación:")
+        CheckBox(ctx).apply {
+            text = "❤️ Dar me gusta (solo si el corazón está vacío)"
+            textSize = 15f
+            isChecked = prefs.getBoolean("p_megusta", true)
+            setOnCheckedChangeListener { _, on -> prefs.edit().putBoolean("p_megusta", on).apply(); aplicarPanel(true) }
+            root.addView(this)
+        }
+        CheckBox(ctx).apply {
+            text = "➕ Seguir a las cuentas de la descripción (solo si no las sigues)"
+            textSize = 15f
+            isChecked = prefs.getBoolean("p_seguirdesc", true)
+            setOnCheckedChangeListener { _, on -> prefs.edit().putBoolean("p_seguirdesc", on).apply(); aplicarPanel(true) }
+            root.addView(this)
+        }
         panelResumen = TextView(ctx).apply {
             textSize = 16f; setPadding(16, 16, 16, 16)
             setBackgroundColor(android.graphics.Color.parseColor("#FFF3BF"))
@@ -1325,7 +1340,9 @@ repetir 8"""
     /** El guion según el panel: cuántas menciones y si lleva frase. Usa las 2 imágenes fijas (bocadillo y flecha). */
     private fun guionElegido(n: Int, frase: Boolean): String {
         val linea = when { n == 0 -> "escribir solo frase"; frase -> "escribir menciones $n frase"; else -> "escribir menciones $n sinfrase" }
-        var g = defaultScript.replace("escribir menciones 1", linea)
+        val extra = (if (prefs.getBoolean("p_megusta", true)) "megusta\nesperar 1-2\n" else "") +
+            (if (prefs.getBoolean("p_seguirdesc", true)) "seguir descripcion\nesperar 2-4\n" else "")
+        var g = defaultScript.replace("escribir menciones 1", linea).replace("\nseguir\n", "\nseguir\n$extra")
             .replace("imagen 3 |", "IMGPUB").replace("imagen 2 |", "imagen 1 opcional |").replace("imagen 1 |", "imagen 1 opcional |").replace("IMGPUB", "imagen 2 |")
         if (packageName.endsWith(".historias")) {
             // En la historia: la tienda etiquetada y tus menciones, sin frase
@@ -1352,6 +1369,8 @@ repetir 8"""
             (if (frase) "\n💬 Frases: $qf" else "") +
             (if (n > 0) "\n👥 Menciones de tu lista «TUS MENCIONES»" else "") +
             (if (packageName.endsWith(".historias")) "\n📸 La historia: " + listOfNotNull("@tienda etiquetada", if (n > 0) "$n menciones" else null).joinToString(" + ") else "") +
+            (if (prefs.getBoolean("p_megusta", true)) "\n❤️ Me gusta si el corazón está vacío" else "") +
+            (if (prefs.getBoolean("p_seguirdesc", true)) "\n➕ Sigue a las cuentas de la descripción que no sigues" else "") +
             "\n🖼 Imagen 1 = bocadillo · Imagen 2 = flecha\n👉 Pulsa ▶ Iniciar"
         if (avisar) toast("Listo: " + when { n == 0 -> "solo frase"; frase -> "frase + $n " + (if (n == 1) "mención" else "menciones"); else -> "$n " + (if (n == 1) "mención" else "menciones") + " sin frase" })
     }

@@ -419,6 +419,11 @@ object Macro {
         private var storiesLeft = 0
         /** «historia»: en qué paso va al subir la publicación a la historia y a quién etiqueta. */
         private var sharePhase = 0
+        /** «seguir descripcion»: en qué parte va, las cuentas mencionadas en la descripción y cuál toca. */
+        private var fmPhase = 0
+        private var fmList: List<String> = emptyList()
+        private var fmIdx = 0
+        private var fmUrl = ""
         /** El último comentario publicado (cuenta, menciones y enlace), para mirar desde otra cuenta si se ve. */
         private var postedBy: String? = null
         private var postedHandles: List<String> = emptyList()
@@ -634,7 +639,7 @@ object Macro {
                 "megusta" -> likePost(c)
                 "historia" -> shareToStory(c)
                 "comprobar" -> checkVisible(c)
-                "seguir" -> followAccount(c)
+                "seguir" -> if (c.arg.lowercase().startsWith("descrip") || c.arg.lowercase().startsWith("cuentas")) followMentioned(c) else followAccount(c)
                 "inicio" -> feed(c)
                 "historias" -> stories(c)
                 "irperfil" -> {
@@ -930,6 +935,7 @@ object Macro {
                 c.op == "megusta" -> "me gusta"
                 c.op == "historia" -> "subir a historia"
                 c.op == "comprobar" -> "¿se ve el comentario?"
+                c.op == "seguir" && c.arg.lowercase().startsWith("descrip") -> "seguir cuentas de la descripción"
                 c.op == "seguir" -> "seguir cuenta"
                 c.op == "historias" -> "viendo historias"
                 else -> (c.op + " " + c.arg).trim().take(14)
@@ -2161,6 +2167,96 @@ object Macro {
          * «seguir»: si en la publicación abierta sale el botón «Seguir» junto al nombre de la cuenta, lo toca.
          * Si ya pone «Siguiendo» o «Solicitado», no hace nada. Si no lo ve, sigue con el guion.
          */
+        /** Cuentas mencionadas (@) en la descripción de la publicación abierta. */
+        private fun captionHandles(): List<String>? {
+            var cap: String? = null
+            for (root in windowRoots()) {
+                if (root.packageName?.toString() != INSTAGRAM) continue
+                for (idn in listOf("row_feed_comment_textview_layout", "row_feed_caption", "caption_text")) {
+                    val l = try { root.findAccessibilityNodeInfosByViewId("$INSTAGRAM:id/$idn") } catch (e: Exception) { null }
+                    val t = l?.firstOrNull { it.isVisibleToUser && !it.text.isNullOrBlank() }?.text?.toString()
+                    if (t != null) { cap = t; break }
+                }
+                if (cap != null) break
+            }
+            val txt = cap ?: return null
+            val mias = accounts.map { it.lowercase().removePrefix("@") }.toSet() + (current?.lowercase() ?: "")
+            return Regex("@([A-Za-z0-9._]{2,30})").findAll(txt).map { it.groupValues[1].trimEnd('.').lowercase() }
+                .filter { it.isNotEmpty() && it !in mias }.distinct().take(12).toList()
+        }
+
+        private fun seguidasKey(h: String) = (current ?: "?").lowercase() + "|" + h
+        private fun yaSeguida(h: String): Boolean =
+            (s.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE).getString("seguidas_desc", "") ?: "").lines().contains(seguidasKey(h))
+        private fun apuntaSeguida(h: String) {
+            val p = s.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE)
+            val old = (p.getString("seguidas_desc", "") ?: "").lines().filter { it.isNotBlank() }
+            p.edit().putString("seguidas_desc", (old + seguidasKey(h)).distinct().takeLast(3000).joinToString("\n")).apply()
+        }
+
+        /**
+         * «seguir descripcion»: sigue a las cuentas que salen con @ en la descripción de la publicación,
+         * solo si la cuenta no las sigue ya. Abre cada perfil, mira el botón y vuelve a la publicación.
+         */
+        private fun followMentioned(c: Cmd) {
+            val (w, h) = s.screenSize()
+            when (fmPhase) {
+                0 -> {
+                    // Abrir la descripción entera si pone «… más»
+                    val mas = findIg { t, r, _ -> (t == "más" || t == "more" || t.endsWith("… más") || t.endsWith("... más") || t.endsWith("… more")) && r.exactCenterY() > h * 0.3f }
+                    if (mas != null && tries == 0) { s.tapAt(mas.exactCenterX(), mas.exactCenterY()); tries = 1; later(1200L); return }
+                    val hs = captionHandles()
+                    if (hs == null) {
+                        if (tries < 3) { tries++; s.swipe(w * 0.5f, h * 0.7f, w * 0.5f, h * 0.5f, 500L); later(1500L) }
+                        else { trace("  no veo la descripción: sigo"); advance(c.extra()) }
+                        return
+                    }
+                    fmList = hs.filter { !yaSeguida(it) }
+                    fmIdx = 0
+                    tries = 0
+                    if (fmList.isEmpty()) {
+                        trace(if (hs.isEmpty()) "  la descripción no menciona a ninguna cuenta" else "  ya sigues a las cuentas de la descripción")
+                        advance(c.extra())
+                        return
+                    }
+                    fmUrl = s.lastUrl
+                    trace("  cuentas de la descripción por seguir: " + fmList.joinToString(" ") { "@$it" })
+                    fmPhase = 1
+                    later(500L)
+                }
+                1 -> {
+                    s.openUrl("https://www.instagram.com/" + fmList[fmIdx] + "/")
+                    fmPhase = 2
+                    tries = 0
+                    later(4500L)
+                }
+                2 -> {
+                    val hnd = fmList[fmIdx]
+                    val follow = setOf("seguir", "follow", "seguir también", "seguir de vuelta", "follow back")
+                    val done = setOf("siguiendo", "following", "solicitado", "requested")
+                    val dn = findIg { t, r, _ -> t in done && r.exactCenterY() < h * 0.6f }
+                    val fb = if (dn == null) findIg { t, r, _ -> t in follow && r.exactCenterY() < h * 0.6f } else null
+                    when {
+                        dn != null -> { trace("  ya sigues a @$hnd"); apuntaSeguida(hnd) }
+                        fb != null -> { trace("  sigo a @$hnd (ponía «Seguir»)"); s.tapAt(fb.exactCenterX(), fb.exactCenterY()); apuntaSeguida(hnd) }
+                        tries < 3 -> { tries++; later(1500L); return }
+                        else -> trace("  no veo el botón de seguir de @$hnd: la salto")
+                    }
+                    fmIdx++
+                    tries = 0
+                    if (fmIdx < fmList.size) { fmPhase = 1; later(2500L + (Math.random() * 2000).toLong()) }
+                    else { fmPhase = 3; later(2000L) }
+                }
+                3 -> {
+                    fmPhase = 0
+                    val url = fmUrl.ifEmpty { s.lastUrl }
+                    trace("  vuelvo a la publicación")
+                    if (url.isNotEmpty()) s.openUrl(url)
+                    advance(maxOf(c.extra(), 5000L))
+                }
+            }
+        }
+
         private fun followAccount(c: Cmd) {
             val (_, h) = s.screenSize()
             val follow = setOf("seguir", "follow", "seguir también", "seguir de vuelta", "follow back")
