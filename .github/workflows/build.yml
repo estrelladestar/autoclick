@@ -98,11 +98,15 @@ jobs:
           path: teclado/build/outputs/apk/debug/*.apk
       - uses: actions/upload-artifact@v4
         with:
+          name: CaminandoLetras-apk
+          path: letras/build/outputs/apk/debug/*.apk
+      - uses: actions/upload-artifact@v4
+        with:
           name: SorteosStar-apk
           path: sorteos/build/outputs/apk/debug/*.apk
       - run: cp app/build/outputs/apk/normal/debug/app-normal-debug.apk StarApp.apk && cp StarApp.apk app-debug.apk && cp app/build/outputs/apk/historias/debug/app-historias-debug.apk StarAppHistorias.apk  # Star App (también como app-debug.apk, el enlace de siempre) y Star App Historias
-      - run: cp lengua/src/main/assets/mundo.html MiMundo_Lengua_Tema3.html && cp facil/src/main/assets/mundo.html MiMundo_Facil_Tema3.html && cp pasoapaso/src/main/assets/mundo.html MiMundo_PasoAPaso_Tema3.html && cp ingles/src/main/assets/mundo.html MiMundo_Ingles_Unit2.html && cp inglesfacil/src/main/assets/mundo.html MiMundo_InglesFacil_Unit2.html && cp mates/src/main/assets/mundo.html MiMundo_Mates_Tema3.html && cp cono/src/main/assets/mundo.html MiMundo_Cono_Tema3.html && cp sorteos/src/main/assets/sorteos.html SorteosStar.html && cp joyas/src/main/assets/joyas.html StarJoyas.html && cp calculo/src/main/assets/mates.html StarMates.html  # versiones HTML para descargar
-      - run: mkdir -p web/ingles && cp lengua/src/main/assets/mundo.html web/index.html && mkdir -p web/sorteos && cp sorteos/src/main/assets/sorteos.html web/sorteos/index.html && cp sorteosplay/privacidad.html web/sorteos/privacidad.html && cp ingles/src/main/assets/mundo.html web/ingles/index.html && mkdir -p web/mates && cp mates/src/main/assets/mundo.html web/mates/index.html && mkdir -p web/cono && cp cono/src/main/assets/mundo.html web/cono/index.html && mkdir -p web/joyas && cp joyas/src/main/assets/joyas.html web/joyas/index.html && mkdir -p web/calculo && cp calculo/src/main/assets/mates.html web/calculo/index.html && touch web/.nojekyll  # páginas web de los juegos (/ = Lengua, /ingles/ = Inglés, /sorteos/ = Sorteos Star, /joyas/ = Star Joyas)
+      - run: cp lengua/src/main/assets/mundo.html MiMundo_Lengua_Tema3.html && cp facil/src/main/assets/mundo.html MiMundo_Facil_Tema3.html && cp pasoapaso/src/main/assets/mundo.html MiMundo_PasoAPaso_Tema3.html && cp ingles/src/main/assets/mundo.html MiMundo_Ingles_Unit2.html && cp inglesfacil/src/main/assets/mundo.html MiMundo_InglesFacil_Unit2.html && cp mates/src/main/assets/mundo.html MiMundo_Mates_Tema3.html && cp cono/src/main/assets/mundo.html MiMundo_Cono_Tema3.html && cp sorteos/src/main/assets/sorteos.html SorteosStar.html && cp joyas/src/main/assets/joyas.html StarJoyas.html && cp calculo/src/main/assets/mates.html StarMates.html && cp letras/src/main/assets/letras.html CaminandoLetras.html  # versiones HTML para descargar
+      - run: mkdir -p web/ingles && cp lengua/src/main/assets/mundo.html web/index.html && mkdir -p web/sorteos && cp sorteos/src/main/assets/sorteos.html web/sorteos/index.html && cp sorteosplay/privacidad.html web/sorteos/privacidad.html && cp ingles/src/main/assets/mundo.html web/ingles/index.html && mkdir -p web/mates && cp mates/src/main/assets/mundo.html web/mates/index.html && mkdir -p web/cono && cp cono/src/main/assets/mundo.html web/cono/index.html && mkdir -p web/joyas && cp joyas/src/main/assets/joyas.html web/joyas/index.html && mkdir -p web/calculo && cp calculo/src/main/assets/mates.html web/calculo/index.html && mkdir -p web/letras && cp letras/src/main/assets/letras.html web/letras/index.html && touch web/.nojekyll  # páginas web de los juegos (/ = Lengua, /ingles/ = Inglés, /sorteos/ = Sorteos Star, /joyas/ = Star Joyas)
       - uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -141,6 +145,8 @@ jobs:
             - StarJoyas.html → Star Joyas para abrir en el navegador
             - StarMates-debug.apk → Star Mates (matemáticas: sumas, restas, multiplicar, dividir, tablas con medallas y reto de 1 minuto)
             - StarMates.html → Star Mates para abrir en el navegador
+            - CaminandoLetras-debug.apk → Caminando Letras (lectoescritura para 5 años: vocales, m, p, l, s, t, d, n, ñ y j; escribir con el dedo, sílabas y palabras)
+            - CaminandoLetras.html → Caminando Letras para abrir en el navegador
             - StarTeclado-debug.apk → Star Teclado (teclado con letras bonitas: 27 fuentes, 10 colores, foto de fondo y convertidor para copiar)
           files: |
             StarApp.apk
@@ -159,6 +165,8 @@ jobs:
             joyas/build/outputs/apk/debug/*.apk
             calculo/build/outputs/apk/debug/*.apk
             teclado/build/outputs/apk/debug/*.apk
+            letras/build/outputs/apk/debug/*.apk
+            CaminandoLetras.html
             StarJoyas.html
             StarMates.html
             MiMundo_Lengua_Tema3.html

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="LetrasTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">#3CC46B</item>
+        <item name="android:colorAccent">#FF5FA2</item>
+        <item name="android:statusBarColor">#4FB8E0</item>
+        <item name="android:navigationBarColor">#E8FFD9</item>
+        <item name="android:windowBackground">@drawable/letras_bg</item>
+    </style>
+</resources>
