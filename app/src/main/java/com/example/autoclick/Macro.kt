@@ -436,6 +436,8 @@ object Macro {
         private var storyText = ""
         /** En la historia: false = escribiendo la etiqueta de la tienda; true = escribiendo la frase y las menciones (otro texto). */
         private var storyPaso2 = false
+        /** Veces que se ha cerrado lo que quedaba abierto de la búsqueda de menciones. */
+        private var cierresBusqueda = 0
         /** true cuando ya se ha tocado la sugerencia de la tienda (para que quede etiquetada). */
         private var storyTagged = false
         /** Cuenta que se acaba de tocar en la lista y dónde (para comprobar que de verdad se cambió). */
@@ -2204,6 +2206,8 @@ object Macro {
                 }
                 2 -> {
                     if (shareOwner.isEmpty() && storyText.isEmpty()) { sharePhase = 5; later(500L); return }
+                    // Con la tienda conocida, la etiqueta se pone con el sticker de mención (@): escribir el nombre no sale en la lista
+                    if (!storyPaso2) { sharePhase = 7; tries = 0; later(1500L); return }
                     // Abrir el texto: el botón «Aa» o, si no se ve, tocar arriba en un hueco de la pantalla
                     val aa = findIg { t, r, _ -> r.exactCenterY() < h * 0.2f && (t == "aa" || t == "texto" || t == "text" || t == "añadir texto" || t == "add text") }
                     // Para el segundo texto, si no se ve «Aa», se toca más arriba para no tocar la etiqueta de la tienda
@@ -2281,6 +2285,15 @@ object Macro {
                     later(2500L)
                 }
                 5 -> {
+                    // Si la búsqueda de menciones sigue abierta con su campo activo, se cierra (sin salir de la historia)
+                    if (storyTagged && cierresBusqueda < 3 &&
+                        findIg { _, _, n -> n.isEditable && n.isFocused && n.isVisibleToUser } != null) {
+                        cierresBusqueda++
+                        trace("  cierro lo que queda abierto de la búsqueda de menciones")
+                        s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
+                        later(1500L)
+                        return
+                    }
                     // Desde el editor hay que llegar a la pantalla «Tu historia» (con «Siguiente» por el camino).
                     // «Tu historia» solo se busca abajo: arriba está la burbuja de tu historia en Inicio.
                     if (tries < 8 && cerrarAviso()) {
@@ -2367,6 +2380,76 @@ object Macro {
                     val url = s.lastUrl
                     if (url.isNotEmpty()) main.postDelayed({ s.openUrl(url) }, 1500L)
                     advance(maxOf(c.extra(), 5000L))
+                }
+                7 -> {
+                    // Etiquetar a la tienda con el sticker de mención (@): así la etiqueta queda de verdad en la historia
+                    val mencion = findIg { t, r, _ ->
+                        r.exactCenterX() > w * 0.7f && r.exactCenterY() > h * 0.12f && r.exactCenterY() < h * 0.5f &&
+                            (t == "@" || t.contains("menci") || t.contains("mention"))
+                    }
+                    if (mencion != null) {
+                        trace("  abro el sticker de mención (@) para etiquetar a @$shareOwner")
+                        tap(mencion)
+                        sharePhase = 8
+                        tries = 0
+                        later(2000L)
+                        return
+                    }
+                    if (tries < 3) {
+                        tries++
+                        trace("  no veo el sticker de mención (@) ($tries). En pantalla: ${describirPantalla()}")
+                        later(1500L)
+                        return
+                    }
+                    // Sin nombre accesible: se pulsa el icono de la derecha, donde suele estar la @
+                    trace("  pulso el icono de la derecha, donde suele estar la @")
+                    s.tapAt(w * 0.9f, h * 0.29f)
+                    sharePhase = 8
+                    tries = 0
+                    later(2000L)
+                }
+                8 -> {
+                    // Se escribe el nombre de la tienda en la búsqueda de menciones
+                    val campo = findField()
+                    if (campo == null) {
+                        if (tries < 4) {
+                            tries++
+                            later(1500L)
+                        } else {
+                            storyGiveUp(c, "no se abre la búsqueda de menciones")
+                        }
+                        return
+                    }
+                    trace("  busco @$shareOwner en la búsqueda de menciones")
+                    putText(campo, shareOwner)
+                    sharePhase = 9
+                    tries = 0
+                    later(3000L)
+                }
+                9 -> {
+                    // Se toca el nombre de la tienda en los resultados: así queda etiquetada de verdad
+                    val owner = shareOwner.lowercase()
+                    val fila = findIg { t, r, n ->
+                        !n.isEditable && r.exactCenterY() > h * 0.2f &&
+                            (t == owner || t == "@$owner" || t.startsWith("$owner\n") || t.startsWith("$owner "))
+                    }
+                    if (fila == null) {
+                        if (tries < 6) {
+                            tries++
+                            trace("  esperando a @$shareOwner en los resultados ($tries)")
+                            later(1500L)
+                        } else {
+                            storyGiveUp(c, "no aparece @$shareOwner en la búsqueda de menciones")
+                        }
+                        return
+                    }
+                    trace("  toco @$shareOwner en los resultados para etiquetarla")
+                    tap(fila)
+                    storyTagged = true
+                    cierresBusqueda = 0
+                    sharePhase = 5
+                    tries = 0
+                    later(2500L)
                 }
             }
         }
