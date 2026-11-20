@@ -2316,7 +2316,7 @@ object Macro {
                 }
                 5 -> {
                     // Si la búsqueda de menciones sigue abierta con su campo activo, se cierra (sin salir de la historia)
-                    if (storyTagged && cierresBusqueda < 3 &&
+                    if (storyTagged && cierresBusqueda < 3 && tecladoAbierto() &&
                         findIg { _, _, n -> n.isEditable && n.isFocused && n.isVisibleToUser } != null) {
                         cierresBusqueda++
                         trace("  cierro lo que queda abierto de la búsqueda de menciones")
@@ -2333,8 +2333,15 @@ object Macro {
                     }
                     val your = findIg { t, r, _ -> r.exactCenterY() > h * 0.6f && (t == "tu historia" || t == "your story" || t.startsWith("tu historia") || t.startsWith("your story")) }
                     if (your != null) {
-                        trace("  pulso «Tu historia» para publicarla")
-                        s.tapAt(your.exactCenterX(), your.exactCenterY())
+                        // En la pantalla de compartir se pulsa el botón azul (abajo a la derecha); si no se ve, «Tu historia»
+                        val azul = encontrar { r, n -> (n.isClickable || n.parent?.isClickable == true) && r.exactCenterX() > w * 0.7f && r.exactCenterY() > h * 0.75f && etiquetaSegura(n) }
+                        if (azul != null) {
+                            trace("  pulso el botón azul para publicar la historia")
+                            s.tapAt(azul.exactCenterX(), azul.exactCenterY())
+                        } else {
+                            trace("  pulso «Tu historia» para publicarla")
+                            s.tapAt(your.exactCenterX(), your.exactCenterY())
+                        }
                         sharePhase = 6
                         tries = 0
                         later(4000L)
