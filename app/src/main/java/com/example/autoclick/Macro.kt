@@ -440,6 +440,8 @@ object Macro {
         private var cierresBusqueda = 0
         /** true cuando ya se ha tocado la sugerencia de la tienda (para que quede etiquetada). */
         private var storyTagged = false
+        /** true si el sticker visible «@MENCIÓN» no se ha podido poner y se usa la @ de la derecha (mención oculta). */
+        private var stickerFallido = false
         /** Cuenta que se acaba de tocar en la lista y dónde (para comprobar que de verdad se cambió). */
         private var pendingSwitch: Triple<String, Float, Float>? = null
         private var switchChecks = 0
@@ -2213,6 +2215,7 @@ object Macro {
                     storyText = ""
                     storyPaso2 = shareOwner.isEmpty()
                     storyTagged = false
+                    stickerFallido = false
                     val share = findIg { t, r, n ->
                         n.viewIdResourceName?.endsWith("row_feed_button_share") == true ||
                             (r.exactCenterX() < w * 0.5f && t in setOf("compartir", "enviar publicación", "enviar", "share", "send post", "send"))
@@ -2433,7 +2436,32 @@ object Macro {
                     advance(maxOf(c.extra(), 5000L))
                 }
                 7 -> {
-                    // Etiquetar a la tienda con el sticker de mención (@): así la etiqueta queda de verdad en la historia
+                    // Etiqueta VISIBLE: botón de stickers (la carita) → sticker «@MENCIÓN».
+                    // La @ de la derecha en Instagram nuevo menciona pero el nombre NO se ve: solo se usa si falla el sticker.
+                    if (!stickerFallido) {
+                        val stickers = findIg { t, r, _ ->
+                            r.exactCenterX() > w * 0.7f && r.exactCenterY() > h * 0.08f && r.exactCenterY() < h * 0.5f &&
+                                (t.contains("sticker") || t.contains("pegatina") || t.contains("adhesivo") || t.contains("emoji"))
+                        }
+                        if (stickers != null) {
+                            trace("  abro los stickers para poner la mención visible de @$shareOwner")
+                            tap(stickers)
+                            sharePhase = 11
+                            tries = 0
+                            later(2500L)
+                            return
+                        }
+                        if (tries < 3) {
+                            tries++
+                            trace("  no veo el botón de stickers ($tries). En pantalla: ${describirPantalla()}")
+                            later(1500L)
+                            return
+                        }
+                        trace("  sin botón de stickers: uso la @ de la derecha (la mención puede no verse)")
+                        stickerFallido = true
+                        tries = 0
+                    }
+                    // Etiquetar a la tienda con la @ de la derecha (mención oculta)
                     val mencion = findIg { t, r, _ ->
                         r.exactCenterX() > w * 0.7f && r.exactCenterY() > h * 0.12f && r.exactCenterY() < h * 0.5f &&
                             (t == "@" || t.contains("menci") || t.contains("mention"))
@@ -2469,6 +2497,7 @@ object Macro {
                             tries == 3 -> {
                                 // No se abrió la lista de menciones: se vuelve a pulsar la @
                                 trace("  no se abre la búsqueda de menciones: vuelvo a pulsar la @. En pantalla: ${describirPantalla()}")
+                                stickerFallido = true
                                 sharePhase = 7
                                 later(1000L)
                             }
@@ -2504,6 +2533,19 @@ object Macro {
                             (t == owner || t == "@$owner" || t.startsWith("$owner\n") || t.startsWith("$owner "))
                     }
                     if (fila == null) {
+                        if (tries == 3) {
+                            // A veces la lista no sale si el nombre entra de golpe: se borra la última letra y se vuelve a poner
+                            campoBusquedaMencion()?.let { f ->
+                                val b1 = Bundle()
+                                b1.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, shareOwner.dropLast(1))
+                                f.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, b1)
+                                main.postDelayed({
+                                    val b2 = Bundle()
+                                    b2.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, shareOwner)
+                                    f.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, b2)
+                                }, 600L)
+                            }
+                        }
                         if (tries < 6) {
                             tries++
                             trace("  esperando a @$shareOwner en los resultados ($tries)")
@@ -2520,6 +2562,45 @@ object Macro {
                     sharePhase = 10
                     tries = 0
                     later(1500L)
+                }
+                11 -> {
+                    // En la bandeja de stickers se toca «@MENCIÓN». Si no se ve, se busca escribiendo «mención».
+                    val tile = findIg { t, r, n ->
+                        !n.isEditable && r.exactCenterY() > h * 0.12f && t.length < 30 &&
+                            (t.contains("menci") || t.contains("mention")) && !t.contains("mencionar")
+                    }
+                    if (tile != null) {
+                        trace("  toco el sticker «@MENCIÓN»")
+                        tap(tile)
+                        sharePhase = 8
+                        tries = 0
+                        later(2500L)
+                        return
+                    }
+                    tries++
+                    if (tries == 2) {
+                        val buscar = campoBusquedaMencion()
+                        if (buscar != null) {
+                            trace("  busco «mención» entre los stickers")
+                            val b = Bundle()
+                            b.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, "mención")
+                            buscar.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, b)
+                        }
+                        later(2500L)
+                        return
+                    }
+                    if (tries < 5) {
+                        trace("  no veo el sticker «@MENCIÓN» ($tries). En pantalla: ${describirPantalla()}")
+                        later(1500L)
+                        return
+                    }
+                    // No sale: se cierra la bandeja y se usa la @ de la derecha
+                    trace("  no encuentro el sticker «@MENCIÓN»: uso la @ de la derecha")
+                    s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
+                    stickerFallido = true
+                    sharePhase = 7
+                    tries = 0
+                    later(2000L)
                 }
                 10 -> {
                     // Instagram nuevo: tras marcar la tienda (✓) hay que pulsar el botón «Añadir» de abajo.
