@@ -1999,13 +1999,22 @@ object Macro {
 
         /** Algo ha fallado al subir la historia: vuelve a abrir la publicación y sigue con el guion. */
         private fun storyGiveUp(c: Cmd, why: String) {
-            trace("  ⚠ no he podido subir la historia: $why. Vuelvo a la publicación y sigo")
+            trace("  ⚠ no he podido subir la historia: $why. Salgo sin subirla y sigo con la publicación. En pantalla: ${describirPantalla()}")
             sharePhase = 0
             visPhase = 0
             s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
-            main.postDelayed({ s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK) }, 700L)
+            main.postDelayed({
+                // Instagram pregunta «¿seguir con la publicación o descartar?»: se descarta (la historia no se sube)
+                val descartar = findIg { t, _, _ -> t == "descartar" || t == "discard" }
+                if (descartar != null) {
+                    trace("  Instagram pregunta si descartar la historia: la descarto")
+                    s.tapAt(descartar.exactCenterX(), descartar.exactCenterY())
+                } else {
+                    s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
+                }
+            }, 700L)
             val url = s.lastUrl
-            if (url.isNotEmpty()) main.postDelayed({ s.openUrl(url) }, 1500L)
+            if (url.isNotEmpty()) main.postDelayed({ s.openUrl(url) }, 2000L)
             advance(maxOf(c.extra(), 5000L))
         }
 
@@ -2040,7 +2049,7 @@ object Macro {
         }
 
         /** «Listo» al terminar de escribir el texto: por su texto o, si es solo un icono ✓, la marca de arriba a la derecha. */
-        private fun pulsarListo(): Boolean {
+        private fun pulsarListo(aLaFuerza: Boolean = false): Boolean {
             val (w, h) = s.screenSize()
             val porTexto = findIg { t, _, _ -> t == "listo" || t == "hecho" || t == "done" || t == "aceptar" || t == "✓" || t == "✔" }
             if (porTexto != null) {
@@ -2050,6 +2059,11 @@ object Macro {
             val arriba = encontrar { r, n -> n.isClickable && r.exactCenterX() > w * 0.7f && r.exactCenterY() < h * 0.18f }
             if (arriba != null) {
                 s.tapAt(arriba.exactCenterX(), arriba.exactCenterY())
+                return true
+            }
+            if (aLaFuerza) {
+                // Último recurso: el «Listo» de arriba a la derecha aunque no se vea su texto
+                s.tapAt(w * 0.9f, h * 0.06f)
                 return true
             }
             return false
@@ -2272,6 +2286,13 @@ object Macro {
                             s.tapAt(next.exactCenterX(), next.exactCenterY())
                             tries++
                             later(2500L)
+                            return
+                        }
+                        if (tries == 3) {
+                            trace("  no veo «Siguiente»: pruebo el «Listo» de arriba a la derecha")
+                            pulsarListo(aLaFuerza = true)
+                            tries++
+                            later(2000L)
                             return
                         }
                         tries++
