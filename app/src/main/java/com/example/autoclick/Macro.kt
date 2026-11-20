@@ -501,7 +501,28 @@ object Macro {
             later(maxOf(ms, 400L))
         }
 
+        /** ¿Instagram dice que no puede cargar (sin internet o cuenta frenada)? */
+        private fun instagramSinConexion(): Boolean = findIg { t, _, _ ->
+            t.contains("no se puede actualizar") || t.contains("sin conexión") || t.contains("no hay conexión") ||
+                t.contains("comprueba tu conexión") || t.contains("couldn't refresh") || t.contains("no internet connection") ||
+                t.contains("no se ha podido cargar") || t.contains("couldn't load")
+        } != null
+
+        private var esperasSinConexion = 0
+
         private fun retry(what: String) {
+            if (instagramSinConexion()) {
+                // No sirve reintentar: Instagram no carga. Se espera y se vuelve a abrir la publicación
+                esperasSinConexion++
+                val seg = minOf(30 * esperasSinConexion, 300)
+                trace("  ⚠ Instagram no carga («No se puede actualizar»: sin internet o cuenta frenada). Espero $seg s y vuelvo a abrir la publicación")
+                tries = 0
+                val url = s.lastUrl
+                main.postDelayed({ if (url.isNotEmpty()) s.openUrl(url) }, seg * 1000L - 6000L)
+                later(seg * 1000L)
+                return
+            }
+            esperasSinConexion = 0
             trace("  reintento ${tries + 1}/$MAX_TRIES: no encuentro $what")
             if (what == "la caja de texto") {
                 if (tries == 0) trace("  En pantalla: ${describirPantalla()}")
