@@ -52,6 +52,7 @@ class SencillaActivity : Activity() {
     private lateinit var seguidosBox: EditText
     private lateinit var entreSpin: Spinner
     private lateinit var historiasSpin: Spinner
+    private lateinit var subirHistoriaBox: CheckBox
     private lateinit var megustaBox: CheckBox
     private lateinit var seguirDescBox: CheckBox
     private lateinit var estado: TextView
@@ -186,7 +187,7 @@ class SencillaActivity : Activity() {
             setTypeface(null, Typeface.BOLD)
         })
         cabecera.addView(TextView(ctx).apply {
-            text = "Pon hasta 5 enlaces y tus menciones. Lo demás se hace solo: sigue a la tienda, da me gusta, sigue las cuentas de la descripción, comenta, mira historias y cambia de cuenta, y vuelve a empezar."
+            text = "Pon hasta 5 enlaces y tus menciones. Lo demás se hace solo: sigue a la tienda, sube la historia, da me gusta, sigue las cuentas de la descripción, comenta, mira historias y cambia de cuenta, y vuelve a empezar."
             textSize = 14f
             setTextColor(Color.WHITE)
             setPadding(0, dp(6), 0, 0)
@@ -282,6 +283,8 @@ class SencillaActivity : Activity() {
         entreSpin = lista(ENTRE_TEXTOS, ENTRE_VALORES.indexOf(prefs.getString("s_entre", "10-20") ?: "10-20").coerceAtLeast(0))
 
         seccionNueva("📸 8. Historias", CIAN)
+        subirHistoriaBox = marca("📤 Subir historia etiquetando a la tienda", prefs.getBoolean("s_subir_hist", true))
+        texto("La historia solo lleva la etiqueta de la tienda, sin frase ni menciones.")
         historiasSpin = lista(HIST_TEXTOS, HIST_VALORES.indexOf(prefs.getString("s_hist", "1-2") ?: "1-2").coerceAtLeast(0))
 
         seccionNueva("❤️ 9. En cada publicación", ROJO)
@@ -444,6 +447,7 @@ class SencillaActivity : Activity() {
             .putString("s_hist", HIST_VALORES[historiasSpin.selectedItemPosition])
             .putBoolean("s_megusta", megustaBox.isChecked)
             .putBoolean("s_seguirdesc", seguirDescBox.isChecked)
+            .putBoolean("s_subir_hist", subirHistoriaBox.isChecked)
             // Lo que lee el motor: las frases elegidas
             .putString("phrases", frases)
             .apply()
@@ -465,6 +469,8 @@ class SencillaActivity : Activity() {
         val sb = StringBuilder()
         if (cuentas.size >= 2) sb.append("cuentas ${cuentas.joinToString(" ")}\n")
         sb.append("enlace\nesperar 8\nseguir\nesperar 1-3\n")
+        // Subir historia: la publicación va a tu historia etiquetando a la tienda (como en Star App Historias)
+        if (subirHistoriaBox.isChecked) sb.append("historia\nesperar 3-5\n")
         if (megustaBox.isChecked) sb.append("megusta\nesperar 1-2\n")
         if (seguirDescBox.isChecked) sb.append("seguir descripcion\nesperar 2-4\n")
         for (k in 1..seguidos) {

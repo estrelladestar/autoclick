@@ -2138,8 +2138,9 @@ object Macro {
          * que la publicó (o a la que pongas: «historia @cuenta»). Cada cuenta tuya lo hace una sola vez por enlace.
          */
         private fun shareToStory(c: Cmd) {
-            if (!s.packageName.endsWith(".historias")) {
-                trace("  «historia» solo funciona en Star App Historias: lo salto")
+            // Solo en las apps que suben historias: Star App Historias y Star App Sencilla
+            if (!s.packageName.endsWith(".historias") && !s.packageName.endsWith(".sencilla")) {
+                trace("  «historia» solo funciona en Star App Historias y Star App Sencilla: lo salto")
                 advance(c.extra())
                 return
             }
