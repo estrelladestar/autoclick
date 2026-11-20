@@ -41,6 +41,9 @@ class SencillaActivity : Activity() {
     private lateinit var prefs: SharedPreferences
     // Hasta 5 enlaces de publicación, cada uno con su foto al lado
     private val linkBoxes = mutableListOf<EditText>()
+    private val botonesElegir = mutableListOf<TextView>()
+    private var enlaceElegido = -1 // el enlace que usa el guion en todas las vueltas; -1 = todos en orden
+    private lateinit var estadoEnlaces: TextView
     private val fotos = mutableListOf<ImageView>()
     private val fotoPendiente = arrayOfNulls<Runnable>(5)
     private val fotoHandler = Handler(Looper.getMainLooper())
@@ -217,7 +220,9 @@ class SencillaActivity : Activity() {
 
         // 1. Hasta 5 enlaces, cada uno con la foto de su publicación
         seccionNueva("🔗 1. Enlaces de publicaciones (hasta 5)", AZUL)
-        texto("Pega cada enlace. El guion los usa uno tras otro, en orden. A la izquierda sale la foto de la publicación.")
+        texto("Pega cada enlace. A la izquierda sale la foto de la publicación. Si no marcas ninguno, el guion los usa uno tras otro, en orden. Si marcas ○ en uno, el guion usa solo ese.")
+        estadoEnlaces = texto("")
+        enlaceElegido = prefs.getInt("s_link_sel", -1)
         val guardados = (prefs.getString("s_links", null) ?: prefs.getString("s_link", "") ?: "").lines()
         for (i in 0 until 5) {
             val foto = ImageView(ctx).apply {
@@ -238,11 +243,21 @@ class SencillaActivity : Activity() {
                 setPadding(dp(12), dp(10), dp(12), dp(10))
             }
             linkBoxes.add(campo)
+            val elegir = TextView(ctx).apply {
+                textSize = 26f
+                gravity = Gravity.CENTER
+                setTextColor(colorSec)
+                setPadding(dp(10), dp(4), dp(4), dp(4))
+                contentDescription = "Usar solo el enlace ${i + 1}"
+                setOnClickListener { elegirEnlace(i) }
+            }
+            botonesElegir.add(elegir)
             val fila = LinearLayout(ctx).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
                 addView(foto, LinearLayout.LayoutParams(dp(72), dp(72)))
                 addView(campo, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { leftMargin = dp(10) })
+                addView(elegir, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { leftMargin = dp(4) })
             }
             seccion.addView(fila, lpRaiz(arriba = 10))
             alEscribir(campo) {
@@ -251,6 +266,8 @@ class SencillaActivity : Activity() {
             }
             pedirFoto(i)
         }
+
+        refrescarEnlaces()
 
         seccionNueva("👥 2. Cuentas (en orden; vacío = todas)", MORADO)
         texto("Sepáralas con espacios. Con 2 o más, la app cambia de cuenta sola.")
@@ -414,6 +431,28 @@ class SencillaActivity : Activity() {
         })
     }
 
+    /** Marca (○ pasa a ●) o quita la marca del enlace que usa el guion en todas las vueltas. */
+    private fun elegirEnlace(i: Int) {
+        if (linkBoxes[i].text.toString().trim().isEmpty()) {
+            toast("Pon primero el enlace ${i + 1}")
+            return
+        }
+        enlaceElegido = if (enlaceElegido == i) -1 else i
+        guardarListas()
+        refrescarEnlaces()
+    }
+
+    /** Pone ● en el enlace marcado (○ en los demás) y dice qué usará el guion. */
+    private fun refrescarEnlaces() {
+        if (!::estadoEnlaces.isInitialized) return
+        botonesElegir.forEachIndexed { i, b -> b.text = if (i == enlaceElegido) "●" else "○" }
+        estadoEnlaces.text = if (enlaceElegido in 0..4) {
+            "Ahora el guion usa solo el enlace ${enlaceElegido + 1}. Pulsa ● para volver a usar todos en orden."
+        } else {
+            "Ahora el guion usa todos los enlaces, en orden."
+        }
+    }
+
     /** Espera un momento (mientras se escribe el enlace) y luego busca la foto de su publicación. */
     private fun pedirFoto(i: Int) {
         fotoPendiente[i]?.let { fotoHandler.removeCallbacks(it) }
@@ -454,17 +493,21 @@ class SencillaActivity : Activity() {
 
     /**
      * Lo que se escribe a mano (enlaces, menciones y tus frases): se guarda al momento, así no se pierde.
-     * Los enlaces van como link0…link4 y «linkSelUrl» vacío, para que el guion los use uno tras otro.
+     * Los enlaces van como link0…link4; «linkSelUrl» es el que marcas con ● (vacío: el guion los usa uno tras otro).
      */
     private fun guardarListas() {
         // Mientras la pantalla se monta, algún cuadro aún no existe: en ese caso no se guarda nada
         if (!::mencionesBox.isInitialized || !::frasesTextoBox.isInitialized) return
         val enlaces = linkBoxes.map { it.text.toString().trim() }
+        // Si el enlace marcado se ha vaciado, vuelve a usarse todos en orden
+        if (enlaceElegido in 0..4 && enlaces.getOrElse(enlaceElegido) { "" }.isEmpty()) enlaceElegido = -1
+        refrescarEnlaces()
         val menciones = mencionesBox.text.toString().lines().map { it.trim() }.filter { it.isNotEmpty() }.joinToString("\n")
         val ed = prefs.edit()
         enlaces.forEachIndexed { i, u -> ed.putString("link$i", u) }
         ed.putString("s_links", enlaces.joinToString("\n"))
-        ed.putString("linkSelUrl", "")
+        ed.putString("linkSelUrl", if (enlaceElegido in 0..4) enlaces.getOrElse(enlaceElegido) { "" } else "")
+        ed.putInt("s_link_sel", enlaceElegido)
         ed.putString("s_menciones", mencionesBox.text.toString())
         ed.putString("friends", menciones)
         ed.putString("menciones_fijas", menciones)
