@@ -10,6 +10,7 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.RippleDrawable
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -80,7 +81,6 @@ class SencillaActivity : Activity() {
         private val GRIS_CLARO = Color.parseColor("#90A4AE")
         private val FONDO_ARRIBA = Color.parseColor("#FDE2F3")
         private val FONDO_ABAJO = Color.parseColor("#DDEBFF")
-        private val MARCA_MENCIONES = "Menciones de Star App"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -258,7 +258,7 @@ class SencillaActivity : Activity() {
 
         seccionNueva("💬 3. Tus menciones (una por línea)", NARANJA)
         mencionesBox = caja(prefs.getString("s_menciones", "") ?: "", multi = true, pista = "@amiga1")
-        texto("Se guardan solas: no hace falta volver a escribirlas.")
+        texto("Se traen solas de Star App al abrir esta app, si allí han cambiado.")
         alEscribir(mencionesBox) { guardarListas() }
 
         seccionNueva("🔢 4. Menciones por comentario", ROSA)
@@ -315,42 +315,42 @@ class SencillaActivity : Activity() {
             background = degradado(FONDO_ARRIBA, FONDO_ABAJO, 0)
             addView(root)
         })
-        // Si Star App nos envía sus menciones, se ofrece ponerlas fijas aquí
-        if (savedInstanceState == null) recibirMenciones(intent)
     }
 
-    override fun onNewIntent(intent: Intent?) {
-        super.onNewIntent(intent)
-        recibirMenciones(intent)
+    /** Al abrir Sencilla, trae las menciones de Star App (o de Star App Historias) si han cambiado desde la última vez. */
+    private fun traerMencionesDeOtraApp() {
+        Thread {
+            val lista = leerMencionesDeOtraApp()
+            fotoHandler.post {
+                if (lista == null || lista == (prefs.getString("menciones_otra_app", "") ?: "")) return@post
+                prefs.edit().putString("menciones_otra_app", lista).apply()
+                mencionesBox.setText(lista)
+                toast("Menciones de Star App cargadas: ${lista.lines().size}")
+            }
+        }.start()
     }
 
-    /** Star App envía aquí sus menciones (botón «Pasar mis menciones»): se ofrece ponerlas fijas en este cuadro. */
-    private fun recibirMenciones(i: Intent?) {
-        if (i == null || i.action != Intent.ACTION_SEND) return
-        if (i.getStringExtra(Intent.EXTRA_SUBJECT) != MARCA_MENCIONES) return
-        val nuevas = (i.getStringExtra(Intent.EXTRA_TEXT) ?: "").lines().map { it.trim() }.filter { it.isNotEmpty() }
-        if (nuevas.isEmpty()) return
-        val actuales = mencionesBox.text.toString().lines().map { it.trim() }.filter { it.isNotEmpty() }
-        val aviso = if (actuales.isEmpty()) "" else "\n\nYa tienes ${actuales.size} menciones puestas aquí."
-        AlertDialog.Builder(this)
-            .setTitle("Menciones de Star App (${nuevas.size})")
-            .setMessage("¿Las pongo fijas en Sencilla?$aviso")
-            .setPositiveButton("Reemplazar") { _, _ ->
-                mencionesBox.setText(nuevas.joinToString("\n"))
-                toast("Menciones fijas: ${nuevas.size}")
+    /** Lee las menciones de la primera de estas apps que esté instalada (null si no hay ninguna). */
+    private fun leerMencionesDeOtraApp(): String? {
+        for (autoridad in listOf("com.example.autoclick.menciones", "com.example.autoclick.historias.menciones")) {
+            try {
+                contentResolver.query(Uri.parse("content://$autoridad/menciones"), null, null, null, null)?.use { c ->
+                    if (c.moveToFirst()) {
+                        val texto = (c.getString(0) ?: "").lines().map { it.trim() }.filter { it.isNotEmpty() }.joinToString("\n")
+                        if (texto.isNotEmpty()) return texto
+                    }
+                }
+            } catch (e: Exception) {
+                // Esa app no está instalada o no deja leer: se prueba la siguiente
             }
-            .setNeutralButton("Añadir") { _, _ ->
-                val todas = (actuales + nuevas).distinct()
-                mencionesBox.setText(todas.joinToString("\n"))
-                toast("Menciones fijas: ${todas.size}")
-            }
-            .setNegativeButton("Cancelar", null)
-            .show()
+        }
+        return null
     }
 
     override fun onResume() {
         super.onResume()
         asegurarImagenes()
+        traerMencionesDeOtraApp()
         val activa = ClickService.instance != null
         estado.text = if (activa) "✅ Activada: ya puedes empezar" else "⚠ Falta activarla en Accesibilidad (pulsa el botón azul)"
         estado.background = redondo(Color.parseColor(if (activa) "#43A047" else "#FB8C00"), 14)

@@ -5,10 +5,17 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
 
-    <!-- Para poder enviar las menciones a Star App Sencilla (otra app) desde el botón de Star App -->
+    <!-- Star App Sencilla lee aquí las menciones: solo apps firmadas con la misma clave y con el permiso -->
+    <uses-permission android:name="com.example.autoclick.LEER_MENCIONES" />
+    <uses-permission android:name="com.example.autoclick.historias.LEER_MENCIONES" />
     <queries>
-        <package android:name="com.example.autoclick.sencilla" />
+        <provider android:authorities="com.example.autoclick.menciones" />
+        <provider android:authorities="com.example.autoclick.historias.menciones" />
     </queries>
+
+    <permission
+        android:name="${applicationId}.LEER_MENCIONES"
+        android:protectionLevel="signature" />
 
     <application
         android:label="${appLabel}"
@@ -56,5 +63,11 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/accessibility_service_config" />
         </service>
+        <!-- Las menciones de esta app: solo las lee Star App Sencilla (misma firma y permiso) -->
+        <provider
+            android:name=".MencionesProvider"
+            android:authorities="${applicationId}.menciones"
+            android:exported="true"
+            android:readPermission="${applicationId}.LEER_MENCIONES" />
     </application>
 </manifest>
