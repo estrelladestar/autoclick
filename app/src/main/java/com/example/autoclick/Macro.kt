@@ -2123,6 +2123,12 @@ object Macro {
                         return
                     }
                     val ok = findIg { t, _, _ -> t == "listo" || t == "hecho" || t == "done" }
+                    if (ok == null && tries < 2) {
+                        // Aún no se ve «Listo» (el teclado sigue abierto): espera un poco
+                        tries++
+                        later(1500L)
+                        return
+                    }
                     if (ok != null) tap(ok) else s.tapAt(w * 0.5f, h * 0.1f)
                     val falta = !storyPaso2 && storyText.replace("|", "").isNotBlank()
                     if (falta) {
@@ -2138,27 +2144,76 @@ object Macro {
                     later(2500L)
                 }
                 5 -> {
-                    val your = findIg { t, r, _ -> r.exactCenterY() > h * 0.75f && (t == "tu historia" || t == "your story" || t.startsWith("tu historia") || t.startsWith("your story")) }
-                    val sendBtn = your ?: findIg { t, r, _ -> r.exactCenterY() > h * 0.75f && (t == "compartir" || t == "share" || t == "enviar a" || t == "siguiente" || t == "next") }
-                    if (sendBtn == null) { again("«Tu historia»"); return }
-                    tap(sendBtn)
-                    sharePhase = 6
-                    tries = 0
-                    later(3000L)
+                    // Desde el editor hay que llegar a la pantalla «Tu historia» (con «Siguiente» por el camino).
+                    // «Tu historia» solo se busca abajo: arriba está la burbuja de tu historia en Inicio.
+                    val your = findIg { t, r, _ -> r.exactCenterY() > h * 0.6f && (t == "tu historia" || t == "your story" || t.startsWith("tu historia") || t.startsWith("your story")) }
+                    if (your != null) {
+                        trace("  pulso «Tu historia» para publicarla")
+                        tap(your)
+                        sharePhase = 6
+                        tries = 0
+                        later(4000L)
+                        return
+                    }
+                    if (tries < 6) {
+                        // «Compartir» abajo del todo: es el botón final de esa pantalla
+                        val share = findIg { t, r, n -> !n.isEditable && (t == "compartir" || t == "share") && r.exactCenterY() > h * 0.8f }
+                        if (share != null) {
+                            trace("  pulso «Compartir» para publicar la historia")
+                            tap(share)
+                            sharePhase = 6
+                            tries = 0
+                            later(4000L)
+                            return
+                        }
+                        val next = findIg { t, _, n -> !n.isEditable && (t == "siguiente" || t == "next") }
+                        if (next != null) {
+                            trace("  pulso «Siguiente» para ir a «Tu historia»")
+                            tap(next)
+                            tries++
+                            later(2500L)
+                            return
+                        }
+                    }
+                    if (tries >= 2 && tries < 6) {
+                        // Puede que siga abierto el texto: pulsa «Listo» y mira otra vez
+                        val ok = findIg { t, _, _ -> t == "listo" || t == "hecho" || t == "done" }
+                        if (ok != null) {
+                            trace("  pulso «Listo» (sigue abierto el texto)")
+                            tap(ok)
+                            tries++
+                            later(2000L)
+                            return
+                        }
+                    }
+                    if (tries < 6) {
+                        tries++
+                        trace("  no veo «Tu historia» ni «Siguiente» ($tries): veo ${describeBottom()}")
+                        later(2000L)
+                        return
+                    }
+                    storyGiveUp(c, "no llego a la pantalla «Tu historia»")
                 }
                 6 -> {
-                    // A veces sale otra hoja para confirmar: «Compartir»
-                    val confirm = findIg { t, r, _ -> r.exactCenterY() > h * 0.5f && (t == "compartir" || t == "share") }
-                    if (confirm != null && tries == 0) {
-                        tap(confirm)
-                        tries = 1
-                        later(3000L)
+                    // Tras «Tu historia» la historia se sube y se vuelve a la publicación.
+                    // Si sigue en esa pantalla, se vuelve a pulsar (como mucho 2 veces).
+                    val still = findIg { t, r, _ -> r.exactCenterY() > h * 0.6f && (t == "tu historia" || t == "your story" || t.startsWith("tu historia") || t.startsWith("your story")) }
+                        ?: findIg { t, r, n -> !n.isEditable && (t == "compartir" || t == "share") && r.exactCenterY() > h * 0.8f }
+                    if (still != null) {
+                        if (tries < 2) {
+                            tries++
+                            trace("  sigo en la pantalla de la historia: lo vuelvo a pulsar")
+                            tap(still)
+                            later(4000L)
+                            return
+                        }
+                        storyGiveUp(c, "la historia no se ha subido")
                         return
                     }
                     markStoryDone()
                     trace("  historia subida" + (if (shareOwner.isNotEmpty()) " con @$shareOwner" else ""))
                     sharePhase = 0
-            visPhase = 0
+                    visPhase = 0
                     // Volver a la publicación para seguir con el guion
                     val url = s.lastUrl
                     if (url.isNotEmpty()) main.postDelayed({ s.openUrl(url) }, 1500L)
