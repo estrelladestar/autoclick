@@ -2135,6 +2135,36 @@ object Macro {
             return if (out.isEmpty()) "nada que reconozca" else out.joinToString(", ")
         }
 
+        /** Lo que se puede pulsar en la mitad de abajo, también los iconos sin texto (para saber dónde está el botón azul). */
+        private fun pulsablesAbajo(): String {
+            val (_, h) = s.screenSize()
+            val out = mutableListOf<String>()
+            for (root in windowRoots()) {
+                if (root.packageName?.toString() != INSTAGRAM) continue
+                fun walk(n: AccessibilityNodeInfo?, depth: Int) {
+                    if (n == null || depth > 50 || out.size >= 12) return
+                    if (n.isVisibleToUser && n.isClickable) {
+                        val r = Rect()
+                        n.getBoundsInScreen(r)
+                        if (r.width() > 0 && r.height() > 0 && r.exactCenterY() > h * 0.5f) {
+                            val d = (n.text ?: n.contentDescription)?.toString()?.trim()?.take(20) ?: ""
+                            val clase = n.className?.toString()?.substringAfterLast('.') ?: "?"
+                            out.add("(${r.exactCenterX().toInt()},${r.exactCenterY().toInt()}) $clase" + (if (d.isNotEmpty()) " «$d»" else ""))
+                        }
+                    }
+                    for (k in 0 until n.childCount) walk(n.getChild(k), depth + 1)
+                }
+                walk(root, 0)
+            }
+            return if (out.isEmpty()) "ninguno" else out.joinToString("; ")
+        }
+
+        /** Un icono de cerrar, atrás o descartar no es el botón de publicar: no se pulsa. */
+        private fun etiquetaSegura(n: AccessibilityNodeInfo): Boolean {
+            val d = (n.contentDescription ?: n.text)?.toString()?.lowercase() ?: return true
+            return listOf("cerr", "close", "atr", "back", "salir", "descart", "discard").none { it in d }
+        }
+
         /**
          * «historia» (solo en Star App Historias): sube la publicación abierta a tu historia y etiqueta a la cuenta
          * que la publicó (o a la que pongas: «historia @cuenta»). Cada cuenta tuya lo hace una sola vez por enlace.
@@ -2312,7 +2342,7 @@ object Macro {
                     }
                     // «Compartir» y la flecha azul van antes que el teclado: así se pulsan aunque haya cosas arriba
                     if (tries < 8) {
-                        val share = findIg { t, r, n -> !n.isEditable && (t == "compartir" || t == "share") && r.exactCenterY() > h * 0.7f }
+                        val share = findIg { t, r, n -> !n.isEditable && (t.startsWith("compartir") || t.startsWith("share")) && r.exactCenterY() > h * 0.7f }
                         if (share != null) {
                             trace("  pulso «Compartir» para publicar la historia")
                             s.tapAt(share.exactCenterX(), share.exactCenterY())
@@ -2324,8 +2354,8 @@ object Macro {
                         // «Siguiente»: por su texto o, si es solo un icono, el de abajo a la derecha
                         // Con el teclado abierto, lo de abajo queda tapado por el teclado: el icono de abajo solo se busca sin teclado
                         val teclado = tecladoAbierto()
-                        val next = findIg { t, _, n -> !n.isEditable && (t == "siguiente" || t == "next") }
-                            ?: if (!teclado) encontrar { r, n -> n.isClickable && r.exactCenterX() > w * 0.7f && r.exactCenterY() > h * 0.85f } else null
+                        val next = findIg { t, _, n -> !n.isEditable && (t.startsWith("siguiente") || t.startsWith("next")) }
+                            ?: if (!teclado) encontrar { r, n -> (n.isClickable || n.parent?.isClickable == true) && r.exactCenterX() > w * 0.7f && r.exactCenterY() > h * 0.75f && etiquetaSegura(n) } else null
                         if (next != null) {
                             trace("  pulso «Siguiente» para ir a «Tu historia»")
                             s.tapAt(next.exactCenterX(), next.exactCenterY())
@@ -2348,7 +2378,7 @@ object Macro {
                             return
                         }
                         tries++
-                        trace("  no veo «Tu historia» ni la flecha azul ($tries). En pantalla: ${describirPantalla()}")
+                        trace("  no veo «Tu historia» ni la flecha azul ($tries). Pulsable abajo: ${pulsablesAbajo()}. En pantalla: ${describirPantalla()}")
                         later(2000L)
                         return
                     }
