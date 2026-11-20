@@ -647,7 +647,7 @@ object Macro {
                 "megusta" -> likePost(c)
                 "historia" -> shareToStory(c)
                 "comprobar" -> checkVisible(c)
-                "seguir" -> if (c.arg.lowercase().startsWith("descrip") || c.arg.lowercase().startsWith("cuentas")) followMentioned(c) else followAccount(c)
+                "seguir" -> if (fmPhase != 0 || c.arg.lowercase().startsWith("descrip") || c.arg.lowercase().startsWith("cuentas")) followMentioned(c) else followAccount(c)
                 "inicio" -> feed(c)
                 "historias" -> stories(c)
                 "irperfil" -> {
@@ -1954,8 +1954,27 @@ object Macro {
                     tries++
                     later(1500L)
                 } else {
-                    trace("  no veo el corazón de la publicación: sigo")
-                    advance(c.extra())
+                    // Sin corazón a la vista: doble toque en la foto o el vídeo (da me gusta y nunca lo quita)
+                    var media: Rect? = null
+                    for (root in windowRoots()) {
+                        if (root.packageName?.toString() != INSTAGRAM) continue
+                        for (idn in listOf("row_feed_photo_imageview", "zoomable_view_container", "carousel_media_group", "clips_video_container", "media_group")) {
+                            val l = try { root.findAccessibilityNodeInfosByViewId("$INSTAGRAM:id/$idn") } catch (e: Exception) { null }
+                            val n = l?.firstOrNull { it.isVisibleToUser } ?: continue
+                            val r = Rect(); n.getBoundsInScreen(r)
+                            val vis = Rect(r.left, maxOf(r.top, (h * 0.12f).toInt()), r.right, minOf(r.bottom, (h * 0.85f).toInt()))
+                            if (vis.width() > w * 0.3f && vis.height() > h * 0.1f) { media = vis; break }
+                        }
+                        if (media != null) break
+                    }
+                    val m = media
+                    if (m != null) {
+                        trace("  no veo el corazón: doy me gusta con doble toque en la foto")
+                        s.doubleTapAt(m.exactCenterX(), m.exactCenterY())
+                    } else {
+                        trace("  no veo el corazón de la publicación: sigo. En pantalla: ${describirPantalla()}")
+                    }
+                    advance(maxOf(c.extra(), 1500L))
                 }
                 return
             }
@@ -2688,6 +2707,21 @@ object Macro {
                 }
                 if (cap != null) break
             }
+            if (cap == null) {
+                // Otra forma: el texto largo que empieza por el nombre de quien publica
+                val autores = autoresPublicacion()
+                for (root in windowRoots()) {
+                    if (root.packageName?.toString() != INSTAGRAM) continue
+                    fun walk(n: AccessibilityNodeInfo?, depth: Int) {
+                        if (n == null || depth > 45 || cap != null) return
+                        val t = n.text?.toString()
+                        if (n.isVisibleToUser && t != null && t.length > 15 && autores.any { t.lowercase().startsWith(it) }) { cap = t; return }
+                        for (k in 0 until n.childCount) walk(n.getChild(k), depth + 1)
+                    }
+                    walk(root, 0)
+                    if (cap != null) break
+                }
+            }
             val txt = cap ?: return null
             val mias = accounts.map { it.lowercase().removePrefix("@") }.toSet() + (current?.lowercase() ?: "")
             return Regex("@([A-Za-z0-9._]{2,30})").findAll(txt).map { it.groupValues[1].trimEnd('.').lowercase() }
@@ -2714,13 +2748,15 @@ object Macro {
                     // Abrir la descripción entera si pone «… más»
                     val mas = findIg { t, r, _ -> (t == "más" || t == "more" || t.endsWith("… más") || t.endsWith("... más") || t.endsWith("… more")) && r.exactCenterY() > h * 0.3f }
                     if (mas != null && tries == 0) { s.tapAt(mas.exactCenterX(), mas.exactCenterY()); tries = 1; later(1200L); return }
-                    val hs = captionHandles()
+                    var hs = captionHandles()
                     if (hs == null) {
-                        if (tries < 3) { tries++; s.swipe(w * 0.5f, h * 0.7f, w * 0.5f, h * 0.5f, 500L); later(1500L) }
-                        else { trace("  no veo la descripción: sigo"); advance(c.extra()) }
-                        return
+                        if (tries < 3) { tries++; s.swipe(w * 0.5f, h * 0.7f, w * 0.5f, h * 0.5f, 500L); later(1500L); return }
+                        // Sin descripción: al menos se siguen las cuentas que publican
+                        trace("  no veo la descripción")
+                        hs = emptyList()
                     }
-                    fmList = hs.filter { !yaSeguida(it) }
+                    // Primero las cuentas que publican (por si no se pudo seguir arriba), después las de la descripción
+                    fmList = (autoresPublicacion() + hs).distinct().filter { !yaSeguida(it) }
                     fmIdx = 0
                     tries = 0
                     if (fmList.isEmpty()) {
@@ -2766,6 +2802,30 @@ object Macro {
             }
         }
 
+        private fun apuntaSeguidaSiNo(h: String) { if (!yaSeguida(h)) apuntaSeguida(h) }
+
+        /** Quién ha publicado (en colaboraciones, todas las cuentas del encabezado). */
+        private fun autoresPublicacion(): List<String> {
+            val out = LinkedHashSet<String>()
+            val mias = accounts.map { it.lowercase().removePrefix("@") }.toSet() + (current?.lowercase() ?: "")
+            for (root in windowRoots()) {
+                if (root.packageName?.toString() != INSTAGRAM) continue
+                for (idn in listOf("row_feed_photo_profile_name", "clips_author_username", "reel_viewer_title")) {
+                    val l = try { root.findAccessibilityNodeInfosByViewId("$INSTAGRAM:id/$idn") } catch (e: Exception) { null }
+                    for (n in l ?: emptyList()) {
+                        if (!n.isVisibleToUser) continue
+                        val t = (n.text?.toString() ?: n.contentDescription?.toString() ?: "").lowercase()
+                        for (tok in t.split(" y ", " and ", "•", "\n", ",", " ")) {
+                            val hnd = tok.trim().removePrefix("@").trimEnd('.')
+                            if (Regex("[a-z0-9._]{2,30}").matches(hnd) && hnd != "y" && hnd != "and" && hnd !in mias) out.add(hnd)
+                        }
+                    }
+                }
+            }
+            if (shareOwner.isNotEmpty() && shareOwner.lowercase() !in mias) out.add(shareOwner.lowercase())
+            return out.take(4).toList()
+        }
+
         private fun followAccount(c: Cmd) {
             val (_, h) = s.screenSize()
             val follow = setOf("seguir", "follow", "seguir también", "seguir de vuelta", "follow back")
@@ -2801,11 +2861,24 @@ object Macro {
                     tries++
                     later(1500L)
                 } else {
-                    trace("  no veo el botón «Seguir»: sigo")
-                    advance(c.extra())
+                    // Sin «Seguir» arriba (reel, colaboración…): se abre el perfil de cada autor y se sigue desde ahí
+                    val autores = autoresPublicacion().filter { !yaSeguida(it) }
+                    if (autores.isEmpty()) {
+                        trace("  no veo el botón «Seguir» ni el nombre de la cuenta: sigo")
+                        advance(c.extra())
+                        return
+                    }
+                    trace("  sigo desde su perfil a: " + autores.joinToString(" ") { "@$it" })
+                    fmList = autores
+                    fmIdx = 0
+                    fmUrl = s.lastUrl
+                    fmPhase = 1
+                    tries = 0
+                    later(500L)
                 }
                 return
             }
+            autoresPublicacion().forEach { apuntaSeguidaSiNo(it) }
             trace("  sigo a la cuenta (ponía «Seguir»)")
             s.tapAt(t.exactCenterX(), t.exactCenterY())
             advance(maxOf(c.extra(), 1500L))
