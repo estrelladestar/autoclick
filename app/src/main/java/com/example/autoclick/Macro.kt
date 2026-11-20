@@ -2237,7 +2237,8 @@ object Macro {
                             !n.isEditable && r.exactCenterY() > h * 0.3f && (t == owner || t == "@$owner" || t.startsWith("$owner\n") || t.startsWith("$owner "))
                         }
                         if (sug == null) {
-                            if (tries < 4) {
+                            // La lista de sugerencias puede tardar (red lenta): se espera hasta unos 18 s antes de rendirse
+                            if (tries < 12) {
                                 tries++
                                 trace("  esperando la lista para etiquetar a @$shareOwner ($tries)")
                                 later(1500L)
@@ -2343,10 +2344,15 @@ object Macro {
                     val still = findIg { t, r, _ -> r.exactCenterY() > h * 0.6f && (t == "tu historia" || t == "your story" || t.startsWith("tu historia") || t.startsWith("your story")) }
                         ?: findIg { t, r, n -> !n.isEditable && (t == "compartir" || t == "share") && r.exactCenterY() > h * 0.8f }
                     if (still != null) {
-                        if (tries < 2) {
+                        // La historia puede tardar en subirse: se espera hasta unos 44 s, y solo se vuelve a pulsar una vez
+                        if (tries < 11) {
                             tries++
-                            trace("  sigo en la pantalla de la historia: lo vuelvo a pulsar")
-                            tap(still)
+                            if (tries == 2) {
+                                trace("  sigo en la pantalla de la historia: vuelvo a pulsar «Tu historia» una vez")
+                                tap(still)
+                            } else if (tries % 4 == 0) {
+                                trace("  esperando a que se suba la historia ($tries)")
+                            }
                             later(4000L)
                             return
                         }

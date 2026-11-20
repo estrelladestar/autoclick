@@ -304,6 +304,15 @@ class SencillaActivity : Activity() {
             setOnClickListener { empezar() }
         }, lpRaiz(arriba = 8, abajo = 14))
 
+        root.addView(Button(ctx).apply {
+            text = "🐞 Informe (si algo falla)"
+            isAllCaps = false
+            setTextColor(Color.WHITE)
+            background = conEfecto(degradado(Color.parseColor("#7C4DFF"), Color.parseColor("#536DFE"), 30))
+            setPadding(dp(16), dp(12), dp(16), dp(12))
+            setOnClickListener { mostrarInforme() }
+        }, lpRaiz(arriba = 0, abajo = 14))
+
         root.addView(TextView(ctx).apply {
             text = "Para parar, toca ■ en el botón flotante."
             textSize = 13f
@@ -610,4 +619,21 @@ class SencillaActivity : Activity() {
     }
 
     private fun toast(m: String) = Toast.makeText(this, m, Toast.LENGTH_LONG).show()
+
+    /** Enseña el informe del último guion (qué ha hecho y dónde se ha atascado), para copiarlo y pegarlo en el chat. */
+    private fun mostrarInforme() {
+        val txt = Macro.traceText(this)
+        val head = Macro.reportHead(this)
+        val body = txt.removePrefix(head)
+        AlertDialog.Builder(this)
+            .setTitle("🐞 Informe")
+            .setMessage(head + (if (body.isBlank()) "Todavía no hay informe. Pulsa «Empezar todo automático» y, si falla, vuelve aquí." else body.takeLast(6000)))
+            .setPositiveButton("Copiar") { _, _ ->
+                val cm = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                cm.setPrimaryClip(android.content.ClipData.newPlainText("informe Sencilla", txt))
+                toast("Informe copiado. Pégalo en el chat.")
+            }
+            .setNegativeButton("Cerrar", null)
+            .show()
+    }
 }
