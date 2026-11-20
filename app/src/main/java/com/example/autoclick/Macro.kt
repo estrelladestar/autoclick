@@ -2322,8 +2322,10 @@ object Macro {
                             return
                         }
                         // «Siguiente»: por su texto o, si es solo un icono, el de abajo a la derecha
+                        // Con el teclado abierto, lo de abajo queda tapado por el teclado: el icono de abajo solo se busca sin teclado
+                        val teclado = tecladoAbierto()
                         val next = findIg { t, _, n -> !n.isEditable && (t == "siguiente" || t == "next") }
-                            ?: encontrar { r, n -> n.isClickable && r.exactCenterX() > w * 0.7f && r.exactCenterY() > h * 0.85f }
+                            ?: if (!teclado) encontrar { r, n -> n.isClickable && r.exactCenterX() > w * 0.7f && r.exactCenterY() > h * 0.85f } else null
                         if (next != null) {
                             trace("  pulso «Siguiente» para ir a «Tu historia»")
                             s.tapAt(next.exactCenterX(), next.exactCenterY())
@@ -2331,7 +2333,7 @@ object Macro {
                             later(2500L)
                             return
                         }
-                        if (tecladoAbierto()) {
+                        if (teclado) {
                             // El texto sigue abierto: «Listo» si se ve; si no, «atrás» solo cierra el teclado (no sale de la historia)
                             tries++
                             val listo = findIg { t, _, _ -> t == "listo" || t == "hecho" || t == "done" || t == "✓" || t == "✔" }
