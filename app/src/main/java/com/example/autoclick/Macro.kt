@@ -442,6 +442,11 @@ object Macro {
         private var storyTagged = false
         /** true si el sticker visible «@MENCIÓN» no se ha podido poner y se usa la @ de la derecha (mención oculta). */
         private var stickerFallido = false
+        /** Cuentas que se mencionan en la historia: la tienda y las de la descripción. Y la que toca ahora. */
+        private var storyMenciones: MutableList<String> = ArrayList()
+        private var mencionActual = ""
+        private var mencionesPuestas = 0
+        private var mencionSaltada = false
         /** Cuenta que se acaba de tocar en la lista y dónde (para comprobar que de verdad se cambió). */
         private var pendingSwitch: Triple<String, Float, Float>? = null
         private var switchChecks = 0
@@ -2008,11 +2013,18 @@ object Macro {
         }
 
         /** Las cuentas (tuyas) que ya subieron a su historia cada enlace: «cuenta|enlace». */
-        private fun storyKey(): String = (current ?: "?") + "|" + s.lastUrl
+        /** Cuenta + publicación (solo el código de la publicación: así da igual lo que lleve el enlace detrás). */
+        private fun storyKey(): String {
+            val u = s.lastUrl
+            val id = Regex("/(p|reel|reels|tv)/([A-Za-z0-9_-]+)").find(u)?.groupValues?.get(2) ?: u.substringBefore("?").trimEnd('/')
+            return (current ?: "?").lowercase().removePrefix("@") + "|" + id
+        }
 
-        private fun storyDone(): Boolean =
-            (s.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE).getString("historias_hechas", "") ?: "")
-                .lines().contains(storyKey())
+        private fun storyDone(): Boolean {
+            val hechas = (s.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE).getString("historias_hechas", "") ?: "").lines()
+            // También la forma antigua de apuntarlo (cuenta|enlace entero)
+            return hechas.contains(storyKey()) || hechas.contains((current ?: "?") + "|" + s.lastUrl)
+        }
 
         private fun markStoryDone() {
             val p = s.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE)
@@ -2232,7 +2244,14 @@ object Macro {
                     }
                     // La historia solo lleva la etiqueta de la tienda (la frase y las menciones van en el comentario)
                     storyText = ""
-                    storyPaso2 = shareOwner.isEmpty()
+                    // En la historia se menciona a la tienda y también a las cuentas de la descripción (y colaboradores)
+                    val mias = accounts.map { it.lowercase().removePrefix("@") }.toSet() + (current?.lowercase() ?: "")
+                    storyMenciones = (listOf(shareOwner.lowercase()) + autoresPublicacion() + (captionHandles() ?: emptyList()))
+                        .map { it.trim().removePrefix("@") }.filter { it.isNotEmpty() && it !in mias }.distinct().take(6).toMutableList()
+                    mencionActual = storyMenciones.firstOrNull() ?: ""
+                    mencionesPuestas = 0
+                    if (storyMenciones.size > 1) trace("  en la historia mencionaré a: " + storyMenciones.joinToString(" ") { "@$it" })
+                    storyPaso2 = storyMenciones.isEmpty()
                     storyTagged = false
                     stickerFallido = false
                     val share = findIg { t, r, n ->
@@ -2257,7 +2276,7 @@ object Macro {
                     later(4000L)
                 }
                 2 -> {
-                    if (shareOwner.isEmpty() && storyText.isEmpty()) { sharePhase = 5; later(500L); return }
+                    if (storyMenciones.isEmpty() && storyText.isEmpty()) { sharePhase = 5; later(500L); return }
                     // Con la tienda conocida, la etiqueta se pone con el sticker de mención (@): escribir el nombre no sale en la lista
                     if (!storyPaso2) { sharePhase = 7; tries = 0; later(1500L); return }
                     // Abrir el texto: el botón «Aa» o, si no se ve, tocar arriba en un hueco de la pantalla
@@ -2375,6 +2394,7 @@ object Macro {
                             trace("  pulso «Tu historia» para publicarla")
                             s.tapAt(your.exactCenterX(), your.exactCenterY())
                         }
+                        markStoryDone()
                         sharePhase = 6
                         tries = 0
                         later(4000L)
@@ -2386,6 +2406,7 @@ object Macro {
                         if (share != null) {
                             trace("  pulso «Compartir» para publicar la historia")
                             s.tapAt(share.exactCenterX(), share.exactCenterY())
+                            markStoryDone()
                             sharePhase = 6
                             tries = 0
                             later(4000L)
@@ -2463,7 +2484,7 @@ object Macro {
                                 (t.contains("sticker") || t.contains("pegatina") || t.contains("adhesivo") || t.contains("emoji"))
                         }
                         if (stickers != null) {
-                            trace("  abro los stickers para poner la mención visible de @$shareOwner")
+                            trace("  abro los stickers para poner la mención visible de @$mencionActual")
                             tap(stickers)
                             sharePhase = 11
                             tries = 0
@@ -2486,7 +2507,7 @@ object Macro {
                             (t == "@" || t.contains("menci") || t.contains("mention"))
                     }
                     if (mencion != null) {
-                        trace("  abro el sticker de mención (@) para etiquetar a @$shareOwner")
+                        trace("  abro el sticker de mención (@) para etiquetar a @$mencionActual")
                         tap(mencion)
                         sharePhase = 8
                         tries = 0
@@ -2525,15 +2546,15 @@ object Macro {
                         }
                         return
                     }
-                    trace("  escribo @$shareOwner en la búsqueda de menciones")
+                    trace("  escribo @$mencionActual en la búsqueda de menciones")
                     campo.performAction(AccessibilityNodeInfo.ACTION_CLICK)
                     val b = Bundle()
-                    b.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, shareOwner)
+                    b.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, mencionActual)
                     campo.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, b)
                     campo.refresh()
-                    if (!(campo.text?.toString() ?: "").lowercase().contains(shareOwner.lowercase())) {
+                    if (!(campo.text?.toString() ?: "").lowercase().contains(mencionActual.lowercase())) {
                         // Si no entra así, se pega
-                        if (!putText(campo, shareOwner) && tries < 6) {
+                        if (!putText(campo, mencionActual) && tries < 6) {
                             tries++
                             trace("  no se ha escrito la mención: lo intento otra vez ($tries)")
                             later(1500L)
@@ -2546,7 +2567,7 @@ object Macro {
                 }
                 9 -> {
                     // Se toca el nombre de la tienda en los resultados: así queda etiquetada de verdad
-                    val owner = shareOwner.lowercase()
+                    val owner = mencionActual.lowercase()
                     val fila = findIg { t, r, n ->
                         !n.isEditable && r.exactCenterY() > h * 0.2f &&
                             (t == owner || t == "@$owner" || t.startsWith("$owner\n") || t.startsWith("$owner "))
@@ -2556,25 +2577,41 @@ object Macro {
                             // A veces la lista no sale si el nombre entra de golpe: se borra la última letra y se vuelve a poner
                             campoBusquedaMencion()?.let { f ->
                                 val b1 = Bundle()
-                                b1.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, shareOwner.dropLast(1))
+                                b1.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, mencionActual.dropLast(1))
                                 f.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, b1)
                                 main.postDelayed({
                                     val b2 = Bundle()
-                                    b2.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, shareOwner)
+                                    b2.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, mencionActual)
                                     f.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, b2)
                                 }, 600L)
                             }
                         }
                         if (tries < 6) {
                             tries++
-                            trace("  esperando a @$shareOwner en los resultados ($tries)")
+                            trace("  esperando a @$mencionActual en los resultados ($tries)")
                             later(1500L)
                         } else {
-                            storyGiveUp(c, "no aparece @$shareOwner en la búsqueda de menciones")
+                            if (mencionesPuestas == 0 && mencionActual == shareOwner.lowercase()) {
+                                storyGiveUp(c, "no aparece @$mencionActual en la búsqueda de menciones")
+                            } else {
+                                // Una cuenta de la descripción que no sale: se quita y se sigue con las demás
+                                trace("  no aparece @$mencionActual: la quito y sigo")
+                                mencionSaltada = true
+                                val f = campoBusquedaMencion()
+                                if (f != null) {
+                                    val b0 = Bundle()
+                                    b0.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, "")
+                                    f.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, b0)
+                                }
+                                storyTagged = true
+                                sharePhase = 10
+                                tries = 0
+                                later(1000L)
+                            }
                         }
                         return
                     }
-                    trace("  toco @$shareOwner en los resultados para etiquetarla")
+                    trace("  toco @$mencionActual en los resultados para etiquetarla")
                     tap(fila)
                     storyTagged = true
                     cierresBusqueda = 0
@@ -2628,7 +2665,7 @@ object Macro {
                     if (anadir != null) {
                         if (tries < 4) {
                             tries++
-                            trace("  pulso «Añadir» para poner la mención de @$shareOwner")
+                            trace("  pulso «Añadir» para poner la mención de @$mencionActual")
                             tap(anadir)
                             later(2000L)
                         } else {
@@ -2641,7 +2678,7 @@ object Macro {
                     if (tries < 6 && (listo != null || tecladoAbierto())) {
                         tries++
                         if (listo != null) {
-                            trace("  pulso «Listo» para dejar puesta la mención de @$shareOwner")
+                            trace("  pulso «Listo» para dejar puesta la mención de @$mencionActual")
                             tap(listo)
                         } else if (!pulsarListo(aLaFuerza = tries >= 3)) {
                             trace("  no veo «Listo». En pantalla: ${describirPantalla()}")
@@ -2649,8 +2686,27 @@ object Macro {
                         later(1800L)
                         return
                     }
-                    trace("  mención de @$shareOwner puesta")
+                    trace("  mención de @$mencionActual puesta")
+                    // Cada sticker sale en el centro: se lleva arriba, uno debajo de otro, para que no se tapen
+                    if (!mencionSaltada) {
+                        if (storyMenciones.size > 1 || mencionesPuestas > 0) {
+                            val y = h * (0.16f + 0.07f * (mencionesPuestas % 8))
+                            s.swipe(w * 0.5f, h * 0.5f, w * 0.5f, y, 700L)
+                        }
+                        mencionesPuestas++
+                    }
+                    mencionSaltada = false
                     cierresBusqueda = 3
+                    if (storyMenciones.isNotEmpty()) storyMenciones.removeAt(0)
+                    if (storyMenciones.isNotEmpty()) {
+                        mencionActual = storyMenciones[0]
+                        trace("  ahora menciono a @$mencionActual")
+                        storyTagged = false
+                        sharePhase = 7
+                        tries = 0
+                        later(2000L)
+                        return
+                    }
                     sharePhase = 5
                     tries = 0
                     later(2000L)
