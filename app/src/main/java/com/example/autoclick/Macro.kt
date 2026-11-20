@@ -973,7 +973,37 @@ object Macro {
             return false
         }
 
+        /**
+         * Si en Instagram se ha quedado abierto el editor de una historia a medias (o el aviso «¿Descartar foto?»),
+         * tapa la publicación y no se encuentra nada (ni «Seguir», ni la caja de comentarios). Se descarta.
+         * Devuelve true si había algo que cerrar.
+         */
+        private fun cerrarHistoriaAMedias(): Boolean {
+            val descartar = findIg { t, _, n -> !n.isEditable && (t == "descartar" || t == "discard" || t.startsWith("descartar ")) }
+            if (descartar != null) {
+                trace("  había una historia a medias («¿Descartar?»): la descarto")
+                s.tapAt(descartar.exactCenterX(), descartar.exactCenterY())
+                return true
+            }
+            val editor = findIg { t, _, _ ->
+                t.startsWith("añade una descripción") || t.startsWith("add a caption") ||
+                    t == "mejores amigos" || t == "close friends" || t.startsWith("mejores a")
+            }
+            if (editor != null) {
+                trace("  está abierto el editor de una historia a medias: lo cierro. En pantalla: ${describirPantalla()}")
+                s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
+                return true
+            }
+            return false
+        }
+
         private fun openLink(c: Cmd) {
+            if (sharePhase == 0 && tries < 5 && cerrarHistoriaAMedias()) {
+                tries++
+                later(1500L)
+                return
+            }
+            tries = 0
             val n = c.arg.trim().toIntOrNull()
             val ok = if (n != null) {
                 s.openSavedLink(n - 1)
@@ -2021,12 +2051,15 @@ object Macro {
         }
 
         private fun storyDone(): Boolean {
+            // Sin saber qué cuenta está puesta no se puede saber si ya la subió: se sube
+            if (current.isNullOrBlank()) return false
             val hechas = (s.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE).getString("historias_hechas", "") ?: "").lines()
             // También la forma antigua de apuntarlo (cuenta|enlace entero)
             return hechas.contains(storyKey()) || hechas.contains((current ?: "?") + "|" + s.lastUrl)
         }
 
         private fun markStoryDone() {
+            if (current.isNullOrBlank()) return
             val p = s.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE)
             val old = (p.getString("historias_hechas", "") ?: "").lines().filter { it.isNotBlank() }
             p.edit().putString("historias_hechas", (old + storyKey()).distinct().takeLast(500).joinToString("\n")).apply()
@@ -2223,7 +2256,7 @@ object Macro {
             when (sharePhase) {
                 0 -> {
                     if (storyDone()) {
-                        trace("  esta cuenta ya subió esta publicación a su historia: no la repito")
+                        trace("  @$current ya subió esta publicación a su historia: no la repito")
                         advance(c.extra())
                         return
                     }
@@ -2920,7 +2953,7 @@ object Macro {
                     // Sin «Seguir» arriba (reel, colaboración…): se abre el perfil de cada autor y se sigue desde ahí
                     val autores = autoresPublicacion().filter { !yaSeguida(it) }
                     if (autores.isEmpty()) {
-                        trace("  no veo el botón «Seguir» ni el nombre de la cuenta: sigo")
+                        trace("  no veo el botón «Seguir» ni el nombre de la cuenta: sigo. En pantalla: ${describirPantalla()}")
                         advance(c.extra())
                         return
                     }
