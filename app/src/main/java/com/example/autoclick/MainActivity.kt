@@ -45,6 +45,35 @@ class MainActivity : Activity() {
     /** «Star App Sencilla» no usa esta pantalla: solo pasa a su pantalla sencilla. */
     private val esSencilla get() = BuildConfig.FLAVOR == "sencilla"
 
+    /** La app que recibe las menciones que envías desde aquí («Star App Sencilla»). */
+    private val paqueteSencilla = "com.example.autoclick.sencilla"
+
+    /** Las menciones que usa el guion: las fijas (si están activadas) o las del Etiquetador. */
+    private fun mencionesDelGuion(): String {
+        val p = getSharedPreferences("cfg", Context.MODE_PRIVATE)
+        val fijas = p.getString("menciones_fijas", "") ?: ""
+        return if (p.getBoolean("menciones_fijas_on", true) && fijas.isNotBlank()) fijas else (p.getString("friends", "") ?: "")
+    }
+
+    /** Envía las menciones a «Star App Sencilla», que pregunta si quieres ponerlas fijas allí. */
+    private fun enviarMencionesASencilla() {
+        val texto = mencionesDelGuion().lines().map { it.trim() }.filter { it.isNotEmpty() }.joinToString("\n")
+        if (texto.isEmpty()) {
+            android.widget.Toast.makeText(this, "No tienes menciones. Ponlas primero en el Etiquetador.", android.widget.Toast.LENGTH_LONG).show()
+            return
+        }
+        val envio = Intent(Intent.ACTION_SEND)
+            .setType("text/plain")
+            .putExtra(Intent.EXTRA_SUBJECT, "Menciones de Star App")
+            .putExtra(Intent.EXTRA_TEXT, texto)
+            .setPackage(paqueteSencilla)
+        try {
+            startActivity(envio)
+        } catch (e: android.content.ActivityNotFoundException) {
+            android.widget.Toast.makeText(this, "No se pudo enviar. Instala o actualiza Star App Sencilla.", android.widget.Toast.LENGTH_LONG).show()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (esSencilla) {
@@ -86,6 +115,7 @@ class MainActivity : Activity() {
         button("📋 Abrir el Etiquetador de sorteos") {
             startActivity(Intent(ctx, EtiquetadorActivity::class.java))
         }
+        button("📤 Pasar mis menciones a Star App Sencilla") { enviarMencionesASencilla() }
         button("💬 Comentarios automáticos (guion)") {
             startActivity(Intent(ctx, CommentActivity::class.java))
         }

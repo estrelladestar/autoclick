@@ -80,6 +80,7 @@ class SencillaActivity : Activity() {
         private val GRIS_CLARO = Color.parseColor("#90A4AE")
         private val FONDO_ARRIBA = Color.parseColor("#FDE2F3")
         private val FONDO_ABAJO = Color.parseColor("#DDEBFF")
+        private val MARCA_MENCIONES = "Menciones de Star App"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -314,6 +315,37 @@ class SencillaActivity : Activity() {
             background = degradado(FONDO_ARRIBA, FONDO_ABAJO, 0)
             addView(root)
         })
+        // Si Star App nos envía sus menciones, se ofrece ponerlas fijas aquí
+        if (savedInstanceState == null) recibirMenciones(intent)
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        recibirMenciones(intent)
+    }
+
+    /** Star App envía aquí sus menciones (botón «Pasar mis menciones»): se ofrece ponerlas fijas en este cuadro. */
+    private fun recibirMenciones(i: Intent?) {
+        if (i == null || i.action != Intent.ACTION_SEND) return
+        if (i.getStringExtra(Intent.EXTRA_SUBJECT) != MARCA_MENCIONES) return
+        val nuevas = (i.getStringExtra(Intent.EXTRA_TEXT) ?: "").lines().map { it.trim() }.filter { it.isNotEmpty() }
+        if (nuevas.isEmpty()) return
+        val actuales = mencionesBox.text.toString().lines().map { it.trim() }.filter { it.isNotEmpty() }
+        val aviso = if (actuales.isEmpty()) "" else "\n\nYa tienes ${actuales.size} menciones puestas aquí."
+        AlertDialog.Builder(this)
+            .setTitle("Menciones de Star App (${nuevas.size})")
+            .setMessage("¿Las pongo fijas en Sencilla?$aviso")
+            .setPositiveButton("Reemplazar") { _, _ ->
+                mencionesBox.setText(nuevas.joinToString("\n"))
+                toast("Menciones fijas: ${nuevas.size}")
+            }
+            .setNeutralButton("Añadir") { _, _ ->
+                val todas = (actuales + nuevas).distinct()
+                mencionesBox.setText(todas.joinToString("\n"))
+                toast("Menciones fijas: ${todas.size}")
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
     override fun onResume() {
