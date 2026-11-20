@@ -5,6 +5,9 @@ import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.graphics.Color
+import android.os.Handler
+import android.os.Looper
 import android.media.projection.MediaProjectionManager
 import android.os.Build
 import android.os.Bundle
@@ -25,6 +28,10 @@ import java.io.File
 class MainActivity : Activity() {
     private lateinit var listBox: LinearLayout
     private val linkFields = ArrayList<EditText>()
+    /** Miniatura de la publicación de cada enlace, y el aviso pendiente para no pedirla en cada letra. */
+    private val fotoViews = ArrayList<ImageView>()
+    private val fotoHandler = Handler(Looper.getMainLooper())
+    private val fotoPendiente = arrayOfNulls<Runnable>(5)
     private val dateFields = ArrayList<EditText>()
     private lateinit var linkWait: EditText
     private lateinit var repeat: EditText
@@ -136,6 +143,13 @@ class MainActivity : Activity() {
                 gravity = Gravity.CENTER_VERTICAL
                 root.addView(this)
             }
+            val tam = (56 * resources.displayMetrics.density).toInt()
+            val foto = ImageView(ctx).apply {
+                scaleType = ImageView.ScaleType.CENTER_CROP
+                setBackgroundColor(Color.parseColor("#E0E0E0"))
+            }
+            fotoViews.add(foto)
+            row.addView(foto, LinearLayout.LayoutParams(tam, tam).apply { setMargins(0, 0, 12, 0) })
             val l = EditText(ctx).apply {
                 inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
                 hint = "Enlace " + (i + 1)
@@ -155,10 +169,16 @@ class MainActivity : Activity() {
             row.addView(d)
             row.addView(x)
             l.addTextChangedListener(linksWatcher)
+            l.addTextChangedListener(object : TextWatcher {
+                override fun afterTextChanged(e: Editable?) { pedirFoto(i) }
+                override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+                override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+            })
             d.addTextChangedListener(linksWatcher)
             linkFields.add(l)
             dateFields.add(d)
         }
+        for (i in 0 until 5) if (linkFields[i].text.isNotBlank()) mostrarFoto(i)
         button("Guardar enlaces") {
             saveLinks()
             val n = linkFields.count { it.text.toString().trim().isNotEmpty() }
@@ -249,6 +269,28 @@ class MainActivity : Activity() {
             .putInt("linkWait", (linkWait.text.toString().toIntOrNull() ?: 3).coerceAtLeast(0))
             .apply()
         saveLinks()
+    }
+
+    /** Espera un momento (mientras escribes) y luego busca la foto de ese enlace. */
+    private fun pedirFoto(i: Int) {
+        fotoPendiente[i]?.let { fotoHandler.removeCallbacks(it) }
+        val r = Runnable { mostrarFoto(i) }
+        fotoPendiente[i] = r
+        fotoHandler.postDelayed(r, 900L)
+    }
+
+    /** Pone junto al enlace la foto de su publicación (si Instagram la enseña; si no, se queda gris). */
+    private fun mostrarFoto(i: Int) {
+        val url = linkFields[i].text.toString().trim()
+        val v = fotoViews[i]
+        v.tag = url
+        if (url.isEmpty()) {
+            v.setImageDrawable(null)
+            return
+        }
+        FotoEnlace.cargar(this, url) { bmp ->
+            if (v.tag == url) v.setImageBitmap(bmp)
+        }
     }
 
     private fun saveLinks() {
