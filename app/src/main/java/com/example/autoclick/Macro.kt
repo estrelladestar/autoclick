@@ -2055,6 +2055,19 @@ object Macro {
             return false
         }
 
+        /** Si sale un aviso con un botón típico («Aceptar», «Entendido»…), lo cierra y devuelve true. */
+        private fun cerrarAviso(): Boolean {
+            val (_, h) = s.screenSize()
+            val boton = findIg { t, r, _ ->
+                r.exactCenterY() > h * 0.25f && r.exactCenterY() < h * 0.9f &&
+                    t in setOf("aceptar", "ok", "entendido", "vale", "de acuerdo", "continuar", "cerrar", "omitir", "no ahora", "ahora no")
+            }
+            if (boton == null) return false
+            trace("  sale un aviso: lo cierro. En pantalla: ${describirPantalla()}")
+            s.tapAt(boton.exactCenterX(), boton.exactCenterY())
+            return true
+        }
+
         /** Lo que se ve en pantalla (textos y botones), para saber qué botón falta cuando no se encuentra. */
         private fun describirPantalla(): String {
             val (_, h) = s.screenSize()
@@ -2191,10 +2204,16 @@ object Macro {
                         later(1500L)
                         return
                     }
-                    if (!pulsarListo() && tecladoAbierto() && tries < 3) {
-                        // Sigue abierto el teclado y no veo «Listo»: espero y lo intento otra vez
+                    // Tras etiquetar puede salir un aviso: se cierra; después «Listo» arriba mientras siga abierto el texto
+                    if (tries < 6 && cerrarAviso()) {
                         tries++
-                        trace("  no veo «Listo» todavía. En pantalla: ${describirPantalla()}")
+                        later(1500L)
+                        return
+                    }
+                    val listoVisible = findIg { t, _, _ -> t == "listo" || t == "hecho" || t == "done" } != null
+                    if (tries < 6 && (tecladoAbierto() || listoVisible)) {
+                        tries++
+                        if (!pulsarListo()) trace("  no veo «Listo». En pantalla: ${describirPantalla()}")
                         later(1500L)
                         return
                     }
@@ -2214,6 +2233,11 @@ object Macro {
                 5 -> {
                     // Desde el editor hay que llegar a la pantalla «Tu historia» (con «Siguiente» por el camino).
                     // «Tu historia» solo se busca abajo: arriba está la burbuja de tu historia en Inicio.
+                    if (tries < 8 && cerrarAviso()) {
+                        tries++
+                        later(1500L)
+                        return
+                    }
                     val your = findIg { t, r, _ -> r.exactCenterY() > h * 0.6f && (t == "tu historia" || t == "your story" || t.startsWith("tu historia") || t.startsWith("your story")) }
                     if (your != null) {
                         trace("  pulso «Tu historia» para publicarla")
