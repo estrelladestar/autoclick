@@ -401,6 +401,23 @@ repetir 8"""
             setOnFocusChangeListener { _, f -> if (!f) { prefs.edit().putInt("p_seguidos", text.toString().toIntOrNull()?.coerceIn(1, 50) ?: 10).apply(); aplicarPanel(false) } }
             root.addView(this)
         }
+        label("¿Cuántos segundos entre un comentario y el siguiente?")
+        val entreValores = listOf("10-20", "20-30", "30-45", "45-60", "60-90")
+        val entreTextos = listOf("10 a 20 segundos", "20 a 30 segundos", "30 a 45 segundos", "45 a 60 segundos", "1 a 1,5 minutos")
+        Spinner(ctx).apply {
+            adapter = ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, entreTextos)
+            setSelection(entreValores.indexOf(prefs.getString("p_entre", "10-20")).coerceAtLeast(0))
+            var primera = true
+            onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(p: AdapterView<*>?, v: View?, pos: Int, id: Long) {
+                    if (primera) { primera = false; return }
+                    prefs.edit().putString("p_entre", entreValores[pos]).apply()
+                    aplicarPanel(true)
+                }
+                override fun onNothingSelected(p: AdapterView<*>?) {}
+            }
+            root.addView(this)
+        }
         label("¿Cuántos minutos mirar historias? (entre dos números, ej. 1-2)")
         panelHistMin = EditText(ctx).apply {
             inputType = InputType.TYPE_CLASS_TEXT
@@ -1405,9 +1422,10 @@ repetir 8"""
         if (packageName.endsWith(".historias")) sb.append("historia\nesperar 3-5\n")
         if (prefs.getBoolean("p_megusta", true)) sb.append("megusta\nesperar 1-2\n")
         if (prefs.getBoolean("p_seguirdesc", true)) sb.append("seguir descripcion\nesperar 2-4\n")
+        val entre = (prefs.getString("p_entre", "10-20") ?: "10-20").trim().ifEmpty { "10-20" }
         for (k in 1..seguidos) {
-            if (k > 1) sb.append("mirar azar\n")
-            sb.append("imagen 1 opcional | 3-8\n$linea\nesperar 3-8\nimagen 2 | 3-8\n")
+            // Tras publicar, espera los segundos que hayas elegido antes del siguiente comentario
+            sb.append("imagen 1 opcional | 1-2\n$linea\nesperar 2-4\nimagen 2 | ${if (k < seguidos) entre else "2-4"}\n")
         }
         sb.append("historias $minutos min\ncuenta siguiente\nrepetir 1000")
         return sb.toString()
@@ -1433,7 +1451,7 @@ repetir 8"""
             (if (packageName.endsWith(".historias")) "\n📸 La historia: " + "@tienda etiquetada" else "") +
             (if (prefs.getBoolean("p_megusta", true)) "\n❤️ Me gusta si el corazón está vacío" else "") +
             (if (prefs.getBoolean("p_seguirdesc", true)) "\n➕ Sigue a las cuentas de la descripción que no sigues" else "") +
-            (if (ciclo) "\n🔁 Ciclo: ${prefs.getInt("p_seguidos", 10).coerceIn(1, 50)} comentarios seguidos en cada publicación, historias ${prefs.getString("p_hist_min", "1-2")} min, cambia de cuenta y repite (para con ■)" else "") +
+            (if (ciclo) "\n🔁 Ciclo: ${prefs.getInt("p_seguidos", 10).coerceIn(1, 50)} comentarios seguidos, ${prefs.getString("p_entre", "10-20")} s entre cada uno, historias ${prefs.getString("p_hist_min", "1-2")} min, cambia de cuenta y repite (para con ■)" else "") +
             "\n🖼 Imagen 1 = bocadillo · Imagen 2 = flecha\n👉 Pulsa ▶ Iniciar"
         if (avisar) toast("Listo: " + when { n == 0 -> "solo frase"; frase -> "frase + $n " + (if (n == 1) "mención" else "menciones"); else -> "$n " + (if (n == 1) "mención" else "menciones") + " sin frase" })
     }
