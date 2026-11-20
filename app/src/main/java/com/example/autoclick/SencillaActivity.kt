@@ -555,9 +555,10 @@ class SencillaActivity : Activity() {
         val cuentas = cuentasBox.text.toString().trim().split(Regex("[\\s,;]+")).map { it.removePrefix("@") }.filter { it.isNotEmpty() }
         val sb = StringBuilder()
         if (cuentas.size >= 2) sb.append("cuentas ${cuentas.joinToString(" ")}\n")
-        sb.append("enlace\nesperar 8\nseguir\nesperar 1-3\n")
-        // Subir historia: la publicación va a tu historia etiquetando a la tienda (como en Star App Historias)
+        // Lo primero tras abrir el enlace: subir la historia etiquetando a la tienda (y a las cuentas de la descripción)
+        sb.append("enlace\nesperar 8\n")
         if (subirHistoriaBox.isChecked) sb.append("historia\nesperar 3-5\n")
+        sb.append("seguir\nesperar 1-3\n")
         if (megustaBox.isChecked) sb.append("megusta\nesperar 1-2\n")
         if (seguirDescBox.isChecked) sb.append("seguir descripcion\nesperar 2-4\n")
         for (k in 1..seguidos) {

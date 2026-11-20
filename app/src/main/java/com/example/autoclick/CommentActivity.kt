@@ -65,7 +65,7 @@ repetir 1000"""
     /** Usa las 2 imágenes que ya vienen puestas: imagen 1 = bocadillo 💬 (abre los comentarios), imagen 2 = flecha de enviar. */
     private val phrase3Script get() = defaultScript.replace("escribir menciones 1", "escribir menciones 3 frase")
         .replace("imagen 3 |", "IMGPUB").replace("imagen 2 |", "imagen 1 opcional |").replace("imagen 1 |", "imagen 1 opcional |").replace("IMGPUB", "imagen 2 |").let {
-        if (packageName.endsWith(".historias")) it.replaceFirst("seguir\n", "seguir\nesperar 1-3\nhistoria\nesperar 3-5\n") else it }
+        if (packageName.endsWith(".historias")) it.replaceFirst("esperar 8\n", "esperar 8\nhistoria\nesperar 3-5\n") else it }
     private val slow2Script get() = defaultScript.replace("escribir menciones 1", "escribir menciones 2 lento 5-20")
     /** Como el lento, pero escribiendo más rápido: la mitad de las veces tarda entre 2 y 5 segundos. */
     private val fastName = "⭐ Mi guion rápido (fijo)"
@@ -1401,7 +1401,7 @@ repetir 8"""
             .replace("imagen 3 |", "IMGPUB").replace("imagen 2 |", "imagen 1 opcional |").replace("imagen 1 |", "imagen 1 opcional |").replace("IMGPUB", "imagen 2 |")
         if (packageName.endsWith(".historias")) {
             // En la historia: solo la tienda etiquetada (sin frase ni menciones)
-            g = g.replaceFirst("seguir\n", "seguir\nesperar 1-3\nhistoria\nesperar 3-5\n")
+            g = g.replaceFirst("esperar 8\n", "esperar 8\nhistoria\nesperar 3-5\n")
         }
         return g
     }
@@ -1418,8 +1418,10 @@ repetir 8"""
         val cuentas = (prefs.getString("p_cuentas", "") ?: "").trim().split(Regex("[\\s,;]+")).map { it.removePrefix("@") }.filter { it.isNotEmpty() }
         val sb = StringBuilder()
         if (cuentas.size >= 2) sb.append("cuentas ${cuentas.joinToString(" ")}\n")
-        sb.append("enlace\nesperar 8\nseguir\nesperar 1-3\n")
+        // Lo primero tras abrir el enlace: subir la historia
+        sb.append("enlace\nesperar 8\n")
         if (packageName.endsWith(".historias")) sb.append("historia\nesperar 3-5\n")
+        sb.append("seguir\nesperar 1-3\n")
         if (prefs.getBoolean("p_megusta", true)) sb.append("megusta\nesperar 1-2\n")
         if (prefs.getBoolean("p_seguirdesc", true)) sb.append("seguir descripcion\nesperar 2-4\n")
         val entre = (prefs.getString("p_entre", "10-20") ?: "10-20").trim().ifEmpty { "10-20" }
