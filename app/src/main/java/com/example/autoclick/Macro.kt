@@ -447,6 +447,8 @@ object Macro {
         private var mencionActual = ""
         private var mencionesPuestas = 0
         private var mencionSaltada = false
+        /** Ya se ha mirado en el perfil qué cuenta está puesta (una vez por cuenta). */
+        private var cuentaMirada = false
         /** Cuenta que se acaba de tocar en la lista y dónde (para comprobar que de verdad se cambió). */
         private var pendingSwitch: Triple<String, Float, Float>? = null
         private var switchChecks = 0
@@ -730,6 +732,7 @@ object Macro {
                     trace("  doble toque en el perfil en ${p.first.toInt()},${p.second.toInt()}")
                     s.doubleTapAt(p.first, p.second)
                     current = null
+                    cuentaMirada = false
                     used = 0
                     toast(s, "Doble toque en tu perfil: cambio de cuenta")
                     advance(c.extra())
@@ -912,6 +915,24 @@ object Macro {
                 if (bestRun.size > best.size) best = bestRun
             }
             return if (best.size >= 3 || (best.size >= 2 && hint)) best else null
+        }
+
+        /** El texto de tu nombre de usuario arriba en tu perfil, o null. */
+        private fun nombrePerfil(): String? {
+            for (root in windowRoots()) {
+                if (root.packageName?.toString() != INSTAGRAM) continue
+                for (id in listOf("action_bar_large_title_auto_size", "action_bar_large_title", "action_bar_title",
+                    "action_bar_textview_title", "action_bar_title_chevron", "title_chevron")) {
+                    val l = try { root.findAccessibilityNodeInfosByViewId("$INSTAGRAM:id/$id") } catch (e: Exception) { null }
+                    for (n in l ?: emptyList()) {
+                        if (!n.isVisibleToUser) continue
+                        val t = (n.text?.toString() ?: n.contentDescription?.toString() ?: "").trim().removePrefix("@")
+                            .split(" ", "\n", "•")[0].trimEnd('.', '…').lowercase()
+                        if (Regex("[a-z0-9._]{2,30}").matches(t)) return t
+                    }
+                }
+            }
+            return null
         }
 
         /** Tu nombre de usuario arriba del todo en tu perfil (el que abre la lista de cuentas), o null. */
@@ -1585,6 +1606,7 @@ object Macro {
             current = name
             used = 0
             reopens = 0
+            cuentaMirada = false
         }
 
         /** La lista de cuentas no está: se vuelve al paso de abrirla (como mucho 2 veces seguidas). */
@@ -2291,6 +2313,19 @@ object Macro {
             }
             when (sharePhase) {
                 0 -> {
+                    // Sin saber en qué cuenta estamos no se puede saber si ya subió la historia: se mira en tu perfil
+                    if (current.isNullOrBlank() && !cuentaMirada) {
+                        cuentaMirada = true
+                        val perfil = profileIcon()
+                        if (perfil != null) {
+                            trace("  miro en tu perfil qué cuenta está puesta (para no repetir la historia)")
+                            s.tapAt(perfil.first, perfil.second)
+                            sharePhase = 20
+                            tries = 0
+                            later(3000L)
+                            return
+                        }
+                    }
                     if (storyDone()) {
                         trace("  @$current ya subió esta publicación a su historia: no la repito")
                         advance(c.extra())
@@ -2687,6 +2722,22 @@ object Macro {
                     sharePhase = 10
                     tries = 0
                     later(1500L)
+                }
+                20 -> {
+                    // En tu perfil: el nombre de arriba es la cuenta puesta. Luego se vuelve a la publicación
+                    val nombre = nombrePerfil()
+                    if (nombre == null && tries < 3) { tries++; later(1500L); return }
+                    if (nombre != null) {
+                        current = nombre
+                        trace("  la cuenta puesta es @$nombre")
+                    } else {
+                        trace("  no leo el nombre de la cuenta. En pantalla: ${describirPantalla()}")
+                    }
+                    val url = s.lastUrl
+                    if (url.isNotEmpty()) s.openUrl(url)
+                    sharePhase = 0
+                    tries = 0
+                    later(7000L)
                 }
                 11 -> {
                     // En la bandeja de stickers se toca «@MENCIÓN». Si no se ve, se busca escribiendo «mención».
