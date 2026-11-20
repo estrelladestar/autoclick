@@ -2005,7 +2005,7 @@ object Macro {
             s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
             main.postDelayed({
                 // Instagram pregunta «¿seguir con la publicación o descartar?»: se descarta (la historia no se sube)
-                val descartar = findIg { t, _, _ -> t == "descartar" || t == "discard" }
+                val descartar = findIg { t, _, _ -> t.startsWith("descartar") || t == "discard" }
                 if (descartar != null) {
                     trace("  Instagram pregunta si descartar la historia: la descarto")
                     s.tapAt(descartar.exactCenterX(), descartar.exactCenterY())
@@ -2056,8 +2056,15 @@ object Macro {
                 s.tapAt(porTexto.exactCenterX(), porTexto.exactCenterY())
                 return true
             }
-            val arriba = encontrar { r, n -> n.isClickable && r.exactCenterX() > w * 0.7f && r.exactCenterY() < h * 0.18f }
+            // Icono pequeño arriba a la derecha. Nunca «cerrar», «atrás» ni «descartar»: esos salen del editor y piden si descartar
+            val arriba = encontrar { r, n ->
+                val d = (n.contentDescription ?: n.text)?.toString()?.lowercase() ?: ""
+                n.isClickable && r.exactCenterX() > w * 0.7f && r.exactCenterY() < h * 0.18f &&
+                    r.width() < w * 0.25f && r.height() < h * 0.12f &&
+                    listOf("cerr", "close", "atr", "back", "salir", "descart", "discard").none { it in d }
+            }
             if (arriba != null) {
+                trace("  pulso el icono de arriba a la derecha (¿«Listo»?). En pantalla: ${describirPantalla()}")
                 s.tapAt(arriba.exactCenterX(), arriba.exactCenterY())
                 return true
             }
@@ -2079,6 +2086,27 @@ object Macro {
             if (boton == null) return false
             trace("  sale un aviso: lo cierro. En pantalla: ${describirPantalla()}")
             s.tapAt(boton.exactCenterX(), boton.exactCenterY())
+            return true
+        }
+
+        /**
+         * Instagram pregunta si salir de la historia sin subirla («Si sales…», con «Seguir» o «Descartar»):
+         * se elige seguir, así la historia no se pierde. Devuelve true si estaba ese aviso.
+         */
+        private fun avisoSalir(): Boolean {
+            val (_, h) = s.screenSize()
+            val pregunta = findIg { t, _, _ -> t.startsWith("si sales") || t.startsWith("¿seguir") }
+            val seguir = findIg { t, r, _ -> t.startsWith("seguir") && r.exactCenterY() > h * 0.3f }
+            val descartar = findIg { t, _, _ -> t.startsWith("descartar") || t == "discard" }
+            if (pregunta == null && !(seguir != null && descartar != null)) return false
+            trace("  Instagram pregunta si salir de la historia: sigo con la publicación. En pantalla: ${describirPantalla()}")
+            val boton = seguir ?: findIg { t, r, _ -> t == "cancelar" && r.exactCenterY() > h * 0.3f }
+            if (boton != null) {
+                s.tapAt(boton.exactCenterX(), boton.exactCenterY())
+            } else {
+                // Sin botón que lo diga: «atrás» cierra el aviso y se queda en la historia
+                s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
+            }
             return true
         }
 
@@ -2119,6 +2147,12 @@ object Macro {
             fun tap(r: Rect) = s.tapAt(r.exactCenterX(), r.exactCenterY())
             fun again(what: String, max: Int = 4) {
                 if (tries < max) { tries++; later(1500L) } else storyGiveUp(c, "no encuentro $what")
+            }
+            // Si Instagram pregunta si salir (y perder la historia), se elige seguir antes de seguir con la historia
+            if (avisoSalir()) {
+                if (tries < 8) { tries++; later(1500L); return }
+                storyGiveUp(c, "Instagram quiere salir de la historia")
+                return
             }
             when (sharePhase) {
                 0 -> {
