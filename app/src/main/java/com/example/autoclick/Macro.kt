@@ -2460,19 +2460,38 @@ object Macro {
                     later(2000L)
                 }
                 8 -> {
-                    // Se escribe el nombre de la tienda en la búsqueda de menciones
-                    val campo = findField()
+                    // Se escribe el nombre de la tienda en la búsqueda de menciones.
+                    // Solo en el buscador de arriba: nunca en «Añade una descripción…» de abajo.
+                    val campo = campoBusquedaMencion()
                     if (campo == null) {
-                        if (tries < 4) {
-                            tries++
-                            later(1500L)
-                        } else {
-                            storyGiveUp(c, "no se abre la búsqueda de menciones")
+                        tries++
+                        when {
+                            tries == 3 -> {
+                                // No se abrió la lista de menciones: se vuelve a pulsar la @
+                                trace("  no se abre la búsqueda de menciones: vuelvo a pulsar la @. En pantalla: ${describirPantalla()}")
+                                sharePhase = 7
+                                later(1000L)
+                            }
+                            tries < 7 -> later(1500L)
+                            else -> storyGiveUp(c, "no se abre la búsqueda de menciones")
                         }
                         return
                     }
-                    trace("  busco @$shareOwner en la búsqueda de menciones")
-                    putText(campo, shareOwner)
+                    trace("  escribo @$shareOwner en la búsqueda de menciones")
+                    campo.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+                    val b = Bundle()
+                    b.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, shareOwner)
+                    campo.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, b)
+                    campo.refresh()
+                    if (!(campo.text?.toString() ?: "").lowercase().contains(shareOwner.lowercase())) {
+                        // Si no entra así, se pega
+                        if (!putText(campo, shareOwner) && tries < 6) {
+                            tries++
+                            trace("  no se ha escrito la mención: lo intento otra vez ($tries)")
+                            later(1500L)
+                            return
+                        }
+                    }
                     sharePhase = 9
                     tries = 0
                     later(3000L)
@@ -2524,6 +2543,30 @@ object Macro {
                     later(2000L)
                 }
             }
+        }
+
+        /** El buscador de la lista de menciones (arriba). No vale la «descripción» del editor de la historia. */
+        private fun campoBusquedaMencion(): AccessibilityNodeInfo? {
+            val (_, h) = s.screenSize()
+            var found: AccessibilityNodeInfo? = null
+            for (root in windowRoots()) {
+                if (root.packageName?.toString() != INSTAGRAM) continue
+                fun walk(n: AccessibilityNodeInfo?, depth: Int) {
+                    if (n == null || depth > 45 || found != null) return
+                    if (n.isVisibleToUser && n.isEditable) {
+                        val r = Rect()
+                        n.getBoundsInScreen(r)
+                        val pista = ((n.hintText?.toString() ?: "") + " " + (n.text?.toString() ?: "") + " " +
+                            (n.contentDescription?.toString() ?: "")).lowercase()
+                        val esDescripcion = listOf("descrip", "caption", "pie de foto", "añade una", "add a").any { it in pista }
+                        if (r.height() > 0 && r.exactCenterY() < h * 0.7f && !esDescripcion) { found = n; return }
+                    }
+                    for (k in 0 until n.childCount) walk(n.getChild(k), depth + 1)
+                }
+                walk(root, 0)
+                if (found != null) break
+            }
+            return found
         }
 
         /** El botón «Añadir» de abajo en la lista de menciones de la historia (Instagram nuevo). */
