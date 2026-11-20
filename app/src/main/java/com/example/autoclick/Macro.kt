@@ -2009,6 +2009,75 @@ object Macro {
             advance(maxOf(c.extra(), 5000L))
         }
 
+        /** Busca el primer elemento visible de Instagram que cumpla la condición, tenga texto o no (p. ej. un icono). */
+        private fun encontrar(pred: (Rect, AccessibilityNodeInfo) -> Boolean): Rect? {
+            var found: Rect? = null
+            for (root in windowRoots()) {
+                if (root.packageName?.toString() != INSTAGRAM) continue
+                fun walk(n: AccessibilityNodeInfo?, depth: Int) {
+                    if (n == null || depth > 45 || found != null) return
+                    if (n.isVisibleToUser) {
+                        val r = Rect()
+                        n.getBoundsInScreen(r)
+                        if (r.width() > 0 && r.height() > 0 && pred(r, n)) {
+                            found = r
+                            return
+                        }
+                    }
+                    for (k in 0 until n.childCount) walk(n.getChild(k), depth + 1)
+                }
+                walk(root, 0)
+                if (found != null) break
+            }
+            return found
+        }
+
+        /** ¿Está abierto el teclado? (así se sabe que sigue el texto de la historia). */
+        private fun tecladoAbierto(): Boolean = try {
+            s.windows.any { it.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD }
+        } catch (e: Exception) {
+            false
+        }
+
+        /** «Listo» al terminar de escribir el texto: por su texto o, si es solo un icono ✓, la marca de arriba a la derecha. */
+        private fun pulsarListo(): Boolean {
+            val (w, h) = s.screenSize()
+            val porTexto = findIg { t, _, _ -> t == "listo" || t == "hecho" || t == "done" || t == "aceptar" || t == "✓" || t == "✔" }
+            if (porTexto != null) {
+                s.tapAt(porTexto.exactCenterX(), porTexto.exactCenterY())
+                return true
+            }
+            val arriba = encontrar { r, n -> n.isClickable && r.exactCenterX() > w * 0.7f && r.exactCenterY() < h * 0.18f }
+            if (arriba != null) {
+                s.tapAt(arriba.exactCenterX(), arriba.exactCenterY())
+                return true
+            }
+            return false
+        }
+
+        /** Lo que se ve en pantalla (textos y botones), para saber qué botón falta cuando no se encuentra. */
+        private fun describirPantalla(): String {
+            val (_, h) = s.screenSize()
+            val out = LinkedHashSet<String>()
+            for (root in windowRoots()) {
+                fun walk(n: AccessibilityNodeInfo?, depth: Int) {
+                    if (n == null || depth > 50 || out.size >= 25) return
+                    if (n.isVisibleToUser) {
+                        val d = (n.text ?: n.contentDescription)?.toString()?.trim()?.take(20) ?: ""
+                        if (d.isNotEmpty()) {
+                            val r = Rect()
+                            n.getBoundsInScreen(r)
+                            val donde = if (r.centerY() < h / 2) "arriba" else "abajo"
+                            out.add("«$d» ($donde" + (if (n.isClickable) ", pulsable" else "") + ")")
+                        }
+                    }
+                    for (k in 0 until n.childCount) walk(n.getChild(k), depth + 1)
+                }
+                walk(root, 0)
+            }
+            return if (out.isEmpty()) "nada que reconozca" else out.joinToString(", ")
+        }
+
         /**
          * «historia» (solo en Star App Historias): sube la publicación abierta a tu historia y etiqueta a la cuenta
          * que la publicó (o a la que pongas: «historia @cuenta»). Cada cuenta tuya lo hace una sola vez por enlace.
@@ -2122,14 +2191,13 @@ object Macro {
                         later(1500L)
                         return
                     }
-                    val ok = findIg { t, _, _ -> t == "listo" || t == "hecho" || t == "done" }
-                    if (ok == null && tries < 2) {
-                        // Aún no se ve «Listo» (el teclado sigue abierto): espera un poco
+                    if (!pulsarListo() && tecladoAbierto() && tries < 3) {
+                        // Sigue abierto el teclado y no veo «Listo»: espero y lo intento otra vez
                         tries++
+                        trace("  no veo «Listo» todavía. En pantalla: ${describirPantalla()}")
                         later(1500L)
                         return
                     }
-                    if (ok != null) tap(ok) else s.tapAt(w * 0.5f, h * 0.1f)
                     val falta = !storyPaso2 && storyText.replace("|", "").isNotBlank()
                     if (falta) {
                         // Ya está la etiqueta de la tienda: ahora otro texto con la frase y las menciones
@@ -2149,46 +2217,41 @@ object Macro {
                     val your = findIg { t, r, _ -> r.exactCenterY() > h * 0.6f && (t == "tu historia" || t == "your story" || t.startsWith("tu historia") || t.startsWith("your story")) }
                     if (your != null) {
                         trace("  pulso «Tu historia» para publicarla")
-                        tap(your)
+                        s.tapAt(your.exactCenterX(), your.exactCenterY())
                         sharePhase = 6
                         tries = 0
                         later(4000L)
                         return
                     }
-                    if (tries < 6) {
-                        // «Compartir» abajo del todo: es el botón final de esa pantalla
-                        val share = findIg { t, r, n -> !n.isEditable && (t == "compartir" || t == "share") && r.exactCenterY() > h * 0.8f }
+                    if (tecladoAbierto() && tries < 8) {
+                        // Todavía está abierto el texto: primero «Listo»
+                        tries++
+                        if (!pulsarListo()) trace("  el texto sigue abierto y no veo «Listo». En pantalla: ${describirPantalla()}")
+                        later(1500L)
+                        return
+                    }
+                    if (tries < 8) {
+                        val share = findIg { t, r, n -> !n.isEditable && (t == "compartir" || t == "share") && r.exactCenterY() > h * 0.7f }
                         if (share != null) {
                             trace("  pulso «Compartir» para publicar la historia")
-                            tap(share)
+                            s.tapAt(share.exactCenterX(), share.exactCenterY())
                             sharePhase = 6
                             tries = 0
                             later(4000L)
                             return
                         }
+                        // «Siguiente»: por su texto o, si es solo un icono, el de abajo a la derecha
                         val next = findIg { t, _, n -> !n.isEditable && (t == "siguiente" || t == "next") }
+                            ?: encontrar { r, n -> n.isClickable && r.exactCenterX() > w * 0.7f && r.exactCenterY() > h * 0.85f }
                         if (next != null) {
                             trace("  pulso «Siguiente» para ir a «Tu historia»")
-                            tap(next)
+                            s.tapAt(next.exactCenterX(), next.exactCenterY())
                             tries++
                             later(2500L)
                             return
                         }
-                    }
-                    if (tries >= 2 && tries < 6) {
-                        // Puede que siga abierto el texto: pulsa «Listo» y mira otra vez
-                        val ok = findIg { t, _, _ -> t == "listo" || t == "hecho" || t == "done" }
-                        if (ok != null) {
-                            trace("  pulso «Listo» (sigue abierto el texto)")
-                            tap(ok)
-                            tries++
-                            later(2000L)
-                            return
-                        }
-                    }
-                    if (tries < 6) {
                         tries++
-                        trace("  no veo «Tu historia» ni «Siguiente» ($tries): veo ${describeBottom()}")
+                        trace("  no veo «Tu historia» ni «Siguiente» ($tries). En pantalla: ${describirPantalla()}")
                         later(2000L)
                         return
                     }
