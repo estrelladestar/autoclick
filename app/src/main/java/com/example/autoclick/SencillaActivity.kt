@@ -258,7 +258,7 @@ class SencillaActivity : Activity() {
 
         seccionNueva("💬 3. Tus menciones (una por línea)", NARANJA)
         mencionesBox = caja(prefs.getString("s_menciones", "") ?: "", multi = true, pista = "@amiga1")
-        texto("Se traen solas de Star App al abrir esta app, si allí han cambiado.")
+        texto("Si está vacío, se traen de Star App al abrir la app. Si ya hay lista, se queda fija.")
         alEscribir(mencionesBox) { guardarListas() }
 
         seccionNueva("🔢 4. Menciones por comentario", ROSA)
@@ -317,13 +317,16 @@ class SencillaActivity : Activity() {
         })
     }
 
-    /** Al abrir Sencilla, trae las menciones de Star App (o de Star App Historias) si han cambiado desde la última vez. */
+    /**
+     * Si el cuadro de menciones está vacío, trae las de Star App (o Historias) al abrir la app.
+     * Si ya hay lista, se queda fija: no cambia sola aunque cambie la de Star App.
+     */
     private fun traerMencionesDeOtraApp() {
+        if (mencionesBox.text.toString().isNotBlank()) return
         Thread {
             val lista = leerMencionesDeOtraApp()
-            fotoHandler.post {
-                if (lista == null || lista == (prefs.getString("menciones_otra_app", "") ?: "")) return@post
-                prefs.edit().putString("menciones_otra_app", lista).apply()
+            if (lista != null) fotoHandler.post {
+                if (mencionesBox.text.toString().isNotBlank()) return@post
                 mencionesBox.setText(lista)
                 toast("Menciones de Star App cargadas: ${lista.lines().size}")
             }
