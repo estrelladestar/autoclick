@@ -669,7 +669,7 @@ object Macro {
                     s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
                     advance(maxOf(c.extra(), 1000L))
                 }
-                "escribir" -> write(c)
+                "escribir" -> write(ajustePorEnlace(c))
                 "enlace" -> openLink(c)
                 "imagen" -> tapImage(c)
                 "tocarcuenta" -> {
@@ -3000,6 +3000,32 @@ object Macro {
             }
             if (shareOwner.isNotEmpty() && shareOwner.lowercase() !in mias) out.add(shareOwner.lowercase())
             return out.take(4).toList()
+        }
+
+        /**
+         * Si para esta publicación se guardó en Star App Sencilla cuántas menciones y si lleva frase (botón 💾),
+         * se usa eso en vez de lo general.
+         */
+        private fun ajustePorEnlace(c: Cmd): Cmd {
+            val a = c.arg.trim().lowercase()
+            if (!a.startsWith("menciones") && !a.startsWith("solo frase")) return c
+            val u = s.lastUrl
+            val id = Regex("/(p|reel|reels|tv)/([A-Za-z0-9_-]+)").find(u)?.groupValues?.get(2) ?: return c
+            val linea = (s.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE).getString("por_enlace", "") ?: "")
+                .lines().firstOrNull { it.startsWith("$id|") } ?: return c
+            val partes = linea.split("|")
+            val n = partes.getOrNull(1)?.toIntOrNull() ?: return c
+            val frase = partes.getOrNull(2) == "1"
+            // Lo que venga detrás (por ejemplo «lento 5-20») se mantiene
+            val resto = a.split(" ").filter { it.isNotEmpty() && it !in setOf("menciones", "solo", "frase", "sinfrase") && it.toIntOrNull() == null }
+                .joinToString(" ")
+            val nuevo = (when {
+                n == 0 -> "solo frase"
+                frase -> "menciones $n frase"
+                else -> "menciones $n sinfrase"
+            } + if (resto.isNotEmpty()) " $resto" else "")
+            if (nuevo != a) trace("  esta publicación tiene lo suyo guardado: $nuevo")
+            return Cmd(c.op, nuevo, c.extraMs, c.extraMaxMs, c.label)
         }
 
         private fun followAccount(c: Cmd) {

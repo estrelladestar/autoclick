@@ -50,6 +50,7 @@ class SencillaActivity : Activity() {
     private lateinit var cuentasBox: EditText
     private lateinit var mencionesBox: EditText
     private lateinit var nMencionesSpin: Spinner
+    private val botonesGuardar = ArrayList<TextView>()
     private lateinit var fraseBox: CheckBox
     private lateinit var frasesSpin: Spinner
     private lateinit var frasesTextoBox: EditText
@@ -221,6 +222,7 @@ class SencillaActivity : Activity() {
         // 1. Hasta 5 enlaces, cada uno con la foto de su publicación
         seccionNueva("🔗 1. Enlaces de publicaciones (hasta 5)", AZUL)
         texto("Pega cada enlace. A la izquierda sale la foto de la publicación. Si no marcas ninguno, el guion los usa uno tras otro, en orden. Si marcas ○ en uno, el guion usa solo ese.")
+        texto("💾 al lado de un enlace guarda para esa publicación las menciones de «4» (cuántas y si llevan frase). Cuando el guion vuelva a ese enlace, las usa solas. Si sale ✅, ya tiene lo suyo guardado (pulsa ✅ para cambiarlo o quitarlo).")
         estadoEnlaces = texto("")
         enlaceElegido = prefs.getInt("s_link_sel", -1)
         val guardados = (prefs.getString("s_links", null) ?: prefs.getString("s_link", "") ?: "").lines()
@@ -252,17 +254,27 @@ class SencillaActivity : Activity() {
                 setOnClickListener { elegirEnlace(i) }
             }
             botonesElegir.add(elegir)
+            val guardarBtn = TextView(ctx).apply {
+                textSize = 22f
+                gravity = Gravity.CENTER
+                setPadding(dp(4), dp(4), dp(4), dp(4))
+                contentDescription = "Guardar las menciones para el enlace ${i + 1}"
+                setOnClickListener { guardarParaEnlace(i) }
+            }
+            botonesGuardar.add(guardarBtn)
             val fila = LinearLayout(ctx).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
                 addView(foto, LinearLayout.LayoutParams(dp(72), dp(72)))
                 addView(campo, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { leftMargin = dp(10) })
                 addView(elegir, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { leftMargin = dp(4) })
+                addView(guardarBtn, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { leftMargin = dp(2) })
             }
             seccion.addView(fila, lpRaiz(arriba = 10))
             alEscribir(campo) {
                 guardarListas()
                 pedirFoto(i)
+                refrescarGuardados()
             }
             pedirFoto(i)
         }
@@ -284,6 +296,7 @@ class SencillaActivity : Activity() {
             prefs.getInt("s_nmen", 3)
         )
         fraseBox = marca("✅ Con frase", prefs.getBoolean("s_frase", true))
+        refrescarGuardados()
 
         seccionNueva("✨ 5. Frases", FUCSIA)
         frasesSpin = lista(
@@ -440,6 +453,76 @@ class SencillaActivity : Activity() {
         enlaceElegido = if (enlaceElegido == i) -1 else i
         guardarListas()
         refrescarEnlaces()
+        if (enlaceElegido == i) cargarDeEnlace(i)
+    }
+
+    // ---- Menciones guardadas por publicación (botón 💾) ----
+
+    private fun idPublicacion(u: String): String? =
+        Regex("/(p|reel|reels|tv)/([A-Za-z0-9_-]+)").find(u)?.groupValues?.get(2)
+
+    private fun porEnlace(): MutableList<String> =
+        (prefs.getString("por_enlace", "") ?: "").lines().filter { it.contains("|") }.toMutableList()
+
+    private fun guardadoDe(id: String): Pair<Int, Boolean>? {
+        val p = porEnlace().firstOrNull { it.startsWith("$id|") }?.split("|") ?: return null
+        val n = p.getOrNull(1)?.toIntOrNull() ?: return null
+        return Pair(n, p.getOrNull(2) == "1")
+    }
+
+    private fun describir(n: Int, frase: Boolean): String = when {
+        n == 0 -> "sin menciones (solo frase)"
+        n == 1 -> "1 mención " + if (frase) "con frase" else "sin frase"
+        else -> "$n menciones " + if (frase) "con frase" else "sin frase"
+    }
+
+    /** 💾: guarda para esa publicación lo que está puesto en «4. Menciones por comentario». */
+    private fun guardarParaEnlace(i: Int) {
+        val id = idPublicacion(linkBoxes[i].text.toString().trim())
+        if (id == null) {
+            toast("Pon primero el enlace ${i + 1} (de una publicación de Instagram)")
+            return
+        }
+        val n = nMencionesSpin.selectedItemPosition
+        val frase = fraseBox.isChecked || n == 0
+        val ya = guardadoDe(id)
+        if (ya != null && ya == Pair(n, frase)) {
+            // Ya estaba igual: se pregunta si se quiere quitar
+            android.app.AlertDialog.Builder(this)
+                .setTitle("Enlace ${i + 1}")
+                .setMessage("Ya tiene guardado: ${describir(n, frase)}.\n\nPara cambiarlo, elige otras menciones en «4» y pulsa 💾 otra vez.")
+                .setPositiveButton("Dejarlo") { _, _ -> }
+                .setNegativeButton("Quitar lo guardado") { _, _ ->
+                    prefs.edit().putString("por_enlace", porEnlace().filter { !it.startsWith("$id|") }.joinToString("\n")).apply()
+                    refrescarGuardados()
+                    toast("Quitado: el enlace ${i + 1} usará lo general")
+                }
+                .show()
+            return
+        }
+        val lista = porEnlace().filter { !it.startsWith("$id|") }.toMutableList()
+        lista.add("$id|$n|${if (frase) 1 else 0}")
+        prefs.edit().putString("por_enlace", lista.joinToString("\n")).apply()
+        refrescarGuardados()
+        toast("💾 Guardado para el enlace ${i + 1}: ${describir(n, frase)}")
+    }
+
+    /** Al marcar un enlace, se ponen en «4» las menciones que tenga guardadas. */
+    private fun cargarDeEnlace(i: Int) {
+        val id = idPublicacion(linkBoxes[i].text.toString().trim()) ?: return
+        val g = guardadoDe(id) ?: return
+        nMencionesSpin.setSelection(g.first.coerceIn(0, 5))
+        fraseBox.isChecked = g.second
+        toast("Enlace ${i + 1}: ${describir(g.first, g.second)} (lo guardado)")
+    }
+
+    /** 💾 si no tiene nada guardado; ✅ si ya tiene. */
+    private fun refrescarGuardados() {
+        botonesGuardar.forEachIndexed { i, b ->
+            val id = idPublicacion(linkBoxes.getOrNull(i)?.text?.toString()?.trim() ?: "")
+            b.text = if (id != null && guardadoDe(id) != null) "✅" else "💾"
+            b.alpha = if (id == null) 0.35f else 1f
+        }
     }
 
     /** Pone ● en el enlace marcado (○ en los demás) y dice qué usará el guion. */
