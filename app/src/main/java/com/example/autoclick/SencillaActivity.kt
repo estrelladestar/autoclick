@@ -13,7 +13,9 @@ import android.graphics.drawable.RippleDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.Editable
 import android.text.InputType
+import android.text.TextWatcher
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -21,6 +23,7 @@ import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.Spinner
@@ -29,13 +32,17 @@ import android.widget.Toast
 import java.io.File
 
 /**
- * «Star App Sencilla»: una sola pantalla. Pones el enlace, tus menciones y unas pocas opciones,
+ * «Star App Sencilla»: una sola pantalla. Pones hasta 5 enlaces, tus menciones y unas pocas opciones,
  * y el resto se hace solo: seguir a la tienda, me gusta, seguir cuentas de la descripción,
  * comentar, mirar historias y cambiar de cuenta, y vuelve a empezar.
  */
 class SencillaActivity : Activity() {
     private lateinit var prefs: SharedPreferences
-    private lateinit var linkBox: EditText
+    // Hasta 5 enlaces de publicación, cada uno con su foto al lado
+    private val linkBoxes = mutableListOf<EditText>()
+    private val fotos = mutableListOf<ImageView>()
+    private val fotoPendiente = arrayOfNulls<Runnable>(5)
+    private val fotoHandler = Handler(Looper.getMainLooper())
     private lateinit var cuentasBox: EditText
     private lateinit var mencionesBox: EditText
     private lateinit var nMencionesSpin: Spinner
@@ -179,7 +186,7 @@ class SencillaActivity : Activity() {
             setTypeface(null, Typeface.BOLD)
         })
         cabecera.addView(TextView(ctx).apply {
-            text = "Pon el enlace y tus menciones. Lo demás se hace solo: sigue a la tienda, da me gusta, sigue las cuentas de la descripción, comenta, mira historias y cambia de cuenta, y vuelve a empezar."
+            text = "Pon hasta 5 enlaces y tus menciones. Lo demás se hace solo: sigue a la tienda, da me gusta, sigue las cuentas de la descripción, comenta, mira historias y cambia de cuenta, y vuelve a empezar."
             textSize = 14f
             setTextColor(Color.WHITE)
             setPadding(0, dp(6), 0, 0)
@@ -206,8 +213,42 @@ class SencillaActivity : Activity() {
             setOnClickListener { pedirAccesibilidad() }
         }, lpRaiz(abajo = 6))
 
-        seccionNueva("🔗 1. Enlace de la publicación", AZUL)
-        linkBox = caja(prefs.getString("s_link", "") ?: "", pista = "https://www.instagram.com/p/…")
+        // 1. Hasta 5 enlaces, cada uno con la foto de su publicación
+        seccionNueva("🔗 1. Enlaces de publicaciones (hasta 5)", AZUL)
+        texto("Pega cada enlace. El guion los usa uno tras otro, en orden. A la izquierda sale la foto de la publicación.")
+        val guardados = (prefs.getString("s_links", null) ?: prefs.getString("s_link", "") ?: "").lines()
+        for (i in 0 until 5) {
+            val foto = ImageView(ctx).apply {
+                scaleType = ImageView.ScaleType.CENTER_CROP
+                background = redondo(Color.parseColor("#E0E0E0"), 10)
+                // La foto se recorta con las mismas esquinas redondeadas del fondo
+                clipToOutline = true
+                outlineProvider = android.view.ViewOutlineProvider.BACKGROUND
+            }
+            fotos.add(foto)
+            val campo = EditText(ctx).apply {
+                setText(guardados.getOrElse(i) { "" }.trim())
+                hint = "Enlace ${i + 1}"
+                setHintTextColor(GRIS_CLARO)
+                setTextColor(TEXTO)
+                inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
+                background = redondo(Color.parseColor("#FAFAFA"), 12, colorSec)
+                setPadding(dp(12), dp(10), dp(12), dp(10))
+            }
+            linkBoxes.add(campo)
+            val fila = LinearLayout(ctx).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                addView(foto, LinearLayout.LayoutParams(dp(72), dp(72)))
+                addView(campo, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { leftMargin = dp(10) })
+            }
+            seccion.addView(fila, lpRaiz(arriba = 10))
+            alEscribir(campo) {
+                guardarListas()
+                pedirFoto(i)
+            }
+            pedirFoto(i)
+        }
 
         seccionNueva("👥 2. Cuentas (en orden; vacío = todas)", MORADO)
         texto("Sepáralas con espacios. Con 2 o más, la app cambia de cuenta sola.")
@@ -215,6 +256,8 @@ class SencillaActivity : Activity() {
 
         seccionNueva("💬 3. Tus menciones (una por línea)", NARANJA)
         mencionesBox = caja(prefs.getString("s_menciones", "") ?: "", multi = true, pista = "@amiga1")
+        texto("Se guardan solas: no hace falta volver a escribirlas.")
+        alEscribir(mencionesBox) { guardarListas() }
 
         seccionNueva("🔢 4. Menciones por comentario", ROSA)
         nMencionesSpin = lista(
@@ -229,6 +272,8 @@ class SencillaActivity : Activity() {
             prefs.getInt("s_frases_op", 0)
         )
         frasesTextoBox = caja(prefs.getString("s_frases_texto", "") ?: "", multi = true, pista = "Solo si eliges «Mis frases», una por línea")
+        alEscribir(frasesTextoBox) { guardarListas() }
+        texto("Las listas fijas ya vienen guardadas en la app.")
 
         seccionNueva("🔁 6. Comentarios seguidos por publicación", VERDE_AZULADO)
         seguidosBox = caja(prefs.getInt("s_seguidos", 10).toString(), numero = true)
@@ -311,6 +356,37 @@ class SencillaActivity : Activity() {
             bottomMargin = dp(abajo)
         }
 
+    /** Llama a «accion» cada vez que cambia lo escrito en un cuadro. */
+    private fun alEscribir(campo: EditText, accion: () -> Unit) {
+        campo.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                accion()
+            }
+        })
+    }
+
+    /** Espera un momento (mientras se escribe el enlace) y luego busca la foto de su publicación. */
+    private fun pedirFoto(i: Int) {
+        fotoPendiente[i]?.let { fotoHandler.removeCallbacks(it) }
+        val r = Runnable { mostrarFoto(i) }
+        fotoPendiente[i] = r
+        fotoHandler.postDelayed(r, 900L)
+    }
+
+    private fun mostrarFoto(i: Int) {
+        val url = linkBoxes[i].text.toString().trim()
+        if (url.isEmpty()) {
+            fotos[i].setImageDrawable(null)
+            return
+        }
+        FotoEnlace.cargar(this, url) { bmp ->
+            // Solo se pone si el enlace sigue siendo el mismo; si no hay foto, se quita la anterior
+            if (linkBoxes[i].text.toString().trim() == url) fotos[i].setImageBitmap(bmp)
+        }
+    }
+
     /** El bocadillo (imagen 1) y la flecha de enviar (imagen 2) vienen dentro de la app: se dejan como primeras. */
     private fun asegurarImagenes() {
         val nombres = listOf("img_fija_0_bocadillo_t.png", "img_fija_1_flecha.jpg")
@@ -329,34 +405,46 @@ class SencillaActivity : Activity() {
         if (nueva != todas) StepStore.save(this, nueva)
     }
 
+    /**
+     * Lo que se escribe a mano (enlaces, menciones y tus frases): se guarda al momento, así no se pierde.
+     * Los enlaces van como link0…link4 y «linkSelUrl» vacío, para que el guion los use uno tras otro.
+     */
+    private fun guardarListas() {
+        // Mientras la pantalla se monta, algún cuadro aún no existe: en ese caso no se guarda nada
+        if (!::mencionesBox.isInitialized || !::frasesTextoBox.isInitialized) return
+        val enlaces = linkBoxes.map { it.text.toString().trim() }
+        val menciones = mencionesBox.text.toString().lines().map { it.trim() }.filter { it.isNotEmpty() }.joinToString("\n")
+        val ed = prefs.edit()
+        enlaces.forEachIndexed { i, u -> ed.putString("link$i", u) }
+        ed.putString("s_links", enlaces.joinToString("\n"))
+        ed.putString("linkSelUrl", "")
+        ed.putString("s_menciones", mencionesBox.text.toString())
+        ed.putString("friends", menciones)
+        ed.putString("menciones_fijas", menciones)
+        ed.putBoolean("menciones_fijas_on", true)
+        ed.putString("s_frases_texto", frasesTextoBox.text.toString())
+        ed.apply()
+    }
+
     /** Guarda lo que hay en la pantalla y lo deja listo para el motor de la app. */
     private fun guardar() {
-        val link = linkBox.text.toString().trim()
-        val menciones = mencionesBox.text.toString().lines().map { it.trim() }.filter { it.isNotEmpty() }.joinToString("\n")
+        guardarListas()
         val frases = when (frasesSpin.selectedItemPosition) {
             1 -> Macro.chrisBottiPhrases(this).joinToString("\n")
             2 -> frasesTextoBox.text.toString()
             else -> Macro.fixedPhrases(this).joinToString("\n")
         }
         prefs.edit()
-            .putString("s_link", link)
             .putString("s_cuentas", cuentasBox.text.toString().trim())
-            .putString("s_menciones", mencionesBox.text.toString())
             .putInt("s_nmen", nMencionesSpin.selectedItemPosition)
             .putBoolean("s_frase", fraseBox.isChecked)
             .putInt("s_frases_op", frasesSpin.selectedItemPosition)
-            .putString("s_frases_texto", frasesTextoBox.text.toString())
             .putInt("s_seguidos", seguidosBox.text.toString().toIntOrNull()?.coerceIn(1, 50) ?: 10)
             .putString("s_entre", ENTRE_VALORES[entreSpin.selectedItemPosition])
             .putString("s_hist", HIST_VALORES[historiasSpin.selectedItemPosition])
             .putBoolean("s_megusta", megustaBox.isChecked)
             .putBoolean("s_seguirdesc", seguirDescBox.isChecked)
-            // Lo que lee el motor: el enlace, las menciones fijas y las frases
-            .putString("link0", link)
-            .putString("linkSelUrl", link)
-            .putString("friends", menciones)
-            .putString("menciones_fijas", menciones)
-            .putBoolean("menciones_fijas_on", true)
+            // Lo que lee el motor: las frases elegidas
             .putString("phrases", frases)
             .apply()
     }
@@ -391,7 +479,7 @@ class SencillaActivity : Activity() {
     /** Lo que falta antes de empezar (vacío si todo está listo). */
     private fun problemas(): List<String> {
         val out = ArrayList<String>()
-        if (linkBox.text.toString().trim().isEmpty()) out.add("Pon el enlace de la publicación (cuadro 1).")
+        if (linkBoxes.none { it.text.toString().trim().isNotEmpty() }) out.add("Pon al menos un enlace de publicación (cuadro 1).")
         if (nMencionesSpin.selectedItemPosition > 0 && mencionesBox.text.toString().lines().none { it.trim().isNotEmpty() }) {
             out.add("Pon tus menciones (cuadro 3), o elige «Sin menciones» en el cuadro 4.")
         }
