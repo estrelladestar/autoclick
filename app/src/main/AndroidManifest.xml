@@ -31,6 +31,10 @@
             android:exported="false"
             android:label="Comprobador de comentarios"
             android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".SencillaActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <service
             android:name=".ScreenCaptureService"
             android:exported="false"

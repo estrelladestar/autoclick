@@ -19,7 +19,8 @@ android {
         buildConfigField("String", "APIFY_TOKEN", "\"$apify\"")
     }
     buildFeatures { buildConfig = true }
-    // Dos apps con el mismo código: «Star App» y «Star App Historias» (que además puede subir la publicación a la historia)
+    // Varias apps con el mismo código: «Star App», «Star App Historias» (que además puede subir la publicación a la historia)
+    // y «Star App Sencilla» (una sola pantalla: todo automático, sin el paso de historia)
     flavorDimensions += "tipo"
     productFlavors {
         create("normal") {
@@ -30,6 +31,11 @@ android {
             dimension = "tipo"
             applicationIdSuffix = ".historias"
             manifestPlaceholders["appLabel"] = "Star App Historias"
+        }
+        create("sencilla") {
+            dimension = "tipo"
+            applicationIdSuffix = ".sencilla"
+            manifestPlaceholders["appLabel"] = "Star App Sencilla"
         }
     }
     signingConfigs {

@@ -42,8 +42,16 @@ class MainActivity : Activity() {
     private val pickCode = 42
     private val captureCode = 43
 
+    /** «Star App Sencilla» no usa esta pantalla: solo pasa a su pantalla sencilla. */
+    private val esSencilla get() = BuildConfig.FLAVOR == "sencilla"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (esSencilla) {
+            startActivity(Intent(this, SencillaActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP))
+            finish()
+            return
+        }
         Macro.installCrashLogger(this)
         val prefs = getSharedPreferences("cfg", Context.MODE_PRIVATE)
         val ctx = this
@@ -226,6 +234,7 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        if (esSencilla) return
         // Imágenes fijas: el bocadillo (imagen 1) y la flecha de enviar (imagen 2) siempre van las primeras de la lista
         // El bocadillo es ahora el negro con fondo transparente (el del fondo gris ya no se usa)
         val fijaNombres = listOf("img_fija_0_bocadillo_t.png", "img_fija_1_flecha.jpg")
@@ -257,6 +266,7 @@ class MainActivity : Activity() {
 
     override fun onPause() {
         super.onPause()
+        if (esSencilla) return
         saveSettings()
     }
 

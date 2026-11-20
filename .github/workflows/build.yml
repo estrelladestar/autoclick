@@ -112,7 +112,7 @@ jobs:
         with:
           name: SorteosStar-apk
           path: sorteos/build/outputs/apk/debug/*.apk
-      - run: cp app/build/outputs/apk/normal/debug/app-normal-debug.apk StarApp.apk && cp StarApp.apk app-debug.apk && cp app/build/outputs/apk/historias/debug/app-historias-debug.apk StarAppHistorias.apk  # Star App (también como app-debug.apk, el enlace de siempre) y Star App Historias
+      - run: cp app/build/outputs/apk/normal/debug/app-normal-debug.apk StarApp.apk && cp StarApp.apk app-debug.apk && cp app/build/outputs/apk/historias/debug/app-historias-debug.apk StarAppHistorias.apk && cp app/build/outputs/apk/sencilla/debug/app-sencilla-debug.apk StarAppSencilla.apk  # Star App (también como app-debug.apk, el enlace de siempre), Star App Historias y Star App Sencilla
       - run: cp lengua/src/main/assets/mundo.html MiMundo_Lengua_Tema3.html && cp facil/src/main/assets/mundo.html MiMundo_Facil_Tema3.html && cp pasoapaso/src/main/assets/mundo.html MiMundo_PasoAPaso_Tema3.html && cp ingles/src/main/assets/mundo.html MiMundo_Ingles_Unit2.html && cp inglesfacil/src/main/assets/mundo.html MiMundo_InglesFacil_Unit2.html && cp mates/src/main/assets/mundo.html MiMundo_Mates_Tema3.html && cp cono/src/main/assets/mundo.html MiMundo_Cono_Tema3.html && cp sorteos/src/main/assets/sorteos.html SorteosStar.html && cp joyas/src/main/assets/joyas.html StarJoyas.html && cp calculo/src/main/assets/mates.html StarMates.html && cp letras/src/main/assets/letras.html CaminandoLetras.html && cp letrasmundo/src/main/assets/mundo.html MiMundo_Letras.html && cp acentos/src/main/assets/acentos.html LlanasYAgudas.html  # versiones HTML para descargar
       - run: mkdir -p web/ingles && cp lengua/src/main/assets/mundo.html web/index.html && mkdir -p web/sorteos && cp sorteos/src/main/assets/sorteos.html web/sorteos/index.html && cp sorteosplay/privacidad.html web/sorteos/privacidad.html && cp ingles/src/main/assets/mundo.html web/ingles/index.html && mkdir -p web/mates && cp mates/src/main/assets/mundo.html web/mates/index.html && mkdir -p web/cono && cp cono/src/main/assets/mundo.html web/cono/index.html && mkdir -p web/joyas && cp joyas/src/main/assets/joyas.html web/joyas/index.html && mkdir -p web/calculo && cp calculo/src/main/assets/mates.html web/calculo/index.html && mkdir -p web/letras && cp letras/src/main/assets/letras.html web/letras/index.html && touch web/.nojekyll  # páginas web de los juegos (/ = Lengua, /ingles/ = Inglés, /sorteos/ = Sorteos Star, /joyas/ = Star Joyas)
       - uses: peaceiris/actions-gh-pages@v4
@@ -130,6 +130,7 @@ jobs:
             - StarApp.apk → Star App
             - app-debug.apk → la misma Star App (con el nombre de antes, para que el enlace de siempre siga funcionando)
             - StarAppHistorias.apk → Star App Historias (otra app, igual que Star App pero además con el paso «historia»: sube la publicación a tu historia y etiqueta a la cuenta)
+            - StarAppSencilla.apk → Star App Sencilla (otra app con una sola pantalla: pones el enlace y tus menciones, y lo demás va solo: seguir, me gusta, seguir cuentas de la descripción, comentar, mirar historias y cambiar de cuenta)
             - MiMundo-debug.apk → Mi Mundo (juego: avatar, mascota y preguntas)
             - MiMundoLengua-debug.apk → Mi Mundo Lengua (el mismo juego con el Tema 3 de Lengua)
             - MiMundo_Lengua_Tema3.html → Mi Mundo Lengua para abrir en el navegador
@@ -164,6 +165,7 @@ jobs:
             StarApp.apk
             app-debug.apk
             StarAppHistorias.apk
+            StarAppSencilla.apk
             juego/build/outputs/apk/debug/*.apk
             lengua/build/outputs/apk/debug/*.apk
             mates/build/outputs/apk/debug/*.apk
