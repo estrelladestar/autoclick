@@ -2315,6 +2315,17 @@ object Macro {
                     later(2500L)
                 }
                 5 -> {
+                    // Si sigue abierta la lista de menciones con «Añadir», se pulsa (nunca «atrás»: perdería la mención)
+                    if (storyTagged && tries < 8) {
+                        val anadir = botonAnadirMencion()
+                        if (anadir != null) {
+                            tries++
+                            trace("  pulso «Añadir» en la lista de menciones")
+                            tap(anadir)
+                            later(2000L)
+                            return
+                        }
+                    }
                     // Si la búsqueda de menciones sigue abierta con su campo activo, se cierra (sin salir de la historia)
                     if (storyTagged && cierresBusqueda < 3 && tecladoAbierto() &&
                         findIg { _, _, n -> n.isEditable && n.isFocused && n.isVisibleToUser } != null) {
@@ -2487,10 +2498,40 @@ object Macro {
                     tap(fila)
                     storyTagged = true
                     cierresBusqueda = 0
+                    sharePhase = 10
+                    tries = 0
+                    later(1500L)
+                }
+                10 -> {
+                    // Instagram nuevo: tras marcar la tienda (✓) hay que pulsar el botón «Añadir» de abajo.
+                    // Sin pulsarlo, la mención no se pone y «atrás» acaba preguntando si descartar la foto.
+                    val anadir = botonAnadirMencion()
+                    if (anadir != null) {
+                        if (tries < 4) {
+                            tries++
+                            trace("  pulso «Añadir» para poner la mención de @$shareOwner")
+                            tap(anadir)
+                            later(2000L)
+                        } else {
+                            storyGiveUp(c, "no se cierra la lista de menciones al pulsar «Añadir»")
+                        }
+                        return
+                    }
+                    // Ya no se ve «Añadir» (o esta versión de Instagram no lo tiene): a publicar
+                    if (tries == 0) trace("  no hay botón «Añadir»: la mención ya está puesta")
                     sharePhase = 5
                     tries = 0
-                    later(2500L)
+                    later(2000L)
                 }
+            }
+        }
+
+        /** El botón «Añadir» de abajo en la lista de menciones de la historia (Instagram nuevo). */
+        private fun botonAnadirMencion(): Rect? {
+            val (_, h) = s.screenSize()
+            return findIg { t, r, n ->
+                !n.isEditable && r.exactCenterY() > h * 0.75f &&
+                    (t == "añadir" || t == "agregar" || t == "add" || t == "añadir mención" || t == "add mention")
             }
         }
 
