@@ -2310,13 +2310,7 @@ object Macro {
                         later(4000L)
                         return
                     }
-                    if (tecladoAbierto() && tries < 8) {
-                        // Todavía está abierto el texto: primero «Listo»
-                        tries++
-                        if (!pulsarListo()) trace("  el texto sigue abierto y no veo «Listo». En pantalla: ${describirPantalla()}")
-                        later(1500L)
-                        return
-                    }
+                    // «Compartir» y la flecha azul van antes que el teclado: así se pulsan aunque haya cosas arriba
                     if (tries < 8) {
                         val share = findIg { t, r, n -> !n.isEditable && (t == "compartir" || t == "share") && r.exactCenterY() > h * 0.7f }
                         if (share != null) {
@@ -2337,15 +2331,22 @@ object Macro {
                             later(2500L)
                             return
                         }
-                        if (tries == 3) {
-                            trace("  no veo «Siguiente»: pruebo el «Listo» de arriba a la derecha")
-                            pulsarListo(aLaFuerza = true)
+                        if (tecladoAbierto()) {
+                            // El texto sigue abierto: «Listo» si se ve; si no, «atrás» solo cierra el teclado (no sale de la historia)
                             tries++
-                            later(2000L)
+                            val listo = findIg { t, _, _ -> t == "listo" || t == "hecho" || t == "done" || t == "✓" || t == "✔" }
+                            if (listo != null) {
+                                trace("  pulso «Listo» para cerrar el texto")
+                                s.tapAt(listo.exactCenterX(), listo.exactCenterY())
+                            } else {
+                                trace("  cierro el teclado (no veo «Listo»)")
+                                s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
+                            }
+                            later(1500L)
                             return
                         }
                         tries++
-                        trace("  no veo «Tu historia» ni «Siguiente» ($tries). En pantalla: ${describirPantalla()}")
+                        trace("  no veo «Tu historia» ni la flecha azul ($tries). En pantalla: ${describirPantalla()}")
                         later(2000L)
                         return
                     }
