@@ -2536,8 +2536,21 @@ object Macro {
                         }
                         return
                     }
-                    // Ya no se ve «Añadir» (o esta versión de Instagram no lo tiene): a publicar
-                    if (tries == 0) trace("  no hay botón «Añadir»: la mención ya está puesta")
+                    // Sticker de mención clásico: el nombre queda escrito en la historia y hay que pulsar «Listo» arriba
+                    val listo = findIg { t, _, n -> !n.isEditable && (t == "listo" || t == "hecho" || t == "done" || t == "✓" || t == "✔") }
+                    if (tries < 6 && (listo != null || tecladoAbierto())) {
+                        tries++
+                        if (listo != null) {
+                            trace("  pulso «Listo» para dejar puesta la mención de @$shareOwner")
+                            tap(listo)
+                        } else if (!pulsarListo(aLaFuerza = tries >= 3)) {
+                            trace("  no veo «Listo». En pantalla: ${describirPantalla()}")
+                        }
+                        later(1800L)
+                        return
+                    }
+                    trace("  mención de @$shareOwner puesta")
+                    cierresBusqueda = 3
                     sharePhase = 5
                     tries = 0
                     later(2000L)
