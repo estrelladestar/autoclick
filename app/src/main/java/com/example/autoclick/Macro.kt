@@ -30,7 +30,7 @@ import android.widget.Toast
  *   # nota             se ignora
  * Al final de cualquier línea, "| 30" añade 30 segundos de espera, y "| 30-60" añade un tiempo
  * al azar entre 30 y 60 segundos (también vale "esperar 5-10").
- * El guion se para solo, con vibración, si la pantalla muestra un aviso de bloqueo de Instagram.
+ * Si sale un aviso de bloqueo de Instagram, suena, cierra el aviso y cambia de cuenta (se para si pasa en 3 cuentas seguidas).
  *
  * Límite: al menos 10 segundos entre un comentario y el siguiente.
  */
@@ -152,7 +152,9 @@ object Macro {
 
     private val BLOCK_TEXTS = listOf(
         "Acción bloqueada", "Action Blocked", "Limitamos la frecuencia",
-        "We limit how often", "Inténtalo de nuevo más tarde", "Try again later"
+        "We limit how often", "Inténtalo de nuevo más tarde", "Try again later",
+        "Hemos restringido", "restringir determinadas", "We restrict certain", "restricted certain activity",
+        "Tu cuenta tiene restricciones", "Your account has been restricted"
     )
 
     /** Avisos (en rojo) de Instagram cuando un comentario no se publica. En minúsculas. */
@@ -609,7 +611,7 @@ object Macro {
                 return
             }
             if (blocked()) {
-                finish("Instagram muestra un aviso de bloqueo o límite. Guion detenido para proteger tu cuenta.")
+                bloqueada(cmds[i])
                 return
             }
             showProgress()
@@ -1365,7 +1367,7 @@ object Macro {
          */
         private fun checkPosted(pick: List<String>, before: Set<String>, c: Cmd) {
             if (blocked()) {
-                finish("Instagram muestra un aviso de bloqueo o límite. Guion detenido para proteger tu cuenta.")
+                bloqueada(c)
                 return
             }
             val texts = screenTexts()
@@ -1387,8 +1389,42 @@ object Macro {
             }
         }
 
+        /** Cuentas seguidas con aviso de bloqueo sin ningún comentario bien publicado entre medias. */
+        private var bloqueosSeguidos = 0
+
+        /**
+         * Aviso de bloqueo o límite de Instagram (pantalla roja): se cierra el aviso y se cambia de cuenta.
+         * Solo se para del todo si les pasa a 3 cuentas seguidas (o si no hay cambio de cuenta en el guion).
+         */
+        private fun bloqueada(c: Cmd) {
+            bloqueosSeguidos++
+            redAlarm()
+            trace("  ⛔ aviso de bloqueo o límite en @${current ?: "?"} ($bloqueosSeguidos seguidas). En pantalla: ${describirPantalla()}")
+            val hayCambio = (0 until cmds.size).any { cmds[it].op == "irperfil" }
+            if (!hayCambio || bloqueosSeguidos >= 3) {
+                finish("Instagram muestra un aviso de bloqueo o límite" +
+                    (if (bloqueosSeguidos >= 3) " en 3 cuentas seguidas" else "") + ". Guion detenido para proteger tus cuentas.")
+                return
+            }
+            // Cerrar el aviso
+            val ok = findIg { t, _, n -> !n.isEditable && t in setOf("ok", "aceptar", "entendido", "cerrar", "vale", "ignorar", "dismiss", "close") }
+            if (ok != null) s.tapAt(ok.exactCenterX(), ok.exactCenterY())
+            else s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
+            toast(s, "Aviso de bloqueo en ${current ?: "esta cuenta"}: cambio de cuenta")
+            val j = (i + 1 until cmds.size).firstOrNull { cmds[it].op == "irperfil" }
+                ?: (0 until cmds.size).first { cmds[it].op == "irperfil" }
+            trace("  cambio de cuenta por el aviso de bloqueo")
+            tries = 0
+            swipes = null
+            sharePhase = 0
+            fmPhase = 0
+            i = j
+            later(2500L)
+        }
+
         /** El comentario se ha publicado bien: se apunta para comprobar luego, desde otra cuenta, si se ve. */
         private fun posted(pick: List<String>, c: Cmd) {
+            bloqueosSeguidos = 0
             postedBy = current
             postedHandles = pick
             postedUrl = s.lastUrl
