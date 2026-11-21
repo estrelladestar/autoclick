@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Star Mates</title>
+<style>
+:root{
+  --morado:#7C4DFF; --rosa:#FF5FA2; --verde:#22C55E; --rojo:#EF4444; --amarillo:#FFC83D;
+  --suma:#22C55E; --resta:#3B82F6; --mult:#F59E0B; --div:#EC4899; --mezcla:#8B5CF6; --reto:#EF4444;
+  --tinta:#2A1A3E; --suave:#6B5B85;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
+html,body{margin:0;height:100%}
+body{font-family:"Nunito","Segoe UI",Roboto,Arial,sans-serif;color:var(--tinta);
+  background:linear-gradient(180deg,#EFE6FF 0%,#FFE9F4 100%);min-height:100%;overflow-x:hidden}
+.pant{display:none;min-height:100vh;padding:14px 14px 24px;max-width:520px;margin:0 auto}
+.pant.on{display:block;animation:entra .25s ease}
+@keyframes entra{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+h1{margin:4px 0 2px;font-size:30px;text-align:center}
+h1 .st{color:var(--amarillo);text-shadow:0 2px 0 #E0A800}
+.sub{text-align:center;color:var(--suave);margin:0 0 12px;font-size:15px}
+.barra{display:flex;justify-content:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.pill{background:#fff;border-radius:999px;padding:6px 14px;font-weight:800;box-shadow:0 2px 6px #7C4DFF22;font-size:15px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{border:none;border-radius:22px;padding:16px 10px 14px;color:#fff;font:inherit;text-align:center;
+  box-shadow:0 5px 0 #0002;cursor:pointer;position:relative}
+.card:active{transform:translateY(3px);box-shadow:0 2px 0 #0002}
+.card .ico{font-size:40px;font-weight:900;line-height:1}
+.card .nom{font-size:19px;font-weight:900;margin-top:6px}
+.card .est{font-size:14px;margin-top:4px;opacity:.95}
+.card.ancha{grid-column:1/3;display:flex;align-items:center;gap:14px;text-align:left;padding:14px 18px}
+.card.ancha .ico{font-size:34px}
+.niveles{display:flex;gap:8px;justify-content:center;margin:14px 0 4px}
+.nv{border:3px solid transparent;background:#fff;border-radius:14px;padding:8px 14px;font:inherit;font-weight:800;color:var(--suave)}
+.nv.on{border-color:var(--morado);color:var(--morado);background:#F3EDFF}
+.btn{border:none;border-radius:16px;padding:13px 18px;font:inherit;font-weight:900;font-size:18px;color:#fff;background:var(--morado);box-shadow:0 4px 0 #5B2FE0}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 #5B2FE0}
+.btn.gris{background:#fff;color:var(--morado);box-shadow:0 4px 0 #D9CCFF}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.atras{border:none;background:#fff;border-radius:14px;width:46px;height:46px;font-size:22px;font-weight:900;color:var(--morado);box-shadow:0 3px 0 #D9CCFF}
+.prog{flex:1;height:14px;background:#fff;border-radius:999px;overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--rosa),var(--morado));transition:width .3s}
+.marcas{display:flex;gap:6px;font-weight:900}
+.pizarra{background:#fff;border-radius:26px;padding:18px 12px 16px;text-align:center;box-shadow:0 6px 18px #7C4DFF22;margin-bottom:12px;position:relative}
+.tipo{font-size:14px;font-weight:800;color:var(--suave);letter-spacing:.5px;text-transform:uppercase}
+.preg{font-size:46px;font-weight:900;margin:8px 0 6px;white-space:nowrap}
+.preg .op{color:var(--morado)}
+.resp{display:inline-block;min-width:120px;font-size:44px;font-weight:900;border-bottom:5px solid var(--morado);padding:0 10px;min-height:58px;color:var(--morado)}
+.resp.ok{color:var(--verde);border-color:var(--verde);animation:bote .4s}
+.resp.mal{color:var(--rojo);border-color:var(--rojo);animation:tiembla .4s}
+@keyframes bote{50%{transform:scale(1.2)}}
+@keyframes tiembla{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.msg{min-height:48px;font-size:17px;font-weight:800;margin-top:10px;line-height:1.3}
+.msg.ok{color:var(--verde)} .msg.mal{color:var(--rojo)}
+.puntos{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;margin-top:6px;max-width:300px;margin-left:auto;margin-right:auto}
+.puntos b{width:16px;height:16px;border-radius:50%;display:inline-block}
+.puntos .sep{width:14px}
+.teclado{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.tecla{border:none;border-radius:18px;background:#fff;font:inherit;font-size:30px;font-weight:900;color:var(--tinta);height:64px;box-shadow:0 4px 0 #D9CCFF}
+.tecla:active{transform:translateY(3px);box-shadow:0 1px 0 #D9CCFF}
+.tecla.borra{color:var(--rojo);font-size:26px}
+.tecla.vale{background:var(--verde);color:#fff;box-shadow:0 4px 0 #15803D}
+.ayudas{display:flex;gap:8px;justify-content:center;margin-bottom:10px}
+.ayudas button{border:none;background:#FFF6D6;border-radius:12px;padding:8px 12px;font:inherit;font-weight:800;color:#8A6100}
+.res{text-align:center}
+.estrellas{font-size:64px;letter-spacing:6px;margin:10px 0}
+.estrellas .apagada{filter:grayscale(1);opacity:.3}
+.nota{font-size:22px;font-weight:900;margin:6px 0}
+.lista{background:#fff;border-radius:18px;padding:10px 14px;text-align:left;margin:14px 0;max-height:240px;overflow:auto}
+.lista div{padding:6px 0;border-bottom:1px dashed #E4DAFF;font-size:17px;font-weight:700}
+.lista div:last-child{border:none}
+.lista .bien{color:var(--rojo);text-decoration:line-through;margin-right:6px}
+.fila{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.tablas{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px}
+.tb{border:none;border-radius:16px;background:#fff;font:inherit;font-size:24px;font-weight:900;height:60px;color:var(--mult);box-shadow:0 4px 0 #FCD9A4;position:relative}
+.tb.on{background:var(--mult);color:#fff;box-shadow:0 4px 0 #B45309}
+.tb .med{position:absolute;top:-6px;right:-4px;font-size:16px}
+.tabla{background:#fff;border-radius:20px;padding:8px 16px;box-shadow:0 6px 18px #F59E0B22}
+.tabla div{display:flex;justify-content:space-between;font-size:23px;font-weight:800;padding:5px 4px;border-bottom:1px dashed #FDE7C2}
+.tabla div:last-child{border:none}
+.tabla div.brilla{background:#FFF3D6;border-radius:10px}
+.tabla span.r{color:var(--mult);font-weight:900}
+.tiempo{font-size:22px;font-weight:900;color:var(--reto)}
+.ajustes{background:#fff;border-radius:18px;padding:12px 16px;margin-top:14px}
+.ajustes label{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-weight:800}
+.ajustes input{width:24px;height:24px;accent-color:var(--morado)}
+.conf{position:fixed;top:-20px;font-size:22px;pointer-events:none;animation:cae 1.6s linear forwards;z-index:9}
+@keyframes cae{to{transform:translateY(110vh) rotate(540deg);opacity:.6}}
+.pie{text-align:center;color:var(--suave);font-size:13px;margin-top:16px}
+</style>
+</head>
+<body>
+
+<!-- ======== INICIO ======== -->
+<section class="pant on" id="inicio">
+  <h1><span class="st">★</span> Star Mates <span class="st">★</span></h1>
+  <p class="sub">¡Practica y gana estrellas!</p>
+  <div class="barra">
+    <span class="pill">⭐ <span id="totEst">0</span></span>
+    <span class="pill">✅ <span id="totOk">0</span></span>
+    <span class="pill">🔥 Racha <span id="mejorRacha">0</span></span>
+  </div>
+  <div class="niveles" id="niveles">
+    <button class="nv on" data-n="0">🌱 Fácil</button>
+    <button class="nv" data-n="1">🌟 Medio</button>
+    <button class="nv" data-n="2">🚀 Difícil</button>
+  </div>
+  <p class="sub" id="nivelTxt" style="margin-top:4px"></p>
+  <div class="grid">
+    <button class="card" style="background:var(--suma)" data-op="suma"><div class="ico">+</div><div class="nom">Sumas</div><div class="est" data-e="suma"></div></button>
+    <button class="card" style="background:var(--resta)" data-op="resta"><div class="ico">−</div><div class="nom">Restas</div><div class="est" data-e="resta"></div></button>
+    <button class="card" style="background:var(--mult)" data-op="mult"><div class="ico">×</div><div class="nom">Multiplicar</div><div class="est" data-e="mult"></div></button>
+    <button class="card" style="background:var(--div)" data-op="div"><div class="ico">÷</div><div class="nom">Dividir</div><div class="est" data-e="div"></div></button>
+    <button class="card ancha" style="background:var(--mezcla)" data-op="mezcla"><div class="ico">±</div><div><div class="nom">Mezcla</div><div class="est" data-e="mezcla"></div></div></button>
+    <button class="card ancha" style="background:linear-gradient(135deg,#F59E0B,#F97316)" id="irTablas"><div class="ico">📋</div><div><div class="nom">Tablas de multiplicar</div><div class="est" id="estTablas">Aprende y practica cada tabla</div></div></button>
+    <button class="card ancha" style="background:var(--reto)" data-op="reto"><div class="ico">⏱️</div><div><div class="nom">Reto de 1 minuto</div><div class="est" data-e="reto"></div></div></button>
+  </div>
+  <div class="ajustes">
+    <label>🔊 Sonidos <input type="checkbox" id="optSon" checked></label>
+    <label>🗣️ Leer las cuentas en voz alta <input type="checkbox" id="optVoz"></label>
+    <label>📳 Vibrar al fallar <input type="checkbox" id="optVib" checked></label>
+  </div>
+  <p class="pie">Cada ronda tiene 10 cuentas. 10 aciertos = ⭐⭐⭐</p>
+</section>
+
+<!-- ======== TABLAS ======== -->
+<section class="pant" id="tablas">
+  <div class="top"><button class="atras" data-ir="inicio">‹</button><h2 style="margin:0;flex:1;text-align:center">Tablas</h2><span style="width:46px"></span></div>
+  <p class="sub">Elige una tabla. Si aciertas las 10 sin fallar, ganas una medalla 🏅</p>
+  <div class="tablas" id="tablasBtns"></div>
+  <div class="tabla" id="tablaVer"></div>
+  <div class="fila">
+    <button class="btn gris" id="oirTabla">🔈 Escuchar</button>
+    <button class="btn" id="practTabla">✏️ Practicar</button>
+    <button class="btn gris" id="desordTabla">🔀 Salteada</button>
+  </div>
+</section>
+
+<!-- ======== JUEGO ======== -->
+<section class="pant" id="juego">
+  <div class="top">
+    <button class="atras" id="salir">‹</button>
+    <div class="prog"><i id="progBar"></i></div>
+    <div class="marcas"><span id="tiempoTxt" class="tiempo"></span><span>✅<span id="okTxt">0</span></span><span>🔥<span id="rachaTxt">0</span></span></div>
+  </div>
+  <div class="pizarra">
+    <div class="tipo" id="tipoTxt"></div>
+    <div class="preg" id="pregTxt"></div>
+    <div class="resp" id="respTxt"></div>
+    <div class="puntos" id="puntos"></div>
+    <div class="msg" id="msgTxt"></div>
+  </div>
+  <div class="ayudas">
+    <button id="btnPista">💡 Pista</button>
+    <button id="btnOir">🔈 Oír</button>
+    <button id="btnSaltar">⏭️ Pasar</button>
+  </div>
+  <div class="teclado" id="teclado"></div>
+</section>
+
+<!-- ======== RESULTADO ======== -->
+<section class="pant" id="resultado">
+  <div class="res">
+    <h1 id="resTit">¡Muy bien!</h1>
+    <div class="estrellas" id="resEst"></div>
+    <div class="nota" id="resNota"></div>
+    <div class="sub" id="resSub"></div>
+    <div class="lista" id="resLista" style="display:none"></div>
+    <div class="fila">
+      <button class="btn gris" id="resInicio">🏠 Inicio</button>
+      <button class="btn" id="resOtra">🔁 Otra vez</button>
+    </div>
+  </div>
+</section>
+
+<script>
+'use strict';
+const B = window.StarMates || null;
+const $ = id => document.getElementById(id);
+const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+/* ---------- Guardado ---------- */
+const S = { nivel: 0, est: {}, ok: 0, mejorRacha: 0, medallas: {}, reto: [0, 0, 0], son: true, voz: false, vib: true };
+function cargar() {
+  let raw = '';
+  try { raw = B && B.load ? B.load() : (localStorage.getItem('starmates') || ''); } catch (e) {}
+  if (raw) { try { Object.assign(S, JSON.parse(raw)); } catch (e) {} }
+}
+function guardar() {
+  const j = JSON.stringify(S);
+  try { if (B && B.save) B.save(j); else localStorage.setItem('starmates', j); } catch (e) {}
+}
+
+/* ---------- Sonido, voz y vibración ---------- */
+let actx = null;
+function tono(f, d, t = 0, tipo = 'sine', vol = .18) {
+  if (!S.son) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = tipo; o.frequency.value = f; o.connect(g); g.connect(actx.destination);
+    const t0 = actx.currentTime + t;
+    g.gain.setValueAtTime(vol, t0); g.gain.exponentialRampToValueAtTime(.001, t0 + d);
+    o.start(t0); o.stop(t0 + d);
+  } catch (e) {}
+}
+const sOk = () => { tono(660, .12); tono(990, .18, .1); };
+const sMal = () => { tono(220, .25, 0, 'square', .08); };
+const sFin = () => { [523, 659, 784, 1047].forEach((f, i) => tono(f, .22, i * .13)); };
+const sTec = () => tono(500, .04, 0, 'sine', .06);
+function vib(ms) { if (!S.vib) return; try { if (B && B.vibrate) B.vibrate(ms); else if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
+function hablar(t) {
+  try {
+    if (B && B.speak) { B.speak(t); return; }
+    if (window.speechSynthesis) { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang = 'es-ES'; speechSynthesis.speak(u); }
+  } catch (e) {}
+}
+
+/* ---------- Pantallas ---------- */
+function ir(id) {
+  document.querySelectorAll('.pant').forEach(p => p.classList.toggle('on', p.id === id));
+  window.scrollTo(0, 0);
+  if (id === 'inicio') pintarInicio();
+}
+document.querySelectorAll('[data-ir]').forEach(b => b.onclick = () => ir(b.dataset.ir));
+
+const NOMBRES = { suma: 'Sumas', resta: 'Restas', mult: 'Multiplicar', div: 'Dividir', mezcla: 'Mezcla', reto: 'Reto 1 minuto', tabla: 'Tabla' };
+const NIVEL_TXT = [
+  'Números pequeños, del 1 al 10. Tablas del 1 al 5.',
+  'Números hasta el 100. Todas las tablas.',
+  'Números hasta el 1000 y cuentas más largas.'
+];
+const SIM = { suma: '+', resta: '−', mult: '×', div: '÷' };
+
+function pintarInicio() {
+  document.querySelectorAll('.nv').forEach(b => b.classList.toggle('on', +b.dataset.n === S.nivel));
+  $('nivelTxt').textContent = NIVEL_TXT[S.nivel];
+  let tot = 0;
+  Object.values(S.est).forEach(v => tot += v);
+  $('totEst').textContent = tot;
+  $('totOk').textContent = S.ok;
+  $('mejorRacha').textContent = S.mejorRacha;
+  document.querySelectorAll('[data-e]').forEach(el => {
+    const op = el.dataset.e;
+    if (op === 'reto') { const r = S.reto[S.nivel] || 0; el.textContent = r ? 'Tu récord: ' + r + ' aciertos' : '¿Cuántas aciertas en 60 segundos?'; return; }
+    const e = S.est[op + S.nivel] || 0;
+    el.textContent = '★'.repeat(e) + '☆'.repeat(3 - e);
+  });
+  const med = Object.keys(S.medallas).length;
+  $('estTablas').textContent = med ? '🏅 ' + med + ' de 10 medallas' : 'Aprende y practica cada tabla';
+  $('optSon').checked = S.son; $('optVoz').checked = S.voz; $('optVib').checked = S.vib;
+}
+document.querySelectorAll('.nv').forEach(b => b.onclick = () => { S.nivel = +b.dataset.n; guardar(); sTec(); pintarInicio(); });
+$('optSon').onchange = e => { S.son = e.target.checked; guardar(); };
+$('optVoz').onchange = e => { S.voz = e.target.checked; guardar(); };
+$('optVib').onchange = e => { S.vib = e.target.checked; guardar(); };
+document.querySelectorAll('[data-op]').forEach(b => b.onclick = () => empezar(b.dataset.op));
+
+/* ---------- Generar cuentas ---------- */
+function crear(op, n) {
+  let a, b, r;
+  if (op === 'suma') {
+    if (n === 0) { a = rnd(1, 10); b = rnd(1, 10); }
+    else if (n === 1) { a = rnd(10, 89); b = rnd(2, 99 - a); }
+    else { a = rnd(100, 899); b = rnd(10, 999 - a); }
+    r = a + b;
+  } else if (op === 'resta') {
+    if (n === 0) { a = rnd(2, 10); b = rnd(1, a); }
+    else if (n === 1) { a = rnd(20, 99); b = rnd(2, a - 1); }
+    else { a = rnd(200, 999); b = rnd(20, a - 1); }
+    r = a - b;
+  } else if (op === 'mult') {
+    if (n === 0) { a = rnd(1, 5); b = rnd(1, 10); }
+    else if (n === 1) { a = rnd(2, 10); b = rnd(1, 10); }
+    else { a = rnd(11, 99); b = rnd(2, 9); }
+    if (n < 2 && Math.random() < .5) [a, b] = [b, a];
+    r = a * b;
+  } else { // div exacta
+    let d, c;
+    if (n === 0) { d = rnd(1, 5); c = rnd(1, 10); }
+    else if (n === 1) { d = rnd(2, 10); c = rnd(1, 10); }
+    else { d = rnd(2, 9); c = rnd(11, 40); }
+    a = d * c; b = d; r = c;
+  }
+  return { op, a, b, r };
+}
+function pista(q) {
+  const { op, a, b, r } = q;
+  if (op === 'suma') {
+    if (a <= 10 && b <= 10) return 'Cuenta los puntitos: primero ' + a + ' y luego ' + b + ' más.';
+    const ua = a % 10, ub = b % 10;
+    if (ua + ub >= 10) return 'Primero las unidades: ' + ua + ' + ' + ub + ' = ' + (ua + ub) + '. ¡Te llevas una!';
+    return 'Suma primero las unidades (' + ua + ' + ' + ub + ') y luego las decenas.';
+  }
+  if (op === 'resta') {
+    if (a <= 10) return 'Tienes ' + a + ' puntitos y quitas ' + b + '. ¿Cuántos quedan?';
+    const ua = a % 10, ub = b % 10;
+    if (ua < ub) return 'En las unidades ' + ua + ' es menor que ' + ub + ': pide prestada una decena (' + (ua + 10) + ' − ' + ub + ').';
+    return 'Resta primero las unidades (' + ua + ' − ' + ub + ') y luego las decenas.';
+  }
+  if (op === 'mult') {
+    if (a > 10) { const d = Math.floor(a / 10) * 10, u = a % 10; return 'Divide en partes: ' + d + ' × ' + b + ' = ' + d * b + ' y ' + u + ' × ' + b + ' = ' + u * b + '. Ahora súmalos.'; }
+    const m = Math.min(a, b), M = Math.max(a, b);
+    return 'Es sumar el ' + M + ' ' + m + (m === 1 ? ' vez' : ' veces') + ': ' + Array(m).fill(M).join(' + ');
+  }
+  return '¿Qué número por ' + b + ' da ' + a + '? Piensa en la tabla del ' + b + '.';
+}
+function explicar(q) {
+  const { op, a, b, r } = q;
+  if (op === 'div') return a + ' ÷ ' + b + ' = ' + r + ' porque ' + b + ' × ' + r + ' = ' + a;
+  if (op === 'resta') return a + ' − ' + b + ' = ' + r + ' porque ' + r + ' + ' + b + ' = ' + a;
+  return a + ' ' + SIM[op] + ' ' + b + ' = ' + r;
+}
+function leer(q) {
+  const pal = { suma: 'más', resta: 'menos', mult: 'por', div: 'entre' };
+  return q.a + ' ' + pal[q.op] + ' ' + q.b;
+}
+
+/* ---------- Partida ---------- */
+let J = null, reloj = null;
+function empezar(op, extra) {
+  const total = op === 'reto' ? 999 : 10;
+  J = { op, nivel: S.nivel, total, i: 0, ok: 0, fallos: [], racha: 0, intento: 0, txt: '', q: null, bloqueo: false, tiempo: 60, extra: extra || null, lista: null };
+  if (op === 'tabla') {
+    const t = extra.t;
+    let ns = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    if (extra.desorden) shuffle(ns);
+    J.lista = ns.map(n => ({ op: 'mult', a: t, b: n, r: t * n }));
+  }
+  ir('juego');
+  $('tiempoTxt').textContent = '';
+  clearInterval(reloj);
+  if (op === 'reto') {
+    $('tiempoTxt').textContent = '60s';
+    reloj = setInterval(() => {
+      J.tiempo--;
+      $('tiempoTxt').textContent = J.tiempo + 's';
+      if (J.tiempo <= 10) tono(880, .05, 0, 'sine', .05);
+      if (J.tiempo <= 0) { clearInterval(reloj); terminar(); }
+    }, 1000);
+  }
+  siguiente();
+}
+function siguiente() {
+  if (!J) return;
+  if (J.op !== 'reto' && J.i >= J.total) { terminar(); return; }
+  let op = J.op;
+  if (op === 'mezcla' || op === 'reto') op = ['suma', 'resta', 'mult', 'div'][rnd(0, 3)];
+  let q;
+  if (J.lista) q = J.lista[J.i];
+  else { do { q = crear(op, J.nivel); } while (J.q && q.a === J.q.a && q.b === J.q.b); }
+  J.q = q; J.txt = ''; J.intento = 0; J.bloqueo = false;
+  $('tipoTxt').textContent = J.op === 'tabla' ? 'Tabla del ' + J.extra.t : (J.op === 'reto' ? 'Reto · ' : '') + NOMBRES[q.op];
+  $('tipoTxt').style.color = getComputedStyle(document.documentElement).getPropertyValue('--' + q.op);
+  $('pregTxt').innerHTML = q.a + ' <span class="op">' + SIM[q.op] + '</span> ' + q.b + ' =';
+  $('msgTxt').textContent = ''; $('msgTxt').className = 'msg';
+  $('puntos').innerHTML = '';
+  pintarResp();
+  $('progBar').style.width = J.op === 'reto' ? ((60 - J.tiempo) / 60 * 100) + '%' : (J.i / J.total * 100) + '%';
+  $('okTxt').textContent = J.ok; $('rachaTxt').textContent = J.racha;
+  $('btnSaltar').style.display = J.op === 'reto' ? '' : 'none';
+  $('btnPista').style.display = J.op === 'reto' ? 'none' : '';
+  if (S.voz) hablar(leer(q));
+}
+function pintarResp(cls) {
+  const r = $('respTxt');
+  r.textContent = J.txt || ' ';
+  r.className = 'resp' + (cls ? ' ' + cls : '');
+}
+function tecla(k) {
+  if (!J || J.bloqueo) return;
+  if (k === 'B') { J.txt = J.txt.slice(0, -1); sTec(); pintarResp(); return; }
+  if (k === 'OK') { comprobar(); return; }
+  if (J.txt.length >= 5) return;
+  if (J.txt === '0') J.txt = '';
+  J.txt += k; sTec(); pintarResp();
+  // Comprobar solo cuando ya tiene las cifras de la respuesta
+  if (J.txt.length >= String(J.q.r).length) setTimeout(() => { if (J && !J.bloqueo && J.txt.length >= String(J.q.r).length) comprobar(); }, 250);
+}
+function comprobar() {
+  if (!J.txt) return;
+  const q = J.q, v = parseInt(J.txt, 10);
+  if (v === q.r) {
+    J.bloqueo = true;
+    if (J.intento === 0) { J.ok++; J.racha++; S.ok++; if (J.racha > S.mejorRacha) S.mejorRacha = J.racha; }
+    pintarResp('ok'); sOk();
+    const fr = ['¡Genial!', '¡Muy bien!', '¡Correcto!', '¡Eres una estrella! ⭐', '¡Perfecto!', '¡Así se hace!'];
+    $('msgTxt').textContent = J.racha >= 3 && J.racha % 5 === 0 ? '🔥 ¡' + J.racha + ' seguidas!' : fr[rnd(0, fr.length - 1)];
+    $('msgTxt').className = 'msg ok';
+    if (J.racha >= 5 && J.racha % 5 === 0) confeti(14);
+    guardar();
+    J.i++;
+    setTimeout(siguiente, J.op === 'reto' ? 350 : 750);
+  } else {
+    J.intento++;
+    J.racha = 0; $('rachaTxt').textContent = 0;
+    pintarResp('mal'); sMal(); vib(120);
+    if (J.op === 'reto') {
+      J.bloqueo = true;
+      $('msgTxt').textContent = explicar(q); $('msgTxt').className = 'msg mal';
+      J.fallos.push({ q, dijo: v });
+      setTimeout(() => { if (J) { J.i++; siguiente(); } }, 1100);
+      return;
+    }
+    if (J.intento === 1) {
+      $('msgTxt').textContent = '¡Casi! Inténtalo otra vez. ' + pista(q);
+      $('msgTxt').className = 'msg mal';
+      mostrarPuntos(q);
+      J.fallos.push({ q, dijo: v });
+      setTimeout(() => { if (J) { J.txt = ''; pintarResp(); } }, 600);
+    } else {
+      J.bloqueo = true;
+      $('msgTxt').textContent = 'La respuesta es ' + q.r + '. ' + explicar(q);
+      $('msgTxt').className = 'msg mal';
+      if (S.voz) hablar(leer(q) + ' es ' + q.r);
+      J.i++;
+      setTimeout(siguiente, 2600);
+    }
+  }
+}
+function mostrarPuntos(q) {
+  const p = $('puntos'); p.innerHTML = '';
+  if (q.op === 'suma' && q.a <= 10 && q.b <= 10) {
+    p.innerHTML = '<b style="background:var(--suma)"></b>'.repeat(q.a) + '<span class="sep"></span>' + '<b style="background:var(--amarillo)"></b>'.repeat(q.b);
+  } else if (q.op === 'resta' && q.a <= 10) {
+    p.innerHTML = '<b style="background:var(--resta)"></b>'.repeat(q.a - q.b) + '<b style="background:#ddd;outline:2px dashed var(--rojo)"></b>'.repeat(q.b);
+  } else if (q.op === 'mult' && q.a <= 10 && q.b <= 10 && q.a * q.b <= 50) {
+    const filas = Math.min(q.a, q.b), col = Math.max(q.a, q.b);
+    let h = '';
+    for (let f = 0; f < filas; f++) h += '<div style="width:100%;display:flex;justify-content:center;gap:4px">' + '<b style="background:var(--mult)"></b>'.repeat(col) + '</div>';
+    p.innerHTML = h;
+  }
+}
+$('btnPista').onclick = () => { if (!J || J.bloqueo) return; $('msgTxt').textContent = pista(J.q); $('msgTxt').className = 'msg'; mostrarPuntos(J.q); };
+$('btnOir').onclick = () => { if (J) hablar(leer(J.q)); };
+$('btnSaltar').onclick = () => { if (!J || J.bloqueo) return; J.bloqueo = true; J.racha = 0; $('msgTxt').textContent = explicar(J.q); $('msgTxt').className = 'msg'; J.i++; setTimeout(siguiente, 900); };
+$('salir').onclick = () => { clearInterval(reloj); J = null; ir('inicio'); };
+
+function terminar() {
+  clearInterval(reloj);
+  const j = J; J = null;
+  let est, tit, nota, sub = '';
+  if (j.op === 'reto') {
+    nota = j.ok + ' aciertos en 1 minuto';
+    est = j.ok >= 20 ? 3 : j.ok >= 12 ? 2 : j.ok >= 5 ? 1 : 0;
+    const rec = S.reto[j.nivel] || 0;
+    if (j.ok > rec) { S.reto[j.nivel] = j.ok; sub = rec ? '🏆 ¡Nuevo récord! Antes: ' + rec : '🏆 ¡Tu primer récord!'; }
+    else sub = 'Tu récord es ' + rec + '. ¡Tú puedes superarlo!';
+  } else {
+    nota = j.ok + ' de ' + j.total + ' a la primera';
+    est = j.ok >= 10 ? 3 : j.ok >= 8 ? 2 : j.ok >= 5 ? 1 : 0;
+    if (j.op === 'tabla') {
+      if (j.ok === 10) { const nueva = !S.medallas[j.extra.t]; S.medallas[j.extra.t] = 1; sub = nueva ? '🏅 ¡Medalla de la tabla del ' + j.extra.t + '!' : '🏅 ¡Ya tenías la medalla, pero lo has vuelto a bordar!'; }
+      else sub = 'Acierta las 10 a la primera para ganar la medalla 🏅';
+    } else {
+      const k = j.op + j.nivel;
+      if (est > (S.est[k] || 0)) { S.est[k] = est; if (est) sub = '¡Has mejorado tus estrellas!'; }
+    }
+  }
+  tit = est === 3 ? '¡Increíble!' : est === 2 ? '¡Muy bien!' : est === 1 ? '¡Bien hecho!' : '¡Sigue practicando!';
+  guardar();
+  $('resTit').textContent = tit;
+  $('resEst').innerHTML = [0, 1, 2].map(i => '<span class="' + (i < est ? '' : 'apagada') + '">⭐</span>').join('');
+  $('resNota').textContent = nota;
+  $('resSub').textContent = sub;
+  const l = $('resLista');
+  if (j.fallos.length) {
+    const vistos = new Set();
+    l.innerHTML = '<div style="color:var(--suave)">Para repasar:</div>' + j.fallos.filter(f => { const k = f.q.a + f.q.op + f.q.b; if (vistos.has(k)) return false; vistos.add(k); return true; })
+      .map(f => '<div><span class="bien">' + f.dijo + '</span> ' + explicar(f.q) + '</div>').join('');
+    l.style.display = '';
+  } else l.style.display = 'none';
+  $('resOtra').onclick = () => empezar(j.op, j.extra);
+  ir('resultado');
+  if (est >= 2) { sFin(); confeti(est === 3 ? 40 : 18); }
+  if (S.voz) hablar(tit + ' ' + nota);
+}
+$('resInicio').onclick = () => ir('inicio');
+
+function confeti(n) {
+  const c = ['⭐', '✨', '🎉', '💜', '💖', '🌟'];
+  for (let i = 0; i < n; i++) {
+    const s = document.createElement('div');
+    s.className = 'conf'; s.textContent = c[rnd(0, c.length - 1)];
+    s.style.left = rnd(0, 95) + 'vw'; s.style.animationDelay = (Math.random() * .6) + 's';
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 2400);
+  }
+}
+
+/* ---------- Teclado ---------- */
+(function () {
+  const t = $('teclado');
+  ['7', '8', '9', '4', '5', '6', '1', '2', '3', 'B', '0', 'OK'].forEach(k => {
+    const b = document.createElement('button');
+    b.className = 'tecla' + (k === 'B' ? ' borra' : k === 'OK' ? ' vale' : '');
+    b.textContent = k === 'B' ? '⌫' : k === 'OK' ? '✓' : k;
+    b.onclick = () => tecla(k);
+    t.appendChild(b);
+  });
+  document.addEventListener('keydown', e => {
+    if (!J) return;
+    if (/^[0-9]$/.test(e.key)) tecla(e.key);
+    else if (e.key === 'Backspace') tecla('B');
+    else if (e.key === 'Enter') tecla('OK');
+  });
+})();
+
+/* ---------- Tablas ---------- */
+let tablaSel = 2;
+function pintarTablas() {
+  const c = $('tablasBtns'); c.innerHTML = '';
+  for (let t = 1; t <= 10; t++) {
+    const b = document.createElement('button');
+    b.className = 'tb' + (t === tablaSel ? ' on' : '');
+    b.innerHTML = t + (S.medallas[t] ? '<span class="med">🏅</span>' : '');
+    b.onclick = () => { tablaSel = t; sTec(); pintarTablas(); };
+    c.appendChild(b);
+  }
+  $('tablaVer').innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => '<div data-f="' + n + '"><span>' + tablaSel + ' × ' + n + '</span><span class="r">' + tablaSel * n + '</span></div>').join('');
+}
+$('irTablas').onclick = () => { pintarTablas(); ir('tablas'); };
+$('practTabla').onclick = () => empezar('tabla', { t: tablaSel, desorden: false });
+$('desordTabla').onclick = () => empezar('tabla', { t: tablaSel, desorden: true });
+let oyendo = null;
+$('oirTabla').onclick = () => {
+  clearTimeout(oyendo);
+  const filas = $('tablaVer').querySelectorAll('div');
+  let n = 1;
+  const paso = () => {
+    filas.forEach(f => f.classList.toggle('brilla', +f.dataset.f === n));
+    hablar(tablaSel + ' por ' + n + ', ' + tablaSel * n);
+    n++;
+    if (n <= 10) oyendo = setTimeout(paso, 2200);
+    else oyendo = setTimeout(() => filas.forEach(f => f.classList.remove('brilla')), 2200);
+  };
+  paso();
+};
+
+/* ---------- Pausa (la llama la app al salir) ---------- */
+window.pausarTodo = () => { try { speechSynthesis && speechSynthesis.cancel(); } catch (e) {} };
+
+cargar();
+pintarInicio();
+</script>
+</body>
+</html>
