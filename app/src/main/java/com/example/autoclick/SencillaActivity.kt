@@ -51,6 +51,10 @@ class SencillaActivity : Activity() {
     private lateinit var mencionesBox: EditText
     private lateinit var nMencionesSpin: Spinner
     private val botonesGuardar = ArrayList<TextView>()
+    private lateinit var botonListas: Button
+    private lateinit var resumenMenciones: TextView
+    private lateinit var resumenFrases: TextView
+    private var listasRecogidas = true
     private lateinit var fraseBox: CheckBox
     private lateinit var frasesSpin: Spinner
     private lateinit var frasesTextoBox: EditText
@@ -219,6 +223,22 @@ class SencillaActivity : Activity() {
             setOnClickListener { pedirAccesibilidad() }
         }, lpRaiz(abajo = 6))
 
+        // Recoger / mostrar las listas largas (menciones y frases) para no tener que bajar tanto
+        botonListas = Button(ctx).apply {
+            isAllCaps = false
+            setTextColor(Color.WHITE)
+            setTypeface(null, Typeface.BOLD)
+            background = conEfecto(redondo(NARANJA, 16))
+            elevation = dp(4).toFloat()
+            setPadding(dp(16), dp(12), dp(16), dp(12))
+            setOnClickListener {
+                listasRecogidas = !listasRecogidas
+                prefs.edit().putBoolean("s_listas_recogidas", listasRecogidas).apply()
+                aplicarListas()
+            }
+        }
+        root.addView(botonListas, lpRaiz(abajo = 6))
+
         // 1. Hasta 5 enlaces, cada uno con la foto de su publicación
         seccionNueva("🔗 1. Enlaces de publicaciones (hasta 5)", AZUL)
         texto("Pega cada enlace. A la izquierda sale la foto de la publicación. Si no marcas ninguno, el guion los usa uno tras otro, en orden. Si marcas ○ en uno, el guion usa solo ese.")
@@ -288,7 +308,8 @@ class SencillaActivity : Activity() {
         seccionNueva("💬 3. Tus menciones (una por línea)", NARANJA)
         mencionesBox = caja(prefs.getString("s_menciones", "") ?: "", multi = true, pista = "@amiga1")
         texto("Si está vacío, se traen de Star App al abrir la app. Si ya hay lista, se queda fija.")
-        alEscribir(mencionesBox) { guardarListas() }
+        resumenMenciones = texto("")
+        alEscribir(mencionesBox) { guardarListas(); aplicarListas() }
 
         seccionNueva("🔢 4. Menciones por comentario", ROSA)
         nMencionesSpin = lista(
@@ -304,8 +325,23 @@ class SencillaActivity : Activity() {
             prefs.getInt("s_frases_op", 0)
         )
         frasesTextoBox = caja(prefs.getString("s_frases_texto", "") ?: "", multi = true, pista = "Solo si eliges «Mis frases», una por línea")
-        alEscribir(frasesTextoBox) { guardarListas() }
+        alEscribir(frasesTextoBox) { guardarListas(); aplicarListas() }
         texto("Las listas fijas ya vienen guardadas en la app.")
+        resumenFrases = texto("")
+        listasRecogidas = prefs.getBoolean("s_listas_recogidas", true)
+        // «Fija las frases»: la primera vez se deja puesta la lista fija Chris Botti
+        if (!prefs.getBoolean("s_frases_fijadas", false)) {
+            frasesSpin.setSelection(3)
+            prefs.edit().putBoolean("s_frases_fijadas", true).putInt("s_frases_op", 3).apply()
+        }
+        frasesSpin.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(p: android.widget.AdapterView<*>?, v: View?, pos: Int, id: Long) {
+                prefs.edit().putInt("s_frases_op", pos).apply()
+                aplicarListas()
+            }
+            override fun onNothingSelected(p: android.widget.AdapterView<*>?) {}
+        }
+        aplicarListas()
 
         seccionNueva("🔁 6. Comentarios seguidos por publicación", VERDE_AZULADO)
         seguidosBox = caja(prefs.getInt("s_seguidos", 10).toString(), numero = true)
@@ -454,6 +490,25 @@ class SencillaActivity : Activity() {
         guardarListas()
         refrescarEnlaces()
         if (enlaceElegido == i) cargarDeEnlace(i)
+    }
+
+    /** Oculta o enseña los cuadros largos de menciones y frases; cuando están recogidos se dice cuántas hay. */
+    private fun aplicarListas() {
+        if (!::botonListas.isInitialized || !::resumenFrases.isInitialized) return
+        val nMen = mencionesBox.text.toString().lines().count { it.trim().isNotEmpty() }
+        val nFr = when (frasesSpin.selectedItemPosition) {
+            1 -> Macro.chrisBottiPhrases(this).size
+            2 -> frasesTextoBox.text.toString().lines().count { it.trim().isNotEmpty() }
+            3 -> Macro.chrisBotti1000Phrases(this).size
+            else -> Macro.fixedPhrases(this).size
+        }
+        botonListas.text = if (listasRecogidas) "🔽 Ver las listas de menciones y frases" else "🔼 Recoger las listas de menciones y frases"
+        val vis = if (listasRecogidas) View.GONE else View.VISIBLE
+        mencionesBox.visibility = vis
+        // El cuadro de «Mis frases» solo hace falta si se eligen tus frases
+        frasesTextoBox.visibility = if (listasRecogidas || frasesSpin.selectedItemPosition != 2) View.GONE else View.VISIBLE
+        resumenMenciones.text = "📋 $nMen menciones guardadas" + if (listasRecogidas) " (recogidas: pulsa «Ver las listas» arriba)" else ""
+        resumenFrases.text = "📋 $nFr frases en la lista elegida" + if (frasesSpin.selectedItemPosition == 3) " · 📌 fijas" else ""
     }
 
     // ---- Menciones guardadas por publicación (botón 💾) ----
