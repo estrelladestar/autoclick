@@ -308,8 +308,9 @@ class SencillaActivity : Activity() {
         cuentasBox = caja(prefs.getString("s_cuentas", "") ?: "", pista = "cuenta1 cuenta2 …")
 
         seccionNueva("💬 3. Tus menciones (una por línea)", NARANJA)
+        Macro.ponerMencionesDeFabrica(this)
         mencionesBox = caja(prefs.getString("s_menciones", "") ?: "", multi = true, pista = "@amiga1")
-        texto("Si está vacío, se traen de Star App al abrir la app. Si ya hay lista, se queda fija.")
+        texto("📌 Tus 379 menciones van fijas dentro de la app (salen también en otro móvil). Puedes añadir más abajo del todo, una por línea: se quedan guardadas.")
         resumenMenciones = texto("")
         alEscribir(mencionesBox) { guardarListas(); aplicarListas() }
 

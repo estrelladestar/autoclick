@@ -326,9 +326,41 @@ object Macro {
         ctx.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE).edit().putString("registro", log.toString()).apply()
     }
 
+    private var mencionesDeFabricaPuestas = false
+
+    /**
+     * Menciones fijas que van dentro de la app (assets/menciones_fijas.txt): así salen en cualquier móvil.
+     * Se suman a las tuyas (las que añadas tú se quedan) y, si falta alguna de las fijas, se vuelve a poner.
+     */
+    fun ponerMencionesDeFabrica(ctx: android.content.Context) {
+        if (mencionesDeFabricaPuestas) return
+        mencionesDeFabricaPuestas = true
+        val fabrica = try {
+            ctx.assets.open("menciones_fijas.txt").bufferedReader(Charsets.UTF_8).use { it.readText() }
+                .lines().map { it.trim() }.filter { it.isNotEmpty() }
+        } catch (e: Exception) { emptyList() }
+        if (fabrica.isEmpty()) return
+        val p = ctx.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE)
+        fun unir(actual: String): String {
+            val mias = actual.lines().map { it.trim() }.filter { it.isNotEmpty() }
+            val ya = mias.map { it.lowercase().removePrefix("@") }.toHashSet()
+            val faltan = fabrica.filter { ya.add(it.lowercase().removePrefix("@")) }
+            return (mias + faltan).joinToString("\n")
+        }
+        val ed = p.edit()
+        for (k in listOf("menciones_fijas", "friends", "s_menciones")) {
+            val a = p.getString(k, "") ?: ""
+            val u = unir(a)
+            if (u != a.trim()) ed.putString(k, u)
+        }
+        ed.putBoolean("menciones_fijas_on", true)
+        ed.apply()
+    }
+
     /** Las frases fijas «Trono + bolso» del Etiquetador (las mismas que salen en su cuadro de palabras). */
     /** Tus menciones: las fijas (si están activadas y guardadas) o, si no, las del cuadro «TUS MENCIONES». */
     fun misMenciones(ctx: android.content.Context): String {
+        ponerMencionesDeFabrica(ctx)
         val p = ctx.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE)
         val fijas = p.getString("menciones_fijas", "") ?: ""
         return if (p.getBoolean("menciones_fijas_on", true) && fijas.isNotBlank()) fijas else (p.getString("friends", "") ?: "")
