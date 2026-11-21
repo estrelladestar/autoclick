@@ -207,7 +207,7 @@ object Macro {
                     }
                     cmds.add(Cmd("hora", arg.replace('.', ':'), 0L, 0L))
                 }
-                "esperar", "tocar", "escribir", "campo", "enlace", "imagen", "mantener", "mirar", "inicio", "historias", "megusta", "seguir", "historia", "comprobar" -> cmds.add(Cmd(op, arg, extra, extraMax))
+                "esperar", "tocar", "escribir", "campo", "enlace", "imagen", "mantener", "mirar", "inicio", "historias", "megusta", "seguir", "historia", "comprobar", "guardar", "repost" -> cmds.add(Cmd(op, arg, extra, extraMax))
                 "me" -> if (arg.lowercase().replace(" ", "") == "gusta") cmds.add(Cmd("megusta", "", extra, extraMax))
                 "like" -> cmds.add(Cmd("megusta", "", extra, extraMax))
                 "atras", "atrás" -> cmds.add(Cmd("atras", arg, extra, extraMax))
@@ -696,6 +696,8 @@ object Macro {
                 }
                 "mirar" -> look(c)
                 "megusta" -> likePost(c)
+                "guardar" -> savePost(c)
+                "repost" -> repostPost(c)
                 "historia" -> shareToStory(c)
                 "comprobar" -> checkVisible(c)
                 "seguir" -> if (fmPhase != 0 || c.arg.lowercase().startsWith("descrip") || c.arg.lowercase().startsWith("cuentas")) followMentioned(c) else followAccount(c)
@@ -1011,6 +1013,8 @@ object Macro {
                 c.op == "tocarcuenta" || c.op == "irperfil" || c.op == "perfil" || c.op == "dobleperfil" || c.op == "abrirlista" -> "cambiando cuenta"
                 c.op == "inicio" -> "paseo por inicio"
                 c.op == "megusta" -> "me gusta"
+                c.op == "guardar" -> "guardar publicación"
+                c.op == "repost" -> "volver a publicar"
                 c.op == "historia" -> "subir a historia"
                 c.op == "comprobar" -> "¿se ve el comentario?"
                 c.op == "seguir" && c.arg.lowercase().startsWith("descrip") -> "seguir cuentas de la descripción"
@@ -1389,6 +1393,89 @@ object Macro {
             }
         }
 
+        private var repostPhase = 0
+
+        /** «guardar»: pulsa el marcador 🔖 de la publicación, solo si todavía no está guardada. */
+        private fun savePost(c: Cmd) {
+            val (_, h) = s.screenSize()
+            val yaGuardada = findIg { t, r, n ->
+                r.exactCenterY() > h * 0.15f && (t.startsWith("quitar de guardad") || t.startsWith("eliminar de guardad") ||
+                    t == "guardado" || t.startsWith("remove") && t.contains("saved") || t == "saved" ||
+                    (n.viewIdResourceName?.endsWith("row_feed_button_save") == true && n.isSelected))
+            }
+            if (yaGuardada != null) {
+                trace("  la publicación ya está guardada: no la toco")
+                advance(c.extra()); return
+            }
+            val boton = findIg { t, r, n ->
+                r.exactCenterY() > h * 0.15f && r.bottom <= h &&
+                    (n.viewIdResourceName?.endsWith("row_feed_button_save") == true || t == "guardar" || t == "save" ||
+                        t == "añadir a guardados" || t == "add to saved")
+            }
+            if (boton == null) {
+                if (tries < 2) {
+                    tries++
+                    s.swipe(s.screenSize().first * 0.5f, h * 0.7f, s.screenSize().first * 0.5f, h * 0.55f, 400L)
+                    later(1500L); return
+                }
+                trace("  no veo el botón de guardar 🔖: sigo. En pantalla: ${describirPantalla()}")
+                advance(c.extra()); return
+            }
+            trace("  guardo la publicación 🔖")
+            s.tapAt(boton.exactCenterX(), boton.exactCenterY())
+            advance(maxOf(c.extra(), 1200L))
+        }
+
+        /** «repost»: «Volver a publicar» la publicación (las flechas 🔁), solo si todavía no se ha hecho. */
+        private fun repostPost(c: Cmd) {
+            val (w, h) = s.screenSize()
+            when (repostPhase) {
+                0 -> {
+                    val hecho = findIg { t, r, n ->
+                        r.exactCenterY() > h * 0.15f && (t.startsWith("deshacer") && t.contains("publica") || t.startsWith("undo repost") ||
+                            t.startsWith("eliminar la publicación vuelta") || t.contains("has vuelto a publicar") || t.contains("you reposted") ||
+                            ((t.contains("volver a publicar") || t.contains("repost") || t.contains("republicar")) && n.isSelected))
+                    }
+                    if (hecho != null) {
+                        trace("  ya la volviste a publicar: no la toco")
+                        advance(c.extra()); return
+                    }
+                    val boton = findIg { t, r, n ->
+                        r.exactCenterY() > h * 0.15f && r.bottom <= h && !n.isEditable && t.length < 40 &&
+                            (t == "volver a publicar" || t == "repost" || t == "republicar" || t.startsWith("volver a publicar") ||
+                                n.viewIdResourceName?.let { it.endsWith("row_feed_button_repost") || it.endsWith("repost_button") } == true)
+                    }
+                    if (boton == null) {
+                        if (tries < 2) {
+                            tries++
+                            s.swipe(w * 0.5f, h * 0.7f, w * 0.5f, h * 0.55f, 400L)
+                            later(1500L); return
+                        }
+                        trace("  no veo el botón de volver a publicar 🔁: sigo. En pantalla: ${describirPantalla()}")
+                        advance(c.extra()); return
+                    }
+                    trace("  pulso volver a publicar 🔁")
+                    s.tapAt(boton.exactCenterX(), boton.exactCenterY())
+                    repostPhase = 1
+                    tries = 0
+                    later(2000L)
+                }
+                else -> {
+                    // A veces sale una ventana para confirmar (o añadir una nota): se confirma
+                    val confirmar = findIg { t, r, n ->
+                        !n.isEditable && r.exactCenterY() > h * 0.4f &&
+                            (t == "volver a publicar" || t == "repost" || t == "publicar" || t == "compartir" || t == "republicar")
+                    }
+                    repostPhase = 0
+                    if (confirmar != null && tries == 0) {
+                        trace("  confirmo volver a publicar")
+                        s.tapAt(confirmar.exactCenterX(), confirmar.exactCenterY())
+                    }
+                    advance(maxOf(c.extra(), 1500L))
+                }
+            }
+        }
+
         /** Cuentas seguidas con aviso de bloqueo sin ningún comentario bien publicado entre medias. */
         private var bloqueosSeguidos = 0
 
@@ -1418,6 +1505,7 @@ object Macro {
             swipes = null
             sharePhase = 0
             fmPhase = 0
+            repostPhase = 0
             i = j
             later(2500L)
         }

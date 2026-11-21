@@ -64,6 +64,8 @@ class SencillaActivity : Activity() {
     private lateinit var subirHistoriaBox: CheckBox
     private lateinit var megustaBox: CheckBox
     private lateinit var seguirDescBox: CheckBox
+    private lateinit var guardarPubBox: CheckBox
+    private lateinit var repostBox: CheckBox
     private lateinit var estado: TextView
     private var pendingScript: String? = null
     private val captureCode = 78
@@ -357,6 +359,8 @@ class SencillaActivity : Activity() {
         seccionNueva("❤️ 9. En cada publicación", ROJO)
         megustaBox = marca("❤️ Dar me gusta si el corazón está vacío", prefs.getBoolean("s_megusta", true))
         seguirDescBox = marca("➕ Seguir a las cuentas de la descripción (solo si no las sigues)", prefs.getBoolean("s_seguirdesc", true))
+        guardarPubBox = marca("🔖 Guardar la publicación (solo si no está guardada)", prefs.getBoolean("s_guardarpub", false))
+        repostBox = marca("🔁 Volver a publicar / repost (solo si no lo has hecho)", prefs.getBoolean("s_repost", false))
 
         root.addView(Button(ctx).apply {
             text = "🚀 EMPEZAR TODO AUTOMÁTICO"
@@ -673,6 +677,8 @@ class SencillaActivity : Activity() {
             .putString("s_hist", HIST_VALORES[historiasSpin.selectedItemPosition])
             .putBoolean("s_megusta", megustaBox.isChecked)
             .putBoolean("s_seguirdesc", seguirDescBox.isChecked)
+            .putBoolean("s_guardarpub", guardarPubBox.isChecked)
+            .putBoolean("s_repost", repostBox.isChecked)
             .putBoolean("s_subir_hist", subirHistoriaBox.isChecked)
             // Lo que lee el motor: las frases elegidas
             .putString("phrases", frases)
@@ -699,6 +705,8 @@ class SencillaActivity : Activity() {
         if (subirHistoriaBox.isChecked) sb.append("historia\nesperar 3-5\n")
         sb.append("seguir\nesperar 1-3\n")
         if (megustaBox.isChecked) sb.append("megusta\nesperar 1-2\n")
+        if (guardarPubBox.isChecked) sb.append("guardar\nesperar 1-2\n")
+        if (repostBox.isChecked) sb.append("repost\nesperar 2-4\n")
         if (seguirDescBox.isChecked) sb.append("seguir descripcion\nesperar 2-4\n")
         for (k in 1..seguidos) {
             // Entre un comentario y el siguiente, los segundos que hayas elegido
