@@ -300,7 +300,7 @@ class SencillaActivity : Activity() {
 
         seccionNueva("✨ 5. Frases", FUCSIA)
         frasesSpin = lista(
-            listOf("Lista fija (frases de Trono)", "Chris Botti", "Mis frases (escribo abajo)", "📌 Chris Botti 1000 (fijo)"),
+            listOf("Lista fija (frases de Trono)", "Chris Botti", "Mis frases (escribo abajo)", "📌 Chris Botti fijo (2227 frases)"),
             prefs.getInt("s_frases_op", 0)
         )
         frasesTextoBox = caja(prefs.getString("s_frases_texto", "") ?: "", multi = true, pista = "Solo si eliges «Mis frases», una por línea")
