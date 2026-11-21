@@ -346,6 +346,12 @@ object Macro {
             .lines().map { it.trim() }.filter { it.isNotEmpty() }
     } catch (e: Exception) { emptyList() }
 
+    /** Lista fija «Chris Botti 1000» (100 me gusta, 100 me encanta, 59 me flipa y más), en assets/frases_chrisbotti_1000.txt. */
+    fun chrisBotti1000Phrases(ctx: android.content.Context): List<String> = try {
+        ctx.assets.open("frases_chrisbotti_1000.txt").bufferedReader(Charsets.UTF_8).use { it.readText() }
+            .lines().map { it.trim() }.filter { it.isNotEmpty() }
+    } catch (e: Exception) { emptyList() }
+
     /** Menciones hechas: {"2026-11-11": {"cuentas": {"cory_gm0": 10}, "personas": {"@ana": 3}}} (últimos 30 días). */
     fun loadMentions(ctx: android.content.Context): org.json.JSONObject = try {
         org.json.JSONObject(ctx.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE).getString("registro_menciones", "{}") ?: "{}")

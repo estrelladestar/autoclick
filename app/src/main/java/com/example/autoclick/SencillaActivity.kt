@@ -300,7 +300,7 @@ class SencillaActivity : Activity() {
 
         seccionNueva("✨ 5. Frases", FUCSIA)
         frasesSpin = lista(
-            listOf("Lista fija (frases de Trono)", "Chris Botti", "Mis frases (escribo abajo)"),
+            listOf("Lista fija (frases de Trono)", "Chris Botti", "Mis frases (escribo abajo)", "📌 Chris Botti 1000 (fijo)"),
             prefs.getInt("s_frases_op", 0)
         )
         frasesTextoBox = caja(prefs.getString("s_frases_texto", "") ?: "", multi = true, pista = "Solo si eliges «Mis frases», una por línea")
@@ -605,6 +605,7 @@ class SencillaActivity : Activity() {
         val frases = when (frasesSpin.selectedItemPosition) {
             1 -> Macro.chrisBottiPhrases(this).joinToString("\n")
             2 -> frasesTextoBox.text.toString()
+            3 -> Macro.chrisBotti1000Phrases(this).joinToString("\n")
             else -> Macro.fixedPhrases(this).joinToString("\n")
         }
         prefs.edit()
