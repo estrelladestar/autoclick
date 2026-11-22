@@ -324,6 +324,11 @@ class SencillaActivity : Activity() {
             prefs.getInt("s_nmen", 3)
         )
         fraseBox = marca("✅ Con frase", prefs.getBoolean("s_frase", true))
+        fraseBox.setOnCheckedChangeListener { _, _ -> refrescarGuardados() }
+        nMencionesSpin.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(p: android.widget.AdapterView<*>?, v: View?, pos: Int, id: Long) = refrescarGuardados()
+            override fun onNothingSelected(p: android.widget.AdapterView<*>?) {}
+        }
         refrescarGuardados()
 
         seccionNueva("✨ 5. Frases", FUCSIA)
@@ -580,12 +585,31 @@ class SencillaActivity : Activity() {
         toast("Enlace ${i + 1}: ${describir(g.first, g.second)} (lo guardado)")
     }
 
-    /** 💾 si no tiene nada guardado; ✅ si ya tiene. */
+    /**
+     * Estados del botón de cada enlace:
+     * 💾 gris = no hay nada guardado · ✅ verde = guardado igual que «4» · 💾 naranja = guardado distinto (pulsa para guardar el cambio).
+     */
     private fun refrescarGuardados() {
+        if (!::nMencionesSpin.isInitialized || !::fraseBox.isInitialized) return
+        val n = nMencionesSpin.selectedItemPosition
+        val frase = fraseBox.isChecked || n == 0
         botonesGuardar.forEachIndexed { i, b ->
             val id = idPublicacion(linkBoxes.getOrNull(i)?.text?.toString()?.trim() ?: "")
-            b.text = if (id != null && guardadoDe(id) != null) "✅" else "💾"
-            b.alpha = if (id == null) 0.35f else 1f
+            val g = if (id != null) guardadoDe(id) else null
+            when {
+                id == null -> {
+                    b.text = "💾"; b.alpha = 0.35f; b.background = null
+                }
+                g == null -> {
+                    b.text = "💾"; b.alpha = 1f; b.background = redondo(Color.parseColor("#EEEEEE"), 10)
+                }
+                g == Pair(n, frase) -> {
+                    b.text = "✅"; b.alpha = 1f; b.background = redondo(Color.parseColor("#C8E6C9"), 10)
+                }
+                else -> {
+                    b.text = "💾"; b.alpha = 1f; b.background = redondo(Color.parseColor("#FFE0B2"), 10)
+                }
+            }
         }
     }
 
