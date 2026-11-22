@@ -635,8 +635,8 @@ object Macro {
                 trace("  hay abierta una hoja de opciones de la publicación: la cierro con Atrás")
                 s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
             }
+            if (tries == 0) trace("  En pantalla: ${describirPantalla()}")
             if (what == "la caja de texto") {
-                if (tries == 0) trace("  En pantalla: ${describirPantalla()}")
                 // Sin caja: se abre la de comentarios pulsando el bocadillo de Instagram (por su nombre)
                 if (tries == 2 || tries == 8 || tries == 15) {
                     val (_, h) = s.screenSize()
