@@ -759,6 +759,7 @@ object Macro {
             when (c.op) {
                 "esperar" -> {
                     val now = System.currentTimeMillis()
+                    ultimoAvance = now // una espera programada no es un atasco (ni los descansos largos)
                     if (waitEnd == 0L) {
                         val r = parseSecs(c.arg)
                         var wait = r.first + (Math.random() * (r.second - r.first)).toLong()
@@ -3518,6 +3519,7 @@ object Macro {
                     }
                 }
                 3 -> {
+                    ultimoAvance = System.currentTimeMillis() // mirar historias durante minutos no es un atasco
                     storiesLeft--
                     if (storiesLeft <= 0 || !inStoryViewer() || (storyEnd > 0L && System.currentTimeMillis() >= storyEnd)) {
                         storyPhase = 4
