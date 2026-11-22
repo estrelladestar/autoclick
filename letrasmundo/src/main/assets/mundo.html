@@ -108,6 +108,11 @@ h2{font-size:17px;margin:16px 2px 8px;color:#6a3de8}
 .chips::-webkit-scrollbar{display:none}
 .chip{flex:none;border:0;border-radius:18px;padding:8px 12px;font-weight:800;background:#fff;color:var(--ink);font-size:13px;box-shadow:0 2px 0 #0001}
 .chip.on{background:#ff5fa2;color:#fff}
+.jgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.jcarta{height:84px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:900;background:#8b5cf6;color:#fff;cursor:pointer;user-select:none}
+.jcarta.up{background:#fff;color:#222;font-size:17px}.jcarta.pc{font-size:38px}
+.jcarta.ok{background:#2fb35c;color:#fff}
+.jsub{text-align:center;margin:4px 0}
 .hq-title{text-align:center;margin:14px 0 4px;color:#fff;text-shadow:0 1px 2px #0005}
 .opts{display:grid;gap:9px;margin-top:4px}
 .opt{border:0;border-radius:16px;padding:14px 12px;font-weight:800;font-size:16px;text-align:left;background:#fff;color:var(--ink);box-shadow:0 3px 0 #7c4dff33;display:flex;gap:10px;align-items:center}
@@ -2126,6 +2131,7 @@ function jStart(g){
   J = {g:g, n:0, id:Math.random()};
   tab('juego');
   $('jback').innerHTML = backBtn();
+  if (g === 'parejas') jParejas();
   if (g === 'falta') jFalta();
   if (g === 'trazar') jElegir();
   if (g === 'formar') jFormar();
@@ -2158,6 +2164,40 @@ function jTeclado(onTecla){
 }
 
 /* ---------- La letra que falta ---------- */
+function jParejas(){
+  var RONDAS = 3, PARES = 4;
+  if (!J.ronda) J.ronda = 0;
+  if (J.ronda >= RONDAS) return jFin('🃏', '¡Has encontrado todas las parejas!', 15);
+  var elegidos = shuffle(PALS.filter(function(p){ return p[0].split('-').length === 2; })).slice(0, PARES);
+  var cartas = [];
+  elegidos.forEach(function(p, i){ cartas.push({k: i, t: p[1], dib: true}); cartas.push({k: i, t: p[0].replace(/-/g, ''), dib: false}); });
+  cartas = shuffle(cartas);
+  var encontradas = 0, abiertas = [], bloq = false;
+  $('jzona').innerHTML = '<h2>🃏 Busca las parejas</h2>' + jPuntos(RONDAS, J.ronda) +
+    '<p class="jsub">Dale la vuelta a dos cartas: dibujo y su palabra</p>' +
+    '<div class="jgrid">' + cartas.map(function(c, i){ return '<div class="jcarta" data-i="' + i + '">❓</div>'; }).join('') + '</div>';
+  document.querySelectorAll('#jzona .jcarta').forEach(function(el){
+    el.addEventListener('click', function(){
+      if (bloq || el.classList.contains('up')) return;
+      var c = cartas[+el.dataset.i];
+      el.classList.add('up', c.dib ? 'pc' : 'wd'); el.textContent = c.t;
+      abiertas.push(el);
+      if (abiertas.length < 2) return;
+      var a = abiertas[0], b = abiertas[1], ca = cartas[+a.dataset.i], cb = cartas[+b.dataset.i];
+      if (ca.k === cb.k && ca.dib !== cb.dib) {
+        a.classList.add('ok'); b.classList.add('ok'); abiertas = []; encontradas++;
+        speak(ca.dib ? cb.t : ca.t); jGana(3, b);
+        if (encontradas === PARES) { J.ronda++; setTimeout(jParejas, 900); }
+      } else {
+        bloq = true; sfx('bad');
+        setTimeout(function(){
+          [a, b].forEach(function(x){ x.classList.remove('up', 'pc', 'wd'); x.textContent = '❓'; });
+          abiertas = []; bloq = false;
+        }, 800);
+      }
+    });
+  });
+}
 function jFalta(){
   var RONDAS = 8;
   if (!J.lista) J.lista = shuffle(PALS);
@@ -2488,7 +2528,8 @@ function initHome(){
   var NEWQ=['silab','caza','final','contar','dibujo2','vocal2','rima','une','escucha','mismo','intrusa','letras','mayus','nombre','contiene'];
   var HQC=['#3a86ff,#8b5cf6','#2fb35c,#1fb0a3','#ff9800,#ff6b35','#e0a000,#ff4f8b','#d63fe8,#8b5cf6'];
   $('hQ').innerHTML = QCATS.filter(function(c){ return NEWQ.indexOf(c[0]) >= 0; }).map(function(c, i){ var em = c[1].split(' ')[0], nm = c[1].slice(em.length + 1); var g = HQC[i % HQC.length].split(','); return '<button class="hk" data-q="' + c[0] + '" style="background:linear-gradient(160deg,' + g[0] + ',' + g[1] + ')"><b>' + em + '</b>' + nm + '</button>'; }).join('');
-  $('hQ').addEventListener('click', function(e){ var b = e.target.closest('[data-q]'); if (!b) return; S.qcat = b.dataset.q; save(); tab('quiz'); renderQCats(); nextQuestion(); });
+  $('hQ').innerHTML += '<button class="hk" data-q="parejas" style="background:linear-gradient(160deg,#ff4f8b,#ff9800)"><b>🃏</b>Buscar parejas</button>';
+  $('hQ').addEventListener('click', function(e){ var b = e.target.closest('[data-q]'); if (!b) return; if (b.dataset.q === 'parejas') { jStart('parejas'); return; } S.qcat = b.dataset.q; save(); tab('quiz'); renderQCats(); nextQuestion(); });
   $('hHero').onclick = function(){ if (S.pet) { sfx('squeak'); speak($('hBub').textContent); } };
   renderHome();
 }
