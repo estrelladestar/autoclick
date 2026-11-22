@@ -545,14 +545,15 @@ object Macro {
          * Se cierran y se sigue. Si no consigue cerrarlas tras varios intentos seguidos, lo deja al vigilante de atasco.
          */
         private fun cerrarVentanasTapadas(): Boolean {
-            if (cierresSeguidos >= 8) { cierresSeguidos = 0; return false }
+            if (cierresSeguidos >= 12) { cierresSeguidos = 0; return false }
             val (_, h) = s.screenSize()
             val coleccion = findIg { t, _, _ -> t.contains("nueva colección") || t.contains("nombre de la colección") || t.contains("elige un nombre para la colección") } != null
             if (coleccion) {
                 cierresSeguidos++
-                trace("  se ha abierto «Nueva colección» al guardar: la cierro (Cancelar) y sigo")
+                trace("  se ha abierto «Nueva colección» al guardar: la cierro y sigo")
                 val c = findIg { t, _, n -> !n.isEditable && t == "cancelar" }
-                if (c != null) s.tapAt(c.exactCenterX(), c.exactCenterY())
+                // Primero «Cancelar»; si sigue ahí en el siguiente intento, Atrás (cierra el teclado y luego la pantalla)
+                if (c != null && cierresSeguidos == 1) s.tapAt(c.exactCenterX(), c.exactCenterY())
                 else s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
                 return true
             }
