@@ -1698,7 +1698,6 @@ function keyQ(k){
 function cleanWrong(){ S.wrong = S.wrong.filter(function(k){ return !!keyQ(k); }); }
 function chActive(){ return !!(S.ch && S.ch.d === today() && S.ch.started && !S.ch.done); }
 function pickQ(cat){
-  if (chActive()) cat = 'todas';
   if (cat === 'repaso') { cleanWrong(); if (!S.wrong.length) return null; var rq = keyQ(pick(S.wrong)); rq.review = true; return rq; }
   if (cat === 'mias') {
     if (!S.custom.length) return null;
@@ -1823,7 +1822,7 @@ function renderChal(){
 }
 function startChallenge(){
   if (S.ch && S.ch.d === today() && S.ch.done) return;
-  if (!chActive()) { S.ch = {d:today(), n:0, ok:0, done:false, started:true}; save(); sfx('level'); toast('🎯 ¡Empieza el reto del día!'); }
+  if (!chActive()) { S.ch = {d:today(), n:0, ok:0, done:false, started:true}; S.qcat = 'todas'; save(); sfx('level'); toast('🎯 ¡Empieza el reto del día!'); }
   nextQuestion();
 }
 function finishChallenge(){
