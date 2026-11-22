@@ -587,7 +587,7 @@ class SencillaActivity : Activity() {
 
     /**
      * Estados del botón de cada enlace:
-     * 💾 gris = no hay nada guardado · ✅ verde = guardado igual que «4» · 💾 naranja = guardado distinto (pulsa para guardar el cambio).
+     * 💾 gris = no hay nada guardado · ✅ rojo = guardado igual que «4» · 💾 naranja = guardado distinto (pulsa para guardar el cambio).
      */
     private fun refrescarGuardados() {
         if (!::nMencionesSpin.isInitialized || !::fraseBox.isInitialized) return
@@ -604,7 +604,7 @@ class SencillaActivity : Activity() {
                     b.text = "💾"; b.alpha = 1f; b.background = redondo(Color.parseColor("#EEEEEE"), 10)
                 }
                 g == Pair(n, frase) -> {
-                    b.text = "✅"; b.alpha = 1f; b.background = redondo(Color.parseColor("#C8E6C9"), 10)
+                    b.text = "✅"; b.alpha = 1f; b.background = redondo(Color.parseColor("#E53935"), 10)
                 }
                 else -> {
                     b.text = "💾"; b.alpha = 1f; b.background = redondo(Color.parseColor("#FFE0B2"), 10)
