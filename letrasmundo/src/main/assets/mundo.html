@@ -1578,10 +1578,53 @@ PALS.forEach(([h,e])=>{const w=h.replace(/-/g,'');if(w.length<3)return;
     const n=otras(c,pool,1)[0];a[i]=n;const f=a.join('');if(f!==w&&!PALS.some(p=>p[0].replace(/-/g,'')===f))fakes.add(f);}
   add('escribe','¿Cómo se escribe?<!--'+w+'-->',[w,...fakes],w,`Se escribe «${w}»: ${h}.`,'¿Cómo se escribe '+w+'?',e,1);
 });
+/* 8. Cómo empieza la palabra (sílaba inicial) */
+PALS.forEach(function(p){
+  var parts=p[0].split('-');
+  if(parts.length!==2) return;
+  var s1=parts[0];
+  var pool=PALS.map(function(q){return q[0].split('-')[0];});
+  add('silab','¿Cómo empieza '+p[1]+'?',[s1].concat(otras(s1,pool,2)),s1,'Esa palabra empieza por «'+s1+'».','Esta palabra empieza por '+s1,big(p[1]),0);
+});
+/* 9. Caza de letras */
+LET.forEach(function(l){
+  var nom=LNOM[l];
+  add('caza','Toca la letra «'+l+'»',[l].concat(otras(l,LET,2)),l,'Esa es la '+l+'.','Busca la letra '+nom,'',0);
+});
+/* 10. Juegos de sílabas, rimas y sonidos (nuevos) */
+var W2=PALS.filter(function(p){return p[0].split('-').length===2;});
+var syl=function(h){return h.split('-');};
+var wordTxt=function(h){return h.replace(/-/g,'');};
+W2.forEach(function(p){var s1=syl(p[0]);var pool=W2.map(function(q){return syl(q[0])[1];});
+  add('final','¿Cómo acaba '+p[1]+'?',[s1[1]].concat(otras(s1[1],pool,2)),s1[1],'La palabra acaba en «'+s1[1]+'».','Esta palabra acaba en '+s1[1],big(p[1]),0);});
+PALS.forEach(function(p){var n=syl(p[0]).length;if(n<2||n>3)return;
+  add('contar','¿Cuántas sílabas tiene '+p[1]+'?',['1','2','3'],String(n),'Tiene '+n+' sílabas: '+p[0].replace(/-/g,' - ')+'.','¿Cuántas sílabas tiene?',big(p[1]),0);});
+W2.forEach(function(p){var l=p[0][0];var others=W2.filter(function(q){return q[0][0]!==l;}).map(function(q){return q[1];});
+  add('dibujo2','¿Qué dibujo empieza por «'+l+'»?',[p[1]].concat(otras(p[1],others,2)),p[1],wordTxt(p[0])+' empieza por '+l+'.','¿Qué dibujo empieza por '+l+'?','',0);});
+VOC.split('').forEach(function(v,i){if(i>=VOC.length-1)return;var nx=VOC[i+1];
+  add('vocal2','¿Qué vocal va después de «'+v+'»?',[nx].concat(otras(nx,VOC.split(''),2)),nx,'Después de '+v+' va '+nx+'.','¿Qué vocal va después de '+v+'?','',0);});
+W2.forEach(function(p){var last=syl(p[0])[1];var rimas=W2.filter(function(q){return q[0]!==p[0]&&syl(q[0])[1]===last;});if(!rimas.length)return;
+  var r=wordTxt(rimas[0][0]);var distract=W2.filter(function(q){return syl(q[0])[1]!==last;}).map(function(q){return wordTxt(q[0]);});
+  add('rima','¿Qué palabra rima con «'+wordTxt(p[0])+'»?',[r].concat(otras(r,distract,2)),r,r+' y '+wordTxt(p[0])+' riman.','¿Qué palabra rima con '+wordTxt(p[0])+'?','',0);});
+W2.forEach(function(p){var s1=syl(p[0]);var w=wordTxt(p[0]);var all=W2.map(function(q){return wordTxt(q[0]);});
+  add('une','Une las sílabas: «'+s1[0]+'» + «'+s1[1]+'»',[w].concat(otras(w,all,2)),w,'Eso es '+w+'.','Une las sílabas '+s1[0]+' y '+s1[1],'',0);});
+PALS.forEach(function(p){var w=wordTxt(p[0]);var all=PALS.map(function(q){return wordTxt(q[0]);});
+  add('escucha','Escucha y toca la palabra',[w].concat(otras(w,all,2)),w,'Era «'+w+'».','Escucha: '+w,big('🔊'),0);});
+PALS.forEach(function(p){var l=p[0][0];var mates=PALS.filter(function(q){return q[0][0]===l&&q[0]!==p[0];});if(!mates.length)return;
+  var m=wordTxt(mates[0][0]);var others=PALS.filter(function(q){return q[0][0]!==l;}).map(function(q){return wordTxt(q[0]);});
+  add('mismo','¿Qué palabra empieza igual que «'+wordTxt(p[0])+'»?',[m].concat(otras(m,others,2)),m,m+' y '+wordTxt(p[0])+' empiezan por '+l+'.','¿Cuál empieza igual que '+wordTxt(p[0])+'?','',0);});
+/* 11. Juegos extra: intrusa, letras, mayúsculas, nombre de la letra, sílaba dentro */
+PALS.forEach(function(p){var l=p[0][0];var mates=PALS.filter(function(q){return q[0][0]===l&&q[0]!==p[0];});var odd=PALS.filter(function(q){return q[0][0]!==l;});if(!mates.length||!odd.length)return;
+  var o=wordTxt(odd[0][0]);add('intrusa','¿Cuál NO empieza igual?',[o,wordTxt(p[0]),wordTxt(mates[0][0])],o,o+' empieza por '+odd[0][0][0]+', las otras por '+l+'.','¿Cuál no empieza igual?','',0);});
+PALS.forEach(function(p){var n=wordTxt(p[0]).length;add('letras','¿Cuántas letras tiene '+p[1]+'?',[String(n),String(n+1),String(Math.max(2,n-1))],String(n),n+' letras: '+wordTxt(p[0])+'.','¿Cuántas letras tiene?',big(p[1]),0);});
+LET.forEach(function(l){var u=l.toUpperCase();add('mayus','¿Cuál es la mayúscula de «'+l+'»?',[u].concat(otras(u,LET.map(function(x){return x.toUpperCase();}),2)),u,'La mayúscula de '+l+' es '+u+'.','La mayúscula de '+LNOM[l],'',0);});
+LET.forEach(function(l){add('nombre','¿Qué letra se llama «'+LNOM[l]+'»?',[l].concat(otras(l,LET,2)),l,'Esa es la '+l+'.','Esta letra se llama '+LNOM[l],'',0);});
+W2.forEach(function(p){var sy=syl(p[0])[0];var sin=W2.filter(function(q){return syl(q[0]).indexOf(sy)<0;}).map(function(q){return wordTxt(q[0]);});if(sin.length<2)return;
+  add('contiene','¿Qué palabra tiene la sílaba «'+sy+'»?',[wordTxt(p[0])].concat(otras(wordTxt(p[0]),sin,2)),wordTxt(p[0]),wordTxt(p[0])+' tiene la sílaba '+sy+'.','¿Qué palabra tiene la sílaba '+sy+'?','',0);});
 })();
 
 
-var PARTS=[['falta','🔤','La letra que falta','Completa la palabra'],['empieza','🔍','¿Con qué letra empieza?','Escucha el principio'],['dibujo','🖼️','Busca el dibujo','Por qué letra empieza'],['sil','🔊','Las sílabas','ma, me, mi, mo, mu…'],['vocal','🅰️','Las vocales','a, e, i, o, u'],['lee','📖','Leer palabras','Lee y toca el dibujo'],['escribe','✍️','¿Cómo se escribe?','Elige la palabra bien escrita']];
+var PARTS=[['falta','🔤','La letra que falta','Completa la palabra'],['empieza','🔍','¿Con qué letra empieza?','Escucha el principio'],['dibujo','🖼️','Busca el dibujo','Por qué letra empieza'],['sil','🔊','Las sílabas','ma, me, mi, mo, mu…'],['vocal','🅰️','Las vocales','a, e, i, o, u'],['lee','📖','Leer palabras','Lee y toca el dibujo'],['escribe','✍️','¿Cómo se escribe?','Elige la palabra bien escrita'],['silab','🧩','¿Cómo empieza?','Elige la sílaba inicial'],['caza','🎯','Caza de letras','Toca la letra que te digo'],['final','🔚','¿Cómo acaba?','Elige la sílaba final'],['contar','🔢','Cuenta las sílabas','¿Cuántas partes tiene?'],['dibujo2','🖼️','Dibujo con su letra','Qué dibujo empieza igual'],['vocal2','➡️','Vocal siguiente','¿Qué vocal va después?'],['rima','🎵','Rimas','¿Qué palabra rima?'],['une','🔗','Une las sílabas','Forma la palabra'],['escucha','👂','Escucha y toca','Escucha la palabra'],['mismo','🔠','Empieza igual','¿Qué palabra empieza igual?'],['intrusa','🕵️','La intrusa','¿Cuál no empieza igual?'],['letras','🧮','Cuenta las letras','¿Cuántas letras tiene?'],['mayus','🔡','Mayúsculas','¿Cuál es la mayúscula?'],['nombre','🗣️','Nombre de la letra','¿Cómo se llama?'],['contiene','🔎','¿Dónde está la sílaba?','Elige la palabra']];
 function qhash(t){var h=0;for(var i=0;i<t.length;i++)h=(h*31+t.charCodeAt(i))|0;return (h>>>0).toString(36);}
 var Q=[], QX=[], QK=[], QIDX={}, QV=[], QB=[], QN=[];
 Q3.forEach(function(r){var ok=r[2][r[3]];var k=qhash(r[1]+'|'+ok);if(QIDX[k]!==undefined)return;QIDX[k]=Q.length;QK.push(k);QX.push(r[4]||'');QV.push(r[5]||'');QB.push(r[6]||'');QN.push(r[7]||0);
