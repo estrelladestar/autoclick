@@ -557,12 +557,22 @@ object Macro {
                 return true
             }
             val permiso = findEnTodasLasVentanas { t, r, n ->
-                !n.isEditable && t in setOf("ahora no", "no permitir", "denegar", "not now", "don't allow", "no thanks", "no, gracias")
+                !n.isEditable && t in setOf("ahora no", "no ahora", "más tarde", "later", "no permitir", "denegar", "not now", "don't allow", "no thanks", "no, gracias")
             }
             if (permiso != null) {
                 cierresSeguidos++
-                trace("  pantalla de permisos del móvil: la cierro y sigo")
+                trace("  pantalla de permisos o notificaciones: la cierro y sigo")
                 s.tapAt(permiso.exactCenterX(), permiso.exactCenterY())
+                return true
+            }
+            // Pantalla de notificaciones del sistema sin botón reconocible: se cierra con Atrás (no es de Instagram)
+            val sistema = windowRoots().any { root ->
+                root.packageName?.toString() != INSTAGRAM && findEnTodasLasVentanas { t, _, _ -> t.contains("notificaci") || t.contains("notification") } != null
+            }
+            if (sistema) {
+                cierresSeguidos++
+                trace("  pantalla de notificaciones del móvil sin botón conocido: la cierro con Atrás y sigo")
+                s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
                 return true
             }
             cierresSeguidos = 0
