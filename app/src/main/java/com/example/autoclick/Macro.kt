@@ -1382,7 +1382,7 @@ object Macro {
                 return
             }
             val asked = tokens.lastOrNull()?.toIntOrNull()
-            val n = (asked ?: prefs.getInt("mentionsN", 2)).coerceIn(1, 5).coerceAtMost(friends.size)
+            val n = (asked ?: prefs.getInt("mentionsN", 2)).coerceIn(1, 20).coerceAtMost(friends.size)
             if (last != 0L) {
                 val wait = last + MIN_GAP_MS - System.currentTimeMillis()
                 if (wait > 0) {

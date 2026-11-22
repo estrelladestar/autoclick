@@ -328,7 +328,7 @@ class SencillaActivity : Activity() {
 
         seccionNueva("🔢 4. Menciones por comentario", ROSA)
         nMencionesSpin = lista(
-            listOf("Sin menciones (solo frase)", "1 mención", "2 menciones", "3 menciones", "4 menciones", "5 menciones"),
+            listOf("Sin menciones (solo frase)") + (1..20).map { if (it == 1) "1 mención" else "$it menciones" },
             prefs.getInt("s_nmen", 3)
         )
         fraseBox = marca("✅ Con frase", prefs.getBoolean("s_frase", true))
@@ -593,7 +593,7 @@ class SencillaActivity : Activity() {
     private fun cargarDeEnlace(i: Int) {
         val id = idPublicacion(linkBoxes[i].text.toString().trim()) ?: return
         val g = guardadoDe(id) ?: return
-        nMencionesSpin.setSelection(g.first.coerceIn(0, 5))
+        nMencionesSpin.setSelection(g.first.coerceIn(0, 20))
         fraseBox.isChecked = g.second
         toast("Enlace ${i + 1}: ${describir(g.first, g.second)} (lo guardado)")
     }

@@ -12,5 +12,5 @@ class ReglasGuionTest {
     @Test fun describeUnaMencion() = assertEquals("1 mención con frase", ReglasGuion.describirMenciones(1, true))
     @Test fun describeVarias() = assertEquals("3 menciones sin frase", ReglasGuion.describirMenciones(3, false))
     @Test fun pasoDeEnlace() = assertEquals("Abrir el enlace de la publicación", ReglasGuion.pasoEnTexto("enlace"))
-    @Test fun pasoDeEscribir() = assertEquals("Escribir el comentario: 2 menciones sin frase", ReglasGuion.pasoEnTexto("escribir menciones 2 sinfrase"))
+    @Test fun pasoDeEscribir() = assertEquals("Escribir un comentario con 2 menciones sin frase", ReglasGuion.pasoEnTexto("escribir menciones 2 sinfrase"))
 }

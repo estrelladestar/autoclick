@@ -32,7 +32,11 @@ object ReglasGuion {
             op == "historias" -> "Ver historias ($arg)"
             op == "imagen" -> "Elegir la foto ${arg.substringBefore(" ")}"
             op == "escribir" && arg.startsWith("solo") -> "Escribir solo una frase"
-            op == "escribir" -> "Escribir el comentario: " + arg.replace("menciones ", "").replace("sinfrase", "sin frase")
+            op == "escribir" -> {
+                val n = Regex("menciones (\\d+)").find(arg)?.groupValues?.get(1)
+                val con = if (arg.contains("sinfrase")) "sin frase" else "con frase"
+                "Escribir un comentario con " + (if (n == null) "las menciones" else "$n menciones") + " " + con
+            }
             op == "cuenta" -> "Cambiar a la siguiente cuenta"
             op == "cuentas" -> "Cuentas en orden: $arg"
             op == "repetir" -> "Repetir $arg vuelta(s)"
