@@ -1352,6 +1352,7 @@ function speak(t, lang){
   if (!S.sound || MINI) return;
   var txt = plain(t); if (!txt) return;
   txt = txt.replace(/(^|[\s«"(¿])e(?=[\s»".,?!)]|$)/g, '$1é');
+  txt = txt.replace(/(^|[\s«"(¿])u(?=[\s»".,?!)]|$)/g, '$1ú').replace(/(^|[\s«"(¿])U(?=[\s»".,?!)]|$)/g, '$1Ú').replace(/(^|[\s«"(¿])E(?=[\s»".,?!)]|$)/g, '$1É');
   try {
     if (B && B.speakLang) B.speakLang(txt, lang || 'es');
     else if (B && B.speak) B.speak(txt);
