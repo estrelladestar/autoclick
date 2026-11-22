@@ -154,7 +154,11 @@ object Macro {
         "Acción bloqueada", "Action Blocked", "Limitamos la frecuencia",
         "We limit how often", "Inténtalo de nuevo más tarde", "Try again later",
         "Hemos restringido", "restringir determinadas", "We restrict certain", "restricted certain activity",
-        "Tu cuenta tiene restricciones", "Your account has been restricted"
+        "Tu cuenta tiene restricciones", "Your account has been restricted",
+        "Algo salió mal", "Something went wrong", "Ha ocurrido un error", "Se ha producido un error",
+        "Ha ocurrido un problema", "Se ha alcanzado el límite", "You've reached the limit",
+        "No puedes realizar esta acción", "You can't do this right now", "Esta acción no está disponible",
+        "This action isn't available", "Demasiadas solicitudes", "Too many requests"
     )
 
     /** Avisos (en rojo) de Instagram cuando un comentario no se publica. En minúsculas. */
