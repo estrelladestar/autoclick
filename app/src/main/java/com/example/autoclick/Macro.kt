@@ -596,11 +596,13 @@ object Macro {
 
         /** La hoja que sale al pulsar «⋯» en una publicación o reel (Guardar, Reproducción, No me interesa, Denunciar…). */
         private fun hojaDeOpcionesAbierta(): Boolean {
+            // Solo cuenta si aparecen a la vez al menos dos opciones de la hoja (la barra lateral del reel tiene «Guardar» suelto)
             val (_, h) = s.screenSize()
-            return findIg { t, r, _ ->
-                r.exactCenterY() > h * 0.2f && (t.contains("por qué ves esta") || t.contains("por que ves esta") ||
-                    t == "no me interesa" || t == "denunciar" || t == "reproducción" || t == "guardado" || t == "guardar")
-            } != null
+            val opciones = listOf("no me interesa", "denunciar", "por qué ves esta", "por que ves esta", "reproducción")
+            val vistas = opciones.count { op ->
+                findIg { t, r, _ -> r.exactCenterY() > h * 0.2f && t.contains(op) } != null
+            }
+            return vistas >= 2
         }
 
         /** Fallos seguidos sin avanzar (se pone a 0 al escribir un comentario o al cambiar de cuenta). */
