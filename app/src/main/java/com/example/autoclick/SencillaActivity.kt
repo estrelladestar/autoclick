@@ -71,8 +71,8 @@ class SencillaActivity : Activity() {
     private val captureCode = 78
 
     companion object {
-        private val ENTRE_VALORES = listOf("10-20", "20-30", "30-45", "45-60", "60-90")
-        private val ENTRE_TEXTOS = listOf("10 a 20 segundos", "20 a 30 segundos", "30 a 45 segundos", "45 a 60 segundos", "1 a 1,5 minutos")
+        private val ENTRE_VALORES = listOf("3-5", "10-20", "20-30", "30-45", "45-60", "60-90")
+        private val ENTRE_TEXTOS = listOf("3 a 5 segundos", "10 a 20 segundos", "20 a 30 segundos", "30 a 45 segundos", "45 a 60 segundos", "1 a 1,5 minutos")
         private val HIST_VALORES = listOf("1-2", "2-3", "")
         private val HIST_TEXTOS = listOf("Mirar historias 1 a 2 minutos", "Mirar historias 2 a 3 minutos", "No mirar historias")
 
