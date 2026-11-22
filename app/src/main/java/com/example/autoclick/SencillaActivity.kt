@@ -365,6 +365,17 @@ class SencillaActivity : Activity() {
 
         seccionNueva("🔁 6. Comentarios seguidos por publicación", VERDE_AZULADO)
         seguidosBox = caja(prefs.getInt("s_seguidos", 10).toString(), numero = true)
+        texto("Escribe cuántos comentarios seguidos quieres en cada publicación (hasta 50), o pulsa un atajo:")
+        seccion.addView(LinearLayout(ctx).apply {
+            orientation = LinearLayout.HORIZONTAL
+            listOf(5, 10, 20, 30, 50).forEach { n ->
+                addView(Button(ctx).apply {
+                    isAllCaps = false
+                    text = "$n"
+                    setOnClickListener { seguidosBox.setText(n.toString()) }
+                }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { leftMargin = dp(3); rightMargin = dp(3) })
+            }
+        }, lpRaiz(arriba = 6))
 
         seccionNueva("⏱ 7. Segundos entre comentarios", INDIGO)
         entreSpin = lista(ENTRE_TEXTOS, ENTRE_VALORES.indexOf(prefs.getString("s_entre", "10-20") ?: "10-20").coerceAtLeast(0))
