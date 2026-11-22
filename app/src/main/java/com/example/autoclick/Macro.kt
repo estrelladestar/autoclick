@@ -566,7 +566,7 @@ object Macro {
             }
             esperasSinConexion = 0
             trace("  reintento ${tries + 1}/$MAX_TRIES: no encuentro $what")
-            if (what == "la caja de texto" && hojaDeOpcionesAbierta()) {
+            if (hojaDeOpcionesAbierta()) {
                 // Una hoja de opciones (Guardar, Reproducción, Denunciar…) tapa la publicación: se cierra con Atrás
                 trace("  hay abierta una hoja de opciones de la publicación: la cierro con Atrás")
                 s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
@@ -595,7 +595,7 @@ object Macro {
             val (_, h) = s.screenSize()
             return findIg { t, r, _ ->
                 r.exactCenterY() > h * 0.2f && (t.contains("por qué ves esta") || t.contains("por que ves esta") ||
-                    t == "no me interesa" || t == "denunciar" || t == "reproducción")
+                    t == "no me interesa" || t == "denunciar" || t == "reproducción" || t == "guardado" || t == "guardar")
             } != null
         }
 
