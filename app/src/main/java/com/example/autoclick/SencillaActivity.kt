@@ -246,6 +246,14 @@ class SencillaActivity : Activity() {
         texto("📷 Si no sale la foto de la publicación, pulsa el cuadro gris y elige tú una foto de la galería (por ejemplo una captura).")
         texto("Pega cada enlace. A la izquierda sale la foto de la publicación. Si no marcas ninguno, el guion los usa uno tras otro, en orden. Si marcas ○ en uno, el guion usa solo ese.")
         texto("💾 al lado de un enlace guarda para esa publicación las menciones de «4» (cuántas y si llevan frase). Cuando el guion vuelva a ese enlace, las usa solas. Si sale ✅, ya tiene lo suyo guardado (pulsa ✅ para cambiarlo o quitarlo).")
+        Button(ctx).apply {
+            isAllCaps = false
+            text = "🧹 Olvidar lo que la app tiene guardado por publicación"
+            setOnClickListener {
+                prefs.edit().remove("pubs_guardadas").apply()
+                toast("Hecho: la app puede volver a guardar esas publicaciones")
+            }
+        }.also { seccion.addView(it, lpRaiz(arriba = 6)) }
         estadoEnlaces = texto("")
         enlaceElegido = prefs.getInt("s_link_sel", -1)
         val guardados = (prefs.getString("s_links", null) ?: prefs.getString("s_link", "") ?: "").lines()
@@ -527,8 +535,7 @@ class SencillaActivity : Activity() {
 
     // ---- Menciones guardadas por publicación (botón 💾) ----
 
-    private fun idPublicacion(u: String): String? =
-        Regex("/(p|reel|reels|tv)/([A-Za-z0-9_-]+)").find(u)?.groupValues?.get(2)
+    private fun idPublicacion(u: String): String? = ReglasGuion.idPublicacion(u)
 
     private fun porEnlace(): MutableList<String> =
         (prefs.getString("por_enlace", "") ?: "").lines().filter { it.contains("|") }.toMutableList()
@@ -539,11 +546,7 @@ class SencillaActivity : Activity() {
         return Pair(n, p.getOrNull(2) == "1")
     }
 
-    private fun describir(n: Int, frase: Boolean): String = when {
-        n == 0 -> "sin menciones (solo frase)"
-        n == 1 -> "1 mención " + if (frase) "con frase" else "sin frase"
-        else -> "$n menciones " + if (frase) "con frase" else "sin frase"
-    }
+    private fun describir(n: Int, frase: Boolean): String = ReglasGuion.describirMenciones(n, frase)
 
     /** 💾: guarda para esa publicación lo que está puesto en «4. Menciones por comentario». */
     private fun guardarParaEnlace(i: Int) {

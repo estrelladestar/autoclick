@@ -17,6 +17,7 @@ jobs:
         with:
           gradle-version: 8.7
       - run: gradle assembleDebug
+      - run: gradle :app:testNormalDebugUnitTest
         env:
           SORTEOS_CLAVE: ${{ secrets.SORTEOS_CLAVE }}
           APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}  # clave de Apify para cargar los comentarios de golpe  # clave de los códigos de Sorteos Star (Ajustes → Secrets → Actions)

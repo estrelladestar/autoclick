@@ -518,6 +518,57 @@ object Macro {
             main.postDelayed({ step() }, ms)
         }
 
+        /** Busca en todas las ventanas del móvil (también en las de permisos, que no son de Instagram). */
+        private fun findEnTodasLasVentanas(pred: (text: String, r: Rect, n: AccessibilityNodeInfo) -> Boolean): Rect? {
+            var found: Rect? = null
+            for (root in windowRoots()) {
+                fun walk(n: AccessibilityNodeInfo?, depth: Int) {
+                    if (n == null || depth > 45 || found != null) return
+                    if (n.isVisibleToUser) {
+                        val t = (n.text?.toString() ?: n.contentDescription?.toString() ?: "").trim().lowercase()
+                        val r = Rect()
+                        n.getBoundsInScreen(r)
+                        if (t.isNotEmpty() && r.width() > 0 && r.height() > 0 && pred(t, r, n)) { found = r; return }
+                    }
+                    for (k in 0 until n.childCount) walk(n.getChild(k), depth + 1)
+                }
+                walk(root, 0)
+                if (found != null) break
+            }
+            return found
+        }
+
+        private var cierresSeguidos = 0
+
+        /**
+         * Ventanas que tapan el guion: «Nueva colección» (al guardar) y los permisos del móvil («Ahora no», «Denegar»…).
+         * Se cierran y se sigue. Si no consigue cerrarlas tras varios intentos seguidos, lo deja al vigilante de atasco.
+         */
+        private fun cerrarVentanasTapadas(): Boolean {
+            if (cierresSeguidos >= 8) { cierresSeguidos = 0; return false }
+            val (_, h) = s.screenSize()
+            val coleccion = findIg { t, _, _ -> t.contains("nueva colección") || t.contains("nombre de la colección") || t.contains("elige un nombre para la colección") } != null
+            if (coleccion) {
+                cierresSeguidos++
+                trace("  se ha abierto «Nueva colección» al guardar: la cierro (Cancelar) y sigo")
+                val c = findIg { t, _, n -> !n.isEditable && t == "cancelar" }
+                if (c != null) s.tapAt(c.exactCenterX(), c.exactCenterY())
+                else s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
+                return true
+            }
+            val permiso = findEnTodasLasVentanas { t, r, n ->
+                !n.isEditable && t in setOf("ahora no", "no permitir", "denegar", "not now", "don't allow", "no thanks", "no, gracias")
+            }
+            if (permiso != null) {
+                cierresSeguidos++
+                trace("  pantalla de permisos del móvil: la cierro y sigo")
+                s.tapAt(permiso.exactCenterX(), permiso.exactCenterY())
+                return true
+            }
+            cierresSeguidos = 0
+            return false
+        }
+
         /** Último momento en que el guion avanzó (cambió de paso o terminó uno). */
         private var ultimoAvance = System.currentTimeMillis()
         private var ultimoPaso = -2
@@ -672,6 +723,7 @@ object Macro {
                 return
             }
             if (i != ultimoPaso) { ultimoPaso = i; ultimoAvance = System.currentTimeMillis() }
+            if (cerrarVentanasTapadas()) { later(1500L); return }
             if (atascadoTresMinutos()) {
                 // Lleva 3 minutos sin avanzar: se cierra lo que tape (Atrás) y se vuelve al enlace para seguir su curso
                 val volver = (i downTo 0).firstOrNull { cmds[it].op == "enlace" } ?: 0
@@ -1477,7 +1529,7 @@ object Macro {
                     (n.viewIdResourceName?.contains("save") == true && (n.isSelected || n.isChecked)))
             } != null
             // Lo guardó esta app antes para esta publicación: no vuelve a pulsar (si lo volviera a pulsar, la quitaría)
-            val idPub = Regex("/(p|reel|reels|tv)/([A-Za-z0-9_-]+)").find(s.lastUrl)?.groupValues?.get(2)
+            val idPub = ReglasGuion.idPublicacion(s.lastUrl)
             val prefsCfg = s.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE)
             val guardadasAntes = (prefsCfg.getString("pubs_guardadas", "") ?: "").lines().filter { it.isNotBlank() }
             val yaPorMemoria = idPub != null && idPub in guardadasAntes
@@ -2315,7 +2367,7 @@ object Macro {
         /** Cuenta + publicación (solo el código de la publicación: así da igual lo que lleve el enlace detrás). */
         private fun storyKey(): String {
             val u = s.lastUrl
-            val id = Regex("/(p|reel|reels|tv)/([A-Za-z0-9_-]+)").find(u)?.groupValues?.get(2) ?: u.substringBefore("?").trimEnd('/')
+            val id = ReglasGuion.idPublicacion(u) ?: u.substringBefore("?").trimEnd('/')
             return (current ?: "?").lowercase().removePrefix("@") + "|" + id
         }
 
