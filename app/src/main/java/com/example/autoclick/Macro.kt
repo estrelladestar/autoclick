@@ -1431,11 +1431,17 @@ object Macro {
         private fun savePost(c: Cmd) {
             val (_, h) = s.screenSize()
             val yaGuardada = findIg { t, r, n ->
-                r.exactCenterY() > h * 0.15f && (t.startsWith("quitar de guardad") || t.startsWith("eliminar de guardad") ||
+                r.exactCenterY() > h * 0.15f && (t.startsWith("quitar de guardad") || t.startsWith("quitar de los guardad") ||
+                    t.startsWith("eliminar de guardad") || t.startsWith("eliminar de los guardad") || t.startsWith("unsave") ||
                     t == "guardado" || t.startsWith("remove") && t.contains("saved") || t == "saved" ||
-                    (n.viewIdResourceName?.endsWith("row_feed_button_save") == true && n.isSelected))
-            }
-            if (yaGuardada != null) {
+                    (n.viewIdResourceName?.contains("save") == true && (n.isSelected || n.isChecked)))
+            } != null
+            // Lo guardó esta app antes para esta publicación: no vuelve a pulsar (si lo volviera a pulsar, la quitaría)
+            val idPub = Regex("/(p|reel|reels|tv)/([A-Za-z0-9_-]+)").find(s.lastUrl)?.groupValues?.get(2)
+            val prefsCfg = s.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE)
+            val guardadasAntes = (prefsCfg.getString("pubs_guardadas", "") ?: "").lines().filter { it.isNotBlank() }
+            val yaPorMemoria = idPub != null && idPub in guardadasAntes
+            if (yaGuardada || yaPorMemoria) {
                 trace("  la publicación ya está guardada: no la toco")
                 advance(c.extra()); return
             }
@@ -1454,6 +1460,9 @@ object Macro {
                 advance(c.extra()); return
             }
             trace("  guardo la publicación 🔖")
+            if (idPub != null) {
+                prefsCfg.edit().putString("pubs_guardadas", (guardadasAntes + idPub).distinct().takeLast(500).joinToString("\n")).apply()
+            }
             s.tapAt(boton.exactCenterX(), boton.exactCenterY())
             advance(maxOf(c.extra(), 1200L))
         }
