@@ -381,6 +381,16 @@ class SencillaActivity : Activity() {
         repostBox = marca("🔁 Volver a publicar / repost (solo si no lo has hecho)", prefs.getBoolean("s_repost", false))
 
         root.addView(Button(ctx).apply {
+            text = "👁 Ver los pasos que hará"
+            isAllCaps = false
+            setTextColor(Color.WHITE)
+            setTypeface(null, Typeface.BOLD)
+            background = conEfecto(redondo(MORADO, 16))
+            setPadding(dp(16), dp(12), dp(16), dp(12))
+            setOnClickListener { verPasos() }
+        }, lpRaiz(arriba = 8))
+
+        root.addView(Button(ctx).apply {
             text = "🚀 EMPEZAR TODO AUTOMÁTICO"
             isAllCaps = false
             setTextColor(Color.WHITE)
@@ -777,6 +787,18 @@ class SencillaActivity : Activity() {
             out.add("Escribe tus frases (cuadro 5), o elige otra opción.")
         }
         return out
+    }
+
+    /** «Ver los pasos»: enseña, en palabras normales, lo que hará el guion con lo que hay elegido. */
+    private fun verPasos() {
+        guardar()
+        val lineas = guion().lines().map { ReglasGuion.pasoEnTexto(it) }.filter { it.isNotBlank() }
+        val texto = lineas.mapIndexed { k, l -> "${k + 1}. $l" }.joinToString("\n")
+        AlertDialog.Builder(this)
+            .setTitle("Pasos del guion (${lineas.size})")
+            .setMessage(texto.ifEmpty { "No hay pasos todavía: pon al menos un enlace." })
+            .setPositiveButton("Cerrar", null)
+            .show()
     }
 
     private fun empezar() {
