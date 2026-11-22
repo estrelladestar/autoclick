@@ -108,6 +108,8 @@ h2{font-size:17px;margin:16px 2px 8px;color:#6a3de8}
 .chips::-webkit-scrollbar{display:none}
 .chip{flex:none;border:0;border-radius:18px;padding:8px 12px;font-weight:800;background:#fff;color:var(--ink);font-size:13px;box-shadow:0 2px 0 #0001}
 .chip.on{background:#ff5fa2;color:#fff}
+.hq-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:6px 4px 12px}
+.hq-title{text-align:center;margin:14px 0 4px;color:#fff;text-shadow:0 1px 2px #0005}
 .opts{display:grid;gap:9px;margin-top:4px}
 .opt{border:0;border-radius:16px;padding:14px 12px;font-weight:800;font-size:16px;text-align:left;background:#fff;color:var(--ink);box-shadow:0 3px 0 #7c4dff33;display:flex;gap:10px;align-items:center}
 .opt span{flex:none;width:30px;height:30px;border-radius:50%;background:#efe6ff;color:#6a3de8;display:flex;align-items:center;justify-content:center;font-weight:900}
@@ -320,6 +322,7 @@ nav button b{font-size:24px}
       <button class="hk k9" data-go="shop"><b>🛍️</b>Tienda</button>
       <button class="hk k10 ancho" data-go="logros"><b>🏅</b>Mis premios</button>
     </div>
+    <h3 class="hq-title">🆕 Juegos nuevos</h3><div id="hQ" class="hq-chips"></div>
   </section>
 
   <section id="t-pet">
@@ -2483,6 +2486,9 @@ function initHome(){
     else if (g === 'falta' || g === 'trazar' || g === 'formar') jStart(g);
     else tab(g);
   });
+  var NEWQ=['silab','caza','final','contar','dibujo2','vocal2','rima','une','escucha','mismo','intrusa','letras','mayus','nombre','contiene'];
+  $('hQ').innerHTML = QCATS.filter(function(c){ return NEWQ.indexOf(c[0]) >= 0; }).map(function(c){ return '<button class="chip" data-q="' + c[0] + '">' + c[1] + '</button>'; }).join('');
+  $('hQ').addEventListener('click', function(e){ var b = e.target.closest('[data-q]'); if (!b) return; S.qcat = b.dataset.q; save(); tab('quiz'); renderQCats(); nextQuestion(); });
   $('hHero').onclick = function(){ if (S.pet) { sfx('squeak'); speak($('hBub').textContent); } };
   renderHome();
 }
