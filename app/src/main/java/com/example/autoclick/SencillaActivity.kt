@@ -243,6 +243,7 @@ class SencillaActivity : Activity() {
 
         // 1. Hasta 5 enlaces, cada uno con la foto de su publicación
         seccionNueva("🔗 1. Enlaces de publicaciones (hasta 5)", AZUL)
+        texto("📷 Si no sale la foto de la publicación, pulsa el cuadro gris y elige tú una foto de la galería (por ejemplo una captura).")
         texto("Pega cada enlace. A la izquierda sale la foto de la publicación. Si no marcas ninguno, el guion los usa uno tras otro, en orden. Si marcas ○ en uno, el guion usa solo ese.")
         texto("💾 al lado de un enlace guarda para esa publicación las menciones de «4» (cuántas y si llevan frase). Cuando el guion vuelva a ese enlace, las usa solas. Si sale ✅, ya tiene lo suyo guardado (pulsa ✅ para cambiarlo o quitarlo).")
         estadoEnlaces = texto("")
@@ -255,6 +256,9 @@ class SencillaActivity : Activity() {
                 // La foto se recorta con las mismas esquinas redondeadas del fondo
                 clipToOutline = true
                 outlineProvider = android.view.ViewOutlineProvider.BACKGROUND
+                contentDescription = "Foto del enlace ${i + 1}: pulsa para subirla"
+                // Pulsar la foto: elegir tú una foto de la galería para ese enlace
+                setOnClickListener { elegirFotoDeGaleria(i) }
             }
             fotos.add(foto)
             val campo = EditText(ctx).apply {
@@ -604,6 +608,21 @@ class SencillaActivity : Activity() {
         fotoHandler.postDelayed(r, 900L)
     }
 
+    private val FOTO_CODE = 7300
+
+    /** Abre la galería para elegir la foto del enlace i (por si Instagram no deja sacarla sola). */
+    private fun elegirFotoDeGaleria(i: Int) {
+        if (linkBoxes[i].text.toString().trim().isEmpty()) {
+            toast("Pon primero el enlace ${i + 1}")
+            return
+        }
+        try {
+            startActivityForResult(Intent(Intent.ACTION_GET_CONTENT).setType("image/*").addCategory(Intent.CATEGORY_OPENABLE), FOTO_CODE + i)
+        } catch (e: Exception) {
+            toast("No se puede abrir la galería")
+        }
+    }
+
     private fun mostrarFoto(i: Int) {
         val url = linkBoxes[i].text.toString().trim()
         if (url.isEmpty()) {
@@ -796,6 +815,19 @@ class SencillaActivity : Activity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode in FOTO_CODE until FOTO_CODE + 5) {
+            val i = requestCode - FOTO_CODE
+            val uri = data?.data
+            if (resultCode == RESULT_OK && uri != null) {
+                val url = linkBoxes[i].text.toString().trim()
+                val ok = try {
+                    val bytes = contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                    bytes != null && FotoEnlace.guardarManual(this, url, bytes)
+                } catch (e: Exception) { false }
+                if (ok) { mostrarFoto(i); toast("📷 Foto puesta en el enlace ${i + 1}") } else toast("No se ha podido poner esa foto")
+            }
+            return
+        }
         if (requestCode == captureCode) {
             val pending = pendingScript
             pendingScript = null

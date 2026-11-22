@@ -39,16 +39,60 @@ object FotoEnlace {
         }.start()
     }
 
-    private fun buscar(ctx: Context, url: String): Bitmap? {
-        val f = File(ctx.filesDir, "fotos_enlaces/${url.hashCode()}.jpg")
-        if (f.exists() && f.length() > 0) return decodificar(f.readBytes())
-        val html = bajar(url, 400_000)?.let { String(it, Charsets.UTF_8) } ?: return null
-        val imagen = ogImagen(html) ?: return null
-        val bytes = bajar(imagen, 3_000_000) ?: return null
-        val bmp = decodificar(bytes) ?: return null
+    /** El archivo de la foto de un enlace (por el código de la publicación, así da igual lo que lleve detrás). */
+    private fun archivo(ctx: Context, url: String): File {
+        val id = Regex("/(p|reel|reels|tv)/([A-Za-z0-9_-]+)").find(url)?.groupValues?.get(2) ?: url.trim().hashCode().toString()
+        return File(ctx.filesDir, "fotos_enlaces/$id.jpg")
+    }
+
+    /** Guarda una foto elegida por ti para ese enlace. */
+    fun guardarManual(ctx: Context, url: String, bytes: ByteArray): Boolean {
+        val bmp = decodificar(bytes) ?: return false
+        val f = archivo(ctx, url)
         f.parentFile?.mkdirs()
-        f.writeBytes(bytes)
-        return bmp
+        // Se guarda pequeña, en JPG
+        java.io.FileOutputStream(f).use { bmp.compress(Bitmap.CompressFormat.JPEG, 88, it) }
+        memoria[url.trim()] = bmp
+        return true
+    }
+
+    private fun buscar(ctx: Context, url: String): Bitmap? {
+        val f = archivo(ctx, url)
+        if (f.exists() && f.length() > 0) return decodificar(f.readBytes())
+        val viejo = File(ctx.filesDir, "fotos_enlaces/${url.hashCode()}.jpg")
+        if (viejo.exists() && viejo.length() > 0) return decodificar(viejo.readBytes())
+        val id = Regex("/(p|reel|reels|tv)/([A-Za-z0-9_-]+)").find(url)?.groupValues?.get(2)
+        // Varias formas, porque Instagram a veces pide iniciar sesión:
+        // 1) la página con el «navegador» de Facebook (Instagram le da la foto), 2) la página normal,
+        // 3) la versión para insertar (embed), 4) la foto directa /media/
+        val intentos = ArrayList<() -> ByteArray?>()
+        intentos.add { bajar(url, 400_000, UA_FB)?.let { ogImagen(String(it, Charsets.UTF_8)) }?.let { bajar(it, 3_000_000) } }
+        intentos.add { bajar(url, 400_000)?.let { ogImagen(String(it, Charsets.UTF_8)) }?.let { bajar(it, 3_000_000) } }
+        if (id != null) {
+            intentos.add {
+                bajar("https://www.instagram.com/p/$id/embed/captioned/", 600_000)?.let { embedImagen(String(it, Charsets.UTF_8)) }?.let { bajar(it, 3_000_000) }
+            }
+            intentos.add { bajar("https://www.instagram.com/p/$id/media/?size=m", 3_000_000) }
+        }
+        for (paso in intentos) {
+            val bytes = try { paso() } catch (e: Exception) { null } ?: continue
+            val bmp = decodificar(bytes) ?: continue
+            f.parentFile?.mkdirs()
+            f.writeBytes(bytes)
+            return bmp
+        }
+        return null
+    }
+
+    private const val UA_FB = "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)"
+
+    /** En la página «embed», la foto va en la etiqueta con class «EmbeddedMediaImage». */
+    private fun embedImagen(html: String): String? {
+        val m = Regex("""class=["']EmbeddedMediaImage["'][^>]*src=["']([^"']+)["']""").find(html)
+            ?: Regex("""src=["']([^"']+)["'][^>]*class=["']EmbeddedMediaImage["']""").find(html)
+            ?: Regex(""""display_url"\s*:\s*"([^"]+)"""").find(html)
+            ?: return ogImagen(html)
+        return m.groupValues[1].replace("&amp;", "&").replace("\\u0026", "&").replace("\\/", "/")
     }
 
     /** La imagen de la etiqueta «og:image» de la página (la foto de la publicación). */
@@ -60,13 +104,13 @@ object FotoEnlace {
     }
 
     /** Descarga hasta «max» bytes de una dirección. */
-    private fun bajar(url: String, max: Int): ByteArray? {
+    private fun bajar(url: String, max: Int, ua: String = UA): ByteArray? {
         val c = URL(url).openConnection() as HttpURLConnection
         try {
             c.connectTimeout = 8000
             c.readTimeout = 10000
             c.instanceFollowRedirects = true
-            c.setRequestProperty("User-Agent", UA)
+            c.setRequestProperty("User-Agent", ua)
             c.setRequestProperty("Accept-Language", "es-ES,es;q=0.9")
             if (c.responseCode !in 200..299) return null
             val out = ByteArrayOutputStream()
