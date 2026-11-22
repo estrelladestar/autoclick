@@ -249,6 +249,9 @@ nav button.on{outline:4px solid #fff;box-shadow:0 0 0 3px #7c4dff,0 3px 0 #0002;
 nav button b{font-size:24px}
 .chal,#myQ{display:none !important}
 #qcats{flex-wrap:wrap;overflow:visible;justify-content:center}
+#t-quiz.incat #extras,#t-quiz.incat #qcats{display:none}
+#qback{display:none;margin:4px auto 8px;background:#26203f;color:#fff;border:0;border-radius:999px;padding:9px 18px;font-size:15px;font-weight:700}
+#t-quiz.incat #qback{display:block}
 #qcats .chip{color:#fff;font-size:14px;padding:9px 12px;text-shadow:0 1px 1px #0003}
 #qcats .chip:nth-child(9n+1){background:#ff4f8b}#qcats .chip:nth-child(9n+2){background:#ff9800}#qcats .chip:nth-child(9n+3){background:#2fb35c}
 #qcats .chip:nth-child(9n+4){background:#1e90ff}#qcats .chip:nth-child(9n+5){background:#8b5cf6}#qcats .chip:nth-child(9n+6){background:#ff6b35}
@@ -348,6 +351,7 @@ nav button b{font-size:24px}
   <section id="t-quiz">
     <div class="extras" id="extras"><button class="x1" data-x="falta"><b>🔤</b>Letra que falta</button><button class="x2" data-x="trazar"><b>✏️</b>Escribir letras</button><button class="x3" data-x="formar"><b>🧩</b>Formar palabras</button><button class="x4" data-x="leer"><b>🎤</b>Leer en voz alta</button></div>
     <div class="chal" id="qchal"></div>
+    <button id="qback">⬅️ Volver a las categorías</button>
     <div class="chips" id="qcats"></div>
     <div class="qtop">
       <div class="qpet" id="qpet"></div>
@@ -1722,6 +1726,7 @@ function pickQ(cat){
 }
 function nextQuestion(){
   answered = false; quizMood = null;
+  $('t-quiz').classList.toggle('incat', (S.qcat || 'todas') !== 'todas');
   renderChal();
   if (S.pet && S.pet.sleeping) {
     $('qtext').innerHTML = 'Zzz… 😴 Estoy dormido. Despiértame para jugar.';
@@ -2994,6 +2999,7 @@ function bind(){
   $('lecBtn').onclick = openLec;
   initLec();
   $('qnext').onclick = nextQuestion;
+  $('qback').addEventListener('click', function(){ S.qcat = 'todas'; save(); renderQCats(); nextQuestion(); });
   $('qcats').addEventListener('click', function(e){ var b = e.target.closest('.chip'); if (!b) return; S.qcat = b.dataset.c; save(); renderQCats(); nextQuestion(); });
   $('avcats').addEventListener('click', function(e){ var b = e.target.closest('.chip'); if (!b) return; avCat = b.dataset.c; trying = null; renderAv(); });
   $('avgrid').addEventListener('click', function(e){ var b = e.target.closest('.item'); if (b) tapItem(b.dataset.i); });
