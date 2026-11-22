@@ -158,7 +158,7 @@ jobs:
             - CaminandoLetras.html → Caminando Letras para abrir en el navegador
             - MiMundoLetras-debug.apk → Mi Mundo Letras (mascota, avatar, monedas y tienda con preguntas de letras para 5 años: la letra que falta, sílabas, leer, escribir letras y formar palabras)
             - MiMundo_Letras.html → Mi Mundo Letras para abrir en el navegador
-            - AcentosPalabras-debug.apk → Llanas y Agudas (monosílabas, agudas, llanas y esdrújulas: aprender, ¿qué tipo es? y pulsar la sílaba fuerte)
+            - AcentosPalabras-debug.apk → Llanas y Agudas (juego de Navidad: aprender, 19 juegos y lista de 100 agudas, 100 llanas y 100 esdrújulas)
             - LlanasYAgudas.html → Llanas y Agudas para abrir en el navegador
             - StarTeclado-debug.apk → Star Teclado (teclado con letras bonitas: 27 fuentes, 10 colores, foto de fondo y convertidor para copiar)
           files: |

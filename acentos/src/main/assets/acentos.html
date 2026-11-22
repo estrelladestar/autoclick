@@ -114,6 +114,14 @@ h2{text-align:center;font-size:clamp(22px,5.5vw,30px);margin:8px 0 12px}
 .carril{position:relative;height:40px;border-bottom:3px dashed #A5D8FF}
 .carril .q{position:absolute;top:0;font-size:30px;transition:left .5s;transform:translateX(-50%)}
 .carril .meta{position:absolute;right:2px;top:4px;font-size:24px}
+/* lista de palabras */
+.lista-pal{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:8px}
+.lp{background:#fff;border:3px solid #e9ecef;border-radius:16px;padding:6px 4px;cursor:pointer;text-align:center;font-family:inherit;color:var(--ink)}
+.lp b{display:block;font-size:20px}
+.lp .s{font-size:14px;font-weight:700;color:#868E96}
+.lp .s u{color:#C92A2A;text-decoration-thickness:3px}
+.lp:active{transform:scale(.96)}
+.lp .n{font-size:11px;color:#adb5bd;font-weight:700;float:left;margin-left:4px}
 /* tienda */
 .pestanas{display:flex;gap:8px;justify-content:center;margin-bottom:10px}
 .pestanas button{font-family:inherit;font-size:19px;font-weight:700;padding:9px 16px;border-radius:16px;border:none;background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 4px 0 #dbe7f3}
@@ -170,6 +178,7 @@ h2{text-align:center;font-size:clamp(22px,5.5vw,30px);margin:8px 0 12px}
   <h2>¿A qué jugamos?</h2>
   <div class="menu">
     <button class="tarjeta" style="background:#E64980" onclick="ir('aprender')"><span class="ico">📚</span>Aprender<small>Las reglas y la tilde</small></button>
+    <button class="tarjeta" style="background:linear-gradient(135deg,#1C7ED6,#2F9E44,#F08C00)" onclick="ir('lista')"><span class="ico">📖</span>Lista de palabras<small>100 agudas, 100 llanas y 100 esdrújulas</small></button>
     <button class="tarjeta" style="background:#1C7ED6" onclick="juega('tipo')"><span class="ico">🎯</span>¿Qué tipo es?<small>Aguda, llana, esdrújula…</small></button>
     <button class="tarjeta" style="background:#2F9E44" onclick="juega('silaba')"><span class="ico">👆</span>Sílaba fuerte<small>Toca la que suena más</small></button>
     <button class="tarjeta" style="background:#F08C00" onclick="juega('lleva')"><span class="ico">✏️</span>¿Lleva tilde?<small>Sí o no</small></button>
@@ -196,6 +205,16 @@ h2{text-align:center;font-size:clamp(22px,5.5vw,30px);margin:8px 0 12px}
   <h2>📚 Aprender</h2>
   <p class="nivel-txt">Toca cada tarjeta para ver ejemplos. Toca un ejemplo para oírlo. La sílaba roja es la que suena más fuerte.</p>
   <div id="reglas"></div>
+</section>
+
+<!-- ================= LISTA DE PALABRAS ================= -->
+<section class="pant" id="p-lista">
+  <h2>📖 Lista de palabras</h2>
+  <div class="pestanas" id="tabsLista"></div>
+  <div class="regla" id="reglaLista" style="cursor:default"></div>
+  <div class="cats" id="filtroLista"></div>
+  <p class="nivel-txt" id="cuentaLista"></p>
+  <div class="lista-pal" id="listaPal"></div>
 </section>
 
 <!-- ================= PREGUNTAS ================= -->
@@ -316,7 +335,7 @@ function confeti(n){ n = n || 40; const c = ['#E03131','#2F9E44','#F59F00','#fff
 /* =========== PALABRAS =========== */
 const ACC = {'á':'a','é':'e','í':'i','ó':'o','ú':'u'};
 const quita = t => t.replace(/[áéíóú]/g, c => ACC[c]);
-const LISTA = 'ca-mión co-ra-zón so-fá ca-fé ja-más sa-lón a-vión com-pás ra-tón ba-lón can-ción le-ón co-li-brí ma-má pa-pá be-bé me-nú ja-bón bo-tón ma-rrón ja-po-nés in-glés fran-cés des-pués a-diós tam-bién ja-ba-lí pan-ta-lón jar-dín bal-cón cin-tu-rón ma-ní pa-sión e-mo-ción lec-ción so-fás ti-bu-rón a-cor-de-ón dra-gón bo-te-llón cor-ba-tín vol-cán ca-pi-tán a-le-mán co-mí be-bí sal-tó can-tó ju-gó es-tá es-tán qui-zás a-trás de-trás a-de-más bam-bú va-gón ta-cón bom-bón can-ga-rú sar-tén al-mi-dón te-lón ca-jón mon-tón pul-món ca-ta-lán por-tu-gués e-dre-dón per-dón ra-zón vio-lín del-fín ma-ra-tón ca-pa-ra-zón go-rrión ta-zón me-lón li-món tu-rrón ca-ma-rón ju-gue-tón co-jín pa-tín bo-tín cla-rín fes-tín ta-bú i-glú na-ción ra-ción a-ten-ción o-ra-ción es-ta-ción ca-ñón a-gui-jón sa-lió co-rrió lle-gó vo-ló pin-tó dor-mí sa-lí bai-lé so-ñé es-cri-bió a-ca-bó a-pren-dí a-tún au-to-bús re-loj pa-red re-lax ma-yor a-zul ca-lor a-mor pin-tor doc-tor cris-tal pa-pel ju-gar co-mer ver-dad a-bril sa-lud ciu-dad mu-jer ca-mi-nar sa-ber es-cri-bir ni-ñez co-lor tam-bor ca-ra-col me-tal a-ni-mal ha-blar an-dar cor-tar na-riz per-diz fe-liz ca-paz ma-tiz hos-pi-tal na-tu-ral es-pi-ral co-ral ju-ven-tud a-mis-tad li-ber-tad u-ni-ver-si-dad es-pa-ñol mon-tar se-ñor pas-tor mo-tor ac-tor tre-pa-dor ri-val a-tril a-rroz co-li-flor bai-lar sal-tar pin-tar co-rrer vi-vir dor-mir gi-ra-sol co-me-dor or-de-na-dor as-cen-sor ven-ti-la-dor ju-ga-dor ca-za-dor pes-ca-dor re-ga-liz lom-briz ac-triz mi-tad e-dad bon-dad vir-tud ac-ti-tud pas-tel ho-tel pin-cel ca-rril fe-rro-ca-rril mar-fil ár-bol lá-piz fá-cil di-fí-cil a-zú-car cés-ped ál-bum mó-vil fút-bol dó-cil án-gel ú-til ca-rác-ter dé-bil hués-ped már-mol ná-car pós-ter lí-der crá-ter dó-lar ré-cord có-mic frá-gil há-bil sú-per ám-bar béis-bol fó-sil tú-nel cór-ner bú-ho tré-bol ver-sá-til por-tá-til au-to-mó-vil ca-sa me-sa pe-rro li-bro ven-ta-na za-pa-to e-xa-men jo-ven lu-nes flo-res ga-to man-za-na ca-mi-sa pla-ya ver-de mar-tes or-den cre-ma cua-der-no pi-za-rra mo-chi-la es-tu-che go-ma re-gla ti-je-ras pe-lo-ta mu-ñe-ca bi-ci-cle-ta co-che ca-ba-llo co-ne-jo ma-ri-po-sa ji-ra-fa e-le-fan-te tor-tu-ga ca-ma al-mo-ha-da co-ci-na ne-ve-ra pla-to cu-cha-ra cu-chi-llo va-so bo-ca-di-llo fre-sa na-ran-ja pe-ra u-vas ma-dre pa-dre her-ma-no a-bue-la pri-mo a-mi-go mon-ta-ña pla-ne-ta es-tre-lla nu-be llu-via nie-ve vien-to tor-men-ta jue-ves vier-nes do-min-go ma-ña-na no-che tar-de cam-po cas-ti-llo ca-mi-no puen-te ha-blan co-men jue-gan can-tas sal-tas cri-sis to-ros ga-lle-ta ca-ra-me-lo gui-ta-rra pin-tu-ra pa-ra-guas ve-ra-no o-to-ño in-vier-no pri-ma-ve-ra es-cue-la co-le-gio pro-fe-so-ra a-lum-no re-cre-o le-che que-so pan-ta-lla te-cla-do pe-ri-co lo-ro ga-lli-na o-ve-ja va-ca cer-do ca-bra pa-to se-ma-na ca-len-da-rio ca-mi-se-ta fal-da cha-que-ta bu-fan-da som-bre-ro cuen-to po-e-ma ver-so ri-ma es-tro-fa po-e-ta ad-je-ti-vo sus-tan-ti-vo ver-bo pa-la-bra fra-se pá-ja-ro mú-si-ca plá-ta-no mé-di-co lá-gri-ma brú-ju-la sá-ba-do mur-cié-la-go te-lé-fo-no pá-gi-na rá-pi-do fan-tás-ti-co bo-lí-gra-fo ma-te-má-ti-cas lám-pa-ra pí-ja-ma mi-cró-fo-no cá-ma-ra tí-pi-ca pi-rá-mi-de nú-me-ro sí-la-ba es-drú-ju-la pá-rra-fo mé-to-do pe-rió-di-co mú-si-co pú-bli-co má-gi-co tí-mi-do ri-dí-cu-lo ví-bo-ra trián-gu-lo lí-qui-do só-li-do sá-ba-na tór-to-la ú-ni-co úl-ti-mo prác-ti-co có-mi-co cé-le-bre gé-ne-ro é-xi-to sú-pli-ca miér-co-les ár-bo-les lá-pi-ces mé-di-cos cá-li-do hú-me-do gra-má-ti-ca pá-li-do ce-rá-mi-ca e-léc-tri-co es-tó-ma-go o-cé-a-no mag-ní-fi-co sím-bo-lo plá-ta-nos vál-vu-la ré-pli-ca lá-ti-go ve-hí-cu-lo ma-mí-fe-ro a-grí-co-la ár-ti-co an-tár-ti-co pa-cí-fi-co bú-fa-lo tér-mi-co hí-ga-do tí-te-re cú-pu-la cás-ca-ra mú-si-cas ó-pe-ra vér-ti-ce tí-tu-lo cré-di-to crí-ti-co dé-ci-mo fí-si-ca pró-xi-mo prín-ci-pe pá-ni-co má-qui-na có-di-go sí-la-bas vo-cá-bu-lo cán-ta-ro tró-pi-co pé-ta-lo pe-lí-cu-la par-tí-cu-la ca-pí-tu-lo ar-tí-cu-lo es-pec-tá-cu-lo lí-mi-te ín-di-ce jó-ve-nes e-xá-me-nes ár-bi-tro ó-va-lo na-vi-dad ma-za-pán pol-vo-rón cal-ce-tín re-ga-lo cam-pa-na re-no tri-ne-o vi-llan-ci-co mu-ñe-co bo-la chi-me-ne-a pan-de-re-ta a-ce-bo tí-pi-co sol pan luz pie mar flor pez mes tren sal dos tres mil gol rey voz miel sur gris sed red fin tos bus';
+const LISTA = 'ca-mión co-ra-zón so-fá ca-fé ja-más sa-lón a-vión com-pás ra-tón ba-lón can-ción le-ón co-li-brí ma-má pa-pá be-bé me-nú ja-bón bo-tón ma-rrón ja-po-nés in-glés fran-cés des-pués a-diós tam-bién ja-ba-lí pan-ta-lón jar-dín bal-cón cin-tu-rón ma-ní pa-sión e-mo-ción lec-ción so-fás ti-bu-rón a-cor-de-ón dra-gón bo-te-llón cor-ba-tín vol-cán ca-pi-tán a-le-mán co-mí be-bí sal-tó can-tó ju-gó es-tá es-tán qui-zás a-trás de-trás a-de-más bam-bú va-gón ta-cón bom-bón can-ga-rú sar-tén al-mi-dón te-lón ca-jón mon-tón pul-món ca-ta-lán por-tu-gués e-dre-dón per-dón ra-zón vio-lín del-fín ma-ra-tón ca-pa-ra-zón go-rrión ta-zón me-lón li-món tu-rrón ca-ma-rón ju-gue-tón co-jín pa-tín bo-tín cla-rín fes-tín ta-bú i-glú na-ción ra-ción a-ten-ción o-ra-ción es-ta-ción ca-ñón a-gui-jón sa-lió co-rrió lle-gó vo-ló pin-tó dor-mí sa-lí bai-lé so-ñé es-cri-bió a-ca-bó a-pren-dí a-tún au-to-bús re-loj pa-red re-lax ma-yor a-zul ca-lor a-mor pin-tor doc-tor cris-tal pa-pel ju-gar co-mer ver-dad a-bril sa-lud ciu-dad mu-jer ca-mi-nar sa-ber es-cri-bir ni-ñez co-lor tam-bor ca-ra-col me-tal a-ni-mal ha-blar an-dar cor-tar na-riz per-diz fe-liz ca-paz ma-tiz hos-pi-tal na-tu-ral es-pi-ral co-ral ju-ven-tud a-mis-tad li-ber-tad u-ni-ver-si-dad es-pa-ñol mon-tar se-ñor pas-tor mo-tor ac-tor tre-pa-dor ri-val a-tril a-rroz co-li-flor bai-lar sal-tar pin-tar co-rrer vi-vir dor-mir gi-ra-sol co-me-dor or-de-na-dor as-cen-sor ven-ti-la-dor ju-ga-dor ca-za-dor pes-ca-dor re-ga-liz lom-briz ac-triz mi-tad e-dad bon-dad vir-tud ac-ti-tud pas-tel ho-tel pin-cel ca-rril fe-rro-ca-rril mar-fil ár-bol lá-piz fá-cil di-fí-cil a-zú-car cés-ped ál-bum mó-vil fút-bol dó-cil án-gel ú-til ca-rác-ter dé-bil hués-ped már-mol ná-car pós-ter lí-der crá-ter dó-lar ré-cord có-mic frá-gil há-bil sú-per ám-bar béis-bol fó-sil tú-nel cór-ner tré-bol ver-sá-til por-tá-til au-to-mó-vil ca-sa me-sa pe-rro li-bro ven-ta-na za-pa-to e-xa-men jo-ven lu-nes flo-res ga-to man-za-na ca-mi-sa pla-ya ver-de mar-tes or-den cre-ma cua-der-no pi-za-rra mo-chi-la es-tu-che go-ma re-gla ti-je-ras pe-lo-ta mu-ñe-ca bi-ci-cle-ta co-che ca-ba-llo co-ne-jo ma-ri-po-sa ji-ra-fa e-le-fan-te tor-tu-ga ca-ma al-mo-ha-da co-ci-na ne-ve-ra pla-to cu-cha-ra cu-chi-llo va-so bo-ca-di-llo fre-sa na-ran-ja pe-ra u-vas ma-dre pa-dre her-ma-no a-bue-la pri-mo a-mi-go mon-ta-ña pla-ne-ta es-tre-lla nu-be llu-via nie-ve vien-to tor-men-ta jue-ves vier-nes do-min-go ma-ña-na no-che tar-de cam-po cas-ti-llo ca-mi-no puen-te ha-blan co-men jue-gan can-tas sal-tas cri-sis to-ros ga-lle-ta ca-ra-me-lo gui-ta-rra pin-tu-ra pa-ra-guas ve-ra-no o-to-ño in-vier-no pri-ma-ve-ra es-cue-la co-le-gio pro-fe-so-ra a-lum-no re-cre-o le-che que-so pan-ta-lla te-cla-do pe-ri-co lo-ro ga-lli-na o-ve-ja va-ca cer-do ca-bra pa-to se-ma-na ca-len-da-rio ca-mi-se-ta fal-da cha-que-ta bu-fan-da som-bre-ro cuen-to po-e-ma ver-so ri-ma es-tro-fa po-e-ta ad-je-ti-vo sus-tan-ti-vo ver-bo pa-la-bra fra-se pá-ja-ro mú-si-ca plá-ta-no mé-di-co lá-gri-ma brú-ju-la sá-ba-do mur-cié-la-go te-lé-fo-no pá-gi-na rá-pi-do fan-tás-ti-co bo-lí-gra-fo ma-te-má-ti-cas lám-pa-ra pi-ja-ma mi-cró-fo-no cá-ma-ra tí-pi-ca pi-rá-mi-de nú-me-ro sí-la-ba es-drú-ju-la pá-rra-fo mé-to-do pe-rió-di-co mú-si-co pú-bli-co má-gi-co tí-mi-do ri-dí-cu-lo ví-bo-ra trián-gu-lo lí-qui-do só-li-do sá-ba-na tór-to-la ú-ni-co úl-ti-mo prác-ti-co có-mi-co cé-le-bre gé-ne-ro é-xi-to sú-pli-ca miér-co-les ár-bo-les lá-pi-ces mé-di-cos cá-li-do hú-me-do gra-má-ti-ca pá-li-do ce-rá-mi-ca e-léc-tri-co es-tó-ma-go o-cé-a-no mag-ní-fi-co sím-bo-lo plá-ta-nos vál-vu-la ré-pli-ca lá-ti-go ve-hí-cu-lo ma-mí-fe-ro a-grí-co-la ár-ti-co an-tár-ti-co pa-cí-fi-co bú-fa-lo tér-mi-co hí-ga-do tí-te-re cú-pu-la cás-ca-ra mú-si-cas ó-pe-ra vér-ti-ce tí-tu-lo cré-di-to crí-ti-co dé-ci-mo fí-si-ca pró-xi-mo prín-ci-pe pá-ni-co má-qui-na có-di-go sí-la-bas vo-cá-bu-lo cán-ta-ro tró-pi-co pé-ta-lo pe-lí-cu-la par-tí-cu-la ca-pí-tu-lo ar-tí-cu-lo es-pec-tá-cu-lo lí-mi-te ín-di-ce jó-ve-nes e-xá-me-nes ár-bi-tro ó-va-lo na-vi-dad ma-za-pán pol-vo-rón cal-ce-tín re-ga-lo cam-pa-na re-no tri-ne-o vi-llan-ci-co mu-ñe-co bo-la chi-me-ne-a pan-de-re-ta a-ce-bo tí-pi-co sol pan luz pie mar flor pez mes tren sal dos tres mil gol rey voz miel sur gris sed red fin tos bus';
 function hazPal(h){
   const s = h.split('-'), n = s.length; let t = s.findIndex(x => /[áéíóú]/.test(x)); const tilde = t >= 0;
   if (t < 0) { const l = quita(s.join('')).slice(-1); t = n === 1 ? 0 : (/[aeiouns]/.test(l) ? n-2 : n-1); }
@@ -405,6 +424,7 @@ function ir(p){
   $('p-' + p).classList.add('on'); window.scrollTo(0, 0);
   if (p === 'inicio') pintaInicio();
   if (p === 'aprender') pintaReglas();
+  if (p === 'lista') pintaLista();
   if (p === 'regalos') { ultimoJuego = () => ir('regalos'); iniciaRegalos(); }
   if (p === 'nieve') { ultimoJuego = () => ir('nieve'); iniciaNieve(); }
 }
@@ -431,6 +451,32 @@ function pintaReglas(){
     const ejs = t.ej.map(w => { const p = PAL.find(x => x.w === w) || hazPal(w); return `<div onclick="habla('${p.w}')">${silHTML(p, true)}</div>`; }).join('');
     return `<div class="regla" style="background:${t.c}" onclick="const e=this.nextElementSibling;e.style.display=e.style.display==='block'?'none':'block';habla('${t.n}. ${t.regla} ${t.tilde}')"><div class="big">${t.e}</div><div><b>${t.n}</b><span>${t.regla}<br>✏️ ${t.tilde}</span></div></div><div class="ejs">${ejs}</div>`;
   }).join('') + `<div class="caja" style="font-size:17px"><b>🎅 Truco para saber cuál es:</b><br>1️⃣ Separa la palabra en sílabas.<br>2️⃣ Di la palabra en voz alta y busca la sílaba que suena más fuerte.<br>3️⃣ Cuenta desde el final: la última → <b>aguda</b>, la penúltima → <b>llana</b>, la antepenúltima → <b>esdrújula</b>.</div>`;
+}
+
+/* =========== LISTA DE PALABRAS (100 de cada) =========== */
+const LISTA100 = (() => {
+  const vistas = new Set(), por = {aguda:[], llana:[], esdrujula:[]};
+  PAL.forEach(p => { if (vistas.has(p.w) || !por[p.tipo]) return; vistas.add(p.w); por[p.tipo].push(p); });
+  const r = {};
+  Object.keys(por).forEach(k => {
+    const con = por[k].filter(p => p.tilde), sin = por[k].filter(p => !p.tilde);
+    let a = k === 'esdrujula' ? con.slice(0, 100) : con.slice(0, Math.min(con.length, 50));
+    a = a.concat(sin.slice(0, 100 - a.length)); if (a.length < 100) a = a.concat(con.slice(a.filter(p => p.tilde).length, a.filter(p => p.tilde).length + 100 - a.length));
+    r[k] = a.sort((x, y) => x.w.localeCompare(y.w, 'es'));
+  });
+  return r;
+})();
+let lTipo = 'aguda', lFiltro = 'todas';
+function pintaLista(){
+  const t = TIPOS[lTipo];
+  $('tabsLista').innerHTML = ['aguda','llana','esdrujula'].map(k => `<button class="${k === lTipo ? 'sel' : ''}" style="${k === lTipo ? 'background:' + TIPOS[k].c + ';box-shadow:0 4px 0 ' + osc(TIPOS[k].c, .7) : ''}" onclick="lTipo='${k}';lFiltro='todas';pintaLista();habla('${TIPOS[k].n}s')">${TIPOS[k].e} ${TIPOS[k].n}s</button>`).join('');
+  $('reglaLista').style.background = t.c;
+  $('reglaLista').innerHTML = `<div class="big">${t.e}</div><div><b>${t.n}s</b><span>${t.regla}<br>✏️ ${t.tilde}</span></div>`;
+  const todas = LISTA100[lTipo];
+  $('filtroLista').innerHTML = lTipo === 'esdrujula' ? '' : [['todas','📋 Todas'],['con','✏️ Con tilde'],['sin','🚫 Sin tilde']].map(([k, n]) => `<button class="${k === lFiltro ? 'sel' : ''}" onclick="lFiltro='${k}';pintaLista()">${n}</button>`).join('');
+  const ver = todas.filter(p => lFiltro === 'todas' || (lFiltro === 'con') === p.tilde);
+  $('cuentaLista').textContent = ver.length + ' palabras ' + nombreTipo(lTipo) + 's' + (lFiltro === 'con' ? ' con tilde' : lFiltro === 'sin' ? ' sin tilde' : '') + '. Toca una para oírla. La sílaba roja es la que suena más fuerte.';
+  $('listaPal').innerHTML = ver.map(p => `<button class="lp" style="border-color:${p.tilde ? '#FFD8A8' : '#e9ecef'}" onclick="habla('${p.w}')"><span class="n">${todas.indexOf(p) + 1}</span><b>${p.w}</b><span class="s">${p.s.map((x, i) => i === p.t ? '<u>' + x + '</u>' : x).join('-')}</span></button>`).join('');
 }
 
 /* =========== PREGUNTAS (motor común) =========== */
