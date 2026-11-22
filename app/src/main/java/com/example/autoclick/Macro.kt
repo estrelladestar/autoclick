@@ -518,6 +518,14 @@ object Macro {
             main.postDelayed({ step() }, ms)
         }
 
+        /** Último momento en que el guion avanzó (cambió de paso o terminó uno). */
+        private var ultimoAvance = System.currentTimeMillis()
+        private var ultimoPaso = -2
+
+        /** Si lleva 3 minutos sin avanzar (por ejemplo, se quedó en una pantalla de permisos o avisos), vuelve al enlace y sigue. */
+        private fun atascadoTresMinutos(): Boolean =
+            esperasSinConexion == 0 && System.currentTimeMillis() - ultimoAvance > 180_000L
+
         /** Alarma de atasco: el paso lleva más de un minuto sin responder (por ejemplo, una captura que no llegó). */
         fun watchdog() {
             if (id != token || !running) return
@@ -530,6 +538,7 @@ object Macro {
         }
 
         private fun advance(ms: Long) {
+            ultimoAvance = System.currentTimeMillis()
             tries = 0
             swipes = null
             feedPhase = 0
@@ -660,6 +669,17 @@ object Macro {
                 }
                 i = 0
                 later(500L)
+                return
+            }
+            if (i != ultimoPaso) { ultimoPaso = i; ultimoAvance = System.currentTimeMillis() }
+            if (atascadoTresMinutos()) {
+                // Lleva 3 minutos sin avanzar: se cierra lo que tape (Atrás) y se vuelve al enlace para seguir su curso
+                val volver = (i downTo 0).firstOrNull { cmds[it].op == "enlace" } ?: 0
+                trace("⟲ 3 minutos sin avanzar en el paso ${i + 1} (${cmds[i].op}): cierro lo que tape, vuelvo al enlace y sigo")
+                s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
+                i = volver - 1
+                ultimoPaso = -2
+                advance(4000L)
                 return
             }
             if (blocked()) {
