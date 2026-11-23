@@ -754,8 +754,8 @@ object Macro {
             if (atascadoTresMinutos()) {
                 // Lleva 3 minutos sin avanzar: se cierra lo que tape (Atrás) y se vuelve al enlace para seguir su curso
                 val volver = (i downTo 0).firstOrNull { cmds[it].op == "enlace" } ?: 0
-                trace("⟲ 3 minutos sin avanzar en el paso ${i + 1} (${cmds[i].op}): cierro lo que tape, vuelvo al enlace y sigo")
-                s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
+                // Sin Atrás: en la pantalla principal de Instagram sacaría de la app. Se vuelve al enlace directamente.
+                trace("⟲ 3 minutos sin avanzar en el paso ${i + 1} (${cmds[i].op}): vuelvo al enlace y sigo")
                 i = volver - 1
                 ultimoPaso = -2
                 advance(4000L)
