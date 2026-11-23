@@ -734,6 +734,7 @@ object Macro {
                 return
             }
             if (i != ultimoPaso) { ultimoPaso = i; ultimoAvance = System.currentTimeMillis() }
+            showProgress() // el botón flotante siempre muestra el paso actual, también cuando se cierra algo
             if (cerrarVentanasTapadas()) { later(1500L); return }
             if (atascadoTresMinutos()) {
                 // Lleva 3 minutos sin avanzar: se cierra lo que tape (Atrás) y se vuelve al enlace para seguir su curso
