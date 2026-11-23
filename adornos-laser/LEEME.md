@@ -13,5 +13,6 @@ Archivos SVG a escala real (mm). Colores: **rojo = cortar**, **azul = grabar**, 
 | `familia-bolas/` | Bola con astas de reno, lazo, ramitas y 5 bolitas colgantes con nombres (Rafael, Cinta, Rafael, Alejandro, Diego) y «Nuestra familia 2026». Capas por separado y hoja completa. 99 × 109 mm |
 | `familia-bolas-jose/` | El mismo adorno con 4 bolitas: Jose en las dos bolas de los lados, Izan arriba y Estrella abajo en el centro. 99 × 109 mm |
 | `familia-bolas-juanfri/` | El mismo adorno con 4 bolitas: Juanfri y Tere a los lados, Dylan arriba y Coraima abajo en el centro. 99 × 109 mm |
+| `familia-bolas-lucia/` | El mismo adorno con 3 bolitas más grandes: Lucía, Lara y Rodrigo. 99 × 109 mm |
 
 Cada carpeta tiene una `vista_previa.png` para ver cómo queda montado.

@@ -99,6 +99,9 @@ CONFIGS = {  # x, y, radio, forma, nombre, y donde empieza el hilo
   'juanfri': [
     (31, 61, 10.0, 'onion', 'JUANFRI', 37), (55, 50, 9.5, 'round', 'DYLAN', 30),
     (79, 61, 10.0, 'onion', 'TERE', 37), (55, 77, 10.5, 'round', 'CORAIMA', 58)],
+  'lucia': [
+    (30, 61, 12.0, 'onion', 'LUCÍA', 37), (55, 71, 12.5, 'round', 'LARA', 30),
+    (80, 61, 12.0, 'onion', 'RODRIGO', 37)],
   'cuatro': [
     (31, 61, 10.0, 'onion', 'JOSE', 37), (55, 50, 9.5, 'round', 'IZAN', 30),
     (79, 61, 10.0, 'onion', 'JOSE', 37), (55, 77, 10.5, 'round', 'ESTRELLA', 58)],
