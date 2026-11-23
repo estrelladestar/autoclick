@@ -414,6 +414,16 @@ class SencillaActivity : Activity() {
         }, lpRaiz(arriba = 8, abajo = 14))
 
         root.addView(Button(ctx).apply {
+            text = "📊 Ver lo hecho: comentarios y menciones"
+            isAllCaps = false
+            setTextColor(Color.WHITE)
+            setTypeface(null, Typeface.BOLD)
+            background = conEfecto(redondo(VERDE_AZULADO, 16))
+            setPadding(dp(16), dp(12), dp(16), dp(12))
+            setOnClickListener { verLoHecho() }
+        }, lpRaiz(arriba = 6))
+
+        root.addView(Button(ctx).apply {
             text = "🐞 Informe (si algo falla)"
             isAllCaps = false
             setTextColor(Color.WHITE)
@@ -798,6 +808,43 @@ class SencillaActivity : Activity() {
             out.add("Escribe tus frases (cuadro 5), o elige otra opción.")
         }
         return out
+    }
+
+    /** «Ver lo hecho»: comentarios y menciones de los últimos 7 días, por cuenta y por persona mencionada. */
+    private fun verLoHecho() {
+        val log = Macro.loadLog(this)
+        val men = Macro.loadMentions(this)
+        val dias = (log.keys().asSequence() + men.keys().asSequence()).toSortedSet().toList().sortedDescending().take(7)
+        val sb = StringBuilder()
+        var totalC = 0
+        var totalM = 0
+        for (d in dias) {
+            val day = log.optJSONObject(d)
+            val mday = men.optJSONObject(d)
+            val maccts = mday?.optJSONObject("cuentas")
+            val people = mday?.optJSONObject("personas")
+            var c = 0
+            day?.keys()?.forEach { c += day.optInt(it) }
+            var m = 0
+            maccts?.keys()?.forEach { m += maccts.optInt(it) }
+            totalC += c
+            totalM += m
+            sb.append("📅 $d: $c comentarios · $m menciones\n")
+            val cuentas = ((day?.keys()?.asSequence() ?: emptySequence()) + (maccts?.keys()?.asSequence() ?: emptySequence())).toSortedSet()
+            for (k in cuentas) {
+                sb.append("   • $k: ${day?.optInt(k, 0) ?: 0} comentarios · ${maccts?.optInt(k, 0) ?: 0} menciones\n")
+            }
+            val top = people?.keys()?.asSequence()?.map { Pair(it, people.optInt(it)) }?.sortedByDescending { it.second }?.take(8)?.toList() ?: emptyList()
+            if (top.isNotEmpty()) sb.append("   👥 Más mencionados: " + top.joinToString(", ") { "${it.first} ×${it.second}" } + "\n")
+            sb.append("\n")
+        }
+        val resumen = if (dias.isEmpty()) "Todavía no hay nada registrado." else
+            "Total en estos días: $totalC comentarios · $totalM menciones\n\n"
+        AlertDialog.Builder(this)
+            .setTitle("Lo hecho (últimos 7 días)")
+            .setMessage(resumen + sb.toString())
+            .setPositiveButton("Cerrar", null)
+            .show()
     }
 
     /** «Ver los pasos»: enseña, en palabras normales, lo que hará el guion con lo que hay elegido. */
