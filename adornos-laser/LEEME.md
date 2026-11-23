@@ -14,6 +14,6 @@ Archivos SVG a escala real (mm). Colores: **rojo = cortar**, **azul = grabar**, 
 | `familia-bolas-jose/` | El mismo adorno con 4 bolitas: Jose en las dos bolas de los lados, Izan arriba y Estrella abajo en el centro. 99 × 109 mm |
 | `familia-bolas-juanfri/` | El mismo adorno con 4 bolitas: Juanfri y Tere a los lados, Dylan arriba y Coraima abajo en el centro. 99 × 109 mm |
 | `familia-bolas-lucia/` | El mismo adorno con 3 bolitas más grandes: Lucía, Lara y Rodrigo. 99 × 109 mm |
-| `nombres-lucia-lara-rodrigo/` | Nombres sueltos Lucía, Lara y Rodrigo, misma letra que `nombres/`, solo corte |
+| `nombres-lucia-lara-rodrigo/` | Nombres sueltos Lucía, Lara y Rodrigo, misma letra que `nombres/`, cada nombre de una sola pieza (letras, puntos y tildes unidos), solo corte |
 
 Cada carpeta tiene una `vista_previa.png` para ver cómo queda montado.
