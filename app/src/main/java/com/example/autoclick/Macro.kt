@@ -550,6 +550,13 @@ object Macro {
             return walk(root, 0)
         }
 
+        /** Tras un Atrás de cierre, el siguiente paso vuelve a abrir el enlace: así no se comenta en otra publicación. */
+        private var reabrir = false
+        private fun atrasYReabrir() {
+            s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
+            reabrir = true
+        }
+
         private var cierresSeguidos = 0
 
         /**
@@ -566,7 +573,7 @@ object Macro {
                 val c = findIg { t, _, n -> !n.isEditable && t == "cancelar" }
                 // Primero «Cancelar»; si sigue ahí en el siguiente intento, Atrás (cierra el teclado y luego la pantalla)
                 if (c != null && cierresSeguidos == 1) s.tapAt(c.exactCenterX(), c.exactCenterY())
-                else s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
+                else atrasYReabrir()
                 return true
             }
             val permiso = findEnTodasLasVentanas { t, r, n ->
@@ -587,8 +594,8 @@ object Macro {
             }
             if (sistema) {
                 cierresSeguidos++
-                trace("  pantalla de notificaciones del móvil sin botón conocido: la cierro con Atrás y sigo")
-                s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
+                trace("  pantalla de permisos del sistema sin botón conocido: la cierro con Atrás y sigo")
+                atrasYReabrir()
                 return true
             }
             cierresSeguidos = 0
@@ -659,7 +666,7 @@ object Macro {
             if (hojaDeOpcionesAbierta()) {
                 // Una hoja de opciones (Guardar, Reproducción, Denunciar…) tapa la publicación: se cierra con Atrás
                 trace("  hay abierta una hoja de opciones de la publicación: la cierro con Atrás")
-                s.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
+                atrasYReabrir()
             }
             if (tries == 0) trace("  En pantalla: ${describirPantalla()}")
             if (what == "la caja de texto") {
@@ -749,6 +756,16 @@ object Macro {
                 return
             }
             if (i != ultimoPaso) { ultimoPaso = i; ultimoAvance = System.currentTimeMillis() }
+            if (reabrir) {
+                reabrir = false
+                val url = s.lastUrl
+                if (url.isNotEmpty()) {
+                    trace("  vuelvo a abrir la publicación del enlace antes de seguir (para no comentar en otra)")
+                    s.openUrl(url)
+                    later(3000L)
+                    return
+                }
+            }
             showProgress() // el botón flotante siempre muestra el paso actual, también cuando se cierra algo
             if (cerrarVentanasTapadas()) { later(1500L); return }
             if (atascadoTresMinutos()) {
