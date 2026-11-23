@@ -538,6 +538,18 @@ object Macro {
             return found
         }
 
+        /** ¿Hay en esta ventana un texto que cumpla la condición? */
+        private fun textoEnVentana(root: AccessibilityNodeInfo, pred: (String) -> Boolean): Boolean {
+            fun walk(n: AccessibilityNodeInfo?, depth: Int): Boolean {
+                if (n == null || depth > 45) return false
+                val t = (n.text?.toString() ?: n.contentDescription?.toString() ?: "").trim().lowercase()
+                if (t.isNotEmpty() && pred(t)) return true
+                for (k in 0 until n.childCount) if (walk(n.getChild(k), depth + 1)) return true
+                return false
+            }
+            return walk(root, 0)
+        }
+
         private var cierresSeguidos = 0
 
         /**
@@ -567,8 +579,11 @@ object Macro {
                 return true
             }
             // Pantalla de notificaciones del sistema sin botón reconocible: se cierra con Atrás (no es de Instagram)
+            // Solo las ventanas de permisos del sistema (nunca el escritorio ni Star App): si no, Atrás sacaba del guion
+            val permisosPkgs = setOf("com.android.permissioncontroller", "com.google.android.permissioncontroller",
+                "com.huawei.permissioncontroller", "com.android.packageinstaller")
             val sistema = windowRoots().any { root ->
-                root.packageName?.toString() != INSTAGRAM && findEnTodasLasVentanas { t, _, _ -> t.contains("notificaci") || t.contains("notification") } != null
+                root.packageName?.toString() in permisosPkgs && textoEnVentana(root) { it.contains("notificaci") || it.contains("notification") }
             }
             if (sistema) {
                 cierresSeguidos++
