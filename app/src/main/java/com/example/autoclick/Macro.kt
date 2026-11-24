@@ -1576,8 +1576,10 @@ object Macro {
             // Lo guardó esta app antes para esta publicación: no vuelve a pulsar (si lo volviera a pulsar, la quitaría)
             val idPub = ReglasGuion.idPublicacion(s.lastUrl)
             val prefsCfg = s.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE)
+            // La memoria es por cuenta y publicación: otra cuenta sí debe guardarla
+            val clave = idPub?.let { (current ?: "?").lowercase().removePrefix("@") + "|" + it }
             val guardadasAntes = (prefsCfg.getString("pubs_guardadas", "") ?: "").lines().filter { it.isNotBlank() }
-            val yaPorMemoria = idPub != null && idPub in guardadasAntes
+            val yaPorMemoria = clave != null && clave in guardadasAntes
             if (yaGuardada || yaPorMemoria) {
                 trace("  la publicación ya está guardada: no la toco")
                 advance(c.extra()); return
@@ -1597,10 +1599,11 @@ object Macro {
                 advance(c.extra()); return
             }
             trace("  guardo la publicación 🔖")
-            if (idPub != null) {
-                prefsCfg.edit().putString("pubs_guardadas", (guardadasAntes + idPub).distinct().takeLast(500).joinToString("\n")).apply()
-            }
             s.tapAt(boton.exactCenterX(), boton.exactCenterY())
+            // Se recuerda solo después de tocar el botón
+            if (clave != null) {
+                prefsCfg.edit().putString("pubs_guardadas", (guardadasAntes + clave).distinct().takeLast(500).joinToString("\n")).apply()
+            }
             advance(maxOf(c.extra(), 1200L))
         }
 

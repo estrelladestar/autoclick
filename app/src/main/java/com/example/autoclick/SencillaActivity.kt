@@ -944,6 +944,8 @@ class SencillaActivity : Activity() {
                 if (pending != null && s != null) {
                     // Un momento para que la captura arranque; luego empieza el guion solo
                     Handler(Looper.getMainLooper()).postDelayed({ arrancar(s, pending) }, 1200L)
+                } else if (pending != null) {
+                    toast("Falta la accesibilidad: actívala y pulsa «Empezar todo automático» otra vez")
                 }
             }
         }
