@@ -95,6 +95,10 @@ jobs:
           path: calculo/build/outputs/apk/debug/*.apk
       - uses: actions/upload-artifact@v4
         with:
+          name: mates3-apk
+          path: mates3/build/outputs/apk/debug/*.apk
+      - uses: actions/upload-artifact@v4
+        with:
           name: StarTeclado-apk
           path: teclado/build/outputs/apk/debug/*.apk
       - uses: actions/upload-artifact@v4
