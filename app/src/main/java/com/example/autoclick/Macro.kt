@@ -2417,15 +2417,14 @@ object Macro {
         }
 
         private fun storyDone(): Boolean {
-            // Sin saber qué cuenta está puesta no se puede saber si ya la subió: se sube
-            if (current.isNullOrBlank()) return false
+            // Si no se sabe qué cuenta está puesta, storyKey() usa «?»: así la publicación sigue
+            // marcada en vez de volver a subirse en cada vuelta del guion
             val hechas = (s.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE).getString("historias_hechas", "") ?: "").lines()
             // También la forma antigua de apuntarlo (cuenta|enlace entero)
             return hechas.contains(storyKey()) || hechas.contains((current ?: "?") + "|" + s.lastUrl)
         }
 
         private fun markStoryDone() {
-            if (current.isNullOrBlank()) return
             val p = s.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE)
             val old = (p.getString("historias_hechas", "") ?: "").lines().filter { it.isNotBlank() }
             p.edit().putString("historias_hechas", (old + storyKey()).distinct().takeLast(500).joinToString("\n")).apply()
