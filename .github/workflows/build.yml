@@ -83,6 +83,10 @@ jobs:
           path: inglesfacil/build/outputs/apk/debug/*.apk
       - uses: actions/upload-artifact@v4
         with:
+          name: TablasQuest-apk
+          path: tablas/build/outputs/apk/debug/*.apk
+      - uses: actions/upload-artifact@v4
+        with:
           name: Gatidoku-apk
           path: gatidoku/build/outputs/apk/debug/*.apk
       - uses: actions/upload-artifact@v4

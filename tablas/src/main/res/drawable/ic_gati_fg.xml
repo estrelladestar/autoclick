@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- El gato naranja del juego, centrado en la zona segura del icono -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="100" android:viewportHeight="100">
+    <group android:scaleX="0.6" android:scaleY="0.6" android:pivotX="50" android:pivotY="50" android:translateY="1">
+        <path android:fillColor="#F4A259" android:pathData="M17,44 L21,9 Q23,6 26,8 L46,27 Z"/>
+        <path android:fillColor="#F4A259" android:pathData="M83,44 L79,9 Q77,6 74,8 L54,27 Z"/>
+        <path android:fillColor="#F7A1B5" android:pathData="M24,36 L25.5,15 L39,28 Z M76,36 L74.5,15 L61,28 Z"/>
+        <path android:fillColor="#F4A259" android:pathData="M13,57 A37,31 0 1,0 87,57 A37,31 0 1,0 13,57 Z"/>
+        <path android:strokeColor="#D9772B" android:strokeWidth="3.2" android:strokeLineCap="round" android:fillColor="#00000000"
+            android:pathData="M50,28 V37 M42,29.5 L44,36.5 M58,29.5 L56,36.5 M14.5,55 H22.5 M14.5,62 H21.5 M85.5,55 H77.5 M85.5,62 H78.5"/>
+        <path android:fillColor="#FFF1DF" android:pathData="M35,70 A15,11 0 1,0 65,70 A15,11 0 1,0 35,70 Z"/>
+        <path android:fillColor="#FF8FA3" android:fillAlpha="0.35" android:pathData="M22,67 A5,5 0 1,0 32,67 A5,5 0 1,0 22,67 Z M68,67 A5,5 0 1,0 78,67 A5,5 0 1,0 68,67 Z"/>
+        <path android:fillColor="#1F2A44" android:pathData="M30.4,55 A5.6,7 0 1,0 41.6,55 A5.6,7 0 1,0 30.4,55 Z M58.4,55 A5.6,7 0 1,0 69.6,55 A5.6,7 0 1,0 58.4,55 Z"/>
+        <path android:fillColor="#FFFFFF" android:pathData="M35.9,52 A2.1,2.1 0 1,0 40.1,52 A2.1,2.1 0 1,0 35.9,52 Z M63.9,52 A2.1,2.1 0 1,0 68.1,52 A2.1,2.1 0 1,0 63.9,52 Z"/>
+        <path android:fillColor="#F28CA6" android:pathData="M46,64.5 L54,64.5 L50,69 Z"/>
+        <path android:strokeColor="#1F2A44" android:strokeAlpha="0.75" android:strokeWidth="2" android:strokeLineCap="round" android:fillColor="#00000000"
+            android:pathData="M50,69 Q46.5,73.5 42.5,71 M50,69 Q53.5,73.5 57.5,71"/>
+    </group>
+</vector>

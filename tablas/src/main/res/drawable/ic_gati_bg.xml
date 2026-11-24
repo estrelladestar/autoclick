@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#5B4BDB" android:pathData="M0,0 H108 V108 H0 Z"/>
+    <!-- cuadrícula de colores del tablero -->
+    <path android:fillColor="#FF9EAA" android:pathData="M18,18 H54 V54 H18 Z"/>
+    <path android:fillColor="#FFD166" android:pathData="M54,18 H90 V54 H54 Z"/>
+    <path android:fillColor="#9EE0A8" android:pathData="M18,54 H54 V90 H18 Z"/>
+    <path android:fillColor="#8EC5FF" android:pathData="M54,54 H90 V90 H54 Z"/>
+    <path android:strokeColor="#253150" android:strokeWidth="2.5" android:fillColor="#00000000"
+        android:pathData="M54,18 V90 M18,54 H90"/>
+</vector>
