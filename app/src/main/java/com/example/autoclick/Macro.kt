@@ -2661,6 +2661,12 @@ object Macro {
                         advance(c.extra())
                         return
                     }
+                    // Ya se intentó leer la cuenta en el perfil y no se sabe: no se sube, para no repetir una historia ya hecha
+                    if (current.isNullOrBlank() && cuentaMirada) {
+                        trace("  no sé qué cuenta está puesta: no subo la historia para no repetirla. Sigo con la publicación")
+                        advance(c.extra())
+                        return
+                    }
                     // A quién etiquetar: la cuenta que pongas o la que publicó (el nombre de arriba de la publicación)
                     // «historia frase menciones 3»: además escribe una frase y 3 menciones de tu lista
                     val toks = c.arg.trim().split(" ").filter { it.isNotEmpty() }
