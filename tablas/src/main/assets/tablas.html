@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Tablas Quest</title>
+<style>
+:root{--p:#7C4DFF;--pd:#5a33d6;--a:#FF5FA2;--ad:#cc3c7d;--ok:#22C55E;--okd:#15803d;--bad:#EF4444;--badd:#b91c1c;--txt:#2D2440;--sub:#6B5E85}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:linear-gradient(160deg,#EDE7FF,#FFE9F4);color:var(--txt)}
+.pant{display:none;min-height:100vh;padding:14px 16px 32px;max-width:520px;margin:0 auto}
+.pant.on{display:block}
+h1{font-size:1.6rem;margin:10px 0 4px;text-align:center}
+.sub{text-align:center;color:var(--sub);margin:0 0 16px}
+.btn{display:block;width:100%;border:0;border-radius:18px;padding:16px;margin:12px 0;font-size:1.1rem;font-weight:700;color:#fff;background:var(--p);box-shadow:0 4px 0 var(--pd);cursor:pointer}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 var(--pd)}
+.btn.a{background:var(--a);box-shadow:0 4px 0 var(--ad)}
+.btn.v{background:var(--ok);box-shadow:0 4px 0 var(--okd)}
+.btn.g{background:#fff;color:var(--txt);box-shadow:0 4px 0 #d8cfe9}
+.nav{background:none;border:0;color:var(--p);font-weight:700;font-size:1rem;padding:8px 0;cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:10px}
+.tile{border:0;border-radius:16px;padding:16px 0;font-size:1.4rem;font-weight:800;color:#fff;background:var(--p);box-shadow:0 4px 0 var(--pd);cursor:pointer}
+.tile small{display:block;font-size:.62rem;font-weight:600;opacity:.9}
+.tile.off{background:#CFC6E3;box-shadow:0 4px 0 #aaa;color:#fff}
+.card{background:#fff;border-radius:18px;padding:12px;box-shadow:0 6px 18px rgba(124,77,255,.12);margin:12px 0}
+.fila{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:12px;font-size:1.15rem;font-weight:700;cursor:pointer}
+.fila:nth-child(odd){background:#F6F2FF}
+.fila.marca{background:#FFD54A}
+.r{color:var(--p)}
+.barra{height:12px;background:#E6DDF7;border-radius:8px;overflow:hidden;margin:8px 0 2px}
+.barra div{height:100%;background:linear-gradient(90deg,var(--a),var(--p));width:0;transition:width .3s}
+.pregunta{font-size:2.4rem;font-weight:900;text-align:center;margin:22px 0 12px}
+.ops{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.op{border:0;border-radius:16px;padding:18px 0;font-size:1.5rem;font-weight:800;background:#fff;color:var(--txt);box-shadow:0 4px 0 #d8cfe9;cursor:pointer}
+.op.ok{background:var(--ok);color:#fff;box-shadow:0 4px 0 var(--okd)}
+.op.mal{background:var(--bad);color:#fff;box-shadow:0 4px 0 var(--badd)}
+.msg{text-align:center;min-height:30px;font-size:1.1rem;font-weight:700;margin:10px 0}
+.tiempo{font-size:2.6rem;font-weight:900;text-align:center;color:var(--p)}
+.info{text-align:center;color:var(--sub);font-weight:700}
+.aviso{text-align:center;color:var(--badd);font-weight:700;min-height:24px}
+.fin{font-size:3rem;text-align:center;margin:10px 0 0}
+.centro{text-align:center}
+</style>
+</head>
+<body>
+
+<!-- INICIO -->
+<section id="inicio" class="pant on">
+  <h1>✖️ Tablas Quest</h1>
+  <p class="sub">Aprende y practica las tablas de multiplicar</p>
+  <button class="btn" onclick="mostrar('aprender');pintarTablas()">📖 Aprender las tablas</button>
+  <button class="btn a" onclick="mostrar('elegir');pintarElegir()">✏️ Practicar</button>
+  <button class="btn v" onclick="empezarReto()">⏱️ Reto de 60 segundos</button>
+  <button class="btn g" onclick="mostrar('progreso');pintarProgreso()">🏆 Mi progreso</button>
+</section>
+
+<!-- APRENDER: elegir tabla -->
+<section id="aprender" class="pant">
+  <button class="nav" onclick="volver()">⬅ Volver</button>
+  <h1>¿Qué tabla quieres ver?</h1>
+  <div class="grid" id="gridAprender"></div>
+</section>
+
+<!-- APRENDER: ver tabla -->
+<section id="verTabla" class="pant">
+  <button class="nav" onclick="mostrar('aprender')">⬅ Volver</button>
+  <h1 id="tituloTabla"></h1>
+  <p class="sub">Toca una fila para escucharla 🔊</p>
+  <div class="card" id="listaTabla"></div>
+</section>
+
+<!-- PRACTICAR: elegir tablas -->
+<section id="elegir" class="pant">
+  <button class="nav" onclick="volver()">⬅ Volver</button>
+  <h1>¿Qué tablas practicas?</h1>
+  <p class="sub">Toca para quitar o poner. Son 10 preguntas.</p>
+  <div class="grid" id="gridElegir"></div>
+  <button class="btn a" onclick="empezarPractica()">▶ Empezar</button>
+  <div class="aviso" id="msgElegir"></div>
+</section>
+
+<!-- PRACTICAR: preguntas -->
+<section id="practica" class="pant">
+  <button class="nav" onclick="volver()">⬅ Salir</button>
+  <div class="info" id="numPregunta"></div>
+  <div class="barra"><div id="progPractica"></div></div>
+  <div class="pregunta" id="pregunta"></div>
+  <div class="ops" id="opciones"></div>
+  <div class="msg" id="msg"></div>
+</section>
+
+<!-- RETO 60 SEGUNDOS -->
+<section id="reto" class="pant">
+  <button class="nav" onclick="volver()">⬅ Salir</button>
+  <div class="tiempo" id="tiempo">60 s</div>
+  <div class="info" id="retoOk">0 aciertos</div>
+  <div class="pregunta" id="preguntaReto"></div>
+  <div class="ops" id="opcionesReto"></div>
+  <div class="msg" id="msgReto"></div>
+</section>
+
+<!-- FIN -->
+<section id="fin" class="pant">
+  <div class="fin">🎉</div>
+  <h1 id="finTitulo"></h1>
+  <p class="centro" id="finTxt"></p>
+  <button class="btn a" id="btnOtra">🔁 Otra vez</button>
+  <button class="btn g" onclick="volver()">🏠 Inicio</button>
+</section>
+
+<!-- PROGRESO -->
+<section id="progreso" class="pant">
+  <button class="nav" onclick="volver()">⬅ Volver</button>
+  <h1>🏆 Mi progreso</h1>
+  <p class="sub" id="mejorTxt"></p>
+  <div id="listaProgreso"></div>
+  <button class="btn g" id="btnBorrar" onclick="borrarProgreso(this)">🗑️ Borrar mi progreso</button>
+</section>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+
+// ---------- Datos guardados (en el propio móvil) ----------
+let datos = cargar();
+function cargar() { try { return JSON.parse(localStorage.getItem('tablasQuest') || '{}'); } catch (e) { return {}; } }
+function guardar() { try { localStorage.setItem('tablasQuest', JSON.stringify(datos)); } catch (e) {} }
+
+// registra una respuesta de la tabla n (para el progreso)
+function registrar(n, acierto) {
+  const st = datos.stats = datos.stats || {};
+  const e = st[n] || { ok: 0, total: 0 };
+  e.total++;
+  if (acierto) e.ok++;
+  st[n] = e;
+  guardar();
+}
+
+// ---------- Utilidades ----------
+function mostrar(id) {
+  $$('.pant').forEach(p => p.classList.toggle('on', p.id === id));
+  window.scrollTo(0, 0);
+}
+function volver() {
+  if (reto) { clearInterval(reto.timer); reto = null; }
+  sesion = null;
+  try { speechSynthesis.cancel(); } catch (e) {}
+  mostrar('inicio');
+}
+function hablar(t) {
+  try {
+    if ('speechSynthesis' in window) {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(t);
+      u.lang = 'es-ES'; u.rate = 0.9;
+      speechSynthesis.speak(u);
+    }
+  } catch (e) {}
+}
+function aleat(n) { return Math.floor(Math.random() * n); }
+function barajar(a) {
+  for (let i = a.length - 1; i > 0; i--) { const j = aleat(i + 1); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+function frase() {
+  const f = ['¡Muy bien! 🎉', '¡Genial! ⭐', '¡Eso es! 🌟', '¡Bravo! 💪', '¡Sigue así! 🚀'];
+  return f[aleat(f.length)];
+}
+function estrellas(ok) { return ok >= 10 ? 3 : ok >= 8 ? 2 : ok >= 6 ? 1 : 0; }
+
+// Una pregunta de multiplicar con 4 opciones
+function crearPregunta(tablas) {
+  const a = tablas[aleat(tablas.length)];
+  const b = 1 + aleat(10);
+  const r = a * b;
+  const ops = [r];
+  while (ops.length < 4) {
+    const f = Math.max(0, r + (aleat(13) - 6));
+    if (f !== r && !ops.includes(f)) ops.push(f);
+  }
+  return { a, b, r, ops: barajar(ops) };
+}
+function pintarOpciones(cont, q, onPick) {
+  cont.innerHTML = '';
+  q.ops.forEach(v => {
+    const b = document.createElement('button');
+    b.className = 'op';
+    b.textContent = v;
+    b.onclick = () => onPick(b, v);
+    cont.appendChild(b);
+  });
+}
+function marcarOk(cont, r) {
+  $$('.op', cont).forEach(o => { if (+o.textContent === r) o.classList.add('ok'); });
+}
+function mostrarFin(titulo, txt, otra) {
+  $('#finTitulo').textContent = titulo;
+  $('#finTxt').textContent = txt;
+  $('#btnOtra').onclick = otra;
+  mostrar('fin');
+}
+
+// ---------- APRENDER ----------
+function pintarTablas() {
+  const g = $('#gridAprender');
+  g.innerHTML = '';
+  for (let n = 1; n <= 10; n++) {
+    const b = document.createElement('button');
+    b.className = 'tile';
+    b.innerHTML = n + '<small>tabla</small>';
+    b.onclick = () => verTabla(n);
+    g.appendChild(b);
+  }
+}
+function verTabla(n) {
+  $('#tituloTabla').textContent = 'Tabla del ' + n;
+  const l = $('#listaTabla');
+  l.innerHTML = '';
+  for (let k = 0; k <= 10; k++) {
+    const d = document.createElement('div');
+    d.className = 'fila';
+    d.innerHTML = '<span>' + n + ' × ' + k + '</span><span class="r">= ' + (n * k) + '</span>';
+    d.onclick = () => {
+      $$('.fila', l).forEach(x => x.classList.remove('marca'));
+      d.classList.add('marca');
+      hablar(n + ' por ' + k + ', ' + (n * k));
+    };
+    l.appendChild(d);
+  }
+  mostrar('verTabla');
+}
+
+// ---------- PRACTICAR ----------
+let sesion = null;
+function pintarElegir() {
+  const g = $('#gridElegir');
+  if (!g.children.length) {
+    for (let n = 1; n <= 10; n++) {
+      const b = document.createElement('button');
+      b.className = 'tile';
+      b.dataset.n = n;
+      b.textContent = n;
+      b.onclick = () => { b.classList.toggle('off'); $('#msgElegir').textContent = ''; };
+      g.appendChild(b);
+    }
+  }
+  $('#msgElegir').textContent = '';
+}
+function elegidas() { return $$('#gridElegir .tile:not(.off)').map(b => +b.dataset.n); }
+
+function empezarPractica() {
+  const t = elegidas();
+  if (!t.length) { $('#msgElegir').textContent = 'Elige al menos una tabla 👆'; return; }
+  sesion = { tablas: t, i: 0, ok: 0, preguntas: [], bloq: false };
+  for (let k = 0; k < 10; k++) sesion.preguntas.push(crearPregunta(t));
+  mostrar('practica');
+  pintarPractica();
+}
+function pintarPractica() {
+  const s = sesion, q = s.preguntas[s.i];
+  $('#numPregunta').textContent = 'Pregunta ' + (s.i + 1) + ' de 10';
+  $('#progPractica').style.width = (s.i * 10) + '%';
+  $('#pregunta').textContent = q.a + ' × ' + q.b + ' = ?';
+  $('#msg').textContent = '';
+  s.bloq = false;
+  pintarOpciones($('#opciones'), q, responderPractica);
+}
+function responderPractica(btn, v) {
+  const s = sesion;
+  if (!s || s.bloq) return;
+  s.bloq = true;
+  const q = s.preguntas[s.i];
+  const acierto = v === q.r;
+  registrar(q.a, acierto);
+  if (acierto) {
+    s.ok++;
+    btn.classList.add('ok');
+    $('#msg').textContent = frase();
+  } else {
+    btn.classList.add('mal');
+    marcarOk($('#opciones'), q.r);
+    $('#msg').textContent = 'Casi 😊 ' + q.a + ' × ' + q.b + ' = ' + q.r;
+  }
+  hablar(q.a + ' por ' + q.b + ' es ' + q.r);
+  setTimeout(() => {
+    if (sesion !== s) return;
+    s.i++;
+    if (s.i < 10) pintarPractica(); else terminarPractica();
+  }, acierto ? 800 : 1500);
+}
+function terminarPractica() {
+  const s = sesion;
+  sesion = null;
+  const est = estrellas(s.ok);
+  if (!datos.mejorPractica || s.ok > datos.mejorPractica) datos.mejorPractica = s.ok;
+  guardar();
+  mostrarFin('¡Práctica terminada!',
+    'Has acertado ' + s.ok + ' de 10 ' + '⭐'.repeat(est) + (est ? '' : ' · ¡a por la siguiente!'),
+    empezarPractica);
+}
+
+// ---------- RETO 60 SEGUNDOS ----------
+let reto = null;
+function empezarReto() {
+  if (reto) clearInterval(reto.timer);
+  const r = { ok: 0, t: 60, timer: null, q: null, bloq: false };
+  reto = r;
+  mostrar('reto');
+  $('#tiempo').textContent = '60 s';
+  $('#retoOk').textContent = '0 aciertos';
+  $('#msgReto').textContent = '¡Rápido!';
+  siguienteReto();
+  r.timer = setInterval(() => {
+    if (reto !== r) return;
+    r.t--;
+    $('#tiempo').textContent = r.t + ' s';
+    if (r.t <= 0) terminarReto();
+  }, 1000);
+}
+function siguienteReto() {
+  const r = reto;
+  r.q = crearPregunta([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+  r.bloq = false;
+  $('#preguntaReto').textContent = r.q.a + ' × ' + r.q.b + ' = ?';
+  pintarOpciones($('#opcionesReto'), r.q, responderReto);
+}
+function responderReto(btn, v) {
+  const r = reto;
+  if (!r || r.bloq) return;
+  r.bloq = true;
+  const ok = v === r.q.r;
+  registrar(r.q.a, ok);
+  if (ok) {
+    r.ok++;
+    btn.classList.add('ok');
+    $('#retoOk').textContent = r.ok + (r.ok === 1 ? ' acierto' : ' aciertos');
+    $('#msgReto').textContent = frase();
+  } else {
+    btn.classList.add('mal');
+    marcarOk($('#opcionesReto'), r.q.r);
+    $('#msgReto').textContent = 'Era ' + r.q.r;
+  }
+  setTimeout(() => { if (reto === r && r.t > 0) siguienteReto(); }, ok ? 350 : 700);
+}
+function terminarReto() {
+  const r = reto;
+  if (!r) return;
+  clearInterval(r.timer);
+  reto = null;
+  const nuevo = r.ok > (datos.mejorReto || 0);
+  if (nuevo) datos.mejorReto = r.ok;
+  guardar();
+  mostrarFin('¡Se acabó el tiempo!',
+    'Has conseguido ' + r.ok + ' aciertos en 60 segundos' + (nuevo ? ' · ¡nuevo récord! 🏆' : ''),
+    empezarReto);
+}
+
+// ---------- PROGRESO ----------
+function pintarProgreso() {
+  const c = $('#listaProgreso');
+  c.innerHTML = '';
+  const st = datos.stats || {};
+  for (let n = 1; n <= 10; n++) {
+    const e = st[n];
+    const pct = e && e.total ? Math.round(e.ok / e.total * 100) : 0;
+    const d = document.createElement('div');
+    d.className = 'card';
+    d.innerHTML = '<div class="fila" style="padding:0"><span>Tabla del ' + n + '</span><span class="r">' +
+      (e && e.total ? pct + '% · ' + e.total + ' respuestas' : 'sin jugar') + '</span></div>' +
+      '<div class="barra"><div style="width:' + pct + '%"></div></div>';
+    c.appendChild(d);
+  }
+  $('#mejorTxt').textContent = '🏆 Mejor reto de 60 s: ' + (datos.mejorReto || 0) +
+    ' aciertos · Mejor práctica: ' + (datos.mejorPractica || 0) + ' de 10';
+}
+let borrarPulsado = false;
+function borrarProgreso(btn) {
+  if (!borrarPulsado) {
+    borrarPulsado = true;
+    btn.textContent = '¿Seguro? Pulsa otra vez para borrar';
+    setTimeout(() => { borrarPulsado = false; btn.textContent = '🗑️ Borrar mi progreso'; }, 4000);
+    return;
+  }
+  datos = {};
+  guardar();
+  borrarPulsado = false;
+  btn.textContent = '🗑️ Borrar mi progreso';
+  pintarProgreso();
+}
+</script>
+</body>
+</html>
