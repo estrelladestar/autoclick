@@ -240,10 +240,28 @@ class ClickService : AccessibilityService() {
             elevation = 6 * d
             setOnClickListener { hideOverlay() }
         }
+        // ⏭ salta el paso actual del guion (por ejemplo, una historia que ya está subida)
+        val skip = Button(this).apply {
+            text = "⏭"
+            textSize = 13f
+            setTextColor(android.graphics.Color.WHITE)
+            minWidth = 0; minimumWidth = 0; minHeight = 0; minimumHeight = 0
+            setPadding((10 * d).toInt(), (6 * d).toInt(), (10 * d).toInt(), (6 * d).toInt())
+            background = android.graphics.drawable.GradientDrawable().apply {
+                shape = android.graphics.drawable.GradientDrawable.OVAL
+                setColor(0xCC1E88E5.toInt())
+            }
+            elevation = 6 * d
+            setOnClickListener {
+                if (Macro.running) Macro.saltar() else toast("No hay ningún guion en marcha")
+            }
+        }
         val box = android.widget.LinearLayout(this).apply {
             orientation = android.widget.LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             addView(b)
+            addView(skip, android.widget.LinearLayout.LayoutParams(
+                (34 * d).toInt(), (34 * d).toInt()).apply { leftMargin = (6 * d).toInt() })
             addView(close, android.widget.LinearLayout.LayoutParams(
                 (34 * d).toInt(), (34 * d).toInt()).apply { leftMargin = (6 * d).toInt() })
         }

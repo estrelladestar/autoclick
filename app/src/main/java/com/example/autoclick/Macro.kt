@@ -38,6 +38,16 @@ object Macro {
     @Volatile
     var running = false
 
+    /** Lo pide el botón ⏭ del botón flotante: se salta el paso en el que está el guion. */
+    @Volatile
+    var saltarPaso = false
+
+    fun saltar() {
+        if (!running) return
+        saltarPaso = true
+        trace("⏭ saltas el paso actual a mano")
+    }
+
     private val main = Handler(Looper.getMainLooper())
     private var token = 0
     private var svc: ClickService? = null
@@ -780,6 +790,18 @@ object Macro {
             }
             if (blocked()) {
                 bloqueada(cmds[i])
+                return
+            }
+            if (saltarPaso) {
+                saltarPaso = false
+                val paso = cmds[i]
+                if (paso.op == "historia" && sharePhase != 0) {
+                    // Si está en medio de subir la historia, se sale de la pantalla y se sigue con la publicación
+                    storyGiveUp(paso, "saltada a mano")
+                } else {
+                    trace("  paso ${i + 1} (${paso.op}) saltado a mano")
+                    advance(0L)
+                }
                 return
             }
             showProgress()
