@@ -5,24 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mates 3</title>
 <style>
-:root{--bg:#fff7e6;--card:#fff;--ink:#2d2a4a;--accent:#7c5cff;--ok:#1f9d5c;--bad:#e5484d;--board:#1f4d3a;--chalk:#f4f4ef}
+:root{--bg:#fff7e6;--card:#fff;--ink:#2d2a4a;--accent:#7c5cff;--ok:#1f9d5c;--bad:#e5484d;--board:#1f4d3a;--chalk:#f4f4ef;--gold:#ffb020}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;display:flex;justify-content:center;padding:16px}
 .app{width:100%;max-width:560px;display:flex;flex-direction:column;gap:14px}
 h1{margin:0;text-align:center;font-size:1.9rem}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
-.chips button{flex:1 1 30%;padding:10px 6px;border:2px solid var(--accent);background:#fff;color:var(--accent);border-radius:12px;font-weight:700;font-size:1rem;cursor:pointer}
+.chips button{flex:1 1 40%;padding:10px 6px;border:2px solid var(--accent);background:#fff;color:var(--accent);border-radius:12px;font-weight:700;font-size:1rem;cursor:pointer}
 .chips button.active{background:var(--accent);color:#fff}
 .chips button:disabled{opacity:.4;cursor:default}
 .stats{display:flex;justify-content:space-between;font-weight:600;gap:8px}
+.coins{background:var(--gold);color:var(--ink);border-radius:999px;padding:2px 12px;font-weight:800}
 .card{background:var(--card);border-radius:18px;padding:20px;box-shadow:0 4px 16px rgba(0,0,0,.08);text-align:center}
 .question{font-size:2.4rem;font-weight:800;margin:8px 0 16px}
 input{width:100%;max-width:220px;font-size:1.8rem;text-align:center;padding:10px;border:3px solid #ddd;border-radius:12px;color:var(--ink)}
 input:focus{outline:none;border-color:var(--accent)}
 .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px}
 .btn{padding:12px 20px;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;color:#fff;background:var(--accent)}
-.btn.hint{background:#ffb020;color:var(--ink)}
+.btn.hint{background:var(--gold);color:var(--ink)}
 .btn.sec{background:#e7e4f5;color:var(--ink)}
 .btn:disabled{opacity:.45;cursor:default}
 .feedback{min-height:50px;margin-top:12px;font-size:1.1rem;font-weight:700}
@@ -45,6 +46,8 @@ canvas{width:100%;height:240px;display:block;touch-action:none;cursor:crosshair;
 .opts{display:flex;flex-wrap:wrap;gap:8px}
 .opt{padding:8px 12px;border:2px solid #d9d4f0;background:#faf9ff;color:var(--ink);border-radius:10px;font-weight:600;font-size:.95rem;cursor:pointer}
 .opt.active{border-color:#e5484d;background:#e5484d;color:#fff}
+.opt.locked{border-style:dashed;color:#6b6790}
+.dress-msg{min-height:22px;text-align:center;font-weight:700;color:var(--bad)}
 </style>
 </head>
 <body>
@@ -53,160 +56,136 @@ canvas{width:100%;height:240px;display:block;touch-action:none;cursor:crosshair;
 
   <div class="chips" id="modes">
     <button data-mode="math" class="active">🧮 Mates</button>
-    <button data-mode="dress">🎄 Vestir</button>
+    <button data-mode="dress">🦌 Reno</button>
   </div>
 
   <div id="mathSection">
-  <div class="chips" id="ops">
-    <button data-op="mixto" class="active">Mezcla</button>
-    <button data-op="suma">Sumar</button>
-    <button data-op="resta">Restar</button>
-    <button data-op="mult">Multiplicar</button>
-    <button data-op="div">Dividir</button>
-    <button data-op="tablas">Tablas 1-10</button>
-  </div>
+    <div class="chips" id="ops">
+      <button data-op="suma" class="active">Sumar</button>
+      <button data-op="resta">Restar</button>
+      <button data-op="mult">Multiplicar</button>
+      <button data-op="div">Dividir</button>
+    </div>
 
-  <div class="chips" id="levels">
-    <button data-level="facil" class="active">Fácil</button>
-    <button data-level="dificil">Difícil</button>
-    <button data-level="experto">Experto</button>
-  </div>
+    <div class="chips" id="levels">
+      <button data-level="facil" class="active">Fácil (1 🪙)</button>
+      <button data-level="dificil">Difícil (2 🪙)</button>
+      <button data-level="experto">Experto (3 🪙)</button>
+    </div>
 
-  <div class="stats">
-    <span id="progress"></span>
-    <span id="score">Aciertos: 0</span>
-  </div>
+    <div class="stats">
+      <span id="progress"></span>
+      <span id="score">Aciertos: 0</span>
+    </div>
 
-  <div class="card">
-    <div id="play">
-      <div class="question" id="question"></div>
-      <input type="number" inputmode="numeric" id="answer" placeholder="?" autocomplete="off">
-      <div class="row">
-        <button class="btn" id="check">Comprobar</button>
-        <button class="btn hint" id="hint">💡 Pista</button>
-        <button class="btn sec" id="next" disabled>Siguiente ➜</button>
+    <div class="card">
+      <div id="play">
+        <div class="question" id="question"></div>
+        <input type="number" inputmode="numeric" id="answer" placeholder="?" autocomplete="off">
+        <div class="row">
+          <button class="btn" id="check">Comprobar</button>
+          <button class="btn hint" id="hint">💡 Pista</button>
+          <button class="btn sec" id="next" disabled>Siguiente ➜</button>
+        </div>
+        <div class="hint-box" id="hintBox"></div>
+        <div class="feedback" id="feedback"></div>
       </div>
-      <div class="hint-box" id="hintBox"></div>
-      <div class="feedback" id="feedback"></div>
-    </div>
-    <div id="result" hidden>
-      <div class="question">¡Ronda terminada!</div>
-      <div class="end" id="endScore"></div>
-      <p id="endMsg"></p>
-      <div class="row"><button class="btn" id="again">Jugar otra vez</button></div>
-    </div>
-  </div>
-
-  <div class="board">
-    <div class="board-head">
-      <span>✏️ Pizarra para cuentas en sucio</span>
-      <div class="tools">
-        <button id="penBtn" class="active">Tiza</button>
-        <button id="eraserBtn">Goma</button>
-        <button id="clearBtn">Borrar todo</button>
+      <div id="result" hidden>
+        <div class="question">¡Ronda terminada!</div>
+        <div class="end" id="endScore"></div>
+        <p id="endMsg"></p>
+        <div class="row"><button class="btn" id="again">Jugar otra vez</button></div>
       </div>
     </div>
-    <canvas id="pizarra"></canvas>
-  </div>
+
+    <div class="board">
+      <div class="board-head">
+        <span>✏️ Pizarra para cuentas en sucio</span>
+        <div class="tools">
+          <button id="penBtn" class="active">Tiza</button>
+          <button id="eraserBtn">Goma</button>
+          <button id="clearBtn">Borrar todo</button>
+        </div>
+      </div>
+      <canvas id="pizarra"></canvas>
+    </div>
   </div>
 
   <div id="dressSection" hidden>
-    <div class="chips" id="chars">
-      <button data-char="avatar" class="active">🧒 Avatar</button>
-      <button data-char="reno">🦌 Reno</button>
+    <div class="stats">
+      <span>Disfraza al reno con tus monedas</span>
+      <span class="coins" id="coinsDress">🪙 0</span>
     </div>
     <div class="stage">
       <svg id="svg" viewBox="0 0 200 290" xmlns="http://www.w3.org/2000/svg"></svg>
     </div>
+    <div class="dress-msg" id="dressMsg"></div>
     <div class="panel" id="panel"></div>
     <div class="row">
-      <button class="btn" id="random">🎲 Aleatorio</button>
-      <button class="btn sec" id="reset">Reiniciar</button>
+      <button class="btn sec" id="reset">Quitar disfraz</button>
     </div>
   </div>
 </div>
 
 <script>
 const TOTAL = 10;
-const OPS_NAMES = {mixto:'Mezcla', suma:'Sumar', resta:'Restar', mult:'Multiplicar', div:'Dividir', tablas:'Tablas 1-10'};
+const OPS_NAMES = {suma:'Sumar', resta:'Restar', mult:'Multiplicar', div:'Dividir'};
 const LEVEL_NAMES = {facil:'Fácil', dificil:'Difícil', experto:'Experto'};
-let op = 'mixto', level = 'facil', qNum = 0, correct = 0, current = null, hintStage = 0, answered = false;
+const COINS_PER = {facil:1, dificil:2, experto:3};
+
+/* ---------- Tienda del reno ---------- */
+const SLOT_LABELS = {hat:'Gorro', top:'Pelo y cuerpo', extra:'Extra'};
+const ITEMS = {
+  hat: [
+    {id:'none', name:'Sin gorro', price:0},
+    {id:'gorro', name:'Gorro de Papá Noel', price:10},
+    {id:'lazo', name:'Lacito', price:5}
+  ],
+  top: [
+    {id:'natural', name:'Pelo natural', price:0},
+    {id:'rojo', name:'Rojo con copos', price:15},
+    {id:'verde', name:'Verde con copos', price:15}
+  ],
+  extra: [
+    {id:'none', name:'Nada', price:0},
+    {id:'bufanda', name:'Bufanda verde', price:8},
+    {id:'cascabel', name:'Cascabel', price:6},
+    {id:'luces', name:'Luces en la cornamenta', price:12}
+  ]
+};
+const SAVE_KEY = 'mates3-save';
+
+function defaultSave() {
+  return {coins: 0, owned: [], equipped: {hat:'none', top:'natural', extra:'none'}};
+}
+function loadSave() {
+  try {
+    const s = JSON.parse(localStorage.getItem(SAVE_KEY));
+    if (s && typeof s.coins === 'number') return {...defaultSave(), ...s};
+  } catch (e) {}
+  return defaultSave();
+}
+function persist() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {}
+}
+let save = loadSave();
+
+function itemOf(slot, id) { return ITEMS[slot].find(i => i.id === id); }
+function isOwned(slot, id) {
+  const it = itemOf(slot, id);
+  return it.price === 0 || save.owned.includes(slot + ':' + id);
+}
+
+/* ---------- Estado del juego ---------- */
+let op = 'suma', level = 'facil', qNum = 0, correct = 0, earned = 0;
+let current = null, hintStage = 0, answered = false;
 
 const $ = id => document.getElementById(id);
 const rnd = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 const mk = (text, ans, hints) => ({text, ans, hints});
 const tens = n => Math.floor(n / 10) * 10;
 
-/* ---------- Mezcla (los tres niveles mezclan operaciones) ---------- */
-function genFacil() {
-  if (Math.random() < 0.5) {
-    const a = rnd(1, 10), b = rnd(1, 10);
-    return mk(`${a} + ${b}`, a + b, [
-      `Cuenta hacia arriba: empieza en ${a} y suma ${b} de uno en uno.`,
-      `${a} + ${b} = ${a} + ${Math.floor(b/2)} + ${b - Math.floor(b/2)}`
-    ]);
-  }
-  const a = rnd(5, 20), b = rnd(1, a);
-  return mk(`${a} − ${b}`, a - b, [
-    `Empieza en ${a} y cuenta hacia atrás ${b} lugares.`,
-    `Piensa: ¿qué número hay que sumarle a ${b} para llegar a ${a}?`
-  ]);
-}
-
-function genDificil() {
-  const r = Math.random();
-  if (r < 0.35) {
-    const a = rnd(10, 60), b = rnd(10, 40);
-    return mk(`${a} + ${b}`, a + b, [
-      `Suma primero las decenas y luego las unidades.`,
-      `${a} + ${b} = ${a} + ${tens(b)} + ${b % 10}`
-    ]);
-  }
-  if (r < 0.65) {
-    const a = rnd(20, 100), b = rnd(1, a);
-    return mk(`${a} − ${b}`, a - b, [
-      `Resta primero las decenas y después las unidades.`,
-      `${a} − ${b} = ${a} − ${tens(b)} − ${b % 10}`
-    ]);
-  }
-  const a = rnd(2, 10), b = rnd(2, 10);
-  return mk(`${a} × ${b}`, a * b, [
-    `Piensa en ${a} grupos de ${b}, o recuerda la tabla del ${a}.`,
-    `${a} × ${b} = ${a} × ${b - 1} + ${a}`
-  ]);
-}
-
-function genExperto() {
-  const r = Math.random();
-  if (r < 0.3) {
-    const a = rnd(12, 99), b = rnd(2, 9);
-    return mk(`${a} × ${b}`, a * b, [
-      `Descompón el número: multiplica las decenas y las unidades por separado.`,
-      `${a} × ${b} = ${tens(a)} × ${b} + ${a % 10} × ${b}`
-    ]);
-  }
-  if (r < 0.55) {
-    const b = rnd(2, 12), q = rnd(2, 20), a = b * q;
-    return mk(`${a} ÷ ${b}`, q, [
-      `Pregúntate: ¿qué número por ${b} da ${a}?`,
-      `Prueba la tabla del ${b} hasta llegar a ${a}.`
-    ]);
-  }
-  if (r < 0.8) {
-    const a = rnd(1, 50), b = rnd(2, 9), c = rnd(2, 9);
-    return mk(`${a} + ${b} × ${c}`, a + b * c, [
-      `Primero haz la multiplicación (va antes que la suma).`,
-      `Calcula ${b} × ${c} = ${b * c}, y después suma ${a}.`
-    ]);
-  }
-  const a = rnd(10, 60), b = rnd(1, a - 1), c = rnd(2, 9);
-  return mk(`(${a} − ${b}) × ${c}`, (a - b) * c, [
-    `Lo que está entre paréntesis se hace primero.`,
-    `Calcula ${a} − ${b} = ${a - b}, y luego multiplica por ${c}.`
-  ]);
-}
-
-/* ---------- Por operación y nivel ---------- */
+/* ---------- Operaciones por nivel ---------- */
 function genSuma(l) {
   if (l === 'facil') {
     const a = rnd(1, 10), b = rnd(1, 10);
@@ -295,23 +274,17 @@ function genDiv(l) {
   ]);
 }
 
-function genTablas() {
-  const a = rnd(1, 10), b = rnd(1, 10);
-  return mk(`${a} × ${b}`, a * b, [
-    `Piensa en ${a} grupos de ${b}, o recuerda la tabla del ${a}.`,
-    `${a} × ${b} = ${a} × ${b - 1} + ${a}`
-  ]);
-}
-
 function generate() {
-  if (op === 'tablas') return genTablas();
-  if (op === 'mixto') return ({facil: genFacil, dificil: genDificil, experto: genExperto})[level]();
   return ({suma: genSuma, resta: genResta, mult: genMult, div: genDiv})[op](level);
 }
 
 /* ---------- Juego ---------- */
 function label() {
-  return op === 'tablas' ? 'Tablas 1-10' : `${OPS_NAMES[op]} · ${LEVEL_NAMES[level]}`;
+  return `${OPS_NAMES[op]} · ${LEVEL_NAMES[level]}`;
+}
+
+function updateStats() {
+  $('score').textContent = `Aciertos: ${correct} · 🪙 ${save.coins}`;
 }
 
 function newQuestion() {
@@ -331,13 +304,14 @@ function newQuestion() {
   $('feedback').textContent = '';
   $('feedback').className = 'feedback';
   $('progress').textContent = `${label()} · ${qNum + 1} / ${TOTAL}`;
-  $('score').textContent = `Aciertos: ${correct}`;
+  updateStats();
   $('answer').focus();
 }
 
 function startRound() {
   qNum = 0;
   correct = 0;
+  earned = 0;
   $('play').hidden = false;
   $('result').hidden = true;
   newQuestion();
@@ -354,13 +328,17 @@ function check() {
   $('next').disabled = false;
   if (Number(v) === current.ans) {
     correct++;
-    $('feedback').textContent = '¡Muy bien! 🎉';
+    const gain = COINS_PER[level];
+    earned += gain;
+    save.coins += gain;
+    persist();
+    $('feedback').textContent = `¡Muy bien! 🎉 +${gain} 🪙`;
     $('feedback').className = 'feedback ok';
   } else {
     $('feedback').textContent = `Casi. La respuesta correcta es ${current.ans}.`;
     $('feedback').className = 'feedback bad';
   }
-  $('score').textContent = `Aciertos: ${correct}`;
+  updateStats();
   if (qNum + 1 === TOTAL) $('next').textContent = 'Ver resultado ➜';
 }
 
@@ -388,12 +366,12 @@ function finish() {
     : correct >= 7 ? '¡Muy bien, sigue así! ⭐'
     : correct >= 4 ? 'Buen trabajo, puedes mejorar 💪'
     : 'Vuelve a intentarlo, ¡tú puedes! 🌱';
-  $('endScore').textContent = `${label()}: has acertado ${correct} de ${TOTAL}`;
+  $('endScore').textContent = `${label()}: ${correct} de ${TOTAL} · +${earned} 🪙 en esta ronda`;
   $('endMsg').textContent = msg;
   $('play').hidden = true;
   $('result').hidden = false;
   $('progress').textContent = label();
-  $('score').textContent = `Aciertos: ${correct}`;
+  updateStats();
 }
 
 function mark(containerId, value, key) {
@@ -405,7 +383,6 @@ document.querySelectorAll('#ops button').forEach(btn => {
   btn.addEventListener('click', () => {
     op = btn.dataset.op;
     mark('ops', op, 'op');
-    document.querySelectorAll('#levels button').forEach(b => b.disabled = op === 'tablas');
     startRound();
   });
 });
@@ -499,65 +476,9 @@ $('clearBtn').addEventListener('click', () => {
 window.addEventListener('resize', resizeBoard);
 resizeBoard();
 
-/* ---------- Vístete para Navidad ---------- */
-const DRESS_LABELS = {hat:'Gorro / corona', top:'Ropa', extra:'Extra'};
-const DRESS = {
-  avatar: {
-    defaults: {hat:'none', top:'rojo', extra:'none'},
-    slots: {
-      hat: [{id:'none',name:'Sin gorro'},{id:'papa',name:'Gorro de Papá Noel'},{id:'elfo',name:'Gorro de elfo'},{id:'corona',name:'Corona de acebo'}],
-      top: [{id:'rojo',name:'Jersey rojo'},{id:'verde',name:'Jersey verde'},{id:'azul',name:'Jersey azul'},{id:'copos',name:'Jersey de copos'}],
-      extra: [{id:'none',name:'Nada'},{id:'gafas',name:'Gafas'},{id:'baston',name:'Bastón de caramelo'},{id:'bufanda',name:'Bufanda'}]
-    }
-  },
-  reno: {
-    defaults: {hat:'none', top:'natural', extra:'none'},
-    slots: {
-      hat: [{id:'none',name:'Sin gorro'},{id:'gorro',name:'Gorro de Papá Noel'},{id:'lazo',name:'Lacito'}],
-      top: [{id:'natural',name:'Pelo natural'},{id:'rojo',name:'Rojo con copos'},{id:'verde',name:'Verde con copos'}],
-      extra: [{id:'none',name:'Nada'},{id:'bufanda',name:'Bufanda verde'},{id:'cascabel',name:'Cascabel'},{id:'luces',name:'Luces en la cornamenta'}]
-    }
-  }
-};
-const dressState = {avatar: {...DRESS.avatar.defaults}, reno: {...DRESS.reno.defaults}};
-let dressChar = 'avatar';
-const SKIN = '#f5c9a0', HAIR = '#6b3f1d', INK = '#2d2a4a';
-const SNOW = [[80,165],[120,162],[100,190],[75,210],[125,212],[100,232],[88,250],[114,248]];
+/* ---------- Reno para disfrazar ---------- */
+const INK = '#2d2a4a';
 const RSNOW = [[70,180],[90,170],[110,195],[130,178],[100,215],[80,205],[120,210]];
-
-function drawAvatar(s) {
-  const shirt = {rojo:'#e5484d', verde:'#1f9d5c', azul:'#3b82f6', copos:'#e5484d'}[s.top];
-  const dots = s.top === 'copos'
-    ? `<g fill="#fff">${SNOW.map(([x,y]) => `<circle cx="${x}" cy="${y}" r="4"/>`).join('')}</g>` : '';
-  const legs = `<rect x="72" y="230" width="22" height="50" rx="10" fill="${INK}"/>
-    <rect x="106" y="230" width="22" height="50" rx="10" fill="${INK}"/>`;
-  const top = `<rect x="40" y="150" width="24" height="75" rx="12" fill="${shirt}"/>
-    <rect x="136" y="150" width="24" height="75" rx="12" fill="${shirt}"/>
-    <rect x="62" y="140" width="76" height="100" rx="26" fill="${shirt}"/>
-    <circle cx="52" cy="228" r="11" fill="${SKIN}"/>
-    <circle cx="148" cy="228" r="11" fill="${SKIN}"/>${dots}`;
-  const head = `<circle cx="100" cy="95" r="52" fill="${HAIR}"/>
-    <circle cx="100" cy="105" r="44" fill="${SKIN}"/>
-    <path d="M56 92 Q60 40 100 42 Q142 42 146 92 Q130 66 100 70 Q72 66 56 92Z" fill="${HAIR}"/>
-    <circle cx="85" cy="108" r="5" fill="${INK}"/>
-    <circle cx="115" cy="108" r="5" fill="${INK}"/>
-    <ellipse cx="78" cy="122" rx="7" ry="4" fill="#ff9aa2" opacity=".6"/>
-    <ellipse cx="122" cy="122" rx="7" ry="4" fill="#ff9aa2" opacity=".6"/>
-    <path d="M88 124 Q100 136 112 124" stroke="${INK}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
-  const hats = {
-    none: '',
-    papa: `<path d="M56 82 Q56 22 104 18 Q150 22 146 84 Q126 66 100 68 Q74 66 56 82Z" fill="#e5484d"/><rect x="48" y="74" width="104" height="18" rx="9" fill="#fff"/><circle cx="146" cy="22" r="12" fill="#fff"/>`,
-    elfo: `<path d="M56 80 Q50 20 120 22 Q150 26 150 80Z" fill="#1f9d5c"/><rect x="48" y="72" width="104" height="16" rx="8" fill="#fff"/><circle cx="128" cy="26" r="10" fill="#fff"/>`,
-    corona: `<path d="M60 70 L68 40 L84 58 L100 32 L116 58 L132 40 L140 70Z" fill="#ffd166" stroke="#e0a800" stroke-width="2"/><circle cx="68" cy="40" r="5" fill="#e5484d"/><circle cx="100" cy="32" r="5" fill="#e5484d"/><circle cx="132" cy="40" r="5" fill="#e5484d"/>`
-  };
-  const extras = {
-    none: '',
-    gafas: `<g fill="none" stroke="${INK}" stroke-width="3"><circle cx="85" cy="108" r="11"/><circle cx="115" cy="108" r="11"/><line x1="96" y1="108" x2="104" y2="108"/></g>`,
-    baston: `<path d="M170 225 V170 Q170 150 186 150 Q200 150 200 166" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round"/><path d="M170 225 V170 Q170 150 186 150 Q200 150 200 166" fill="none" stroke="#e5484d" stroke-width="10" stroke-dasharray="8 8"/>`,
-    bufanda: `<rect x="66" y="136" width="68" height="16" rx="8" fill="#ffd166"/><rect x="118" y="146" width="16" height="36" rx="6" fill="#ffd166"/>`
-  };
-  return legs + top + head + hats[s.hat] + extras[s.extra];
-}
 
 function drawReno(s) {
   const body = s.top === 'natural' ? '#8b5a2b' : s.top === 'rojo' ? '#e5484d' : '#1f9d5c';
@@ -591,53 +512,62 @@ function drawReno(s) {
   return tail + legs + top + head + antlers + hats[s.hat] + extras[s.extra];
 }
 
+function showDressMsg(text) {
+  $('dressMsg').textContent = text;
+}
+
 function renderDress() {
-  const s = dressState[dressChar];
-  $('svg').innerHTML = dressChar === 'avatar' ? drawAvatar(s) : drawReno(s);
-  document.querySelectorAll('#chars button').forEach(b => b.classList.toggle('active', b.dataset.char === dressChar));
-  const slots = DRESS[dressChar].slots;
-  $('panel').innerHTML = Object.keys(slots).map(slot => `
+  $('svg').innerHTML = drawReno(save.equipped);
+  $('coinsDress').textContent = `🪙 ${save.coins}`;
+  $('panel').innerHTML = Object.keys(ITEMS).map(slot => `
     <div class="slot">
-      <h3>${DRESS_LABELS[slot]}</h3>
+      <h3>${SLOT_LABELS[slot]}</h3>
       <div class="opts">
-        ${slots[slot].map(o => `<button class="opt ${s[slot] === o.id ? 'active' : ''}" data-slot="${slot}" data-id="${o.id}">${o.name}</button>`).join('')}
+        ${ITEMS[slot].map(it => {
+          const owned = isOwned(slot, it.id);
+          const equipped = save.equipped[slot] === it.id;
+          const tag = owned ? '' : ` · 🪙${it.price}`;
+          return `<button class="opt ${equipped ? 'active' : ''} ${owned ? '' : 'locked'}" data-slot="${slot}" data-id="${it.id}">${it.name}${tag}</button>`;
+        }).join('')}
       </div>
     </div>`).join('');
 }
 
-document.querySelectorAll('#chars button').forEach(b => b.addEventListener('click', () => {
-  dressChar = b.dataset.char;
-  renderDress();
-}));
-
 $('panel').addEventListener('click', e => {
   const b = e.target.closest('.opt');
   if (!b) return;
-  dressState[dressChar][b.dataset.slot] = b.dataset.id;
-  renderDress();
-});
-
-$('random').addEventListener('click', () => {
-  const slots = DRESS[dressChar].slots;
-  Object.keys(slots).forEach(slot => {
-    const opts = slots[slot];
-    dressState[dressChar][slot] = opts[Math.floor(Math.random() * opts.length)].id;
-  });
+  const slot = b.dataset.slot, id = b.dataset.id;
+  const it = itemOf(slot, id);
+  if (isOwned(slot, id)) {
+    save.equipped[slot] = id;
+    showDressMsg('');
+  } else if (save.coins >= it.price) {
+    save.coins -= it.price;
+    save.owned.push(slot + ':' + id);
+    save.equipped[slot] = id;
+    showDressMsg(`¡Comprado: ${it.name}!`);
+  } else {
+    showDressMsg(`Te faltan ${it.price - save.coins} 🪙 para ${it.name}. ¡Sigue jugando!`);
+    return;
+  }
+  persist();
   renderDress();
 });
 
 $('reset').addEventListener('click', () => {
-  dressState[dressChar] = {...DRESS[dressChar].defaults};
+  save.equipped = {hat:'none', top:'natural', extra:'none'};
+  persist();
+  showDressMsg('');
   renderDress();
 });
 
-/* ---------- Cambio entre Mates y Vestir ---------- */
+/* ---------- Cambio entre Mates y Reno ---------- */
 function setMode(m) {
   const dress = m === 'dress';
   $('mathSection').hidden = dress;
   $('dressSection').hidden = !dress;
   document.querySelectorAll('#modes button').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
-  if (dress) renderDress(); else resizeBoard();
+  if (dress) renderDress(); else { resizeBoard(); updateStats(); }
 }
 document.querySelectorAll('#modes button').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
 
