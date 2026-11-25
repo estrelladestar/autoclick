@@ -1578,11 +1578,8 @@ object Macro {
                 notPosted(pick, err, c)
                 return
             }
-            // Sin aviso conocido: mirar si ha aparecido cualquier línea en rojo que antes no estaba
-            if (s.redBefore) {
-                posted(pick, c)
-                return
-            }
+            // Sin aviso conocido: si salen letras rojas, a la primera se cambia de cuenta.
+            // (Antes, si ya había algo rojo en pantalla antes de publicar, se daba por bueno y no cambiaba.)
             val gen = stepGen
             nextDue = System.currentTimeMillis() + 10_000L
             s.checkRedText { red ->
