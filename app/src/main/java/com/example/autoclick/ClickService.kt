@@ -177,10 +177,21 @@ class ClickService : AccessibilityService() {
 
         /** ¿Está Star App encendida en Ajustes → Accesibilidad (aunque el servicio no haya arrancado)? */
         fun enabledInSettings(ctx: Context): Boolean {
+            // 1) Lista oficial del sistema: compara paquete y clase de ESTA app (no la de otra «Star App»)
+            val am = ctx.getSystemService(android.view.accessibility.AccessibilityManager::class.java)
+            val porSistema = am?.getEnabledAccessibilityServiceList(
+                android.accessibilityservice.AccessibilityServiceInfo.FEEDBACK_ALL_MASK
+            )?.any {
+                val si = it.resolveInfo.serviceInfo
+                si.packageName == ctx.packageName && si.name == ClickService::class.java.name
+            } == true
+            if (porSistema) return true
+            // 2) Respaldo: el texto de Ajustes con el nombre completo del componente de esta app
             val list = android.provider.Settings.Secure.getString(
                 ctx.contentResolver, android.provider.Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
             ) ?: return false
-            return list.split(':').any { it.startsWith(ctx.packageName + "/") }
+            val yo = android.content.ComponentName(ctx, ClickService::class.java).flattenToString()
+            return list.split(':').any { it.equals(yo, ignoreCase = true) }
         }
     }
 

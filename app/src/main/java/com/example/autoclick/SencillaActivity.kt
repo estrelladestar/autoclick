@@ -917,7 +917,7 @@ class SencillaActivity : Activity() {
             .setTitle("Falta la accesibilidad de Star App Sencilla")
             .setMessage(
                 if (on) "Está activada, pero no funciona: en Ajustes, apágala y vuelve a encenderla."
-                else "Pulsa «Abrir Ajustes», busca Star App Sencilla y actívala."
+                else "Pulsa «Abrir Ajustes», busca «Star App Sencilla» (no «Star App» ni «Star App Historias») y actívala. Si el interruptor sale gris, pulsa «Permitir ajustes restringidos» en la info de la app."
             )
             .setPositiveButton("Abrir Ajustes") { _, _ ->
                 try {
