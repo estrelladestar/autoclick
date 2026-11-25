@@ -48,6 +48,7 @@ class SencillaActivity : Activity() {
     private val fotoPendiente = arrayOfNulls<Runnable>(5)
     private val fotoHandler = Handler(Looper.getMainLooper())
     private lateinit var cuentasBox: EditText
+    private lateinit var cuentasNoBox: EditText
     private lateinit var mencionesBox: EditText
     private lateinit var nMencionesSpin: Spinner
     private val botonesGuardar = ArrayList<TextView>()
@@ -318,6 +319,9 @@ class SencillaActivity : Activity() {
         seccionNueva("👥 2. Cuentas (en orden; vacío = todas)", MORADO)
         texto("Sepáralas con espacios. Con 2 o más, la app cambia de cuenta sola.")
         cuentasBox = caja(prefs.getString("s_cuentas", "") ?: "", pista = "cuenta1 cuenta2 …")
+        texto("🚫 Cuentas que NO quieres usar. Solo se aplica si el cuadro 2 está vacío (todas las cuentas). Sepáralas con espacios.")
+        cuentasNoBox = caja(prefs.getString("s_cuentas_no", "") ?: "", pista = "cuenta_a_saltar otra")
+        alEscribir(cuentasNoBox) { prefs.edit().putString("s_cuentas_no", cuentasNoBox.text.toString().trim()).apply() }
 
         seccionNueva("💬 3. Tus menciones (una por línea)", NARANJA)
         Macro.ponerMencionesDeFabrica(this)
@@ -747,6 +751,7 @@ class SencillaActivity : Activity() {
         }
         prefs.edit()
             .putString("s_cuentas", cuentasBox.text.toString().trim())
+            .putString("s_cuentas_no", cuentasNoBox.text.toString().trim())
             .putInt("s_nmen", nMencionesSpin.selectedItemPosition)
             .putBoolean("s_frase", fraseBox.isChecked)
             .putInt("s_frases_op", frasesSpin.selectedItemPosition)

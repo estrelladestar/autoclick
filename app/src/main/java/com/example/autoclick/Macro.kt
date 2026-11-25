@@ -448,6 +448,10 @@ object Macro {
         private var pending = 0
         /** Cuentas ya usadas en esta ronda (modo «todas las cuentas de Instagram»). */
         private val visited = LinkedHashSet<String>()
+        /** Cuentas que NO quieres usar (cuadro «NO usar» de Star App Sencilla). Solo afecta al modo «todas las cuentas». */
+        private val cuentasNoUsar: Set<String> = (s.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE).getString("s_cuentas_no", "") ?: "")
+            .split(Regex("[\\s,;]+")).map { it.trim().removePrefix("@").lowercase() }.filter { it.isNotEmpty() }.toSet()
+        private fun noUsada(n: String) = cuentasNoUsar.contains(n.lowercase())
         private var scrolls = 0
         /** Veces seguidas que se ha saltado una cuenta por el límite diario. */
         private var skipsInARow = 0
@@ -1982,7 +1986,7 @@ object Macro {
                 }
             }
             current?.let { visited.add(it) }
-            var target = list.map { it.first }.firstOrNull { it !in visited }
+            var target = list.map { it.first }.firstOrNull { it !in visited && !noUsada(it) }
             val spot = Rect().also { list.last().second.getBoundsInScreen(it) }
             if (target == null && scrolls < 3) {
                 // Puede que haya más cuentas más abajo
@@ -2003,7 +2007,7 @@ object Macro {
                     later(1200L)
                     return
                 }
-                target = list.map { it.first }.firstOrNull { it !in visited }
+                target = list.map { it.first }.firstOrNull { it !in visited && !noUsada(it) }
             }
             if (target == null) {
                 recover("otra cuenta en la lista de cuentas")
@@ -2029,7 +2033,7 @@ object Macro {
             }
             current?.let { visited.add(it) }
             fun seen(n: String) = visited.any { it.equals(n, ignoreCase = true) }
-            var target = names.firstOrNull { !seen(it.first) }
+            var target = names.firstOrNull { !seen(it.first) && !noUsada(it.first) }
             val spot = names.last().second
             if (target == null && scrolls < 3) {
                 scrolls++
@@ -2048,7 +2052,7 @@ object Macro {
                     later(1200L)
                     return true
                 }
-                target = names.firstOrNull { !seen(it.first) }
+                target = names.firstOrNull { !seen(it.first) && !noUsada(it.first) }
             }
             if (target == null) {
                 recover("otra cuenta en la lista de cuentas")
