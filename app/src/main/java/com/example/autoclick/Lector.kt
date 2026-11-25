@@ -58,7 +58,7 @@ object Lector {
         accounts = accs.map { it.lowercase().removePrefix("@") }.toSet()
         seen.clear(); started = false; rounds = 0; sameRounds = 0; stuckRounds = 0; lastScreen = ""; result = null
         try {
-            s.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).setPackage("com.instagram.android").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            s.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).setPackage(Macro.INSTAGRAM).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         } catch (e: Exception) {
             try { s.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } catch (e2: Exception) {}
         }
@@ -80,11 +80,11 @@ object Lector {
             for (w in s.windows) {
                 if (w.type != AccessibilityWindowInfo.TYPE_APPLICATION) continue
                 val r = w.root ?: continue
-                if (r.packageName?.toString() == "com.instagram.android") return r
+                if (r.packageName?.toString() == Macro.INSTAGRAM) return r
             }
         } catch (e: Exception) {}
         val r = s.rootInActiveWindow
-        return if (r?.packageName?.toString() == "com.instagram.android") r else null
+        return if (r?.packageName?.toString() == Macro.INSTAGRAM) r else null
     }
 
     private fun textsOf(n: AccessibilityNodeInfo?, out: ArrayList<String>, d: Int = 0) {

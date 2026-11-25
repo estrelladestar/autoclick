@@ -49,6 +49,7 @@ class SencillaActivity : Activity() {
     private val fotoHandler = Handler(Looper.getMainLooper())
     private lateinit var cuentasBox: EditText
     private lateinit var cuentasNoBox: EditText
+    private lateinit var igPkgBox: EditText
     private lateinit var mencionesBox: EditText
     private lateinit var nMencionesSpin: Spinner
     private val botonesGuardar = ArrayList<TextView>()
@@ -322,6 +323,20 @@ class SencillaActivity : Activity() {
         texto("🚫 Cuentas que NO quieres usar. Solo se aplica si el cuadro 2 está vacío (todas las cuentas). Sepáralas con espacios.")
         cuentasNoBox = caja(prefs.getString("s_cuentas_no", "") ?: "", pista = "cuenta_a_saltar otra")
         alEscribir(cuentasNoBox) { prefs.edit().putString("s_cuentas_no", cuentasNoBox.text.toString().trim()).apply() }
+
+        // Copia de Instagram (doble app): si está, el guion la usa en vez de la normal. Vacío = la normal.
+        texto("📱 Si tienes una copia de Instagram (doble app) para otra cuenta, pon aquí su nombre de paquete. Si lo dejas vacío, se usa Instagram normal.")
+        val igGuardado = prefs.getString("ig_pkg", "") ?: ""
+        if (igGuardado.isEmpty()) {
+            // Se busca una sola copia instalada: si hay exactamente una, se pone sola
+            val copias = try {
+                packageManager.getInstalledApplications(0).map { it.packageName }
+                    .filter { it.startsWith("com.instagram.android") && it != "com.instagram.android" }
+            } catch (e: Exception) { emptyList() }
+            if (copias.size == 1) prefs.edit().putString("ig_pkg", copias[0]).apply()
+        }
+        igPkgBox = caja(prefs.getString("ig_pkg", "") ?: "", pista = "com.instagram.android.dual (vacío = normal)")
+        alEscribir(igPkgBox) { prefs.edit().putString("ig_pkg", igPkgBox.text.toString().trim()).apply() }
 
         seccionNueva("💬 3. Tus menciones (una por línea)", NARANJA)
         Macro.ponerMencionesDeFabrica(this)

@@ -54,7 +54,8 @@ object Macro {
 
     private const val MIN_GAP_MS = 10_000L
     private const val MAX_TRIES = 25
-    private const val INSTAGRAM = "com.instagram.android"
+    /** Paquete de Instagram que usa el guion: el normal, o la copia («doble app») si está puesta en Star App Sencilla. */
+    var INSTAGRAM = "com.instagram.android"
     private const val NEXT_ACCOUNT = "\u0001siguiente"
     /** Textos que solo salen en la lista de cuentas de Instagram (para saber que está abierta). */
     private val LIST_MARKS = listOf("usar otro perfil", "crear cuenta nueva", "añadir cuenta", "agregar cuenta",
@@ -187,6 +188,8 @@ object Macro {
             toast(service, "Ya hay un guion en marcha")
             return
         }
+        INSTAGRAM = (service.getSharedPreferences("cfg", android.content.Context.MODE_PRIVATE).getString("ig_pkg", "") ?: "")
+            .trim().ifEmpty { "com.instagram.android" }
         val cmds = ArrayList<Cmd>()
         var repeats = 1
         var dailyLimit = 0
