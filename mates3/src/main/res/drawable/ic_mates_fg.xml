@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <!-- estrella amarilla -->
+    <path android:fillColor="#FFC83D" android:strokeColor="#E0A800" android:strokeWidth="1.5"
+        android:pathData="M54,22 L62.5,41 L83,43 L67.5,57 L72,77 L54,66.5 L36,77 L40.5,57 L25,43 L45.5,41 Z"/>
+    <!-- más -->
+    <path android:fillColor="#7C4DFF" android:pathData="M51.5,42 h5 v6 h6 v5 h-6 v6 h-5 v-6 h-6 v-5 h6 Z"/>
+    <!-- menos, por, entre (pequeños alrededor) -->
+    <path android:fillColor="#FFFFFF" android:pathData="M24,76 h12 v4 h-12 Z"/>
+    <path android:strokeColor="#FFFFFF" android:strokeWidth="3.5" android:strokeLineCap="round" android:fillColor="#00000000"
+        android:pathData="M74,72 L84,82 M84,72 L74,82"/>
+    <path android:fillColor="#FFFFFF" android:pathData="M48,84 h12 v3.5 h-12 Z"/>
+    <path android:fillColor="#FFFFFF" android:pathData="M54,80 m-2.2,0 a2.2,2.2 0 1,0 4.4,0 a2.2,2.2 0 1,0 -4.4,0"/>
+    <path android:fillColor="#FFFFFF" android:pathData="M54,91.5 m-2.2,0 a2.2,2.2 0 1,0 4.4,0 a2.2,2.2 0 1,0 -4.4,0"/>
+</vector>
