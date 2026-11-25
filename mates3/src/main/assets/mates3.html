@@ -5,54 +5,64 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mates 3</title>
 <style>
-:root{--bg:#fff7e6;--card:#fff;--ink:#2d2a4a;--accent:#7c5cff;--ok:#1f9d5c;--bad:#e5484d;--board:#1f4d3a;--chalk:#f4f4ef;--gold:#ffb020}
+:root{--ink:#2d2a4a;--accent:#7c5cff;--pink:#ff5fa2;--green:#1fbf7a;--ok:#1f9d5c;--bad:#e5484d;--board:#1f4d3a;--chalk:#f4f4ef;--gold:#ffc83d}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;display:flex;justify-content:center;padding:16px}
-.app{width:100%;max-width:560px;display:flex;flex-direction:column;gap:14px}
-h1{margin:0;text-align:center;font-size:1.9rem}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);min-height:100vh;display:flex;justify-content:center;padding:16px;
+  background:linear-gradient(160deg,#ffd6e8 0%,#e0d4ff 45%,#c6f3ff 100%);background-attachment:fixed;overflow-x:hidden}
+#snow{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+#snow span{position:absolute;top:-10px;color:#fff;text-shadow:0 0 4px #a8c8ff;animation:fall linear infinite}
+@keyframes fall{to{transform:translateY(110vh) rotate(360deg)}}
+.app{position:relative;z-index:1;width:100%;max-width:560px;display:flex;flex-direction:column;gap:14px}
+h1{margin:0;text-align:center;font-size:2rem;font-weight:900;background:linear-gradient(90deg,#ff5fa2,#7c5cff,#1fbf7a);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 0 rgba(255,255,255,.7))}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
-.chips button{flex:1 1 40%;padding:10px 6px;border:2px solid var(--accent);background:#fff;color:var(--accent);border-radius:12px;font-weight:700;font-size:1rem;cursor:pointer}
-.chips button.active{background:var(--accent);color:#fff}
+.chips button{flex:1 1 40%;padding:10px 6px;border:none;background:#fff;color:var(--accent);border-radius:14px;font-weight:800;font-size:1rem;cursor:pointer;box-shadow:0 3px 0 #d9ccff,0 6px 14px rgba(124,92,255,.15);transition:transform .1s}
+.chips button:active{transform:translateY(2px)}
+.chips button.active{background:linear-gradient(135deg,#7c5cff,#ff5fa2);color:#fff;box-shadow:0 3px 0 #5a3fd1}
 .chips button:disabled{opacity:.4;cursor:default}
-.stats{display:flex;justify-content:space-between;font-weight:600;gap:8px}
-.coins{background:var(--gold);color:var(--ink);border-radius:999px;padding:2px 12px;font-weight:800}
-.card{background:var(--card);border-radius:18px;padding:20px;box-shadow:0 4px 16px rgba(0,0,0,.08);text-align:center}
-.question{font-size:2.4rem;font-weight:800;margin:8px 0 16px}
-input{width:100%;max-width:220px;font-size:1.8rem;text-align:center;padding:10px;border:3px solid #ddd;border-radius:12px;color:var(--ink)}
-input:focus{outline:none;border-color:var(--accent)}
+.stats{display:flex;justify-content:space-between;font-weight:700;gap:8px;align-items:center}
+.coins{background:linear-gradient(135deg,#ffe27a,#ffc83d);color:#5a3b00;border-radius:999px;padding:4px 14px;font-weight:900;box-shadow:0 2px 0 #d69e1a}
+.card{background:#fff;border-radius:22px;padding:20px;border:3px dashed #ffd27a;box-shadow:0 6px 0 #f3c5dd,0 12px 24px rgba(124,92,255,.15);text-align:center}
+.question{font-size:2.6rem;font-weight:900;margin:8px 0 16px;color:#4b3bb3;text-shadow:0 3px 0 #e9e2ff}
+input{width:100%;max-width:220px;font-size:1.8rem;text-align:center;padding:10px;border:3px solid #d9ccff;border-radius:16px;color:var(--ink);background:#fbf9ff}
+input:focus{outline:none;border-color:var(--pink);box-shadow:0 0 0 4px #ffd6e8}
 .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px}
-.btn{padding:12px 20px;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;color:#fff;background:var(--accent)}
-.btn.hint{background:var(--gold);color:var(--ink)}
-.btn.sec{background:#e7e4f5;color:var(--ink)}
-.btn:disabled{opacity:.45;cursor:default}
-.feedback{min-height:50px;margin-top:12px;font-size:1.1rem;font-weight:700}
-.feedback.ok{color:var(--ok)}
+.btn{padding:12px 20px;border:none;border-radius:14px;font-size:1rem;font-weight:800;cursor:pointer;color:#fff;background:linear-gradient(135deg,#7c5cff,#ff5fa2);box-shadow:0 4px 0 #5a3fd1;transition:transform .1s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #5a3fd1}
+.btn.hint{background:linear-gradient(135deg,#ffd45c,#ff9f1c);color:#4a2c00;box-shadow:0 4px 0 #c97a0a}
+.btn.sec{background:linear-gradient(135deg,#7fe3c0,#1fbf7a);box-shadow:0 4px 0 #14895a}
+.btn:disabled{opacity:.45;cursor:default;box-shadow:none}
+.feedback{min-height:50px;margin-top:12px;font-size:1.2rem;font-weight:900}
+.feedback.ok{color:var(--ok);animation:pop .4s ease}
 .feedback.bad{color:var(--bad)}
-.hint-box{background:#fff3cc;border-radius:10px;padding:10px;margin-top:8px;font-size:1rem;display:none}
+@keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+.hint-box{background:linear-gradient(135deg,#fff6c7,#ffe6f1);border:2px dashed #ffb86b;border-radius:14px;padding:10px;margin-top:8px;font-size:1.05rem;display:none}
 .hint-box.show{display:block}
-.board{background:var(--board);border-radius:18px;padding:12px;box-shadow:0 4px 16px rgba(0,0,0,.15)}
-.board-head{color:var(--chalk);font-weight:700;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.board{background:radial-gradient(circle at 30% 20%,#2f6b50,#1f4d3a 70%);border-radius:22px;padding:12px;border:8px solid #b07a3a;box-shadow:0 6px 0 #7a5020,0 12px 24px rgba(0,0,0,.2)}
+.board-head{color:var(--chalk);font-weight:800;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px}
 .board-head .tools{display:flex;gap:6px}
 .board-head button{padding:6px 12px;border:2px solid var(--chalk);background:transparent;color:var(--chalk);border-radius:10px;font-weight:700;cursor:pointer}
 .board-head button.active{background:var(--chalk);color:var(--board)}
-canvas{width:100%;height:240px;display:block;touch-action:none;cursor:crosshair;border-radius:10px}
-.end{font-size:1.3rem;font-weight:700;margin:10px 0}
+canvas{width:100%;height:240px;display:block;touch-action:none;cursor:crosshair;border-radius:12px}
+.end{font-size:1.4rem;font-weight:900;margin:10px 0;color:#4b3bb3}
 #dressSection{display:flex;flex-direction:column;gap:14px}
-.stage{border-radius:20px;padding:12px;background:linear-gradient(#1e3a5f,#4b6fa3);box-shadow:0 4px 16px rgba(0,0,0,.15);position:relative;overflow:hidden}
-.stage svg{position:relative;width:100%;max-height:420px;display:block}
-.panel{background:#fff;border-radius:18px;padding:14px;box-shadow:0 4px 16px rgba(0,0,0,.08);display:flex;flex-direction:column;gap:12px}
-.slot h3{margin:0 0 6px;font-size:1rem}
+.stage{border-radius:26px;padding:12px;position:relative;overflow:hidden;border:6px solid #fff;box-shadow:0 8px 0 #c9b8ff,0 14px 28px rgba(60,40,140,.25);
+  background:radial-gradient(circle at 85% 12%,#fff7c2 0 26px,transparent 27px),radial-gradient(circle at 12% 18%,#fff 0 1.5px,transparent 2px),radial-gradient(circle at 40% 8%,#fff 0 1.2px,transparent 2px),radial-gradient(circle at 70% 30%,#fff 0 1.5px,transparent 2px),radial-gradient(circle at 25% 40%,#fff 0 1px,transparent 2px),linear-gradient(180deg,#1b1f4b 0%,#3d2e7c 60%,#7a5cb8 100%)}
+.stage::after{content:"";position:absolute;left:-10%;right:-10%;bottom:-30px;height:80px;background:#fff;border-radius:50% 50% 0 0/100% 100% 0 0;box-shadow:0 -6px 0 #eaf4ff;opacity:.95}
+.stage svg{position:relative;z-index:1;width:100%;max-height:420px;display:block}
+.panel{background:#fff;border-radius:22px;padding:14px;border:3px dashed #c6f3ff;box-shadow:0 6px 0 #cfe9ff,0 12px 24px rgba(31,191,122,.12);display:flex;flex-direction:column;gap:12px}
+.slot h3{margin:0 0 6px;font-size:1.05rem;color:#4b3bb3}
 .opts{display:flex;flex-wrap:wrap;gap:8px}
-.opt{padding:8px 12px;border:2px solid #d9d4f0;background:#faf9ff;color:var(--ink);border-radius:10px;font-weight:600;font-size:.95rem;cursor:pointer}
-.opt.active{border-color:#e5484d;background:#e5484d;color:#fff}
-.opt.locked{border-style:dashed;color:#6b6790}
-.dress-msg{min-height:22px;text-align:center;font-weight:700;color:var(--bad)}
+.opt{padding:8px 12px;border:none;background:linear-gradient(#fff,#f1edff);color:var(--ink);border-radius:12px;font-weight:800;font-size:.95rem;cursor:pointer;box-shadow:0 3px 0 #d9ccff}
+.opt.active{background:linear-gradient(135deg,#1fbf7a,#7fe3c0);color:#fff;box-shadow:0 3px 0 #14895a}
+.opt.locked{background:#fff;border:2px dashed #c9bfff;color:#6b6790;box-shadow:none}
+.dress-msg{min-height:24px;text-align:center;font-weight:900;color:#d6336c}
 </style>
 </head>
 <body>
+<div id="snow"></div>
 <div class="app">
-  <h1>🧮 Mates 3</h1>
+  <h1>🎄 Mates 3 🎁</h1>
 
   <div class="chips" id="modes">
     <button data-mode="math" class="active">🧮 Mates</button>
@@ -61,10 +71,10 @@ canvas{width:100%;height:240px;display:block;touch-action:none;cursor:crosshair;
 
   <div id="mathSection">
     <div class="chips" id="ops">
-      <button data-op="suma" class="active">Sumar</button>
-      <button data-op="resta">Restar</button>
-      <button data-op="mult">Multiplicar</button>
-      <button data-op="div">Dividir</button>
+      <button data-op="suma" class="active">➕ Sumar</button>
+      <button data-op="resta">➖ Restar</button>
+      <button data-op="mult">✖️ Multiplicar</button>
+      <button data-op="div">➗ Dividir</button>
     </div>
 
     <div class="chips" id="levels">
@@ -83,7 +93,7 @@ canvas{width:100%;height:240px;display:block;touch-action:none;cursor:crosshair;
         <div class="question" id="question"></div>
         <input type="number" inputmode="numeric" id="answer" placeholder="?" autocomplete="off">
         <div class="row">
-          <button class="btn" id="check">Comprobar</button>
+          <button class="btn" id="check">✅ Comprobar</button>
           <button class="btn hint" id="hint">💡 Pista</button>
           <button class="btn sec" id="next" disabled>Siguiente ➜</button>
         </div>
@@ -91,10 +101,10 @@ canvas{width:100%;height:240px;display:block;touch-action:none;cursor:crosshair;
         <div class="feedback" id="feedback"></div>
       </div>
       <div id="result" hidden>
-        <div class="question">¡Ronda terminada!</div>
+        <div class="question">🎉 ¡Ronda terminada! 🎉</div>
         <div class="end" id="endScore"></div>
         <p id="endMsg"></p>
-        <div class="row"><button class="btn" id="again">Jugar otra vez</button></div>
+        <div class="row"><button class="btn" id="again">🔁 Jugar otra vez</button></div>
       </div>
     </div>
 
@@ -113,16 +123,16 @@ canvas{width:100%;height:240px;display:block;touch-action:none;cursor:crosshair;
 
   <div id="dressSection" hidden>
     <div class="stats">
-      <span>Disfraza al reno con tus monedas</span>
+      <span style="font-weight:900;color:#4b3bb3">🦌 Disfraza a Rudolf con tus monedas</span>
       <span class="coins" id="coinsDress">🪙 0</span>
     </div>
     <div class="stage">
-      <svg id="svg" viewBox="0 0 200 290" xmlns="http://www.w3.org/2000/svg"></svg>
+      <svg id="svg" viewBox="0 0 330 300" xmlns="http://www.w3.org/2000/svg"></svg>
     </div>
     <div class="dress-msg" id="dressMsg"></div>
     <div class="panel" id="panel"></div>
     <div class="row">
-      <button class="btn sec" id="reset">Quitar disfraz</button>
+      <button class="btn sec" id="reset">🧹 Quitar disfraz</button>
     </div>
   </div>
 </div>
@@ -133,24 +143,40 @@ const OPS_NAMES = {suma:'Sumar', resta:'Restar', mult:'Multiplicar', div:'Dividi
 const LEVEL_NAMES = {facil:'Fácil', dificil:'Difícil', experto:'Experto'};
 const COINS_PER = {facil:1, dificil:2, experto:3};
 
+/* ---------- Decoración: nieve ---------- */
+(function snowfall() {
+  const box = document.getElementById('snow');
+  const flakes = ['❄','❅','❆','✦','•'];
+  for (let i = 0; i < 26; i++) {
+    const s = document.createElement('span');
+    s.textContent = flakes[i % flakes.length];
+    s.style.left = Math.random() * 100 + 'vw';
+    s.style.fontSize = (8 + Math.random() * 14) + 'px';
+    s.style.opacity = (0.4 + Math.random() * 0.6).toFixed(2);
+    s.style.animationDuration = (8 + Math.random() * 12) + 's';
+    s.style.animationDelay = (-Math.random() * 15) + 's';
+    box.appendChild(s);
+  }
+})();
+
 /* ---------- Tienda del reno ---------- */
-const SLOT_LABELS = {hat:'Gorro', top:'Pelo y cuerpo', extra:'Extra'};
+const SLOT_LABELS = {hat:'🎩 Gorro', top:'🎨 Pelo y cuerpo', extra:'🎀 Extras'};
 const ITEMS = {
   hat: [
     {id:'none', name:'Sin gorro', price:0},
-    {id:'gorro', name:'Gorro de Papá Noel', price:10},
-    {id:'lazo', name:'Lacito', price:5}
+    {id:'gorro', name:'🎅 Gorro de Papá Noel', price:10},
+    {id:'lazo', name:'🎀 Lacito', price:5}
   ],
   top: [
-    {id:'natural', name:'Pelo natural', price:0},
-    {id:'rojo', name:'Rojo con copos', price:15},
-    {id:'verde', name:'Verde con copos', price:15}
+    {id:'natural', name:'🤎 Pelo natural', price:0},
+    {id:'rojo', name:'❤️ Rojo con copos', price:15},
+    {id:'verde', name:'💚 Verde con copos', price:15}
   ],
   extra: [
     {id:'none', name:'Nada', price:0},
-    {id:'bufanda', name:'Bufanda verde', price:8},
-    {id:'cascabel', name:'Cascabel', price:6},
-    {id:'luces', name:'Luces en la cornamenta', price:12}
+    {id:'bufanda', name:'🧣 Bufanda verde', price:8},
+    {id:'cascabel', name:'🔔 Cascabel', price:6},
+    {id:'luces', name:'✨ Luces en la cornamenta', price:12}
   ]
 };
 const SAVE_KEY = 'mates3-save';
@@ -284,7 +310,7 @@ function label() {
 }
 
 function updateStats() {
-  $('score').textContent = `Aciertos: ${correct} · 🪙 ${save.coins}`;
+  $('score').textContent = `⭐ ${correct} · 🪙 ${save.coins}`;
 }
 
 function newQuestion() {
@@ -335,7 +361,7 @@ function check() {
     $('feedback').textContent = `¡Muy bien! 🎉 +${gain} 🪙`;
     $('feedback').className = 'feedback ok';
   } else {
-    $('feedback').textContent = `Casi. La respuesta correcta es ${current.ans}.`;
+    $('feedback').textContent = `¡Casi! La respuesta correcta es ${current.ans}.`;
     $('feedback').className = 'feedback bad';
   }
   updateStats();
@@ -477,39 +503,81 @@ window.addEventListener('resize', resizeBoard);
 resizeBoard();
 
 /* ---------- Reno para disfrazar ---------- */
-const INK = '#2d2a4a';
-const RSNOW = [[70,180],[90,170],[110,195],[130,178],[100,215],[80,205],[120,210]];
+const SPOTS = [[110,160],[134,172],[160,150],[186,168],[210,152],[226,178],[150,188],[122,186],[176,190]];
 
 function drawReno(s) {
-  const body = s.top === 'natural' ? '#8b5a2b' : s.top === 'rojo' ? '#e5484d' : '#1f9d5c';
-  const dots = s.top === 'natural' ? ''
-    : `<g fill="#fff">${RSNOW.map(([x,y]) => `<circle cx="${x}" cy="${y}" r="4"/>`).join('')}</g>`;
-  const tail = `<circle cx="38" cy="168" r="10" fill="#fff"/>`;
-  const legs = `<rect x="58" y="205" width="14" height="66" rx="7" fill="#6b3f1d"/>
-    <rect x="78" y="205" width="14" height="66" rx="7" fill="#6b3f1d"/>
-    <rect x="118" y="205" width="14" height="66" rx="7" fill="#6b3f1d"/>
-    <rect x="138" y="205" width="14" height="66" rx="7" fill="#6b3f1d"/>`;
-  const top = `<ellipse cx="100" cy="180" rx="62" ry="40" fill="${body}"/>
-    <path d="M118 150 L138 100 L160 110 L150 170 Z" fill="${body}"/>${dots}`;
-  const head = `<ellipse cx="128" cy="76" rx="10" ry="5" transform="rotate(-20 128 76)" fill="#8b5a2b"/>
-    <ellipse cx="150" cy="92" rx="30" ry="26" fill="#8b5a2b"/>
-    <ellipse cx="176" cy="102" rx="14" ry="11" fill="#d8a06a"/>
-    <circle cx="188" cy="98" r="6" fill="#e5484d"/>
-    <circle cx="156" cy="86" r="4.5" fill="${INK}"/>
-    <circle cx="157" cy="84" r="1.5" fill="#fff"/>`;
-  const antlers = `<path d="M144 70 L132 40 M132 40 L120 32 M132 40 L128 20 M150 68 L162 40 M162 40 L172 32 M162 40 L166 20" stroke="#6b3f1d" stroke-width="5" stroke-linecap="round" fill="none"/>`;
+  const pal = {
+    natural: ['#c8925c', '#7a4b28', '#f5ede1'],
+    rojo:    ['#ff8a8a', '#b02a2f', '#fff5f5'],
+    verde:   ['#6fdcaa', '#17703f', '#f2fff8']
+  }[s.top];
+  const [hi, lo, belly] = pal;
+  const defs = `<defs>
+    <linearGradient id="gBody" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${hi}"/><stop offset="1" stop-color="${lo}"/></linearGradient>
+    <linearGradient id="gLeg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9a6434"/><stop offset="1" stop-color="#4a2e18"/></linearGradient>
+    <radialGradient id="gNose" cx=".35" cy=".35" r=".7"><stop offset="0" stop-color="#ffb3b3"/><stop offset="1" stop-color="#c81e1e"/></radialGradient>
+    <radialGradient id="gBell" cx=".35" cy=".35" r=".7"><stop offset="0" stop-color="#fff6b8"/><stop offset="1" stop-color="#d4a017"/></radialGradient>
+    <radialGradient id="gGlow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff3a0" stop-opacity=".9"/><stop offset="1" stop-color="#fff3a0" stop-opacity="0"/></radialGradient>
+  </defs>`;
+  const shadow = `<ellipse cx="165" cy="284" rx="112" ry="9" fill="#0b0a2a" opacity=".35"/>`;
+  const tail = `<path d="M86 150 Q70 142 72 160 Q80 172 94 164 Z" fill="${belly}"/>`;
+  const backLegs = `
+    <path d="M104 182 L98 262 L112 262 L118 184 Z" fill="url(#gLeg)"/>
+    <path d="M122 188 L126 266 L140 266 L136 190 Z" fill="url(#gLeg)"/>
+    <path d="M95 261 L113 261 L114 271 L94 271 Z" fill="#241608"/>
+    <path d="M123 265 L141 265 L142 275 L122 275 Z" fill="#241608"/>`;
+  const body = `<path d="M86 150 Q92 116 140 114 L192 112 Q236 110 246 144 Q254 172 236 186 Q214 202 168 200 L112 200 Q80 196 86 150 Z" fill="url(#gBody)"/>
+    <path d="M120 190 Q168 208 216 190 Q200 176 168 182 Q140 180 120 190 Z" fill="${belly}" opacity=".6"/>
+    <path d="M100 136 Q130 120 170 124" stroke="#fff" stroke-width="3" fill="none" opacity=".18" stroke-linecap="round"/>`;
+  const spots = s.top === 'natural' ? '' : `<g fill="#fff">${SPOTS.map(([x,y], i) =>
+    `<circle cx="${x}" cy="${y}" r="${i % 3 === 0 ? 4.5 : 3}"/>`).join('')}</g>`;
+  const neck = `<path d="M222 132 Q236 104 240 84 L262 76 Q266 100 252 136 Z" fill="url(#gBody)"/>
+    <path d="M228 120 Q238 96 244 84 L250 88 Q242 106 236 126 Z" fill="${lo}" opacity=".5"/>`;
+  const frontLegs = `
+    <path d="M196 184 L198 266 L212 266 L210 184 Z" fill="url(#gLeg)"/>
+    <path d="M214 180 L226 262 L240 260 L230 176 Z" fill="url(#gLeg)"/>
+    <path d="M195 265 L213 265 L214 275 L194 275 Z" fill="#241608"/>
+    <path d="M225 261 L241 259 L243 269 L224 271 Z" fill="#241608"/>`;
+  const ears = `<path d="M254 46 Q236 32 238 22 Q254 28 268 42 Z" fill="${lo}"/>
+    <path d="M254 44 Q242 34 243 27 Q254 32 262 42 Z" fill="${belly}" opacity=".5"/>`;
+  const head = `<ellipse cx="274" cy="58" rx="24" ry="16" transform="rotate(-18 274 58)" fill="url(#gBody)"/>
+    <ellipse cx="301" cy="72" rx="11" ry="7" fill="${belly}"/>
+    <path d="M292 62 Q306 58 310 64" stroke="${lo}" stroke-width="2" fill="none" stroke-linecap="round" opacity=".6"/>
+    <circle cx="312" cy="66" r="6.2" fill="url(#gNose)"/>
+    <circle cx="310" cy="64" r="1.6" fill="#fff" opacity=".9"/>
+    <ellipse cx="268" cy="54" rx="4.4" ry="3.8" fill="#15101e"/>
+    <circle cx="269.6" cy="52.4" r="1.3" fill="#fff"/>
+    <path d="M260 46 Q268 41 278 45" stroke="${lo}" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M296 80 Q304 82 309 76" stroke="#3a2415" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
+  const antlers = `
+    <path d="M262 40 C258 24 246 14 228 12 M250 26 L240 6 M256 22 L258 0 M244 18 L226 20 M248 16 L238 28" stroke="#6e4a2a" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M268 42 C272 22 290 10 310 8 M286 22 L290 2 M278 18 L266 2 M298 16 L318 14 M292 14 L300 26" stroke="#9a6b40" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M270 40 C274 24 290 14 308 12" stroke="#d9b08a" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".7"/>`;
   const hats = {
     none: '',
-    gorro: `<path d="M122 72 Q134 36 180 50 Q162 60 170 74 Z" fill="#e5484d"/><rect x="118" y="68" width="58" height="10" rx="5" fill="#fff"/><circle cx="180" cy="50" r="7" fill="#fff"/>`,
-    lazo: `<path d="M146 62 L134 52 L134 72 Z M146 62 L158 52 L158 72 Z" fill="#e5484d"/><circle cx="146" cy="62" r="4" fill="#b02a2f"/>`
+    gorro: `<path d="M252 46 Q262 12 302 20 Q286 30 292 46 Z" fill="#e5484d"/>
+      <path d="M248 44 Q272 34 298 40 L296 50 Q272 46 250 54 Z" fill="#fff"/>
+      <circle cx="304" cy="18" r="8" fill="#fff"/>`,
+    lazo: `<g transform="translate(246 98)">
+      <path d="M0 0 L-14 -9 L-14 9 Z" fill="#e5484d"/><path d="M0 0 L14 -9 L14 9 Z" fill="#e5484d"/>
+      <circle r="4" fill="#b02a2f"/></g>`
   };
+  const lights = `
+    <circle cx="232" cy="14" r="9" fill="url(#gGlow)"/><circle cx="232" cy="14" r="3" fill="#ffd166"/>
+    <circle cx="258" cy="6" r="9" fill="url(#gGlow)"/><circle cx="258" cy="6" r="3" fill="#5ce1e6"/>
+    <circle cx="290" cy="8" r="9" fill="url(#gGlow)"/><circle cx="290" cy="8" r="3" fill="#ff9aa2"/>
+    <circle cx="316" cy="12" r="9" fill="url(#gGlow)"/><circle cx="316" cy="12" r="3" fill="#ffd166"/>`;
   const extras = {
     none: '',
-    bufanda: `<path d="M118 150 Q140 166 166 150 L168 162 Q140 178 116 162 Z" fill="#1f9d5c"/>`,
-    cascabel: `<circle cx="128" cy="168" r="7" fill="#ffd166" stroke="#b8860b" stroke-width="2"/>`,
-    luces: `<circle cx="132" cy="40" r="3.5" fill="#ffd166"/><circle cx="162" cy="40" r="3.5" fill="#5ce1e6"/><circle cx="120" cy="32" r="3.5" fill="#ff9aa2"/><circle cx="172" cy="32" r="3.5" fill="#ffd166"/>`
+    bufanda: `<path d="M216 118 Q238 136 262 120 L266 134 Q240 152 212 134 Z" fill="#1f9d5c"/>
+      <path d="M220 128 L226 137 M232 136 L238 145 M244 138 L250 146" stroke="#fff" stroke-width="2" opacity=".7"/>
+      <path d="M262 124 L270 148 L258 150 L254 130 Z" fill="#1f9d5c"/>`,
+    cascabel: `<circle cx="238" cy="152" r="8" fill="url(#gBell)" stroke="#b8860b" stroke-width="1.5"/>
+      <path d="M234 152 Q238 155 242 152" stroke="#8a6410" stroke-width="1" fill="none"/>`,
+    luces: lights
   };
-  return tail + legs + top + head + antlers + hats[s.hat] + extras[s.extra];
+  return defs + shadow + tail + backLegs + body + spots + neck + frontLegs + ears + head
+    + antlers + hats[s.hat] + extras[s.extra];
 }
 
 function showDressMsg(text) {
@@ -545,7 +613,7 @@ $('panel').addEventListener('click', e => {
     save.coins -= it.price;
     save.owned.push(slot + ':' + id);
     save.equipped[slot] = id;
-    showDressMsg(`¡Comprado: ${it.name}!`);
+    showDressMsg(`🎉 ¡Comprado: ${it.name}!`);
   } else {
     showDressMsg(`Te faltan ${it.price - save.coins} 🪙 para ${it.name}. ¡Sigue jugando!`);
     return;
