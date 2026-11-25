@@ -222,7 +222,7 @@ class SencillaActivity : Activity() {
             background = conEfecto(redondo(AZUL, 16))
             elevation = dp(4).toFloat()
             setPadding(dp(16), dp(14), dp(16), dp(14))
-            setOnClickListener { pedirAccesibilidad() }
+            setOnClickListener { abrirAccesibilidad() }
         }, lpRaiz(abajo = 6))
 
         // Recoger / mostrar las listas largas (menciones y frases) para no tener que bajar tanto
@@ -900,6 +900,15 @@ class SencillaActivity : Activity() {
     private fun arrancar(s: ClickService, script: String) {
         Macro.start(s, script, emptyList())
         moveTaskToBack(true)
+    }
+
+    // Botón directo: abre la pantalla de Accesibilidad sin diálogo intermedio
+    private fun abrirAccesibilidad() {
+        try {
+            startActivity(Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS))
+        } catch (e: Exception) {
+            toast("No se pudo abrir Ajustes de accesibilidad")
+        }
     }
 
     private fun pedirAccesibilidad() {
