@@ -1579,14 +1579,8 @@ object Macro {
                 notPosted(pick, err, c)
                 return
             }
-            // Sin aviso conocido: si salen letras rojas, a la primera se cambia de cuenta.
-            // (Antes, si ya había algo rojo en pantalla antes de publicar, se daba por bueno y no cambiaba.)
-            val gen = stepGen
-            nextDue = System.currentTimeMillis() + 10_000L
-            s.checkRedText { red ->
-                if (gen != stepGen || id != token || !running) return@checkRedText
-                if (red) notPosted(pick, null, c) else posted(pick, c)
-            }
+            // Sin aviso de texto conocido: se da por publicado. (Se quitó el detector de letras rojas.)
+            posted(pick, c)
         }
 
         private var repostPhase = 0
