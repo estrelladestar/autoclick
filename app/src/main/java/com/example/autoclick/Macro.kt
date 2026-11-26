@@ -701,6 +701,13 @@ object Macro {
                     }
                 }
             }
+            if (what == "la caja de texto" && tries < MAX_TRIES) {
+                // La caja o el bocadillo pueden estar más abajo: se desliza un poco hacia abajo antes de volver a mirar
+                val (w, h) = s.screenSize()
+                val x = w * (0.42f + (Math.random() * 0.16).toFloat())
+                trace("  deslizo un poco hacia abajo para ver la caja de comentarios")
+                s.swipe(x, h * 0.62f, x, h * (0.48f + (Math.random() * 0.04).toFloat()), 350L + (Math.random() * 200).toLong())
+            }
             tries++
             if (tries > MAX_TRIES) recover(what) else later(2000L)
         }
