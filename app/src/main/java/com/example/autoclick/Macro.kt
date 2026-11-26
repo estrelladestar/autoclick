@@ -53,7 +53,8 @@ object Macro {
     private var svc: ClickService? = null
 
     private const val MIN_GAP_MS = 10_000L
-    private const val MAX_TRIES = 25
+    // Si no encuentra algo 3 veces seguidas, vuelve a empezar desde el enlace
+    private const val MAX_TRIES = 3
     /** Paquete de Instagram que usa el guion: el normal, o la copia («doble app») si está puesta en Star App Sencilla. */
     var INSTAGRAM = "com.instagram.android"
     private const val NEXT_ACCOUNT = "\u0001siguiente"
@@ -701,7 +702,7 @@ object Macro {
                 }
             }
             tries++
-            if (tries > MAX_TRIES) recover(what) else later(800L)
+            if (tries > MAX_TRIES) recover(what) else later(2000L)
         }
 
         /** La hoja que sale al pulsar «⋯» en una publicación o reel (Guardar, Reproducción, No me interesa, Denunciar…). */
