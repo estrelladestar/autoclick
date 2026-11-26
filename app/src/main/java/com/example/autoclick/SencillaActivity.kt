@@ -66,6 +66,7 @@ class SencillaActivity : Activity() {
     private lateinit var subirHistoriaBox: CheckBox
     private lateinit var megustaBox: CheckBox
     private lateinit var rapidoBox: CheckBox
+    private lateinit var rapidoSeguidosBox: EditText
     private lateinit var seguirDescBox: CheckBox
     private lateinit var guardarPubBox: CheckBox
     private lateinit var repostBox: CheckBox
@@ -407,6 +408,18 @@ class SencillaActivity : Activity() {
 
         seccionNueva("⚡ Modo rápido", ROJO)
         rapidoBox = marca("⚡ Solo cambiar de cuenta, volver al enlace, mencionar y publicar (sin historia, me gusta ni repost)", prefs.getBoolean("s_rapido", false))
+        texto("Cuántos comentarios seguidos en cada cuenta, uno tras otro en la misma publicación (hasta 50):")
+        rapidoSeguidosBox = caja(prefs.getInt("s_rapido_seguidos", 10).toString(), numero = true)
+        seccion.addView(LinearLayout(ctx).apply {
+            orientation = LinearLayout.HORIZONTAL
+            listOf(5, 10, 20, 30, 50).forEach { n ->
+                addView(Button(ctx).apply {
+                    isAllCaps = false
+                    text = "$n"
+                    setOnClickListener { rapidoSeguidosBox.setText(n.toString()) }
+                }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { leftMargin = dp(3); rightMargin = dp(3) })
+            }
+        }, lpRaiz(arriba = 6))
 
         seccionNueva("❤️ 9. En cada publicación", ROJO)
         megustaBox = marca("❤️ Dar me gusta si el corazón está vacío", prefs.getBoolean("s_megusta", true))
@@ -779,6 +792,7 @@ class SencillaActivity : Activity() {
             .putString("s_hist", HIST_VALORES[historiasSpin.selectedItemPosition])
             .putBoolean("s_megusta", megustaBox.isChecked)
             .putBoolean("s_rapido", rapidoBox.isChecked)
+            .putInt("s_rapido_seguidos", rapidoSeguidosBox.text.toString().toIntOrNull()?.coerceIn(1, 50) ?: 10)
             .putBoolean("s_seguirdesc", seguirDescBox.isChecked)
             .putBoolean("s_guardarpub", guardarPubBox.isChecked)
             .putBoolean("s_repost", repostBox.isChecked)
@@ -804,9 +818,12 @@ class SencillaActivity : Activity() {
         val sb = StringBuilder()
         if (cuentas.size >= 2) sb.append("cuentas ${cuentas.joinToString(" ")}\n")
         if (rapidoBox.isChecked) {
-            // Modo rápido: en cada cuenta, abre el enlace, escribe las menciones, publica y cambia de cuenta
+            // Modo rápido: en cada cuenta, abre el enlace, escribe las menciones tantas veces seguidas como elijas, publica y cambia de cuenta
+            val rapidoN = rapidoSeguidosBox.text.toString().toIntOrNull()?.coerceIn(1, 50) ?: 10
             sb.append("enlace\nesperar 2\n")
-            sb.append("imagen 1 opcional | 1-2\n$linea\nesperar 1\nimagen 2 | 1-2\n")
+            for (k in 1..rapidoN) {
+                sb.append("imagen 1 opcional | 1-2\n$linea\nesperar 1\nimagen 2 | 1-2\n")
+            }
             sb.append("cuenta siguiente\nrepetir 1000")
             return sb.toString()
         }
