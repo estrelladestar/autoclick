@@ -538,9 +538,32 @@ class ClickService : AccessibilityService() {
         }
     }
 
+    /**
+     * Captura la pantalla sin el botón flotante: su ■ rojo (y su sombra) no debe contar como letras rojas
+     * ni como corazón rojo. Lo oculta un momento y lo vuelve a mostrar en cuanto termina la captura.
+     */
+    private fun capturaSinBoton(ok: (Bitmap?) -> Unit, fail: () -> Unit) {
+        val v = overlayRoot
+        if (v == null) {
+            capture(ok, fail)
+            return
+        }
+        main.post { v.visibility = View.INVISIBLE }
+        // Un momento para que la pantalla se redibuje sin el botón antes de capturar
+        main.postDelayed({
+            capture({ bmp ->
+                main.post { v.visibility = View.VISIBLE }
+                ok(bmp)
+            }, {
+                main.post { v.visibility = View.VISIBLE }
+                fail()
+            })
+        }, 150L)
+    }
+
     /** Hace una captura y dice si el corazón de esa zona está rojo (false si no se puede capturar). */
     fun heartRed(area: Rect, done: (Boolean) -> Unit) {
-        capture({ bmp ->
+        capturaSinBoton({ bmp ->
             val red = bmp != null && isRedIn(bmp, area)
             main.post { done(red) }
         }, {
@@ -578,7 +601,7 @@ class ClickService : AccessibilityService() {
     /** Hace una captura y dice si hay letras rojas (false si no se puede capturar). */
     fun checkRedText(done: (Boolean) -> Unit) {
         val skip = overlayBox()
-        capture({ bmp ->
+        capturaSinBoton({ bmp ->
             val red = bmp != null && hasRedText(bmp, skip)
             main.post { done(red) }
         }, {
