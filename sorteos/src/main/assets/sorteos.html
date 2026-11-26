@@ -264,12 +264,8 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:60}
     </div>
     <label>Cuenta que está en directo (o el enlace del directo)</label>
     <input type="text" id="liveUrl" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="@modaluna">
-    <label>Quién entra en el sorteo</label>
-    <div class="seg" id="liveWhoSeg">
-      <button data-v="all">Todo el que comente</button>
-      <button data-v="word">Solo quien escriba…</button>
-    </div>
-    <input type="text" id="liveWord" placeholder="La palabra, ej.: QUIERO" style="margin-top:8px">
+    <input type="text" id="liveWord" placeholder="La palabra, ej.: xx" style="margin-top:8px">
+    <input type="text" id="livePhrase" placeholder="Frase secreta (no se muestra en las bases)" autocomplete="off" style="margin-top:8px">
     <label>Papeletas</label>
     <div class="seg" id="liveTkSeg">
       <button data-v="one">1 por persona</button>
@@ -579,7 +575,7 @@ $('#logoFile').addEventListener('change',e=>{
 });
 
 /* ============ configuración del sorteo ============ */
-let cfg=Object.assign({net:'ig',prize:'',postUrl:'',winners:1,alts:2,minMent:1,multi:true,maxTk:101,uniqMent:false,noSelf:true,needWord:'',excluded:'',mode:'auto',raw:'',src:'post',extraList:'',extraN:2,extraWhy:'',noPrevWin:false,prevDays:30,endAt:'',scope:'es',extraUrls:[],liveNet:'tt',liveUrl:'',liveWho:'all',liveWord:'',liveMulti:true},load(K.cfg,{}));
+let cfg=Object.assign({net:'ig',prize:'',postUrl:'',winners:1,alts:2,minMent:1,multi:true,maxTk:101,uniqMent:false,noSelf:true,needWord:'',excluded:'',mode:'auto',raw:'',src:'post',extraList:'',extraN:2,extraWhy:'',noPrevWin:false,prevDays:30,endAt:'',scope:'es',extraUrls:[],liveNet:'tt',liveUrl:'',liveWho:'all',liveWord:'',livePhrase:'',liveMulti:true},load(K.cfg,{}));
 const LIM={winners:[1,10],alts:[0,20],minMent:[0,10],maxTk:[1,101],prevDays:[15,365],extraN:[1,10]};  // maxTk 101 = sin límite
 function step(k,d){cfg[k]=Math.max(LIM[k][0],Math.min(LIM[k][1],cfg[k]+d));if(k==='prevDays')$('#v-prevDays2').textContent=cfg[k];$('#v-'+k).textContent=(k==='maxTk'&&cfg[k]>100)?'∞':cfg[k];saveCfg();if(dirty())analyze(false)}
 function renderCfg(){
@@ -599,7 +595,9 @@ function renderSrc(){
   $('#liveBox').style.display=cfg.src==='live'?'':'none';$('#postBox').style.display=cfg.src==='live'?'none':'';
   $$('#liveNetSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===cfg.liveNet));
   $$('#liveWhoSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===cfg.liveWho));
-  $('#liveWord').style.display=cfg.liveWho==='word'?'':'none';
+  $('#liveWord').style.display='';
+  $('#livePhrase').style.display='';
+  if(document.activeElement!==$('#livePhrase'))$('#livePhrase').value=cfg.livePhrase;
   $$('#liveTkSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===(cfg.liveMulti?'all':'one')));
   $('#liveTkTxt').textContent=cfg.liveMulti?('Cada comentario es una papeleta: quien más comenta, más opciones tiene'+(cfg.maxTk>100?'.':' (máximo '+cfg.maxTk+' por persona, se cambia en «Sorteo»).')):'Cada persona tiene una papeleta aunque comente muchas veces.';
   $('#liveUrl').placeholder=cfg.liveNet==='tt'?'@cuenta  o  https://www.tiktok.com/@cuenta/live':'@cuenta  o  https://www.instagram.com/cuenta/live/';
@@ -620,6 +618,8 @@ $$('#liveTkSeg button').forEach(b=>b.onclick=()=>{cfg.liveMulti=b.dataset.v==='a
 $$('#liveWhoSeg button').forEach(b=>b.onclick=()=>{cfg.liveWho=b.dataset.v;renderSrc();saveCfg();if(cfg.src==='live')analyze(false)});
 $('#liveUrl').addEventListener('input',e=>{cfg.liveUrl=e.target.value;saveCfg();const v=e.target.value.toLowerCase();if(v.includes('tiktok')&&cfg.liveNet!=='tt'){cfg.liveNet='tt';renderSrc()}else if(v.includes('instagr')&&cfg.liveNet!=='ig'){cfg.liveNet='ig';renderSrc()}});
 $('#liveWord').addEventListener('input',e=>{cfg.liveWord=e.target.value;saveCfg()});
+$('#livePhrase').addEventListener('input',e=>{cfg.livePhrase=e.target.value;saveCfg()});
+$('#livePhrase').addEventListener('change',()=>{if(cfg.src==='live')analyze(false)});
 $('#liveWord').addEventListener('change',()=>{if(cfg.src==='live')analyze(false)});
 $('#mode').addEventListener('change',e=>{cfg.mode=e.target.value;saveCfg();if(cfg.raw.trim())analyze(false)});
 function dirty(){return $('#resCard').style.display!=='none'}
@@ -833,7 +833,8 @@ function liveOpen(){
   else{const m=raw.match(/^@?([A-Za-z0-9._]{1,30})$/);
     if(!m){toast('Escribe la cuenta que está en directo (ej.: @modaluna)');$('#liveUrl').focus();return}
     owner=m[1];url=cfg.liveNet==='tt'?'https://www.tiktok.com/@'+owner+'/live':'https://www.instagram.com/'+owner+'/live/';}
-  if(cfg.liveWho==='word'&&!cfg.liveWord.trim()){toast('Escribe la palabra que tienen que poner');$('#liveWord').focus();return}
+  if(!(cfg.liveWord||'').trim()){toast('Escribe la palabra que tienen que poner');$('#liveWord').focus();return}
+  if(!(cfg.livePhrase||'').trim()){toast('Escribe la frase secreta');$('#livePhrase').focus();return}
   cfg.net=cfg.liveNet;renderCfg();saveCfg();
   if(!(APP&&APP.collectLive)){alert('El sorteo en directo solo funciona en la app Android «Sorteos Star» (SorteosStar-debug.apk).');return}
   live={owner,msgs:[]};liveBase=new Set();liveSeen=new Set();livePeople=new Set();livePrev=[];liveCount=0;store('ss.live',live);
@@ -889,7 +890,8 @@ function analyze(show){
   const prevWin=new Set();
   if(cfg.noPrevWin){const lim=Date.now()-cfg.prevDays*86400000;
     load(K.hist,[]).forEach(d=>{if(new Date(d.date).getTime()>=lim)d.winners.forEach(w=>prevWin.add(normU(fw(d,w))))})}
-  const word=(isLive?(cfg.liveWho==='word'?cfg.liveWord:''):cfg.needWord).trim().toLowerCase();
+  const word=(isLive?(cfg.liveWord||''):cfg.needWord).trim().toLowerCase();
+  const phrase=(isLive?(cfg.livePhrase||''):'').trim().toLowerCase();
   const minM=isLive?0:cfg.minMent, multi=isLive?cfg.liveMulti:cfg.multi, maxT=cfg.maxTk>100?Infinity:cfg.maxTk;
   const usedMent={}; // por usuario: menciones ya usadas
   const people={};
@@ -909,6 +911,7 @@ function analyze(show){
     c.nm=ments.length;
     if(c.nm<minM){c.why=c.nm?('Solo '+c.nm+' mención'+(c.nm>1?'es':'')+' válida'+(c.nm>1?'s':'')+' (pide '+minM+')'):'Sin menciones válidas';return}
     if(word&&!c.t.toLowerCase().includes(word)){c.why='Falta «'+word+'»';return}
+    if(phrase&&!c.t.toLowerCase().includes(phrase)){c.why='Falta la frase secreta';return}
     const p=people[u]||(people[u]={u:NICKS.has(c.u)?c.u:c.u.replace(/^@/,''),n:0});
     if(!multi&&p.n>=1){c.why='Ya participa con otro comentario';c.dup=true;return}
     if(multi&&p.n>=maxT){c.why='Ya tiene el máximo de papeletas';c.dup=true;return}
@@ -1276,7 +1279,7 @@ function basesText(){
   const scope={es:'residentes en España',pen:'residentes en la España peninsular',eu:'residentes en la Unión Europea',all:'cualquier persona, sea cual sea su país',shop:'cualquier persona que pueda recoger el premio en la tienda'}[cfg.scope||'es'];
   const req=[];
   req.push('Seguir la cuenta '+h+' en '+net+'.');
-  req.push(cfg.src==='live'?'Comentar durante el directo'+(cfg.liveWho==='word'&&cfg.liveWord.trim()?' escribiendo «'+cfg.liveWord.trim()+'»':'')+'.':'Comentar la publicación del sorteo'+(cfg.minMent?' mencionando a '+cfg.minMent+' '+(cfg.minMent>1?'amigos/as':'amigo/a')+(cfg.uniqMent?' distintos':''):'')+(cfg.needWord.trim()?' e incluyendo «'+cfg.needWord.trim()+'»':'')+'.');
+  req.push(cfg.src==='live'?'Comentar durante el directo.':'Comentar la publicación del sorteo'+(cfg.minMent?' mencionando a '+cfg.minMent+' '+(cfg.minMent>1?'amigos/as':'amigo/a')+(cfg.uniqMent?' distintos':''):'')+(cfg.needWord.trim()?' e incluyendo «'+cfg.needWord.trim()+'»':'')+'.');
   const tk=cfg.src==='live'?cfg.liveMulti:cfg.multi;
   req.push(tk?('Cada comentario válido es una participación'+(cfg.maxTk>100?'':' (máximo '+cfg.maxTk+' por persona)')+'.'):'Cada persona participa una sola vez, aunque comente varias veces.');
   const ex=extraInfo();
