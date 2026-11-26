@@ -111,12 +111,11 @@ object StarColors {
         walk(root)
     }
 
-    /** Botón flotante: verde con ▶ (parado) y rojo con ■ (en marcha). */
+    /** Botón flotante: rosa claro con ▶ (parado) o ■ (en marcha). Rosa, no rojo, para que el detector de letras rojas no lo confunda. */
     fun overlay(b: Button) {
         val d = b.resources.displayMetrics.density
-        val running = b.text.toString().trim().startsWith("■")
-        b.background = gradient(if (running) RED else GREEN, 18 * d)
-        b.setTextColor(Color.WHITE)
+        b.background = gradient(intArrayOf(0xFFFBCFE8.toInt(), 0xFFF9A8D4.toInt()), 18 * d)
+        b.setTextColor(0xFF831843.toInt())
         b.setTypeface(b.typeface, Typeface.BOLD)
         b.isAllCaps = false
         b.elevation = 6 * d
