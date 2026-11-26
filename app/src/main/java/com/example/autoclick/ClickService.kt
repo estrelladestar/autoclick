@@ -484,6 +484,9 @@ class ClickService : AccessibilityService() {
     /** Si en la última captura (antes de tocar una imagen) ya había una línea de letras rojas. */
     @Volatile var redBefore = false
 
+    /** Dónde se vio la última línea roja (sale en el registro, para saber qué color la ha dado). */
+    @Volatile var redInfo = ""
+
     /**
      * ¿Hay en la pantalla una línea de letras rojas (como los avisos de error de Instagram)?
      * Busca franjas con bastantes píxeles rojos, que ocupen a lo ancho y en muchos trocitos, como las letras
@@ -532,7 +535,12 @@ class ClickService : AccessibilityService() {
                 if (runs > maxRuns[k]) maxRuns[k] = runs
             }
             // Solo cuenta si parecen letras: bastante rojo, a lo ancho y en muchos trocitos (10 o más en una fila)
-            (0 until bands).any { count[it] >= 100 && maxX[it] - minX[it] >= w * 0.15f && maxRuns[it] >= 10 }
+            val hit = (0 until bands).firstOrNull { count[it] >= 100 && maxX[it] - minX[it] >= w * 0.15f && maxRuns[it] >= 10 }
+            if (hit != null) {
+                val yArriba = y0 + hit * bandH
+                redInfo = "franja a ${(yArriba * 100f / h).toInt()} % de la altura, ${maxRuns[hit]} trozos rojos, ${count[hit]} píxeles"
+            }
+            hit != null
         } catch (e: Throwable) {
             false
         }

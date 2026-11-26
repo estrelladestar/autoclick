@@ -1788,7 +1788,7 @@ object Macro {
 
         /** Ha salido algo en rojo al publicar: quitar la mención culpable (si se sabe) y pasar a la siguiente cuenta. */
         private fun notPosted(pick: List<String>, err: String?, c: Cmd) {
-            trace("  ⚠ ha salido un aviso en rojo al publicar" + (if (err != null) ": «${err.take(150)}»" else ""))
+            trace("  ⚠ ha salido un aviso en rojo al publicar" + (if (err != null) ": «${err.take(150)}»" else " (${s.redInfo})"))
             redAlarm()
             if (err == null) {
                 findField()?.let { f -> if ((f.text?.length ?: 0) > 0) putText(f, "") }
