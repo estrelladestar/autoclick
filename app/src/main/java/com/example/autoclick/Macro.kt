@@ -2406,9 +2406,20 @@ object Macro {
                 }
                 return
             }
-            trace("  doy me gusta (el corazón no estaba rojo)")
-            s.tapAt(t.exactCenterX(), t.exactCenterY())
-            advance(maxOf(c.extra(), 1200L))
+            // Antes de tocar se mira el color: si el corazón está rojo (ya con me gusta), no se toca para no quitarlo
+            val gen = stepGen
+            nextDue = System.currentTimeMillis() + 5_000L
+            s.heartRed(t) { rojo ->
+                if (gen != stepGen || id != token || !running) return@heartRed
+                if (rojo) {
+                    trace("  el corazón está rojo (por el color): no lo toco para no quitarle el me gusta")
+                    advance(c.extra())
+                    return@heartRed
+                }
+                trace("  doy me gusta (el corazón no estaba rojo)")
+                s.tapAt(t.exactCenterX(), t.exactCenterY())
+                advance(maxOf(c.extra(), 1200L))
+            }
         }
 
         /** Busca en Instagram un elemento visible que cumpla la condición (texto o descripción, en minúsculas). */

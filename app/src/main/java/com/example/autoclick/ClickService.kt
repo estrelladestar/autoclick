@@ -538,6 +538,43 @@ class ClickService : AccessibilityService() {
         }
     }
 
+    /** Hace una captura y dice si el corazón de esa zona está rojo (false si no se puede capturar). */
+    fun heartRed(area: Rect, done: (Boolean) -> Unit) {
+        capture({ bmp ->
+            val red = bmp != null && isRedIn(bmp, area)
+            main.post { done(red) }
+        }, {
+            main.post { done(false) }
+        })
+    }
+
+    /** Cuenta píxeles rojos (rojo de Instagram) dentro de la zona; con unos pocos basta. */
+    private fun isRedIn(src: Bitmap, area: Rect): Boolean {
+        return try {
+            val b = if (src.config == Bitmap.Config.ARGB_8888) src else (src.copy(Bitmap.Config.ARGB_8888, false) ?: return false)
+            val x0 = area.left.coerceIn(0, b.width - 1)
+            val x1 = area.right.coerceIn(0, b.width - 1)
+            val y0 = area.top.coerceIn(0, b.height - 1)
+            val y1 = area.bottom.coerceIn(0, b.height - 1)
+            val step = maxOf(1, (x1 - x0) / 12)
+            var n = 0
+            var y = y0
+            while (y <= y1) {
+                var x = x0
+                while (x <= x1) {
+                    val p = b.getPixel(x, y)
+                    val r = Color.red(p); val g = Color.green(p); val bl = Color.blue(p)
+                    if (r > 170 && g < 120 && bl < 140 && r - g > 80) n++
+                    x += step
+                }
+                y += step
+            }
+            n >= 6
+        } catch (e: Exception) {
+            false
+        }
+    }
+
     /** Hace una captura y dice si hay letras rojas (false si no se puede capturar). */
     fun checkRedText(done: (Boolean) -> Unit) {
         val skip = overlayBox()
