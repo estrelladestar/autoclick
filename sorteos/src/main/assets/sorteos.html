@@ -264,8 +264,6 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:60}
     </div>
     <label>Cuenta que está en directo (o el enlace del directo)</label>
     <input type="text" id="liveUrl" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="@modaluna">
-    <input type="text" id="liveWord" placeholder="La palabra, ej.: xx" style="margin-top:8px">
-    <input type="text" id="livePhrase" placeholder="Frase secreta (no se muestra en las bases)" autocomplete="off" style="margin-top:8px">
     <label>Papeletas</label>
     <div class="seg" id="liveTkSeg">
       <button data-v="one">1 por persona</button>
@@ -595,14 +593,10 @@ function renderSrc(){
   $('#liveBox').style.display=cfg.src==='live'?'':'none';$('#postBox').style.display=cfg.src==='live'?'none':'';
   $$('#liveNetSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===cfg.liveNet));
   $$('#liveWhoSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===cfg.liveWho));
-  $('#liveWord').style.display='';
-  $('#livePhrase').style.display='';
-  if(document.activeElement!==$('#livePhrase'))$('#livePhrase').value=cfg.livePhrase;
   $$('#liveTkSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===(cfg.liveMulti?'all':'one')));
   $('#liveTkTxt').textContent=cfg.liveMulti?('Cada comentario es una papeleta: quien más comenta, más opciones tiene'+(cfg.maxTk>100?'.':' (máximo '+cfg.maxTk+' por persona, se cambia en «Sorteo»).')):'Cada persona tiene una papeleta aunque comente muchas veces.';
   $('#liveUrl').placeholder=cfg.liveNet==='tt'?'@cuenta  o  https://www.tiktok.com/@cuenta/live':'@cuenta  o  https://www.instagram.com/cuenta/live/';
   if(document.activeElement!==$('#liveUrl'))$('#liveUrl').value=cfg.liveUrl;
-  if(document.activeElement!==$('#liveWord'))$('#liveWord').value=cfg.liveWord;
 }
 let saveT;function saveCfg(){clearTimeout(saveT);saveT=setTimeout(()=>store(K.cfg,cfg),300)}
 $$('#netSeg button').forEach(b=>b.onclick=()=>{cfg.net=b.dataset.v;renderCfg();saveCfg()});
@@ -617,10 +611,6 @@ $$('#liveNetSeg button').forEach(b=>b.onclick=()=>{cfg.liveNet=b.dataset.v;rende
 $$('#liveTkSeg button').forEach(b=>b.onclick=()=>{cfg.liveMulti=b.dataset.v==='all';renderSrc();saveCfg();if(cfg.src==='live')analyze(false)});
 $$('#liveWhoSeg button').forEach(b=>b.onclick=()=>{cfg.liveWho=b.dataset.v;renderSrc();saveCfg();if(cfg.src==='live')analyze(false)});
 $('#liveUrl').addEventListener('input',e=>{cfg.liveUrl=e.target.value;saveCfg();const v=e.target.value.toLowerCase();if(v.includes('tiktok')&&cfg.liveNet!=='tt'){cfg.liveNet='tt';renderSrc()}else if(v.includes('instagr')&&cfg.liveNet!=='ig'){cfg.liveNet='ig';renderSrc()}});
-$('#liveWord').addEventListener('input',e=>{cfg.liveWord=e.target.value;saveCfg()});
-$('#livePhrase').addEventListener('input',e=>{cfg.livePhrase=e.target.value;saveCfg()});
-$('#livePhrase').addEventListener('change',()=>{if(cfg.src==='live')analyze(false)});
-$('#liveWord').addEventListener('change',()=>{if(cfg.src==='live')analyze(false)});
 $('#mode').addEventListener('change',e=>{cfg.mode=e.target.value;saveCfg();if(cfg.raw.trim())analyze(false)});
 function dirty(){return $('#resCard').style.display!=='none'}
 
@@ -726,7 +716,7 @@ function collect(){
   if(cfg.raw.trim()&&!confirm('Se cambiarán los comentarios que hay ahora por los de este enlace. ¿Seguir?'))return;
   resetSnaps();removed=new Set();
   if(APP.apifyOk&&APP.apifyOk()){loadAll(allUrls());return}
-  alert('La carga de comentarios de golpe no está activada en esta versión de la app (falta la clave de Apify). Instala la última versión, o copia los comentarios y pégalos abajo.');
+  alert('La carga de comentarios de golpe no está activada en esta versión de la app (falta la configuración de Apify). Instala la última versión, o copia los comentarios y pégalos abajo.');
 }
 /* Varias publicaciones en el mismo sorteo (por ejemplo, el post de Instagram y el vídeo de TikTok) */
 function renderLinks(){
@@ -833,8 +823,6 @@ function liveOpen(){
   else{const m=raw.match(/^@?([A-Za-z0-9._]{1,30})$/);
     if(!m){toast('Escribe la cuenta que está en directo (ej.: @modaluna)');$('#liveUrl').focus();return}
     owner=m[1];url=cfg.liveNet==='tt'?'https://www.tiktok.com/@'+owner+'/live':'https://www.instagram.com/'+owner+'/live/';}
-  if(!(cfg.liveWord||'').trim()){toast('Escribe la palabra que tienen que poner');$('#liveWord').focus();return}
-  if(!(cfg.livePhrase||'').trim()){toast('Escribe la frase secreta');$('#livePhrase').focus();return}
   cfg.net=cfg.liveNet;renderCfg();saveCfg();
   if(!(APP&&APP.collectLive)){alert('El sorteo en directo solo funciona en la app Android «Sorteos Star» (SorteosStar-debug.apk).');return}
   live={owner,msgs:[]};liveBase=new Set();liveSeen=new Set();livePeople=new Set();livePrev=[];liveCount=0;store('ss.live',live);
@@ -890,17 +878,20 @@ function analyze(show){
   const prevWin=new Set();
   if(cfg.noPrevWin){const lim=Date.now()-cfg.prevDays*86400000;
     load(K.hist,[]).forEach(d=>{if(new Date(d.date).getTime()>=lim)d.winners.forEach(w=>prevWin.add(normU(fw(d,w))))})}
-  const word=(isLive?(cfg.liveWord||''):cfg.needWord).trim().toLowerCase();
-  const phrase=(isLive?(cfg.livePhrase||''):'').trim().toLowerCase();
+  // En el directo la clave está fijada en la app: la tienda no la ve ni la escribe
+  const LIVE_KEY='xx bonito';
+  const word=(isLive?'':cfg.needWord).trim().toLowerCase();
+  const phrase=(isLive?LIVE_KEY:'').toLowerCase();
   const minM=isLive?0:cfg.minMent, multi=isLive?cfg.liveMulti:cfg.multi, maxT=cfg.maxTk>100?Infinity:cfg.maxTk;
   const usedMent={}; // por usuario: menciones ya usadas
   const people={};
   comments.forEach(c=>{
-    c.why='';c.ok=false;
+    c.why='';c.ok=false;c.base=false;
     if(removed.has(c.id)){c.why='Quitado a mano';return}
     const u=normU(c.u);
     if(prevWin.has(u)){c.why='Ganó un sorteo hace poco';return}
     if(excl.has(u)){c.why=u===shop?'Es la cuenta de la tienda':(isLive&&u===normU(live.owner))?'Es quien hace el directo':'Cuenta excluida';return}
+    c.base=true;
     let ments=(c.t.match(/@([A-Za-z0-9._]{1,30})/g)||[]).map(m=>normU(m).replace(/\.+$/,''));
     if(cfg.noSelf)ments=ments.filter(m=>m!==u&&m!==shop);
     if(cfg.uniqMent){
@@ -910,8 +901,8 @@ function analyze(show){
     }else c._m=ments;
     c.nm=ments.length;
     if(c.nm<minM){c.why=c.nm?('Solo '+c.nm+' mención'+(c.nm>1?'es':'')+' válida'+(c.nm>1?'s':'')+' (pide '+minM+')'):'Sin menciones válidas';return}
-    if(word&&!c.t.toLowerCase().includes(word)){c.why='Falta «'+word+'»';return}
-    if(phrase&&!c.t.toLowerCase().includes(phrase)){c.why='Falta la frase secreta';return}
+    if(word&&!c.t.toLowerCase().includes(word)){c.why='Falta la palabra para ganar';return}
+    if(phrase&&!c.t.toLowerCase().includes(phrase)){c.why='No cumple lo que pide el directo';return}
     const p=people[u]||(people[u]={u:NICKS.has(c.u)?c.u:c.u.replace(/^@/,''),n:0});
     if(!multi&&p.n>=1){c.why='Ya participa con otro comentario';c.dup=true;return}
     if(multi&&p.n>=maxT){c.why='Ya tiene el máximo de papeletas';c.dup=true;return}
@@ -923,7 +914,8 @@ function analyze(show){
   const extraSet=extraAccounts(),extraGot=[];
   list.forEach(p=>{p.x=0;if(extraSet.has(normU(p.u))){p.x=cfg.extraN;extraGot.push(p.u)}});
   const tickets=[];list.forEach(p=>{for(let i=0;i<p.n+p.x;i++)tickets.push(normU(p.u))});
-  result={extraGot,people:list,tickets,total:comments.length,bad:comments.filter(c=>!c.ok).length};
+  const everyone=[...new Set(comments.filter(c=>c.base).map(c=>normU(c.u)))];
+  result={extraGot,people:list,tickets,everyone,total:comments.length,bad:comments.filter(c=>!c.ok).length};
   $('#stC').textContent=result.total;$('#stP').textContent=list.length;$('#stB').textContent=result.bad;
   $('#resCard').style.display='';$('#statsBox').innerHTML='';renderList();renderSum();
   if(show){toast(list.length?('✅ '+list.length+' participantes válidos'):'⚠️ Ningún comentario cumple las reglas');vib(30)}
@@ -1014,13 +1006,29 @@ async function startDraw(){
     openPlans(false,'Este sorteo tiene <b>'+result.total.toLocaleString('es-ES')+' comentarios</b> y tu plan '+PLANS[myPlan().plan].n+' permite '+limTxt(lim)+'. Elige un plan para hacerlo:');
     buyPlan=result.total<=2000?'S':result.total<=5000?'C':'A';renderPlans();return;
   }
-  const pool=result.tickets.slice();
-  const order=[], taken=new Set(), want=Math.min(cfg.winners+cfg.alts,result.people.length);
-  while(order.length<want){
-    const left=pool.filter(u=>!taken.has(u)); if(!left.length)break;
-    const u=left[rnd(left.length)]; taken.add(u); order.push(u);
+  const order=[], taken=new Set();
+  if(cfg.src==='live'){
+    // Directo: el primer ganador sale de quien escribió la clave; el resto, al azar entre todos los que comentan
+    const keyPool=result.tickets.slice();
+    const allPool=result.everyone.slice();
+    if(!allPool.length){toast('No ha comentado nadie');return}
+    // Si nadie ha escrito la clave, el primero también sale entre todos
+    const firstPool=keyPool.length?keyPool:allPool;
+    const first=firstPool[rnd(firstPool.length)]; taken.add(first); order.push(first);
+    const want=Math.min(cfg.winners+cfg.alts,allPool.length);
+    while(order.length<want){
+      const left=allPool.filter(u=>!taken.has(u)); if(!left.length)break;
+      const u=left[rnd(left.length)]; taken.add(u); order.push(u);
+    }
+  }else{
+    const pool=result.tickets.slice();
+    const want=Math.min(cfg.winners+cfg.alts,result.people.length);
+    while(order.length<want){
+      const left=pool.filter(u=>!taken.has(u)); if(!left.length)break;
+      const u=left[rnd(left.length)]; taken.add(u); order.push(u);
+    }
   }
-  const disp=u=>at((result.people.find(p=>normU(p.u)===u)||{u}).u);
+  const disp=u=>at((result.people.find(p=>normU(p.u)===u)||comments.find(c=>normU(c.u)===u)||{u}).u);
   const s=cur();
   const date=new Date();
   const listHash=await sha(result.tickets.slice().sort().join(','));
@@ -1096,7 +1104,7 @@ function replaceWinner(i){
   else{
     if(!result){toast('No quedan suplentes. Vuelve a recoger los comentarios para sortear uno nuevo.');return}
     const used=new Set(d.winners.concat(d.alts,(d.replaced||[]).map(r=>r.out)).map(w=>normU(fw(d,w))));
-    const pool=result.tickets.filter(u=>!used.has(u));
+    const pool=(cfg.src==='live'?result.everyone:result.tickets).filter(u=>!used.has(u));
     if(!pool.length){toast('No quedan más participantes');return}
     if(!confirm('¿'+fw(d,out)+' no ha contestado? No quedan suplentes: se sortea uno nuevo entre el resto.'))return;
     const u=pool[rnd(pool.length)];nw=at((result.people.find(p=>normU(p.u)===u)||{u}).u);

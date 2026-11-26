@@ -37,7 +37,7 @@ object Apify {
     private fun errorText(code: Int, txt: String): String {
         val msg = try { JSONObject(txt).optJSONObject("error")?.optString("message") ?: "" } catch (e: Exception) { "" }
         return when (code) {
-            401 -> "La clave de Apify no es válida"
+            401 -> "La configuración de Apify no es válida"
             402 -> "No queda saldo en Apify (revisa tu cuenta o el límite de gasto)"
             403 -> "Apify no deja usar ese robot con esta cuenta: $msg"
             else -> "Error de Apify ($code) $msg".trim()
