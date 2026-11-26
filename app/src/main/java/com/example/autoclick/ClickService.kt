@@ -498,7 +498,8 @@ class ClickService : AccessibilityService() {
             val b = if (src.config == Bitmap.Config.ARGB_8888) src else (src.copy(Bitmap.Config.ARGB_8888, false) ?: return false)
             val w = b.width
             val h = b.height
-            val y0 = (h * 0.04f).toInt()
+            // Arriba se salta el 8 % (barra de estado y la barra roja de «Ubicación del puntero» de los desarrolladores)
+            val y0 = (h * 0.08f).toInt()
             val y1 = (h * 0.90f).toInt()
             val bandH = maxOf(8, h / 45)
             val bands = (y1 - y0) / bandH + 1
