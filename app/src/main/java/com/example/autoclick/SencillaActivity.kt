@@ -65,6 +65,7 @@ class SencillaActivity : Activity() {
     private lateinit var historiasSpin: Spinner
     private lateinit var subirHistoriaBox: CheckBox
     private lateinit var megustaBox: CheckBox
+    private lateinit var rapidoBox: CheckBox
     private lateinit var seguirDescBox: CheckBox
     private lateinit var guardarPubBox: CheckBox
     private lateinit var repostBox: CheckBox
@@ -403,6 +404,9 @@ class SencillaActivity : Activity() {
         subirHistoriaBox = marca("📤 Subir historia etiquetando a la tienda", prefs.getBoolean("s_subir_hist", true))
         texto("La historia solo lleva la etiqueta de la tienda, sin frase ni menciones.")
         historiasSpin = lista(HIST_TEXTOS, HIST_VALORES.indexOf(prefs.getString("s_hist", "1-2") ?: "1-2").coerceAtLeast(0))
+
+        seccionNueva("⚡ Modo rápido", ROJO)
+        rapidoBox = marca("⚡ Solo cambiar de cuenta, volver al enlace, mencionar y publicar (sin historia, me gusta ni repost)", prefs.getBoolean("s_rapido", false))
 
         seccionNueva("❤️ 9. En cada publicación", ROJO)
         megustaBox = marca("❤️ Dar me gusta si el corazón está vacío", prefs.getBoolean("s_megusta", true))
@@ -774,6 +778,7 @@ class SencillaActivity : Activity() {
             .putString("s_entre", ENTRE_VALORES[entreSpin.selectedItemPosition])
             .putString("s_hist", HIST_VALORES[historiasSpin.selectedItemPosition])
             .putBoolean("s_megusta", megustaBox.isChecked)
+            .putBoolean("s_rapido", rapidoBox.isChecked)
             .putBoolean("s_seguirdesc", seguirDescBox.isChecked)
             .putBoolean("s_guardarpub", guardarPubBox.isChecked)
             .putBoolean("s_repost", repostBox.isChecked)
@@ -798,6 +803,13 @@ class SencillaActivity : Activity() {
         val cuentas = cuentasBox.text.toString().trim().split(Regex("[\\s,;]+")).map { it.removePrefix("@") }.filter { it.isNotEmpty() }
         val sb = StringBuilder()
         if (cuentas.size >= 2) sb.append("cuentas ${cuentas.joinToString(" ")}\n")
+        if (rapidoBox.isChecked) {
+            // Modo rápido: en cada cuenta, abre el enlace, escribe las menciones, publica y cambia de cuenta
+            sb.append("enlace\nesperar 2\n")
+            sb.append("imagen 1 opcional | 1-2\n$linea\nesperar 1\nimagen 2 | 1-2\n")
+            sb.append("cuenta siguiente\nrepetir 1000")
+            return sb.toString()
+        }
         // Lo primero tras abrir el enlace: subir la historia etiquetando a la tienda (y a las cuentas de la descripción)
         sb.append("enlace\nesperar 8\n")
         if (subirHistoriaBox.isChecked) sb.append("historia\nesperar 3-5\n")
