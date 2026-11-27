@@ -427,10 +427,11 @@ body.bg-crema{background:#FFF6E0}body.bg-azul{background:#E6F2FF}body.bg-verde{b
   <section id="t-speak">
     <div id="spback"></div>
     <h2>🎤 Speak: say it in English</h2>
-    <div class="card" style="font-size:13px;font-weight:700">Listen 🔊, then tap the microphone and say the word or sentence. Your pet listens and tells you if it's right! <small style="display:block;color:var(--muted)">(Escucha, pulsa el micrófono y dilo en inglés.)</small></div>
+    <div class="card" style="font-size:13px;font-weight:700">Elige tema: <button class="btn" onclick="spCat('t2')">📘 Tema 2</button> <button class="btn" onclick="spCat('t1')">📗 Tema 1</button><br>Listen 🔊, then tap the microphone and say the word or sentence. Your pet listens and tells you if it's right! <small style="display:block;color:var(--muted)">(Escucha, pulsa el micrófono y dilo en inglés.)</small></div>
     <div class="pbar"><i id="spbar"></i></div>
     <div class="qtop"><div class="qpet" id="sppet"></div><div class="qbubble" id="sptext"></div></div>
     <button class="btn pink big" id="spmic">🎤 Tap and speak</button>
+    <button class="btn orange" id="sphint" onclick="spHint()">💡 Pista</button>
     <div id="spres" style="margin-top:10px"></div>
     <button class="btn green big" id="spnext" style="display:none;margin-top:6px">Next ▶</button>
   </section>
@@ -1390,7 +1391,7 @@ PIC20.forEach((w,i)=>{
   const ns=[String(i+1),...others(PIC20.map((x,k)=>String(k+1)),String(i+1),3)];
   add('voc',`What number is «${w}» in the picture on page 20?`,ns,String(i+1),`«${w}» es el número ${i+1}.`,EN);
 });
-const VES=VOC.map(v=>v[1]),VEN=VOC.map(v=>v[0]);VOC_ES=VOC;
+const VES=VOC.map(v=>v[1]),VEN=VOC.map(v=>v[0]);VOC_ES=VOC.slice(0,18);window.VOC_T2=VOC.slice(0,18);window.VOC_T1=VOC.slice(18);
 VOC.forEach(([en,es,em])=>{
   add('voc',`¿Qué significa «${en}»?`,[es,...others(VES,es,3)],es,`«${en}» = ${es}.`,{v:'w',es:'¿Qué significa',en:en,big:em});
   add('voc',`¿Cómo se dice «${es}» en inglés?`,[en,...others(VEN,en,3)],en,`${es} = «${en}».`,{v:'oe',es:`¿Cómo se dice ${es} en inglés?`,big:em});
@@ -2421,11 +2422,13 @@ function spScore(target, heardList){
   return {sc:best, txt:bestTxt};
 }
 function canListen(){ try { if (B && B.canListen) return B.canListen(); } catch (e) {} return !!(window.SpeechRecognition || window.webkitSpeechRecognition); }
+var SPK_CAT = 't2';
+function spCat(c){ SPK_CAT = c; startSpeak(); }
 function startSpeak(){
   if (!S.spseen) S.spseen = {};
-  var words = (window.VOC_ES || []).map(function(v){ return [v[0], v[1], v[2]]; });
+  var words = ((SPK_CAT === 't1' ? window.VOC_T1 : window.VOC_T2) || []).map(function(v){ return [v[0], v[1], v[2]]; });
   var pool = shuffle(words).sort(function(a, b){ return (S.spseen[a[0]] || 0) - (S.spseen[b[0]] || 0); }).slice(0, 5)
-    .concat(shuffle(SPK_SENT).sort(function(a, b){ return (S.spseen[a[0]] || 0) - (S.spseen[b[0]] || 0); }).slice(0, 3));
+    .concat(SPK_CAT === 't1' ? [] : shuffle(SPK_SENT).sort(function(a, b){ return (S.spseen[a[0]] || 0) - (S.spseen[b[0]] || 0); }).slice(0, 3));
   SP = {list:shuffle(pool), i:0, ok:0, coins:0, tries:0, done:false};
   tab('speak'); showSpeak();
 }
@@ -2434,7 +2437,7 @@ function showSpeak(){
   SP.done = false; SP.tries = 0;
   $('spback').innerHTML = backBtn();
   $('sppet').innerHTML = petMiniSVG('pensar');
-  $('sptext').innerHTML = '<small>🎤 Speak · ' + (SP.i + 1) + ' of ' + SP.list.length + '</small>Listen and say it in English:<span class="bige">' + it[2] + '</span><span class="qen" data-spsay="1" style="font-size:22px">' + esc(it[0]) + ' 🔊</span><div class="qtools"><button data-spsay="1">🔊 Listen</button><button data-spsay="1" data-slow="1">🐢 Slowly</button></div><br><small style="display:inline;color:var(--muted)">(' + esc(it[1]) + ')</small>';
+  $('sptext').innerHTML = '<small>' + (SPK_CAT === 't1' ? '📗 TEMA 1 · solo vocabulario' : '📘 TEMA 2') + ' · 🎤 ' + (SP.i + 1) + ' of ' + SP.list.length + '</small>Listen and say it in English:<span class="bige">' + it[2] + '</span><span class="qen" data-spsay="1" style="font-size:22px">' + esc(it[0]) + ' 🔊</span><div class="qtools"><button data-spsay="1">🔊 Listen</button><button data-spsay="1" data-slow="1">🐢 Slowly</button></div><br><small style="display:inline;color:var(--muted)">(' + esc(it[1]) + ')</small>';
   $('spres').innerHTML = canListen() ? '' : '<div class="card" style="font-weight:700">🎤 Este móvil o navegador no puede escucharte. En la app de Android funciona si el móvil tiene el «Reconocimiento de voz de Google». Puedes practicar igual: escucha, repite en voz alta y pulsa «Next».</div>';
   $('spbar').style.width = (SP.i * 100 / SP.list.length) + '%';
   $('spmic').style.display = ''; $('spmic').textContent = '🎤 Tap and speak'; $('spmic').className = 'btn pink big';
@@ -2457,6 +2460,20 @@ function spListen(){
   webRec.onerror = function(e){ onHeard({error:e.error || 'x'}); };
   webRec.onend = function(){ if (spBusy) onHeard({error:'7'}); };
   try { webRec.start(); } catch (e) { onHeard({error:'x'}); }
+}
+function spWhy(target, heard){
+  var t = spNorm(target).split(' ').filter(Boolean), h = spNorm(heard || '').split(' ').filter(Boolean);
+  if (!h.length) return '🙉 No se oyó nada: habla más alto y más cerca del móvil.';
+  var miss = t.filter(function(w){ return h.indexOf(w) < 0; }), extra = h.filter(function(w){ return t.indexOf(w) < 0; }), out = [];
+  if (miss.length) out.push('Te falta decir: «' + miss.join(' ') + '».');
+  if (extra.length) out.push('Has dicho «' + extra.join(' ') + '», pero no está en la frase.');
+  if (!miss.length && !extra.length) out.push('Las palabras están bien, pero la pronunciación no se parece lo bastante. Escucha 🐢 y repite despacio.');
+  return out.join(' ');
+}
+function spHint(){
+  if (!SP || SP.done || !SP.list || !SP.list[SP.i]) return;
+  var it = SP.list[SP.i], n = spNorm(it[0]).split(' ').filter(Boolean).length;
+  $('spres').innerHTML = '<div class="card" style="font-weight:700">💡 Pista: significa «' + esc(it[1]) + '». Empieza por «' + esc(it[0].charAt(0)) + '» y tiene ' + n + (n === 1 ? ' palabra.' : ' palabras.') + '</div>';
 }
 window.onHeard = function(r){
   if (!r || r.ready) return;
@@ -2483,7 +2500,7 @@ window.onHeard = function(r){
     msg = '🔁 Not quite. Listen and try again. (No del todo. Escucha y prueba otra vez.)'; voice = 'Listen again: '; sfx('bad');
   }
   if (SP.tries >= 3 && !SP.done) { SP.done = true; S.spseen[it[0]] = (S.spseen[it[0]] || 0) + 1; S.catAns.spk = (S.catAns.spk || 0) + 1; $('spmic').style.display = 'none'; msg += '<br>Let\'s go to the next one! (¡Vamos a la siguiente!)'; }
-  $('spres').innerHTML = '<div class="card" style="font-weight:700">' + msg + '<span class="fact">👂 I heard: «' + esc(res.txt || '…') + '» · ' + pct + '%</span></div>';
+  $('spres').innerHTML = '<div class="card" style="font-weight:700">' + msg + '<span class="fact">👂 I heard: «' + esc(res.txt || '…') + '» · ' + pct + '%</span>' + (SP.done && res.sc >= .8 ? '' : '<div style="font-size:14px;font-weight:600;margin-top:6px">❓ ' + esc(spWhy(it[0], res.txt)) + '</div>') + '</div>';
   speak(voice, 'en'); if (res.sc < .8) speak(it[0], 'en', true);
   $('spnext').style.display = SP.done ? '' : 'none';
   checkStickers(); checkMedals(); save();
