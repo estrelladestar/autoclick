@@ -18,8 +18,9 @@ header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:8px;
 .xpbar i{display:block;height:100%;background:#ffe066;border-radius:6px;transition:width .5s}
 .icon{border:0;background:#ffffff33;color:#fff;border-radius:50%;width:34px;height:34px;font-size:16px;padding:0;flex:none}
 .icon.off{opacity:.45;text-decoration:line-through}
-nav{position:sticky;top:54px;z-index:19;display:flex;gap:6px;padding:8px 10px;background:#efe6ffee;backdrop-filter:blur(6px)}
-nav button{flex:1;border:0;border-radius:14px;padding:7px 1px;font-weight:800;background:#fff;color:var(--ink);font-size:10.5px;box-shadow:0 2px 0 #0001;line-height:1.2}
+nav{position:sticky;top:54px;z-index:19;display:flex;gap:6px;padding:8px 10px;background:#efe6ffee;backdrop-filter:blur(6px);overflow-x:auto;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{flex:1 0 auto;min-width:64px;border:0;border-radius:14px;padding:7px 4px;font-weight:800;background:#fff;color:var(--ink);font-size:11px;box-shadow:0 2px 0 #0001;line-height:1.2;white-space:nowrap}
 nav button b{display:block;font-size:20px}
 nav button.on{background:linear-gradient(180deg,#8b5cf6,#6a3de8);color:#fff}
 .chal{display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,#fff3c4,#ffe0ef);border-radius:18px;padding:10px 12px;margin:4px 0 8px;font-weight:800;font-size:14px;box-shadow:0 3px 10px #ffb02033}
@@ -457,18 +458,27 @@ var ITEMS = {
   back:[['none','Nada',0],['mochila','Mochila',50],['capa','Capa',80],['hada','Alas de hada',120],['mariposa','Alas de mariposa',130],['angel','Alas de ángel',140],['capadorada','Capa dorada',-1]],
   bg:[['habitacion','Mi habitación',0],['parque','Parque',40],['playa','Playa',50],['nieve','Nieve',60],['arcoiris','Arcoíris',80],['mar','Fondo del mar',80],['espacio','Espacio',100],['castillo','Castillo',120]]
 };
-/* ======================= 200+ accesorios nuevos (variantes de color) =======================
-   Cada variante es un accesorio existente con otro tono: id «v:<base>:<grados de tono>». */
-var VHUES = [['Verde',120],['Azul',210],['Morado',270],['Amarillo',50],['Rojo',340],['Turquesa',170],['Naranja',25],['Rosa',300]];
+/* ======================= accesorios nuevos (variantes de color) =======================
+   Cada variante es un accesorio existente con otro tono y brillo: id «v:<base>:<grados>:<brillo>». */
+var VHUES = [['verde',120],['azul',210],['morado',270],['amarillo',50],['rojo',340],['turquesa',170],['naranja',25],['rosa',300],['menta',150],['celeste',195],['lila',285],['dorado',40]];
+var VTONES = [['',1],['claro',1.25],['oscuro',0.75]];
 function accBase(id){ return id && id.indexOf('v:') === 0 ? id.split(':')[1] : id; }
-function accFx(id, svg){ if (!id || id.indexOf('v:') !== 0) return svg; return '<g style="filter:hue-rotate(' + id.split(':')[2] + 'deg)">' + svg + '</g>'; }
+function accFx(id, svg){
+  if (!id || id.indexOf('v:') !== 0) return svg;
+  var q = id.split(':');
+  return '<g style="filter:hue-rotate(' + q[2] + 'deg) brightness(' + q[3] + ')">' + svg + '</g>';
+}
 (function(){
-  var plan = {top:4, bottom:4, shoes:4, head:3, face:3, neck:4, hand:4, back:4};
+  var plan = {top:8, bottom:6, shoes:6, head:6, face:5, neck:6, hand:6, back:6};
   Object.keys(plan).forEach(function(cat){
     ITEMS[cat].filter(function(it){ return it[0] !== 'none' && it[2] >= 0; }).forEach(function(it, bi){
+      var combos = [];
+      VHUES.forEach(function(h){ VTONES.forEach(function(tn){ combos.push([h, tn]); }); });
       for (var j = 0; j < plan[cat]; j++) {
-        var hue = VHUES[(bi + j * 2) % VHUES.length];
-        ITEMS[cat].push(['v:' + it[0] + ':' + hue[1], it[1] + ' (' + hue[0].toLowerCase() + ')', Math.max(15, it[2] + 20)]);
+        var c = combos[(bi * 5 + j * 7) % combos.length];
+        var h = c[0], tn = c[1];
+        var name = it[1] + ' (' + h[0] + (tn[0] ? ' ' + tn[0] : '') + ')';
+        ITEMS[cat].push(['v:' + it[0] + ':' + h[1] + ':' + tn[1], name, Math.max(15, it[2] + 20 + (tn[1] > 1 ? 10 : 0))]);
       }
     });
   });
