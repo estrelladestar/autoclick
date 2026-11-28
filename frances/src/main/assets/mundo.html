@@ -224,6 +224,7 @@ textarea.pin{min-height:150px;font-size:16px;line-height:1.5}
     <button data-t="av"><b>👗</b>Avatar</button>
     <button data-t="shop"><b>🛍️</b>Shop</button>
     <button data-t="logros"><b>🏅</b>Prizes</button>
+    <button data-t="juegos"><b>🎮</b>Juegos</button>
   </nav>
 
   <section id="t-pet" class="on">
@@ -1945,6 +1946,7 @@ function tab(t){
   var bs = document.querySelectorAll('nav button');
   for (var i = 0; i < bs.length; i++) bs[i].classList.toggle('on', bs[i].dataset.t === t);
   ['pet', 'quiz', 'apr', 'av', 'shop', 'logros', 'dict', 'exam', 'poema', 'speak', 'juegos'].forEach(function(x){ $('t-' + x).classList.toggle('on', x === t); });
+  if (t === 'juegos' && window.renderJuegosMenu && !$('jbox').innerHTML.trim()) window.renderJuegosMenu();
   if (t !== 'av') trying = null;
   window.scrollTo(0, 0);
   if (t === 'pet') { renderPet(); say(moodPhrase()); }
@@ -2709,7 +2711,8 @@ function findTap(n){
   $('fgo').style.display = ''; $('fgo').textContent = FIND.round < FIND.total ? '▶ Siguiente' : '🏁 Ver resultado'; $('fgo').onclick = findNext;
 }
 
-window.openJuegos = function(){ tab('juegos'); menu(); };
+window.openJuegos = function(){ tab('juegos'); };
+window.renderJuegosMenu = function(){ menu(); };
 Object.assign(window, {gameMemory, flipMem, gameSimon, simonRound, simonTap, gameHangman, guessL, gameBingo, callBingo, markBingo, menu, fr, gameRace, raceAns, gameOrder, orderPick, orderClear, orderCheck, gameFind, findNext, findSay, findTap});
 })();
 </script>
