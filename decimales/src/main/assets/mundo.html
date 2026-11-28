@@ -457,6 +457,22 @@ var ITEMS = {
   back:[['none','Nada',0],['mochila','Mochila',50],['capa','Capa',80],['hada','Alas de hada',120],['mariposa','Alas de mariposa',130],['angel','Alas de ángel',140],['capadorada','Capa dorada',-1]],
   bg:[['habitacion','Mi habitación',0],['parque','Parque',40],['playa','Playa',50],['nieve','Nieve',60],['arcoiris','Arcoíris',80],['mar','Fondo del mar',80],['espacio','Espacio',100],['castillo','Castillo',120]]
 };
+/* ======================= 200+ accesorios nuevos (variantes de color) =======================
+   Cada variante es un accesorio existente con otro tono: id «v:<base>:<grados de tono>». */
+var VHUES = [['Verde',120],['Azul',210],['Morado',270],['Amarillo',50],['Rojo',340],['Turquesa',170],['Naranja',25],['Rosa',300]];
+function accBase(id){ return id && id.indexOf('v:') === 0 ? id.split(':')[1] : id; }
+function accFx(id, svg){ if (!id || id.indexOf('v:') !== 0) return svg; return '<g style="filter:hue-rotate(' + id.split(':')[2] + 'deg)">' + svg + '</g>'; }
+(function(){
+  var plan = {top:4, bottom:4, shoes:4, head:3, face:3, neck:4, hand:4, back:4};
+  Object.keys(plan).forEach(function(cat){
+    ITEMS[cat].filter(function(it){ return it[0] !== 'none' && it[2] >= 0; }).forEach(function(it, bi){
+      for (var j = 0; j < plan[cat]; j++) {
+        var hue = VHUES[(bi + j * 2) % VHUES.length];
+        ITEMS[cat].push(['v:' + it[0] + ':' + hue[1], it[1] + ' (' + hue[0].toLowerCase() + ')', Math.max(15, it[2] + 20)]);
+      }
+    });
+  });
+})();
 var FOOD = [
   {id:'manzana', e:'🍎', n:'Manzana', p:3, hunger:15, happy:2},
   {id:'leche', e:'🥛', n:'Leche', p:4, hunger:10, happy:3, energy:8},
@@ -882,30 +898,30 @@ function avatarSVG(eq, o){
   var s = '';
   if (o.bg !== false) s += (BG[eq.bg] || BG.habitacion)();
   s += '<g' + (o.anim ? ' class="breathe"' : '') + '>';
-  s += backSVG(eq.back);
+  s += accFx(eq.back, backSVG(accBase(eq.back)));
   s += hair.b;
   s += '<path d="M90,226 V314 M110,226 V314" stroke="' + sk + '" stroke-width="15" stroke-linecap="round"/>';
-  s += shoesSVG(eq.shoes, sk);
-  if (!isDress(eq.top)) s += bottomSVG(eq.bottom, D);
+  s += accFx(eq.shoes, shoesSVG(accBase(eq.shoes), sk));
+  if (!isDress(accBase(eq.top))) s += accFx(eq.bottom, bottomSVG(accBase(eq.bottom), D));
   s += '<rect x="92" y="132" width="16" height="24" fill="' + skd + '"/>';
   s += '<path d="M74,156 Q100,148 126,156 L122,226 L78,226 Z" fill="' + sk + '"/>';
   s += '<path d="M76,160 L60,226 M124,160 L140,226" stroke="' + sk + '" stroke-width="13" stroke-linecap="round"/>';
-  s += topSVG(eq.top, sk, D);
-  if (eq.back === 'mochila') s += '<path d="M79,158 L83,214 M121,158 L117,214" stroke="#e07b1e" stroke-width="6" stroke-linecap="round"/>';
-  s += handSVG(eq.hand);
+  s += accFx(eq.top, topSVG(accBase(eq.top), sk, D));
+  if (accBase(eq.back) === 'mochila') s += '<path d="M79,158 L83,214 M121,158 L117,214" stroke="#e07b1e" stroke-width="6" stroke-linecap="round"/>';
+  s += accFx(eq.hand, handSVG(accBase(eq.hand)));
   s += '<circle cx="59" cy="230" r="8.5" fill="' + sk + '"/><circle cx="141" cy="230" r="8.5" fill="' + sk + '"/>';
-  s += neckSVG(eq.neck);
+  s += accFx(eq.neck, neckSVG(accBase(eq.neck)));
   s += '<ellipse cx="47" cy="98" rx="8" ry="11" fill="' + sk + '"/><ellipse cx="153" cy="98" rx="8" ry="11" fill="' + sk + '"/>';
   s += '<ellipse cx="100" cy="90" rx="54" ry="52" fill="' + sk + '"/>';
   s += '<path d="M97,110 Q100,113 103,110" stroke="' + skd + '" stroke-width="2" fill="none" stroke-linecap="round"/>';
   s += '<ellipse cx="66" cy="116" rx="9" ry="5" fill="#ff7b9c" opacity=".38"/><ellipse cx="134" cy="116" rx="9" ry="5" fill="#ff7b9c" opacity=".38"/>';
-  s += faceUnderSVG(eq.face);
+  s += accFx(eq.face, faceUnderSVG(accBase(eq.face)));
   s += eyesSVG(eq.eyes, ec, sk, eq.g === 'nino');
   s += browsSVG(eq.brows, brow);
   s += mouthSVG(eq.mouth);
   s += hair.f;
-  s += headItemSVG(eq.head);
-  s += faceOverSVG(eq.face);
+  s += accFx(eq.head, headItemSVG(accBase(eq.head)));
+  s += accFx(eq.face, faceOverSVG(accBase(eq.face)));
   s += '</g>';
   return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + (o.vb || '0 -20 200 360') + '"' + (o.par ? ' preserveAspectRatio="' + o.par + '"' : '') + '><defs>' + D.join('') + '</defs>' + s + '</svg>';
 }
