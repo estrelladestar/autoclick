@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="MundoTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">#7C4DFF</item>
+        <item name="android:colorAccent">#FF5FA2</item>
+        <item name="android:statusBarColor">#7C4DFF</item>
+        <item name="android:navigationBarColor">#FFE9F4</item>
+        <item name="android:windowBackground">@drawable/mundo_bg</item>
+    </style>
+</resources>
