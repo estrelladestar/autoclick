@@ -2453,6 +2453,9 @@ function menu(){
       <button class="game" onclick="gameSimon()"><b>🎯</b>Jacques a dit<br><small>Escucha y toca bien</small></button>
       <button class="game" onclick="gameHangman()"><b>🔤</b>Pendu<br><small>Adivina la palabra</small></button>
       <button class="game" onclick="gameBingo()"><b>🎱</b>Bingo<br><small>Marca los números</small></button>
+      <button class="game" onclick="gameRace()"><b>🏃</b>Carrera de verbos<br><small>Contra el reloj</small></button>
+      <button class="game" onclick="gameOrder()"><b>🧩</b>Ordena la frase<br><small>Pon las palabras en orden</small></button>
+      <button class="game" onclick="gameFind()"><b>🐸</b>Encuentra el número<br><small>Escucha y toca</small></button>
     </div>
     <div style="text-align:center;margin-top:10px"><button class="btn gray" onclick="tab('pet')">⬅ Volver a la mascota</button></div>`;
 }
@@ -2627,8 +2630,87 @@ function markBingo(n){
   else $('bfb').textContent = '✅ ¡Muy bien!';
 }
 
+/* ---------- 5. Carrera de verbos (contra el reloj) ---------- */
+let RACE = null;
+const RACEV = [["Je ___ en CM2.","suis",["es","est","sont"]],["Tu ___ onze ans ?","as",["es","ai","est"]],["Il ___ en sixième.","est",["es","sommes","sont"]],["Nous ___ amis.","sommes",["êtes","sont","suis"]],["Vous ___ onze ans ?","avez",["avons","ont","as"]],["Elles ___ des livres.","ont",["as","avez","avons"]],["Je m'___ Anne.","appelle",["appelles","appelons","appellent"]],["Tu t'___ comment ?","appelles",["appelle","appelons","appellent"]],["Il s'___ Joël.","appelle",["appelles","appelons","appellent"]],["Nous nous ___ Claire.","appelons",["appelle","appellent","appelez"]]];
+function gameRace(){
+  if (RACE && RACE.timer) clearInterval(RACE.timer);
+  RACE = {qs: shuffle(RACEV).map(function(x){ return {q:x[0], ok:x[1], o:shuffle([x[1]].concat(x[2]))}; }), i:0, ok:0, t:30, timer:null};
+  $('app').innerHTML = '<div class="card"><div class="muted">Elige la forma correcta antes de que se acabe el tiempo ⏱️. Si fallas, pierdes 3 segundos.</div><div class="bar"><i id="rbar" style="background:#ff5d8f;width:100%"></i></div><div class="muted" id="rt"></div><div class="big" id="rq"></div><div id="ro"></div><div class="fb" id="rfb"></div></div>';
+  raceShow();
+  $('rt').textContent = '⏱️ 30 s · aciertos: 0';
+  RACE.timer = setInterval(function(){
+    if (!$('rt')) { clearInterval(RACE.timer); return; }
+    RACE.t--; $('rt').textContent = '⏱️ ' + RACE.t + ' s · aciertos: ' + RACE.ok; $('rbar').style.width = (RACE.t/30*100) + '%';
+    if (RACE.t <= 0) { clearInterval(RACE.timer); raceEnd(); }
+  }, 1000);
+}
+function raceShow(){
+  var it = RACE.qs[RACE.i % RACE.qs.length];
+  $('rq').textContent = it.q;
+  $('ro').innerHTML = it.o.map(function(o){ return '<button style="display:block;width:100%;margin:6px 0;border:0;border-radius:14px;padding:12px;font-weight:800;font-size:17px;background:#fff;box-shadow:0 3px 0 #0002;cursor:pointer" onclick="raceAns(this,\'' + o + '\')">' + o + '</button>'; }).join('');
+}
+function raceAns(btn, o){
+  if (!RACE || RACE.t <= 0) return;
+  var it = RACE.qs[RACE.i % RACE.qs.length];
+  if (o === it.ok){ RACE.ok++; btn.style.background = '#d3f9d8'; $('rfb').textContent = '✅ ¡Bien!'; fr(it.q.replace('___', it.ok)); }
+  else { btn.style.background = '#ffd6d6'; $('rfb').textContent = '❌ Era «' + it.ok + '» (−3 s)'; RACE.t = Math.max(0, RACE.t - 3); }
+  RACE.i++;
+  setTimeout(function(){ if ($('ro') && RACE.t > 0) { raceShow(); $('rfb').textContent = ''; } }, 600);
+}
+function raceEnd(){
+  $('app').innerHTML = '<div class="card" style="text-align:center"><div class="big">🏁 ¡Fin! ' + RACE.ok + ' aciertos</div><button class="btn green" onclick="gameRace()">🔁 Otra vez</button> <button class="btn gray" onclick="menu()">⬅ Juegos</button></div>';
+}
+
+/* ---------- 6. Ordena la frase ---------- */
+const ORDS = ["Je m'appelle Anne.","Tu es en CM2 ?","Oui, je suis en CM2.","J'ai onze ans.","Comment tu t'appelles ?","Quel âge tu as ?","Nous sommes amis.","Bonjour, ça va ?"];
+let ORDR = null;
+function gameOrder(){
+  var t = shuffle(ORDS)[0], w = t.split(' ');
+  ORDR = {target:t, words:w, pick:[], used:w.map(function(){ return false; })};
+  $('app').innerHTML = '<div class="card"><div class="muted">Toca las palabras en el orden correcto. Si te equivocas, pulsa ↺ Borrar.</div><div class="big" id="oans" style="min-height:40px"></div><div id="ochips" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center"></div><div style="text-align:center;margin-top:10px"><button class="btn green" onclick="orderCheck()">✔ Comprobar</button><button class="btn gray" onclick="orderClear()">↺ Borrar</button><button class="btn" onclick="fr(ORDR.target,true)">🔊 Escuchar</button></div><div class="fb" id="ofb"></div></div>';
+  drawOrder();
+}
+function drawOrder(){
+  $('oans').textContent = ORDR.pick.map(function(i){ return ORDR.words[i]; }).join(' ');
+  $('ochips').innerHTML = ORDR.words.map(function(x, i){ return '<button ' + (ORDR.used[i] ? 'disabled' : '') + ' onclick="orderPick(' + i + ')" style="border:0;border-radius:12px;padding:10px 12px;font-weight:800;font-size:17px;background:#fff;box-shadow:0 3px 0 #0002;cursor:pointer">' + esc(x) + '</button>'; }).join('');
+}
+function orderPick(i){ ORDR.pick.push(i); ORDR.used[i] = true; $('ofb').textContent = ''; drawOrder(); }
+function orderClear(){ ORDR.pick = []; ORDR.used = ORDR.used.map(function(){ return false; }); $('ofb').textContent = ''; drawOrder(); }
+function orderCheck(){
+  var got = ORDR.pick.map(function(i){ return ORDR.words[i]; }).join(' ');
+  if (got === ORDR.target){ $('ofb').textContent = '✅ ¡Muy bien!'; fr(ORDR.target); setTimeout(function(){ if ($('ochips')) gameOrder(); }, 1800); }
+  else { $('ofb').textContent = '❌ Inténtalo otra vez'; fr(ORDR.target, true); }
+}
+
+/* ---------- 7. Encuentra el número (escucha y toca) ---------- */
+let FIND = null;
+function gameFind(){
+  FIND = {round:0, ok:0, total:8, cur:null, answered:true};
+  $('app').innerHTML = '<div class="card"><div class="muted">Escucha el número en francés y toca el que es 🔊</div><div class="big" id="fq">🐸 ¡Empezamos!</div><div class="fb" id="ffb"></div><div class="grid" style="grid-template-columns:repeat(4,1fr)" id="fg"></div><div style="text-align:center;margin-top:8px"><button class="btn" onclick="findSay()">🔊 Repetir</button><button class="btn green" id="fgo" onclick="findNext()">▶ Empezar</button></div><div class="muted" id="fsc"></div></div>';
+  $('fg').innerHTML = NUMS.map(function(x, n){ return '<button class="numbtn" onclick="findTap(' + n + ')">' + n + '</button>'; }).join('');
+}
+function findNext(){
+  if (FIND.round >= FIND.total){ $('fq').textContent = '🏆 ' + FIND.ok + ' de ' + FIND.total; $('fgo').textContent = '🔁 Otra vez'; $('fgo').onclick = gameFind; return; }
+  FIND.round++; FIND.cur = Math.floor(Math.random() * NUMS.length); FIND.answered = false;
+  $('fq').textContent = '🐸 ¿Cuál es?'; $('ffb').textContent = '';
+  document.querySelectorAll('#fg .numbtn').forEach(function(b){ b.className = 'numbtn'; });
+  $('fgo').style.display = 'none';
+  findSay();
+}
+function findSay(){ if (FIND && FIND.cur !== null) fr(NUMS[FIND.cur], true); }
+function findTap(n){
+  if (!FIND || FIND.answered || FIND.cur === null) return;
+  FIND.answered = true;
+  var btn = document.querySelectorAll('#fg .numbtn')[n];
+  if (n === FIND.cur){ FIND.ok++; btn.classList.add('hit'); $('ffb').textContent = '✅ ¡Muy bien!'; fr(NUMS[n]); }
+  else { btn.classList.add('miss'); $('ffb').textContent = '❌ Era el ' + FIND.cur + ' (' + NUMS[FIND.cur] + ')'; }
+  $('fsc').textContent = 'Aciertos: ' + FIND.ok + ' / ' + FIND.round;
+  $('fgo').style.display = ''; $('fgo').textContent = FIND.round < FIND.total ? '▶ Siguiente' : '🏁 Ver resultado'; $('fgo').onclick = findNext;
+}
+
 window.openJuegos = function(){ tab('juegos'); menu(); };
-Object.assign(window, {gameMemory, flipMem, gameSimon, simonRound, simonTap, gameHangman, guessL, gameBingo, callBingo, markBingo, menu, fr});
+Object.assign(window, {gameMemory, flipMem, gameSimon, simonRound, simonTap, gameHangman, guessL, gameBingo, callBingo, markBingo, menu, fr, gameRace, raceAns, gameOrder, orderPick, orderClear, orderCheck, gameFind, findNext, findSay, findTap});
 })();
 </script>
 </body>
