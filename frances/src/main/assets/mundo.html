@@ -197,6 +197,17 @@ body.mini #mini{display:flex;align-items:center;gap:10px;margin:2px;padding:8px 
 .pin{width:100%;font-size:15px;padding:9px;border-radius:12px;border:2px solid #e2d8ff;margin:4px 0;font-family:inherit;color:var(--ink)}
 textarea.pin{min-height:150px;font-size:16px;line-height:1.5}
 .row2{display:flex;gap:8px}.row2>*{flex:1}
+.menu{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+.game{background:#fff;border:0;border-radius:18px;padding:18px 10px;font-weight:900;font-size:17px;color:#26203f;box-shadow:0 5px 0 #0002;cursor:pointer;text-align:center}
+.game b{display:block;font-size:40px;margin-bottom:6px}
+.cell{background:#fff;border:3px solid #e6dcff;border-radius:14px;padding:10px 4px;min-height:64px;font-weight:900;font-size:18px;text-align:center;cursor:pointer;display:flex;align-items:center;justify-content:center;word-break:break-word}
+.cell.up{background:#ffd43b;border-color:#ffd43b}.cell.ok{background:#d3f9d8;border-color:#2fb36b}.cell.hide{background:#7c4dff;color:transparent;border-color:#7c4dff}
+.numbtn{background:#fff;border:3px solid #e6dcff;border-radius:14px;padding:14px 0;font-weight:900;font-size:20px;cursor:pointer}
+.numbtn.hit{background:#2fb36b;color:#fff;border-color:#2fb36b}.numbtn.miss{background:#ffd6d6;border-color:#ff6b6b}
+.letters{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px}
+.letters button{border:0;border-radius:10px;padding:10px 0;font-weight:900;font-size:16px;background:#fff;box-shadow:0 3px 0 #0002;cursor:pointer}
+.letters button:disabled{opacity:.35}
+.hang{font-size:40px;text-align:center;letter-spacing:4px;font-family:monospace;margin:6px 0}
 </style>
 </head>
 <body>
@@ -231,7 +242,7 @@ textarea.pin{min-height:150px;font-size:16px;line-height:1.5}
   </section>
 
   <section id="t-quiz">
-    <div class="extras" id="extras"><button class="x1" data-x="dict"><b>✍️</b>Spelling</button><button class="x2" data-x="exam"><b>📝</b>Test</button><button class="x4" data-x="speak"><b>🎤</b>Speak</button></div>
+    <div class="extras" id="extras"><button class="x1" data-x="dict"><b>✍️</b>Spelling</button><button class="x2" data-x="exam"><b>📝</b>Test</button><button class="x4" data-x="speak"><b>🎤</b>Speak</button><button class="x5" data-x="juegos"><b>🎮</b>Juegos</button></div>
     <div class="chal" id="qchal"></div>
     <div class="chips" id="qcats"></div>
     <div class="qtop">
@@ -314,6 +325,11 @@ textarea.pin{min-height:150px;font-size:16px;line-height:1.5}
     <button class="btn orange" id="sphint" onclick="spHint()">💡 Pista</button>
     <div id="spres" style="margin-top:10px"></div>
     <button class="btn green big" id="spnext" style="display:none;margin-top:6px">Next ▶</button>
+  </section>
+
+  <section id="t-juegos">
+    <h2>🎮 Juegos de francés</h2>
+    <div id="jbox"></div>
   </section>
 
   <section id="t-exam">
@@ -1928,7 +1944,7 @@ function tab(t){
   curTab = t;
   var bs = document.querySelectorAll('nav button');
   for (var i = 0; i < bs.length; i++) bs[i].classList.toggle('on', bs[i].dataset.t === t);
-  ['pet', 'quiz', 'apr', 'av', 'shop', 'logros', 'dict', 'exam', 'poema', 'speak'].forEach(function(x){ $('t-' + x).classList.toggle('on', x === t); });
+  ['pet', 'quiz', 'apr', 'av', 'shop', 'logros', 'dict', 'exam', 'poema', 'speak', 'juegos'].forEach(function(x){ $('t-' + x).classList.toggle('on', x === t); });
   if (t !== 'av') trying = null;
   window.scrollTo(0, 0);
   if (t === 'pet') { renderPet(); say(moodPhrase()); }
@@ -2279,7 +2295,7 @@ function toggleRec(){
 }
 
 function bindExtras(){
-  $('extras').addEventListener('click', function(e){ var b = e.target.closest('button'); if (!b) return; var x = b.dataset.x; if (x === 'dict') startDict(); if (x === 'exam') startExam(); if (x === 'poema') openPoema(); if (x === 'speak') startSpeak(); });
+  $('extras').addEventListener('click', function(e){ var b = e.target.closest('button'); if (!b) return; var x = b.dataset.x; if (x === 'dict') startDict(); if (x === 'exam') startExam(); if (x === 'poema') openPoema(); if (x === 'speak') startSpeak(); if (x === 'juegos') openJuegos(); });
   $('spmic').onclick = spListen; $('spnext').onclick = nextSpeak;
   $('sptext').addEventListener('click', function(e){ if (e.target.closest('[data-spsay]') && SP) sayTap(SP.list[SP.i][0], !!e.target.closest('[data-slow]')); });
   $('dcheck').onclick = checkDict; $('dnext').onclick = nextDict; $('dsay').onclick = function(){ sayWord(false); }; $('dslow').onclick = function(){ if (D && D.i < D.list.length) sayTap(D.list[D.i], true); };
@@ -2417,6 +2433,203 @@ else {
     setTimeout(function(){ addCoins(30); toast(first ? '🎁 Welcome present! +30 🪙' : '🎁 Today\'s present! +30 🪙'); burst(['🪙', '🎁', '✨']); }, 700);
   }
 }
+</script>
+<script>
+(function(){
+
+/* ---------- utilidades ---------- */
+const $ = id => document.getElementById(id === 'app' ? 'jbox' : id);
+function fr(t, slow){ speak(t, 'en', false, slow); }
+
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function esc(t){ return String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function setTitle(){}
+
+function menu(){
+  $('app').innerHTML = `
+    <div class="card" style="text-align:center;font-size:14px">🔊 El sonido se controla con el altavoz de arriba. Elige un juego:</div>
+    <div class="menu">
+      <button class="game" onclick="gameMemory()"><b>🧠</b>Memoria<br><small>Une palabra y significado</small></button>
+      <button class="game" onclick="gameSimon()"><b>🎯</b>Jacques a dit<br><small>Escucha y toca bien</small></button>
+      <button class="game" onclick="gameHangman()"><b>🔤</b>Pendu<br><small>Adivina la palabra</small></button>
+      <button class="game" onclick="gameBingo()"><b>🎱</b>Bingo<br><small>Marca los números</small></button>
+    </div>
+    <div style="text-align:center;margin-top:10px"><button class="btn gray" onclick="tab('pet')">⬅ Volver a la mascota</button></div>`;
+}
+
+/* ---------- datos ---------- */
+const PAIRS = [['un','uno'],['deux','dos'],['trois','tres'],['quatre','cuatro'],['cinq','cinco'],['six','seis'],['sept','siete'],['huit','ocho'],['neuf','nueve'],['dix','diez'],['onze','once'],['douze','doce'],['bonjour','hola'],['merci','gracias']];
+const NUMS = ['zéro','un','deux','trois','quatre','cinq','six','sept','huit','neuf','dix','onze','douze'];
+const WORDS = ['bonjour','merci','chat','livre','pomme','maison','école','ami','chien','table','lait','pain','soleil','école','lune'];
+
+/* ---------- 1. Memoria ---------- */
+let MEM = null;
+function gameMemory(){
+  setTitle('🧠 Memoria');
+  const pick = shuffle(PAIRS).slice(0, 6);
+  const cards = shuffle(pick.flatMap(([fr,es],i) => [{id:i,t:fr,fr:true},{id:i,t:es,fr:false}]));
+  MEM = {cards, open:[], found:0, moves:0, lock:false, n:pick.length};
+  $('app').innerHTML = `
+    <div class="card"><div class="muted">Une la palabra francesa con su significado 🇪🇸. Toca una carta y luego otra.</div>
+    <div class="bar"><i id="mb"></i></div>
+    <div class="grid" style="grid-template-columns:repeat(4,1fr)" id="mg"></div>
+    <div class="fb" id="mfb"></div>
+    <div style="text-align:center"><button class="btn gray" onclick="gameMemory()">🔁 Nuevo juego</button></div></div>`;
+  drawMem();
+}
+function drawMem(){
+  if (!$('mg')) return;
+  $('mg').innerHTML = MEM.cards.map((c,i) => {
+    const shown = MEM.open.includes(i) || c.done;
+    const cls = 'cell' + (c.done ? ' ok' : shown ? ' up' : ' hide');
+    return `<div class="${cls}" onclick="flipMem(${i})">${shown||c.done ? esc(c.t) : '?'}</div>`;
+  }).join('');
+}
+function flipMem(i){
+  if (MEM.lock || MEM.cards[i].done || MEM.open.includes(i)) return;
+  const c = MEM.cards[i];
+  fr(c.fr ? c.t : c.t);
+  MEM.open.push(i); drawMem();
+  if (MEM.open.length === 2){
+    MEM.moves++; MEM.lock = true;
+    const [a,b] = MEM.open.map(k => MEM.cards[k]);
+    if (a.id === b.id && a.fr !== b.fr){
+      a.done = b.done = true; MEM.found++;
+      $('mfb').innerHTML = '✅ ¡Pareja!';
+      MEM.open = []; MEM.lock = false; drawMem();
+      $('mb').style.width = (MEM.found*100/MEM.n) + '%';
+      if (MEM.found === MEM.n) $('mfb').innerHTML = '🏆 ¡Ganaste en ' + MEM.moves + ' intentos!';
+    } else {
+      $('mfb').innerHTML = '❌ Otra vez';
+      setTimeout(() => { if (!$('mg')) return; MEM.open = []; MEM.lock = false; $('mfb').innerHTML=''; drawMem(); }, 900);
+    }
+  }
+}
+
+/* ---------- 2. Jacques a dit ---------- */
+let SIM = null;
+function gameSimon(){
+  setTitle('🎯 Jacques a dit');
+  SIM = {round:0, ok:0, total:10, current:null};
+  $('app').innerHTML = `
+    <div class="card"><div class="muted">Si el profe dice <b>«Jacques a dit…»</b>, toca el número. Si no lo dice, ¡no toques!</div>
+    <div class="big" id="sg">Pulsa «Empezar»</div>
+    <div class="fb" id="sfb"></div>
+    <div class="grid" style="grid-template-columns:repeat(4,1fr)" id="sn"></div>
+    <div style="text-align:center;margin-top:8px"><button class="btn green" id="sgo" onclick="simonRound()">▶ Empezar</button></div>
+    <div class="muted" id="sscore"></div></div>`;
+  $('sn').innerHTML = NUMS.slice(0,12).map((n,i) => `<button class="numbtn" onclick="simonTap(${i})">${i}</button>`).join('');
+}
+function simonRound(){
+  if (SIM.round >= SIM.total){
+    $('sg').textContent = '🏆 ' + SIM.ok + ' de ' + SIM.total;
+    $('sgo').textContent = '🔁 Otra vez'; $('sgo').onclick = gameSimon; $('sfb').textContent = '';
+    return;
+  }
+  SIM.round++;
+  const num = Math.floor(Math.random()*12) + 1;
+  const jad = Math.random() < .6;
+  SIM.current = {num, jad, answered:false};
+  $('sgo').style.display = 'none';
+  const phrase = jad ? `Jacques a dit : ${NUMS[num]} !` : `${NUMS[num]} !`;
+  $('sg').textContent = jad ? '🗣️ Jacques a dit…' : '🗣️ (sin «Jacques a dit»)';
+  $('sfb').textContent = '';
+  document.querySelectorAll('#sn .numbtn').forEach(b => b.className = 'numbtn');
+  fr(phrase);
+  setTimeout(() => { if (!$('sgo')) return; $('sgo').style.display = ''; $('sgo').textContent = SIM.round < SIM.total ? '▶ Siguiente' : '🏁 Ver resultado'; }, 1800);
+  SIM.current.target = num;
+  $('sg').dataset.phrase = phrase;
+  $('sgo').onclick = simonRound;
+}
+function simonTap(i){
+  if (!SIM.current || SIM.current.answered) return;
+  SIM.current.answered = true;
+  const c = SIM.current, btn = document.querySelectorAll('#sn .numbtn')[i];
+  const shouldTap = c.jad;
+  const right = (i === c.num) && shouldTap;
+  if (right){ SIM.ok++; btn.classList.add('hit'); $('sfb').textContent = '✅ ¡Muy bien!'; }
+  else if (!shouldTap){ btn.classList.add('miss'); $('sfb').textContent = '❌ No dijo «Jacques a dit»: no se toca.'; }
+  else { btn.classList.add('miss'); $('sfb').textContent = '❌ Era el ' + c.num + ' (' + NUMS[c.num] + ').'; }
+  $('sscore').textContent = 'Aciertos: ' + SIM.ok + ' / ' + SIM.round;
+  $('sgo').style.display = ''; $('sgo').textContent = SIM.round < SIM.total ? '▶ Siguiente' : '🏁 Ver resultado';
+}
+
+/* ---------- 3. Pendu (ahorcado) ---------- */
+let HG = null;
+function gameHangman(){
+  setTitle('🔤 Pendu');
+  const w = shuffle(WORDS.filter(x => !/[éè]/.test(x)))[0];
+  HG = {w, guessed:new Set(), wrong:0, max:6};
+  $('app').innerHTML = `
+    <div class="card">
+      <div class="muted">Adivina la palabra francesa. Tienes 6 fallos.</div>
+      <div class="hang" id="hw"></div>
+      <div class="big" id="hf" style="font-size:20px"></div>
+      <div class="fb" id="hfb"></div>
+      <div class="letters" id="hl"></div>
+      <div style="text-align:center;margin-top:8px"><button class="btn" onclick="fr(HG.w, true)">🔊 Escuchar</button><button class="btn gray" onclick="gameHangman()">🔁 Nueva</button></div>
+    </div>`;
+  $('hl').innerHTML = 'abcdefghijklmnopqrstuvwxyz'.split('').map(l => `<button onclick="guessL('${l}')">${l.toUpperCase()}</button>`).join('');
+  drawHg();
+  fr(w, true);
+}
+function drawHg(){
+  const shown = HG.w.split('').map(c => HG.guessed.has(c) ? c.toUpperCase() : '_').join(' ');
+  $('hw').textContent = shown;
+  $('hf').textContent = '❌ Fallos: ' + HG.wrong + ' / ' + HG.max;
+  const done = HG.w.split('').every(c => HG.guessed.has(c));
+  if (done) $('hfb').textContent = '🏆 ¡Muy bien! Es «' + HG.w + '»';
+  if (HG.wrong >= HG.max) $('hfb').textContent = '💀 Era «' + HG.w + '». ¡Otra vez!';
+  document.querySelectorAll('#hl button').forEach(b => { const l = b.textContent.toLowerCase(); b.disabled = HG.guessed.has(l) || done || HG.wrong >= HG.max; });
+}
+function guessL(l){
+  HG.guessed.add(l);
+  if (!HG.w.includes(l)) { HG.wrong++; $('hfb').textContent = '❌ No está la «' + l.toUpperCase() + '»'; }
+  else $('hfb').textContent = '✅ ¡Sí!';
+  drawHg();
+}
+
+/* ---------- 4. Bingo de números ---------- */
+let BG = null;
+function gameBingo(){
+  setTitle('🎱 Bingo');
+  const pool = shuffle(NUMS.slice(0,13)).slice(0,9);
+  const calls = shuffle(NUMS.slice(0,13));
+  BG = {card:pool, calls, pos:0, marked:new Set(), done:false};
+  $('app').innerHTML = `
+    <div class="card">
+      <div class="muted">Escucha el número en francés y toca el de tu cartón. Cuando completes 3 en línea, ¡bingo!</div>
+      <div class="big" id="bcall">🎱 Pulsa «Llamar»</div>
+      <div class="grid" style="grid-template-columns:repeat(3,1fr)" id="bcard"></div>
+      <div class="fb" id="bfb"></div>
+      <div style="text-align:center"><button class="btn green" id="bgo" onclick="callBingo()">📣 Llamar</button><button class="btn gray" onclick="gameBingo()">🔁 Nuevo</button></div>
+    </div>`;
+  drawBingo();
+}
+function drawBingo(){
+  $('bcard').innerHTML = BG.card.map((n,i) => `<div class="cell ${BG.marked.has(n)?'ok':''}" onclick="markBingo('${n}')">${BG.marked.has(n)?'✅':esc(n)}</div>`).join('');
+}
+function callBingo(){
+  if (BG.pos >= BG.calls.length){ $('bfb').textContent = 'Se acabaron los números.'; return; }
+  const n = BG.calls[BG.pos++];
+  BG.lastCall = n;
+  $('bcall').textContent = '🔊 ' + n;
+  fr(n, true);
+  $('bfb').textContent = '';
+}
+function markBingo(n){
+  if (!BG.card.includes(n)) return;
+  if (BG.lastCall !== n){ $('bfb').textContent = '❌ Ese no es el último número que he llamado.'; return; }
+  BG.marked.add(n); drawBingo();
+  const lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  const ok = lines.some(l => l.every(i => BG.marked.has(BG.card[i])));
+  if (ok && !BG.done){ BG.done = true; $('bfb').textContent = '🏆 ¡BINGO!'; fr('Bingo !'); }
+  else $('bfb').textContent = '✅ ¡Muy bien!';
+}
+
+window.openJuegos = function(){ tab('juegos'); menu(); };
+Object.assign(window, {gameMemory, flipMem, gameSimon, simonRound, simonTap, gameHangman, guessL, gameBingo, callBingo, markBingo, menu, fr});
+})();
 </script>
 </body>
 </html>
