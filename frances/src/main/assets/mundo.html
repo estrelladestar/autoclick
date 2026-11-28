@@ -477,8 +477,8 @@ var ITEMS = {
   ecol:[['cafe','Brown',0],['azul','Blue',0],['verde','Green',0],['miel','Honey',20],['gris','Grey',20],['violeta','Violet',40],['turquesa','Turquoise',40],['rubi','Ruby',50]],
   brows:[['suaves','Soft',0],['gruesas','Thick',0],['arqueadas','Arched',15],['finas','Thin',15],['enfado','Angry',15]],
   mouth:[['sonrisa','Smile',0],['abierta','Happy',0],['timida','Shy',0],['gatito','Kitty :3',25],['lengua','Tongue out',25],['sorpresa','Oh!',20],['dientes','Big smile',30],['risa','Laughing',30],['beso','Kiss',35]],
-  top:[['cam_rosa','Pink T-shirt',0],['cam_azul','Blue T-shirt',0],['cam_amarilla','Sun T-shirt',20],['estrella','Star top',50],['rayas','Striped jumper',40],['sudadera','Hoodie',60],['jersey','Heart jumper',60],['chaqueta','Denim jacket',80],['heroe','Superhero suit',120],['lunares','Spotty dress',100],['princesa','Princess dress',150]],
-  bottom:[['vaqueros','Jeans',0],['shorts','Shorts',0],['falda','Skirt',30],['chandal','Tracksuit',40],['escocesa','Tartan skirt',50],['leggings','Star leggings',50],['tutu','Tutu',60]],
+  top:[['cam_rosa','Pink T-shirt',0],['cam_azul','Blue T-shirt',0],['cam_amarilla','Sun T-shirt',20],['estrella','Star top',50],['rayas','Striped jumper',40],['sudadera','Hoodie',60],['jersey','Heart jumper',60],['chaqueta','Denim jacket',80],['heroe','Superhero suit',120],['lunares','Spotty dress',100],['princesa','Princess dress',150],['t_coral', 'Coral T-shirt', 0],['t_menta', 'Mint T-shirt', 0],['t_lila', 'Lilac T-shirt', 10],['t_naranja', 'Orange T-shirt', 10],['t_turquesa', 'Turquoise top', 20],['t_negro', 'Black T-shirt', 20],['t_blanca', 'White blouse', 20],['t_rojo', 'Red top', 30],['t_verde', 'Green top', 30],['t_amarillo', 'Yellow top', 30],['t_tanque_rosa', 'Pink tank top', 20],['t_tanque_azul', 'Blue tank top', 20],['t_crop', 'Crop top', 40],['t_kimono', 'Kimono', 60],['t_rayas_azul', 'Blue stripes top', 40],['t_rayas_roja', 'Red stripes top', 40],['t_lunares_rosa', 'Pink dots top', 40],['t_lunares_azul', 'Blue dots top', 40],['t_cuadros', 'Checked shirt', 50],['t_estrellas', 'Star print top', 50],['t_corazones', 'Heart print top', 50],['t_manga_globo', 'Puff sleeve blouse', 60],['t_polo_rojo', 'Red polo', 40],['t_polo_azul', 'Blue polo', 40],['t_hoodie_rosa', 'Pink hoodie', 70],['t_chaleco', 'Puffer vest', 70],['t_navidad', 'Christmas jumper 🎄', 80],['t_rena', 'Reindeer jumper 🎄', 80],['d_verano_rosa', 'Summer dress', 80],['d_flores', 'Flower dress', 90],['d_lunares_azul', 'Blue polka dress', 90],['d_negro', 'Little black dress', 100],['d_rojo', 'Red dress', 100],['d_fiesta', 'Party sparkle dress', 120],['d_cuadros', 'Checked dress', 100],['d_corazon', 'Heart dress', 110],['d_arcoiris', 'Rainbow dress', 120],['d_princesa_azul', 'Blue princess dress', 140],['d_navidad', 'Christmas dress 🎄', 130],['d_otono', 'Autumn dress', 110],['d_playa', 'Beach dress', 90],['d_verde', 'Green dress', 100]],
+  bottom:[['vaqueros','Jeans',0],['shorts','Shorts',0],['f_mini_rosa', 'Pink mini skirt', 40],['f_tul_lila', 'Lilac tulle skirt', 60],['f_vaquera', 'Denim skirt', 50],['f_plisada', 'Pleated skirt', 50],['f_flores', 'Flower skirt', 60],['f_lunares', 'Polka skirt', 60],['f_rayas', 'Striped skirt', 50],['f_cuadros', 'Checked skirt', 60],['f_negra', 'Black skirt', 40],['f_verde', 'Green skirt', 40],['f_arcoiris', 'Rainbow skirt', 80],['f_estrellas', 'Star skirt', 70],['f_navidad', 'Christmas skirt 🎄', 80],['f_larga', 'Long skirt', 70],['falda','Skirt',30],['chandal','Tracksuit',40],['escocesa','Tartan skirt',50],['leggings','Star leggings',50],['tutu','Tutu',60]],
   shoes:[['deportivas','Trainers',0],['sandalias','Sandals',30],['botas','Boots',40],['lluvia','Wellies',40],['bailarinas','Ballet shoes',50],['patines','Roller skates',90]],
   head:[['none','Nothing',0],['lazo','Bow',30],['gorra','Cap',40],['gorro','Woolly hat',40],['flores','Flower crown',50],['gato','Cat ears',60],['conejo','Bunny ears',60],['auriculares','Headphones',70],['bruja','Witch hat',80],['tiara','Tiara',100],['corona','Crown',150],['oso','Bear ears',-1],['explorador','Explorer hat',-1],['astronauta','Astronaut helmet',-1],['birrete','Graduation cap',-1]],
   face:[['none','Nothing',0],['pecas','Freckles',20],['estrellitas','Little stars',30],['redondas','Round glasses',40],['sol','Sunglasses',50],['corazon','Heart glasses',60],['antifaz','Mask',70],['sabio','Smart glasses',-1]],
@@ -743,7 +743,48 @@ function mouthSVG(id){
 var BODY = 'M70,158 Q100,146 130,158 L127,230 Q100,237 73,230 Z';
 function sleeves(c, long, w){ return '<path d="M77,160 L' + (long ? '61,218' : '65,188') + ' M123,160 L' + (long ? '139,218' : '135,188') + '" stroke="' + c + '" stroke-width="' + (w || 18) + '" stroke-linecap="round"/>'; }
 function neckV(sk){ return '<path d="M89,151 Q100,165 111,151 Z" fill="' + sk + '"/>'; }
+
+var GENT = {"t_coral": {"c": "#ff7f6e", "sl": 1, "pat": null, "dress": false, "ov": null}, "t_menta": {"c": "#7fdcc4", "sl": 1, "pat": null, "dress": false, "ov": null}, "t_lila": {"c": "#b89cff", "sl": 1, "pat": null, "dress": false, "ov": null}, "t_naranja": {"c": "#ff9f43", "sl": 1, "pat": null, "dress": false, "ov": null}, "t_turquesa": {"c": "#27c4c9", "sl": 1, "pat": null, "dress": false, "ov": null}, "t_negro": {"c": "#2b2b33", "sl": 1, "pat": null, "dress": false, "ov": null}, "t_blanca": {"c": "#ffffff", "sl": 2, "pat": null, "dress": false, "ov": null}, "t_rojo": {"c": "#e03131", "sl": 1, "pat": null, "dress": false, "ov": null}, "t_verde": {"c": "#37b26c", "sl": 1, "pat": null, "dress": false, "ov": null}, "t_amarillo": {"c": "#ffe066", "sl": 1, "pat": null, "dress": false, "ov": null}, "t_tanque_rosa": {"c": "#ff8fc7", "sl": 0, "pat": null, "dress": false, "ov": null}, "t_tanque_azul": {"c": "#5aa9ff", "sl": 0, "pat": null, "dress": false, "ov": null}, "t_crop": {"c": "#ffb3c6", "sl": 1, "pat": null, "dress": false, "ov": null}, "t_kimono": {"c": "#c44569", "sl": 2, "pat": null, "dress": false, "ov": "obi"}, "t_rayas_azul": {"c": "#4dabf7", "sl": 1, "pat": "stripes", "dress": false, "ov": null}, "t_rayas_roja": {"c": "#ff6b6b", "sl": 2, "pat": "stripes", "dress": false, "ov": null}, "t_lunares_rosa": {"c": "#ffb3d9", "sl": 1, "pat": "dots", "dress": false, "ov": null}, "t_lunares_azul": {"c": "#7fb8ff", "sl": 2, "pat": "dots", "dress": false, "ov": null}, "t_cuadros": {"c": "#c2a55b", "sl": 2, "pat": "check", "dress": false, "ov": null}, "t_estrellas": {"c": "#5b4bb5", "sl": 1, "pat": null, "dress": false, "ov": "stars"}, "t_corazones": {"c": "#ffd6e8", "sl": 1, "pat": null, "dress": false, "ov": "hearts"}, "t_manga_globo": {"c": "#ffe3f1", "sl": 2, "pat": null, "dress": false, "ov": null}, "t_polo_rojo": {"c": "#d6336c", "sl": 1, "pat": null, "dress": false, "ov": "collar"}, "t_polo_azul": {"c": "#1c7ed6", "sl": 1, "pat": null, "dress": false, "ov": "collar"}, "t_hoodie_rosa": {"c": "#ff9ec7", "sl": 2, "pat": null, "dress": false, "ov": "hood"}, "t_chaleco": {"c": "#3b5bdb", "sl": 0, "pat": null, "dress": false, "ov": null}, "t_navidad": {"c": "#d62828", "sl": 2, "pat": "stripes", "dress": false, "ov": "stars"}, "t_rena": {"c": "#2f9e44", "sl": 2, "pat": null, "dress": false, "ov": "hearts"}, "d_verano_rosa": {"c": "#ffc2e2", "sl": 0, "pat": null, "dress": true, "ov": null}, "d_flores": {"c": "#c5f6fa", "sl": 1, "pat": "dots", "dress": true, "ov": null}, "d_lunares_azul": {"c": "#4dabf7", "sl": 1, "pat": "dots", "dress": true, "ov": null}, "d_negro": {"c": "#2b2b33", "sl": 0, "pat": null, "dress": true, "ov": null}, "d_rojo": {"c": "#e03131", "sl": 1, "pat": null, "dress": true, "ov": null}, "d_fiesta": {"c": "#7c4dff", "sl": 0, "pat": "stars", "dress": true, "ov": null}, "d_cuadros": {"c": "#c2a55b", "sl": 2, "pat": "check", "dress": true, "ov": null}, "d_corazon": {"c": "#ff8fc7", "sl": 0, "pat": null, "dress": true, "ov": "hearts"}, "d_arcoiris": {"c": "#ffd6a5", "sl": 1, "pat": "stripes", "dress": true, "ov": null}, "d_princesa_azul": {"c": "#74c0fc", "sl": 0, "pat": null, "dress": true, "ov": "stars"}, "d_navidad": {"c": "#d62828", "sl": 1, "pat": "dots", "dress": true, "ov": null}, "d_otono": {"c": "#e8590c", "sl": 2, "pat": null, "dress": true, "ov": null}, "d_playa": {"c": "#ffe066", "sl": 0, "pat": "stripes", "dress": true, "ov": null}, "d_verde": {"c": "#37b26c", "sl": 1, "pat": null, "dress": true, "ov": null}};
+var GENB = {"f_mini_rosa": {"c": "#ff8fc7", "shape": "mini", "pat": null}, "f_tul_lila": {"c": "#c9a8ff", "shape": "tulle", "pat": null}, "f_vaquera": {"c": "#4a78c2", "shape": "aline", "pat": null}, "f_plisada": {"c": "#7c4dff", "shape": "pleat", "pat": null}, "f_flores": {"c": "#c5f6fa", "shape": "aline", "pat": "dots"}, "f_lunares": {"c": "#ffb3d9", "shape": "aline", "pat": "dots"}, "f_rayas": {"c": "#4dabf7", "shape": "pleat", "pat": "stripes"}, "f_cuadros": {"c": "#c2a55b", "shape": "aline", "pat": "check"}, "f_negra": {"c": "#2b2b33", "shape": "pleat", "pat": null}, "f_verde": {"c": "#37b26c", "shape": "mini", "pat": null}, "f_arcoiris": {"c": "#ffd6a5", "shape": "tulle", "pat": "stripes"}, "f_estrellas": {"c": "#5b4bb5", "shape": "aline", "pat": null}, "f_navidad": {"c": "#d62828", "shape": "pleat", "pat": "dots"}, "f_larga": {"c": "#8ac926", "shape": "aline", "pat": null}};
+function genFill(c, pat, D, key){
+  if (!pat) return c;
+  var id = 'gp_' + key;
+  if (pat === 'stripes') D.push('<pattern id="' + id + '" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" fill="' + c + '"/><rect width="10" height="5" fill="#ffffff"/></pattern>');
+  else if (pat === 'dots') D.push('<pattern id="' + id + '" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="' + c + '"/><circle cx="4" cy="4" r="2.6" fill="#fff"/><circle cx="11" cy="11" r="2.6" fill="#fff"/></pattern>');
+  else D.push('<pattern id="' + id + '" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="16" height="16" fill="' + c + '"/><rect x="0" y="6" width="16" height="4" fill="#ffffff" opacity=".5"/><rect x="6" y="0" width="4" height="16" fill="#ffffff" opacity=".5"/></pattern>');
+  return 'url(#' + id + ')';
+}
+function genTop(id, sk, D){
+  var g = GENT[id], f = genFill(g.c, g.pat, D, id), s = '';
+  if (g.sl === 2) s += sleeves(f, true, 18);
+  else if (g.sl === 1) s += sleeves(f, false, 18);
+  if (g.dress){
+    s += '<path d="M72,158 Q100,148 128,158 L146,292 Q100,302 54,292 Z" fill="' + f + '"/>';
+  } else {
+    if (g.sl === 0) s += '<path d="M86,150 L84,160 M114,150 L116,160" stroke="' + f + '" stroke-width="5" stroke-linecap="round"/>';
+    s += '<path d="' + BODY + '" fill="' + f + '"/>';
+  }
+  s += neckV(sk);
+  if (g.ov === 'stars') s += star(100, 192, 9, 4, '#fff') + star(84, 214, 5, 2, '#ffe066') + star(118, 212, 5, 2, '#ffe066');
+  if (g.ov === 'hearts') s += heart(100, 192, 10) + heart(80, 218, 5) + heart(120, 218, 5);
+  if (g.ov === 'collar') s += '<path d="M86,152 L100,168 L114,152 L110,148 L100,160 L90,148Z" fill="#fff"/><path d="M100,168 V196" stroke="#fff" stroke-width="2"/><circle cx="100" cy="182" r="1.6" fill="#fff"/>';
+  if (g.ov === 'hood') s += '<path d="M80,150 Q100,132 120,150" stroke="' + f + '" stroke-width="10" fill="none"/><path d="M94,162 L92,186 M106,162 L108,186" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>';
+  if (g.ov === 'obi') s += '<rect x="74" y="216" width="52" height="9" fill="#ffd34d"/><path d="M100,216 L100,240" stroke="#ffd34d" stroke-width="3"/>';
+  return s;
+}
+function genBottom(id, D){
+  var g = GENB[id], f = genFill(g.c, g.pat, D, id);
+  switch (g.shape){
+    case 'mini': return '<path d="M77,222 L123,222 L132,256 Q100,262 68,256 Z" fill="' + f + '"/>';
+    case 'aline': return '<path d="M77,222 L123,222 L142,290 Q100,300 58,290 Z" fill="' + f + '"/>';
+    case 'pleat': return '<path d="M77,222 L123,222 L136,286 Q100,294 64,286 Z" fill="' + f + '"/><path d="M88,226 L80,286 M100,226 V292 M112,226 L120,286" stroke="#ffffff" stroke-width="1.6" opacity=".5"/>';
+    case 'tulle': return '<ellipse cx="100" cy="250" rx="48" ry="16" fill="' + f + '" opacity=".75"/><path d="M77,222 L123,222 L146,276 Q100,288 54,276 Z" fill="' + f + '" opacity=".9"/>' + star(84, 262, 3, 1.2, '#fff') + star(118, 266, 3, 1.2, '#fff');
+  }
+  return '';
+}
+
 function topSVG(id, sk, D){
+  if (GENT[id]) return genTop(id, sk, D);
   switch (id) {
     case 'cam_azul': return sleeves('#5aa9ff') + '<path d="' + BODY + '" fill="#5aa9ff"/>' + neckV(sk);
     case 'cam_amarilla': return sleeves('#ffd84d') + '<path d="' + BODY + '" fill="#ffd84d"/>' + neckV(sk) + '<circle cx="100" cy="192" r="12" fill="#ff9f43"/><circle cx="96" cy="189" r="1.6" fill="#7a3d00"/><circle cx="104" cy="189" r="1.6" fill="#7a3d00"/><path d="M95,195 Q100,199 105,195" stroke="#7a3d00" stroke-width="1.6" fill="none"/>';
@@ -778,9 +819,10 @@ function topSVG(id, sk, D){
     default: return sleeves('#ff8fc7') + '<path d="' + BODY + '" fill="#ff8fc7"/>' + neckV(sk) + '<path d="' + heart(110, 182, 4) + '" fill="#fff"/>';
   }
 }
-function isDress(id){ return id === 'princesa' || id === 'lunares'; }
+function isDress(id){ return id === 'princesa' || id === 'lunares' || !!(GENT[id] && GENT[id].dress); }
 
 function bottomSVG(id, D){
+  if (GENB[id]) return genBottom(id, D);
   var pants = 'M76,224 L124,224 L125,250 L118,314 L103,314 L100,256 L97,314 L82,314 L75,250 Z';
   switch (id) {
     case 'shorts': return '<path d="M76,224 L124,224 L127,262 L103,264 L100,248 L97,264 L73,262 Z" fill="#ff9f43"/><path d="M100,226 V248" stroke="#e07b1e" stroke-width="2"/>';
