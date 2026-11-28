@@ -201,6 +201,7 @@ table.pit{border-collapse:collapse;width:100%;font-size:12px;text-align:center}
 table.pit th,table.pit td{border:1px solid #e5e7eb;padding:3px 0}
 table.pit th{background:#ece6ff}
 table.pit td{cursor:pointer}
+#t-pet,#t-av,#t-shop,#qpet,#dpet,#epet{display:none!important}
 </style>
 </head>
 <body>
@@ -211,11 +212,8 @@ table.pit td{cursor:pointer}
     <button class="icon" id="mus" title="Música">🎵</button><button class="icon" id="sfx" title="Sonidos">🔔</button><button class="icon" id="snd" title="Voz">🗣️</button>
   </header>
   <nav>
-    <button data-t="pet" class="on"><b>🐾</b>Mascota</button>
-    <button data-t="quiz"><b>❓</b>Preguntas</button>
+    <button data-t="quiz" class="on"><b>❓</b>Preguntas</button>
     <button data-t="apr"><b>📖</b>Aprende</button>
-    <button data-t="av"><b>👗</b>Avatar</button>
-    <button data-t="shop"><b>🛍️</b>Tienda</button>
     <button data-t="logros"><b>🏅</b>Logros</button><button data-t="juegos"><b>🎮</b>Juegos</button>
   </nav>
 
@@ -249,7 +247,7 @@ table.pit td{cursor:pointer}
 
   <section id="t-apr">
     <h2>📍 Tiempos del futuro en inglés</h2>
-    <div class="card" style="font-weight:700;font-size:13.5px">Marca <b>✅ Dado</b> en cada tema que ya hayas visto en clase. Con «🌟 Todo lo dado», tu mascota solo te preguntará de esos temas.</div>
+    <div class="card" style="font-weight:700;font-size:13.5px">Marca <b>✅ Dado</b> en cada tema que ya hayas visto en clase. Con «🌟 Todo lo dado», las preguntas saldrán solo de esos temas.</div>
     <div id="aprParts"></div>
     <button class="btn blue big" id="verTodo" style="margin:6px 0 10px">📖 Ver todas las explicaciones</button>
     <div class="card" style="overflow-x:auto"><table id="tablaPit" style="width:100%;border-collapse:collapse;font-size:12.5px"></table></div>
@@ -317,7 +315,7 @@ table.pit td{cursor:pointer}
     <h2>🎯 Reto del día</h2>
     <div class="chal" id="lchal"></div>
     <h2>⭐ Álbum de pegatinas</h2>
-    <div class="card" style="font-weight:700;font-size:13.5px">Acierta 10 preguntas de un tema y ganas su pegatina y una prenda que <b>no se puede comprar</b>: solo se gana sabiendo.</div>
+    <div class="card" style="font-weight:700;font-size:13.5px">Acierta 10 preguntas de un tema y ganas su pegatina. Solo se consigue sabiendo la materia.</div>
     <div class="stk" id="stickers"></div>
     <h2>🏅 Medallas</h2>
     <div class="card" id="medals"></div>
@@ -1313,11 +1311,11 @@ var STK = {
 };
 var STK_GOAL = 10;
 var MEDALS = [
-  {id:'racha10', e:'🔥', n:'Racha de fuego', d:'Acierta 10 preguntas seguidas. Premio: Balón', ok:function(){ return S.stats.best >= 10; }, prize:['hand','balon']},
-  {id:'cien', e:'💯', n:'Cien aciertos', d:'Acierta 100 preguntas en total. Premio: Calculadora', ok:function(){ return S.stats.correct >= 100; }, prize:['hand','calculadora']},
+  {id:'racha10', e:'🔥', n:'Racha de fuego', d:'Acierta 10 preguntas seguidas', ok:function(){ return S.stats.best >= 10; }, prize:['hand','balon']},
+  {id:'cien', e:'💯', n:'Cien aciertos', d:'Acierta 100 preguntas en total', ok:function(){ return S.stats.correct >= 100; }, prize:['hand','calculadora']},
   {id:'reto3', e:'🎯', n:'Constante', d:'Haz el reto del día 3 días seguidos', ok:function(){ return S.chStreak >= 3; }},
   {id:'reto7', e:'📅', n:'Una semana entera', d:'Haz el reto del día 7 días seguidos', ok:function(){ return S.chStreak >= 7; }},
-  {id:'repaso10', e:'📝', n:'Aprendo de mis fallos', d:'Acierta 10 preguntas que antes fallaste. Premio: Capa dorada', ok:function(){ return S.reviewsCleared >= 10; }, prize:['back','capadorada']},
+  {id:'repaso10', e:'📝', n:'Aprendo de mis fallos', d:'Acierta 10 preguntas que antes fallaste', ok:function(){ return S.reviewsCleared >= 10; }, prize:['back','capadorada']},
   {id:'autor', e:'✏️', n:'Creador de preguntas', d:'Crea 5 preguntas tuyas', ok:function(){ return S.custom.length >= 5; }},
   {id:'album', e:'👑', n:'Álbum completo', d:'Consigue todas las pegatinas', ok:function(){ return Object.keys(STK).every(function(k){ return S.stickers[k]; }); }}
 ];
@@ -1496,22 +1494,17 @@ function checkMedals(){
   }
 }
 function celebratePrize(title, emoji, p){
-  var it = itemInfo(p[0], p[1]);
   setTimeout(function(){
     sfx('fanfare'); burst([emoji, '⭐', '🎉', '✨']);
-    var e = Object.assign({}, S.eq); e[p[0]] = p[1];
-    showModal('<h3>' + title + '</h3><div style="text-align:center;font-size:60px">' + emoji + '</div><p style="font-weight:800">Has ganado: <b>' + it[1] + '</b>. ¡No se puede comprar, solo se gana sabiendo!</p>' +
-      '<div style="height:200px;display:flex;justify-content:center;background:#f6f0ff;border-radius:18px;margin-bottom:12px">' + avatarSVG(e, {bg:false, vb:'0 -20 200 360'}) + '</div>' +
-      '<div class="two"><button class="btn pink" onclick="wearPrize(\'' + p[0] + '\',\'' + p[1] + '\')">👗 ¡Ponérmelo!</button><button class="btn gray" onclick="closeModal()">Luego</button></div>');
-    speak(title.replace(/[⭐🏅]/g, '') + ' Has ganado ' + it[1]);
-  }, 1000);
+    showModal('<h3>' + title + '</h3><p style="font-size:44px;text-align:center;margin:6px 0">' + emoji + '</p><button class="btn" onclick="closeModal()">¡Genial!</button>');
+  }, 300);
 }
 function wearPrize(cat, id){ S.eq[cat] = id; save(); closeModal(); renderPet(); if (curTab === 'av') renderAv(); toast('¡Te queda genial! ✨'); }
 function renderLogros(){
   renderChal();
   $('stickers').innerHTML = Object.keys(STK).map(function(k){
     var s0 = STK[k], n = Math.min(STK_GOAL, S.catOk[k] || 0), got = S.stickers[k], it = itemInfo(s0.prize[0], s0.prize[1]);
-    return '<div class="' + (got ? '' : 'lock') + '"><span class="e">' + s0.e + '</span>' + s0.n + (got ? '<small>✅ ' + it[1] + '</small>' : '<div class="bar"><i style="width:' + (n * 100 / STK_GOAL) + '%"></i></div><small>' + n + '/' + STK_GOAL + ' · 🎁 ' + it[1] + '</small>') + '</div>';
+    return '<div class="' + (got ? '' : 'lock') + '"><span class="e">' + s0.e + '</span>' + s0.n + (got ? '<small>✅ Conseguida</small>' : '<div class="bar"><i style="width:' + (n * 100 / STK_GOAL) + '%"></i></div><small>' + n + '/' + STK_GOAL + ' · 🎁 ' + it[1] + '</small>') + '</div>';
   }).join('');
   $('medals').innerHTML = MEDALS.map(function(m){
     var got = S.medals[m.id];
@@ -1737,7 +1730,7 @@ function adopt(first){
 /* ======================= modal y pestañas ======================= */
 function showModal(h){ $('modalBox').innerHTML = h; $('modal').classList.add('on'); }
 function closeModal(){ $('modal').classList.remove('on'); }
-var curTab = 'pet';
+var curTab = 'quiz';
 function tab(t){
   curTab = t; gStop();
   var bs = document.querySelectorAll('nav button');
@@ -2372,8 +2365,7 @@ else {
   bind();
   updatePet();
   renderAll();
-  if (!S.pet) openAdopt(true);
-  else say(moodPhrase());
+  tab('quiz');
   musicUpdate();
   if (S.lastDaily !== today()) {
     var first = !S.lastDaily;
