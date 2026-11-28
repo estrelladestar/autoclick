@@ -18,11 +18,11 @@ header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:8px;
 .xpbar i{display:block;height:100%;background:#ffe066;border-radius:6px;transition:width .5s}
 .icon{border:0;background:#ffffff33;color:#fff;border-radius:50%;width:34px;height:34px;font-size:16px;padding:0;flex:none}
 .icon.off{opacity:.45;text-decoration:line-through}
-nav{position:sticky;top:54px;z-index:19;display:flex;gap:6px;padding:8px 10px;background:#efe6ffee;backdrop-filter:blur(6px);overflow-x:auto;scrollbar-width:none}
+nav{position:sticky;top:54px;z-index:19;display:flex;gap:6px;padding:8px 10px;background:#e0f7fafa;backdrop-filter:blur(6px);overflow-x:auto;scrollbar-width:none}
 nav::-webkit-scrollbar{display:none}
 nav button{flex:1 0 auto;min-width:64px;border:0;border-radius:14px;padding:7px 4px;font-weight:800;background:#fff;color:var(--ink);font-size:11px;box-shadow:0 2px 0 #0001;line-height:1.2;white-space:nowrap}
 nav button b{display:block;font-size:20px}
-nav button.on{background:linear-gradient(180deg,#8b5cf6,#6a3de8);color:#fff}
+nav button.on{background:linear-gradient(180deg,#22c3e6,#0a94b8);color:#fff}
 .chal{display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,#fff3c4,#ffe0ef);border-radius:18px;padding:10px 12px;margin:4px 0 8px;font-weight:800;font-size:14px;box-shadow:0 3px 10px #ffb02033}
 .chal .t{flex:1}
 .chal .btn{padding:9px 12px;font-size:13.5px}
@@ -652,15 +652,16 @@ function hairParts(id, hf, hd, hl){
   }
 }
 
+var IRID = 'ir';
 function eyesSVG(id, ec, sk, boy){
   var dark = '#2b1b2b', s = '';
-  function iris(x, y){ return '<ellipse cx="' + x + '" cy="' + (y + 2) + '" rx="10" ry="12" fill="url(#ir)"/>'; }
+  function iris(x, y){ return '<ellipse cx="' + x + '" cy="' + (y + 2) + '" rx="10" ry="12" fill="url(#' + IRID + ')"/>'; }
   function big(x, y, side, opt){
     opt = opt || {};
     var e = '<ellipse cx="' + x + '" cy="' + y + '" rx="13" ry="15.5" fill="#fff" stroke="#3a2a2a" stroke-opacity=".18"/>';
     if (opt.heart) e += '<path d="' + heart(x, y + 2, 7.5) + '" fill="#ff4d8d"/>';
     else {
-      e += opt.br ? '<ellipse cx="' + x + '" cy="' + (y + 2) + '" rx="11" ry="13" fill="url(#ir)"/>' : iris(x, y);
+      e += opt.br ? '<ellipse cx="' + x + '" cy="' + (y + 2) + '" rx="11" ry="13" fill="url(#' + IRID + ')"/>' : iris(x, y);
       e += opt.star ? star(x, y + 2, 7, 3, '#fff7c2') : '<ellipse cx="' + x + '" cy="' + (y + 3) + '" rx="5" ry="6.5" fill="#1a1020"/>';
     }
     e += '<circle cx="' + (x - 4) + '" cy="' + (y - 3) + '" r="' + (opt.br ? 4.8 : 4) + '" fill="#fff"/><circle cx="' + (x + 4) + '" cy="' + (y + 7) + '" r="2" fill="#fff" opacity=".9"/>';
@@ -675,7 +676,7 @@ function eyesSVG(id, ec, sk, boy){
     var x = p[0], y = p[1], side = p[2];
     switch (id) {
       case 'redondos':
-        s += '<circle cx="' + x + '" cy="' + y + '" r="11.5" fill="#fff" stroke="#3a2a2a" stroke-opacity=".18"/><circle cx="' + x + '" cy="' + (y + 1) + '" r="8.5" fill="url(#ir)"/><circle cx="' + x + '" cy="' + (y + 1) + '" r="4.5" fill="#1a1020"/><circle cx="' + (x - 3) + '" cy="' + (y - 3) + '" r="3" fill="#fff"/>';
+        s += '<circle cx="' + x + '" cy="' + y + '" r="11.5" fill="#fff" stroke="#3a2a2a" stroke-opacity=".18"/><circle cx="' + x + '" cy="' + (y + 1) + '" r="8.5" fill="url(#' + IRID + ')"/><circle cx="' + x + '" cy="' + (y + 1) + '" r="4.5" fill="#1a1020"/><circle cx="' + (x - 3) + '" cy="' + (y - 3) + '" r="3" fill="#fff"/>';
         s += '<path d="M' + (x - 12) + ',' + (y - 5) + ' Q' + x + ',' + (y - 16) + ' ' + (x + 12) + ',' + (y - 5) + '" stroke="' + dark + '" stroke-width="2.6" fill="none" stroke-linecap="round"/>';
         break;
       case 'alegres': s += closed(x, y); break;
@@ -684,7 +685,7 @@ function eyesSVG(id, ec, sk, boy){
         var inner = x - 13 * side, outer = x + 14 * side;
         var shape = 'M' + inner + ',' + (y + 3) + ' Q' + x + ',' + (y - 14) + ' ' + outer + ',' + (y - 5) + ' Q' + x + ',' + (y + 14) + ' ' + inner + ',' + (y + 3) + ' Z';
         s += '<clipPath id="cg' + side + '"><path d="' + shape + '"/></clipPath><path d="' + shape + '" fill="#fff"/>';
-        s += '<g clip-path="url(#cg' + side + ')"><ellipse cx="' + x + '" cy="' + y + '" rx="9" ry="11" fill="url(#ir)"/><ellipse cx="' + x + '" cy="' + y + '" rx="2.6" ry="8" fill="#1a1020"/><circle cx="' + (x - 3) + '" cy="' + (y - 4) + '" r="2.6" fill="#fff"/></g>';
+        s += '<g clip-path="url(#cg' + side + ')"><ellipse cx="' + x + '" cy="' + y + '" rx="9" ry="11" fill="url(#' + IRID + ')"/><ellipse cx="' + x + '" cy="' + y + '" rx="2.6" ry="8" fill="#1a1020"/><circle cx="' + (x - 3) + '" cy="' + (y - 4) + '" r="2.6" fill="#fff"/></g>';
         s += '<path d="' + shape + '" fill="none" stroke="' + dark + '" stroke-width="2.6"/><path d="M' + outer + ',' + (y - 5) + ' L' + (outer + 6 * side) + ',' + (y - 10) + '" stroke="' + dark + '" stroke-width="2.6" stroke-linecap="round"/>';
         break;
       case 'dormilones':
@@ -902,7 +903,8 @@ function avatarSVG(eq, o){
   var hf = rb ? 'url(#hr-rb)' : hc, hd = rb ? '#7c4dff' : shade(hc, -24), hl = rb ? '#ffffff' : shade(hc, 35);
   if (rb) D.push('<linearGradient id="hr-rb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff6b6b"/><stop offset=".25" stop-color="#ffd93d"/><stop offset=".5" stop-color="#6bcb77"/><stop offset=".75" stop-color="#4d96ff"/><stop offset="1" stop-color="#b16cff"/></linearGradient>');
   var ec = ECOL[eq.ecol] || ECOL.cafe;
-  D.push('<linearGradient id="ir" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + shade(ec, -35) + '"/><stop offset="1" stop-color="' + shade(ec, 30) + '"/></linearGradient>');
+  IRID = 'ir' + (eq.ecol || 'cafe');
+  D.push('<linearGradient id="' + IRID + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + shade(ec, -35) + '"/><stop offset="1" stop-color="' + shade(ec, 30) + '"/></linearGradient>');
   var brow = rb ? '#6b3e26' : shade(hc === '#d6dbe6' ? '#8a8fa0' : hc, -30);
   var hair = hairParts(eq.hair, hf, hd, hl);
   var s = '';
