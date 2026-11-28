@@ -215,7 +215,7 @@ table.pit td{cursor:pointer}
     <button data-t="apr"><b>📖</b>Aprende</button>
     <button data-t="av"><b>👗</b>Avatar</button>
     <button data-t="shop"><b>🛍️</b>Tienda</button>
-    <button data-t="logros"><b>🏅</b>Logros</button>
+    <button data-t="logros"><b>🏅</b>Logros</button><button data-t="juegos"><b>🎮</b>Juegos</button>
   </nav>
 
   <section id="t-pet" class="on">
@@ -330,6 +330,7 @@ table.pit td{cursor:pointer}
     <div id="eres" style="margin-top:10px"></div>
   </section>
 
+  <section id="t-juegos"><div id="gHost"></div></section>
   <section id="t-poema"></section>
 
   <section id="t-logros">
@@ -1736,15 +1737,16 @@ function showModal(h){ $('modalBox').innerHTML = h; $('modal').classList.add('on
 function closeModal(){ $('modal').classList.remove('on'); }
 var curTab = 'pet';
 function tab(t){
-  curTab = t;
+  curTab = t; gStop();
   var bs = document.querySelectorAll('nav button');
   for (var i = 0; i < bs.length; i++) bs[i].classList.toggle('on', bs[i].dataset.t === t);
-  ['pet', 'quiz', 'apr', 'av', 'shop', 'logros', 'dict', 'exam', 'poema'].forEach(function(x){ $('t-' + x).classList.toggle('on', x === t); });
+  ['pet', 'quiz', 'apr', 'av', 'shop', 'logros', 'juegos', 'dict', 'exam', 'poema'].forEach(function(x){ $('t-' + x).classList.toggle('on', x === t); });
   if (t !== 'av') trying = null;
   window.scrollTo(0, 0);
   if (t === 'pet') { renderPet(); say(moodPhrase()); }
   if (t === 'quiz') { renderQCats(); renderChal(); if (!curQ || answered) nextQuestion(); else renderPetViews(); }
   if (t === 'logros') renderLogros();
+  if (t === 'juegos') { gStop(); renderGames(); }
   if (t === 'apr') renderApr();
   if (t === 'av') renderAv();
   if (t === 'shop') renderShop();
@@ -2047,6 +2049,271 @@ function openFull(){ if (B && B.openMundo) B.openMundo(); else { location.hash =
 window.refresh = function(){ load(); if (MINI) renderMini(); else { updatePet(); renderAll(); } };
 
 /* ======================= arranque ======================= */
+/* ======================= juegos de decimales (10 juegos) ======================= */
+var gStopT = null;
+function gStop(){ if (gStopT) { clearInterval(gStopT); gStopT = null; } }
+function gReward(n){ if (n > 0) { addCoins(n); addXp(n); sfx('ok'); } save(); }
+function gRoll(){ return rnd2(100, 9999); }
+function gShell(name){ gStop(); $('gHost').innerHTML = '<div class="gbar"><button class="btn gray" id="gBack">⬅ Juegos</button><b>' + name + '</b></div><div id="gBody"></div>'; $('gBack').onclick = renderGames; }
+function gEnd(body, txt, again){ body.innerHTML = '<div class="card"><h3 style="margin:0 0 6px">🏁 ¡Terminado!</h3><p style="font-weight:700;margin:0 0 10px">' + txt + '</p><button class="btn pink big" id="gAgain">🔁 Otra vez</button></div>'; $('gAgain').onclick = again; }
+
+/* motor de rondas con botones de opción */
+function gRounds(N, make, title){
+  gShell(title); var body = $('gBody'), i = 0, score = 0;
+  function show(){
+    if (i >= N) { var perfect = score === N; if (perfect) gReward(10); gEnd(body, 'Has acertado <b>' + score + ' de ' + N + '</b>.' + (perfect ? ' ¡Perfecto! +10 🪙' : ''), function(){ gRounds(N, make, title); }); return; }
+    var r = make();
+    body.innerHTML = '<div class="card"><div class="gsc">Ronda ' + (i + 1) + ' de ' + N + ' · ✅ ' + score + '</div><div class="gq">' + r.q + '</div><div class="gopts">' + r.opts.map(function(o, j){ return '<button class="gopt" data-j="' + j + '">' + o + '</button>'; }).join('') + '</div><div id="gfb"></div></div>';
+    var locked = false;
+    body.querySelector('.gopts').onclick = function(e){
+      var b = e.target.closest('.gopt'); if (!b || locked) return; locked = true;
+      var ok = r.opts[+b.dataset.j] === r.ok;
+      if (ok) score++;
+      Array.prototype.forEach.call(body.querySelectorAll('.gopt'), function(x){ if (r.opts[+x.dataset.j] === r.ok) x.classList.add('gok'); else if (x === b) x.classList.add('gno'); });
+      if (ok) gReward(2);
+      $('gfb').innerHTML = '<p class="gfx">' + (ok ? '✅ ¡Bien! +2 🪙' : '❌ No era esa.') + ' ' + r.exp + '</p><button class="btn" id="gNext">Siguiente ▶</button>';
+      $('gNext').onclick = function(){ i++; show(); };
+    };
+  }
+  show();
+}
+
+/* motor de rondas escribiendo el número */
+function gTyped(N, make, title){
+  gShell(title); var body = $('gBody'), i = 0, score = 0;
+  function show(){
+    if (i >= N) { var perfect = score === N; if (perfect) gReward(10); gEnd(body, 'Has acertado <b>' + score + ' de ' + N + '</b>.' + (perfect ? ' ¡Perfecto! +10 🪙' : ''), function(){ gTyped(N, make, title); }); return; }
+    var r = make(), done = false;
+    body.innerHTML = '<div class="card"><div class="gsc">Ronda ' + (i + 1) + ' de ' + N + ' · ✅ ' + score + '</div><div class="gq">' + r.q + '</div><input class="din" id="gIn" inputmode="decimal" autocomplete="off" placeholder="Escribe el número (con coma)"><div class="row2"><button class="btn green" id="gChk">✅ Comprobar</button></div><div id="gfb"></div></div>';
+    var go = function(){
+      if (done) return;
+      var raw = $('gIn').value.trim().replace(',', '.');
+      if (raw === '') { toast('Escribe el número primero ✍️'); return; }
+      if (!/^-?\d+(\.\d+)?$/.test(raw)) { toast('Escribe solo cifras y la coma ✍️'); return; }
+      done = true; $('gIn').disabled = true;
+      var ok = Math.abs(parseFloat(raw) - r.ok) < 1e-9;
+      if (ok) { score++; gReward(2); }
+      $('gfb').innerHTML = '<p class="gfx">' + (ok ? '✅ ¡Correcto! +2 🪙' : '❌ Era <b>' + fmtN(r.ok) + '</b>.') + ' ' + r.exp + '</p><button class="btn" id="gNext">Siguiente ▶</button>';
+      $('gNext').onclick = function(){ i++; show(); };
+    };
+    $('gChk').onclick = go;
+    $('gIn').onkeydown = function(e){ if (e.key === 'Enter') go(); };
+    setTimeout(function(){ var x = $('gIn'); if (x) x.focus(); }, 200);
+  }
+  show();
+}
+
+/* 1. ¿Cuál es mayor? */
+function gMayor(){
+  gRounds(10, function(){
+    var a = gRoll(), b; do { b = gRoll(); } while (b === a);
+    var sa = dzFmt(a, 3), sb = dzFmt(b, 3), big = a > b ? sa : sb;
+    return {q:'¿Cuál es el <b>mayor</b>?', opts: shuffle([sa, sb]), ok: big, exp: big + ' es mayor: compara primero las unidades y después las décimas, centésimas y milésimas.'};
+  }, '⚖️ ¿Cuál es mayor?');
+}
+
+/* 2. Memoria: cifra con su lectura */
+function gMemoria(){
+  gShell('🧠 Memoria: une cada cifra con su lectura');
+  var body = $('gBody'), items = [], used = {}, cards = [], found = 0;
+  while (items.length < 6) {
+    var k = rnd2(1, 3), n = rnd2(10, 99) * Math.pow(10, k) + rnd2(1, Math.pow(10, k) - 1), key = dzFmt(n, k);
+    if (used[key]) continue; used[key] = 1;
+    items.push({id: items.length, a: key, b: dzRead(n, k)});
+  }
+  items.forEach(function(it){ cards.push({id: it.id, t: it.a}); cards.push({id: it.id, t: it.b}); });
+  cards = shuffle(cards);
+  cards.forEach(function(c){ c.up = false; c.done = false; });
+  body.innerHTML = '<div class="gsc" style="margin-bottom:8px">Encuentra las 6 parejas · ✅ <span id="gFound">0</span></div><div class="ggrid" id="gGrid"></div>';
+  var sel = [], lock = false;
+  function paint(){ $('gGrid').innerHTML = cards.map(function(c, i){ return '<button class="gcard' + (c.done ? ' gdone' : c.up ? ' gup' : '') + '" data-i="' + i + '">' + (c.done || c.up ? c.t : '❔') + '</button>'; }).join(''); }
+  paint();
+  $('gGrid').onclick = function(e){
+    var b = e.target.closest('.gcard'); if (!b || lock) return;
+    var i = +b.dataset.i, c = cards[i];
+    if (c.up || c.done) return;
+    c.up = true; sel.push(i); paint();
+    if (sel.length < 2) return;
+    lock = true;
+    var a = cards[sel[0]], bb = cards[sel[1]];
+    if (a.id === bb.id) {
+      a.done = bb.done = true; found++; sel = []; lock = false;
+      if ($('gFound')) $('gFound').textContent = found;
+      gReward(2); paint();
+      if (found === items.length) gEnd(body, 'Has encontrado las <b>6</b> parejas. ¡Muy bien!', gMemoria);
+    } else {
+      setTimeout(function(){ a.up = bb.up = false; sel = []; lock = false; if ($('gGrid')) paint(); }, 900);
+    }
+  };
+}
+
+/* 3. Contrarreloj: el menor */
+function gContra(){
+  gShell('⏱️ Contrarreloj: ¿cuál es el menor?');
+  var body = $('gBody'), score = 0, left = 45, cur = '';
+  body.innerHTML = '<div class="card"><div class="gsc">⏱️ <b id="gTime">45</b> s · ✅ <b id="gSc">0</b></div><div class="gq">¿Cuál es el <b>menor</b>?</div><div class="gopts" id="gOp"></div></div>';
+  function next(){
+    var set = []; while (set.length < 4) { var v = gRoll(); if (set.indexOf(v) < 0) set.push(v); }
+    var sorted = set.slice().sort(function(a, b){ return a - b; }).map(function(v){ return dzFmt(v, 3); });
+    cur = sorted[0];
+    $('gOp').innerHTML = shuffle(sorted).map(function(t){ return '<button class="gopt" data-v="' + t + '">' + t + '</button>'; }).join('');
+  }
+  next();
+  $('gOp').onclick = function(e){
+    var b = e.target.closest('.gopt'); if (!b || left <= 0) return;
+    if (b.dataset.v === cur) { score++; gReward(1); $('gSc').textContent = score; } else { toast('❌ Era ' + cur); }
+    next();
+  };
+  gStopT = setInterval(function(){
+    left--; if ($('gTime')) $('gTime').textContent = left;
+    if (left <= 0) { gStop(); gEnd(body, '¡Se acabó el tiempo! Has acertado <b>' + score + '</b>.', gContra); }
+  }, 1000);
+}
+
+/* 4. Adivina el decimal */
+function gAdivina(){
+  gShell('🕵️ Adivina el decimal (entre 0 y 10)');
+  var body = $('gBody'), T = rnd2(1, 999), tries = 0, MAX = 6;
+  body.innerHTML = '<div class="card"><div class="gsc">Intentos: <span id="gTr">0</span> de ' + MAX + '</div><div class="gq">Estoy pensando en un número entre <b>0</b> y <b>10</b> con dos decimales. ¿Cuál es?</div><div id="gHint" class="gfx"></div><input class="din" id="gIn" inputmode="decimal" autocomplete="off" placeholder="Tu número (ej.: 4,25)"><div class="row2"><button class="btn green" id="gChk">✅ Probar</button></div></div>';
+  var go = function(){
+    var raw = $('gIn').value.trim().replace(',', '.');
+    if (!/^\d+(\.\d+)?$/.test(raw)) { toast('Escribe un número entre 0 y 10 ✍️'); return; }
+    var g = Math.round(parseFloat(raw) * 100);
+    tries++; $('gTr').textContent = tries; $('gIn').value = '';
+    if (g === T) { var coins = Math.max(2, 8 - tries); gReward(coins); gEnd(body, 'Lo has adivinado: <b>' + dzFmt(T, 2) + '</b> en ' + tries + ' intentos. +' + coins + ' 🪙', gAdivina); return; }
+    if (tries >= MAX) { gEnd(body, 'Era <b>' + dzFmt(T, 2) + '</b>. ¡Otra vez!', gAdivina); return; }
+    $('gHint').innerHTML = (g < T ? '⬆️ Mi número es MAYOR que ' : '⬇️ Mi número es MENOR que ') + dzFmt(g, 2) + '.';
+  };
+  $('gChk').onclick = go;
+  $('gIn').onkeydown = function(e){ if (e.key === 'Enter') go(); };
+}
+
+/* 5. Ordena las marcas */
+function gOrden(){
+  gShell('📶 Ordena: toca de menor a mayor');
+  var body = $('gBody'), N = 5, round = 0, score = 0;
+  function play(){
+    if (round >= N) { gEnd(body, 'Has ordenado <b>' + score + ' de ' + N + '</b> series.', gOrden); return; }
+    var set = []; while (set.length < 4) { var v = gRoll(); if (set.indexOf(v) < 0) set.push(v); }
+    var sorted = set.slice().sort(function(a, b){ return a - b; }).map(function(v){ return dzFmt(v, 3); }), pos = 0;
+    body.innerHTML = '<div class="card"><div class="gsc">Serie ' + (round + 1) + ' de ' + N + '</div><div class="gq">Toca los números de <b>menor a mayor</b></div><div class="gopts" id="gOp">' + shuffle(sorted).map(function(t){ return '<button class="gopt" data-v="' + t + '">' + t + '</button>'; }).join('') + '</div><div id="gfb" class="gfx"></div></div>';
+    $('gOp').onclick = function(e){
+      var b = e.target.closest('.gopt'); if (!b || b.disabled) return;
+      if (b.dataset.v === sorted[pos]) {
+        b.classList.add('gok'); b.disabled = true; pos++;
+        if (pos === 4) { score++; gReward(4); $('gfb').innerHTML = '✅ ¡Muy bien! +4 🪙'; round++; setTimeout(function(){ if ($('gBody') === body) play(); }, 1000); }
+      } else {
+        b.classList.add('gno'); toast('❌ Ese no es el siguiente');
+        setTimeout(function(){ b.classList.remove('gno'); }, 500);
+      }
+    };
+  }
+  play();
+}
+
+/* 6. Suma en columna */
+function gSuma(){
+  gTyped(8, function(){
+    var a = rnd2(100, 999), b = rnd2(10, 99), ok = (a + b * 10) / 100;
+    return {q:'Suma en columna: <b>' + dzFmt(a, 2) + ' + ' + dzFmt(b, 1) + '</b>', ok: ok, exp: 'Alinea las comas: ' + dzFmt(a, 2) + ' + ' + dzFmt(b * 10, 2) + ' = ' + fmtN(ok) + '.'};
+  }, '➕ Suma en columna');
+}
+
+/* 7. Mueve la coma */
+function gComa(){
+  gTyped(8, function(){
+    var v = rnd2(10, 999), t = rnd2(0, 2), label = ['× 10', '× 100', '÷ 10'][t], ok = t === 0 ? v / 10 : t === 1 ? v : v / 1000;
+    var where = ['un lugar a la derecha', 'dos lugares a la derecha', 'un lugar a la izquierda'][t];
+    return {q:'Calcula <b>' + dzFmt(v, 2) + ' ' + label + '</b>', ok: ok, exp: 'La coma se mueve ' + where + ': ' + dzFmt(v, 2) + ' ' + label + ' = ' + fmtN(ok) + '.'};
+  }, '🔁 Mueve la coma');
+}
+
+/* 8. El intruso */
+function gIntruso(){
+  gRounds(8, function(){
+    var v = rnd2(11, 98) * 10, odd = dzFmt(v + (Math.random() < .5 ? 1 : -1) * rnd2(1, 9), 2);
+    var eq = [dzFmt(v, 2), dzFmt(v / 10, 1), dzFmt(v * 10, 3)];
+    return {q:'¿Cuál <b>NO</b> vale lo mismo que los demás?', opts: shuffle(eq.concat([odd])), ok: odd, exp: 'Los otros tres valen ' + dzFmt(v, 2) + ': añadir o quitar ceros al final de un decimal no cambia su valor.'};
+  }, '🕵️ El intruso');
+}
+
+/* 9. Construye el mayor decimal */
+function gConstruye(){
+  gShell('🏗️ Construye el mayor decimal');
+  var body = $('gBody'), N = 4, round = 0, score = 0;
+  function play(){
+    if (round >= N) { gEnd(body, 'Has construido <b>' + score + ' de ' + N + '</b> números mayores.', gConstruye); return; }
+    var pool = shuffle([0,1,2,3,4,5,6,7,8,9]).slice(0, 4), target = pool.slice().sort(function(a, b){ return b - a; }), pos = 0, built = '';
+    var txt = function(){ return built.length > 2 ? built.slice(0, 2) + ',' + built.slice(2) : built; };
+    body.innerHTML = '<div class="card"><div class="gsc">Ronda ' + (round + 1) + ' de ' + N + '</div><div class="gq">Forma <b>el mayor número con 2 decimales</b> usando estas cifras (empieza por la de mayor valor)</div><div class="gbuilt" id="gBuilt">_ _ , _ _</div><div class="gopts" id="gDig" style="grid-template-columns:repeat(4,1fr)">' + shuffle(pool).map(function(d){ return '<button class="gopt gdig" data-d="' + d + '">' + d + '</button>'; }).join('') + '</div><div id="gfb" class="gfx"></div></div>';
+    $('gDig').onclick = function(e){
+      var b = e.target.closest('.gopt'); if (!b || b.disabled) return;
+      if (+b.dataset.d === target[pos]) {
+        b.disabled = true; b.classList.add('gok'); built += b.dataset.d; pos++;
+        $('gBuilt').textContent = txt();
+        if (pos === 4) { score++; gReward(4); $('gfb').innerHTML = '✅ ¡Eso es! El mayor es <b>' + txt() + '</b>. +4 🪙'; round++; setTimeout(function(){ if ($('gBody') === body) play(); }, 1400); }
+      } else {
+        b.classList.add('gno'); toast('❌ Esa cifra no va ahora');
+        setTimeout(function(){ b.classList.remove('gno'); }, 500);
+      }
+    };
+  }
+  play();
+}
+
+/* 10. Redondeo rápido */
+function gRedondeo(){
+  gRounds(10, function(){
+    var N = rnd2(100, 9999), p = rnd2(0, 1), pw = Math.pow(10, 2 - p), Rr = Math.floor((2 * N + pw) / (2 * pw)), tr = Math.floor(N / pw), dig = Math.floor(N / Math.pow(10, 1 - p)) % 10, ok = dzFmt(Rr, p);
+    var op = [ok, dzFmt(tr, p), dzFmt(Rr + 1, p), dzFmt(Rr - 1, p)].filter(function(x, i, a){ return a.indexOf(x) === i; });
+    if (op.length < 4) op.push(dzFmt(Rr + 2, p));
+    return {q:'Redondea <b>' + dzFmt(N, 2) + '</b> a la ' + (p === 0 ? 'unidad' : 'décima') + ' más cercana', opts: shuffle(op), ok: ok, exp: 'La cifra siguiente es ' + dig + ': ' + (dig >= 5 ? 'sube una unidad' : 'se queda igual') + '. Resultado: ' + ok + '.'};
+  }, '🎯 Redondeo rápido');
+}
+
+var GAMES = [
+ {id:'mayor', e:'⚖️', n:'¿Cuál es mayor?', d:'Elige el mayor de dos decimales', run:gMayor},
+ {id:'memoria', e:'🧠', n:'Memoria', d:'Une cifra y lectura', run:gMemoria},
+ {id:'contra', e:'⏱️', n:'Contrarreloj', d:'El menor, en 45 segundos', run:gContra},
+ {id:'adivina', e:'🕵️', n:'Adivina', d:'Descubre el decimal con pistas', run:gAdivina},
+ {id:'orden', e:'📶', n:'Ordena', d:'De menor a mayor', run:gOrden},
+ {id:'suma', e:'➕', n:'Suma en columna', d:'Alinea las comas y suma', run:gSuma},
+ {id:'coma', e:'🔁', n:'Mueve la coma', d:'× 10, × 100 y ÷ 10', run:gComa},
+ {id:'intruso', e:'🕵️‍♀️', n:'El intruso', d:'¿Cuál no vale lo mismo?', run:gIntruso},
+ {id:'construye', e:'🏗️', n:'Construye', d:'El mayor decimal con tus cifras', run:gConstruye},
+ {id:'redondeo', e:'🎯', n:'Redondeo rápido', d:'Unidad o décima', run:gRedondeo}
+];
+
+function renderGames(){
+  var h = $('gHost');
+  h.innerHTML = '<div class="card"><h2 style="margin:0 0 4px">🎮 Juegos de decimales</h2><p style="margin:0;font-weight:700;font-size:13px">Elige un juego. Cada acierto da monedas 🪙</p></div><div class="ggrid2">' + GAMES.map(function(g){ return '<button class="gmenu" data-game="' + g.id + '"><span class="ge">' + g.e + '</span><b>' + g.n + '</b><small>' + g.d + '</small></button>'; }).join('') + '</div>';
+  h.onclick = function(e){
+    var b = e.target.closest('[data-game]'); if (!b) return;
+    var g = GAMES.filter(function(x){ return x.id === b.dataset.game; })[0];
+    if (g) g.run();
+  };
+}
+
+(function(){
+  var st = document.createElement('style');
+  st.textContent = '.ggrid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}' +
+    '.gmenu{background:#fff;border:0;border-radius:18px;padding:12px 8px;box-shadow:0 4px 12px #7c4dff26;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:14px;color:#3b2a6b}' +
+    '.gmenu .ge{font-size:30px}.gmenu small{font-size:11px;font-weight:600;color:#6b5a9a;text-align:center}' +
+    '.gbar{display:flex;align-items:center;gap:10px;margin-bottom:10px}' +
+    '.gsc{font-weight:800;font-size:13px;color:#6b5a9a}' +
+    '.gq{font-size:18px;font-weight:800;margin:10px 0}' +
+    '.gopts{display:grid;grid-template-columns:1fr 1fr;gap:8px}' +
+    '.gopt{border:0;border-radius:14px;padding:12px 6px;font-weight:800;font-size:15px;background:#f3eeff;color:#3b2a6b}' +
+    '.gopt.gok{background:#b7f5c9}.gopt.gno{background:#ffc9d6}' +
+    '.gopt.gdig{font-size:24px}' +
+    '.gfx{font-weight:700;font-size:13.5px;margin:8px 0}' +
+    '.gbuilt{font-size:26px;font-weight:800;text-align:center;margin:8px 0;min-height:34px}' +
+    '.ggrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}' +
+    '.gcard{border:0;border-radius:14px;min-height:64px;padding:4px;font-weight:800;font-size:12px;background:#7c4dff;color:#fff;word-break:break-word}' +
+    '.gcard.gup{background:#fff;color:#3b2a6b;border:2px solid #7c4dff}' +
+    '.gcard.gdone{background:#b7f5c9;color:#17663a}';
+  document.head.appendChild(st);
+})();
 function bind(){
   document.querySelector('nav').addEventListener('click', function(e){ var b = e.target.closest('button'); if (b) tab(b.dataset.t); });
   $('actions').addEventListener('click', function(e){ var b = e.target.closest('button'); if (b) action(b.dataset.a); });
